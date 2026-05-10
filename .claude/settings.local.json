@@ -5,7 +5,12 @@
       "Bash(Select-Object FullName, PSIsContainer)",
       "Bash(Sort-Object FullName)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(xargs head -50)"
+      "Bash(xargs head -50)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Unity Projects\\\\Sudoku Defense Unity Version\\\\SudokuDefense\\\\Sudoku Defense\\\\DropInn\" -Force)",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
     ]
   }
 }

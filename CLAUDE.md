@@ -6,42 +6,63 @@ A browser-based D&D one-shot adventure prototype validating the **drop-in async 
 
 ## Architecture
 
-**No build system.** Vanilla React 18 loaded via CDN + Babel standalone transpiling JSX at runtime.
+**Vite + React 18 + TypeScript + Zustand.** The CDN/Babel prototype (`app.jsx`, `screens.jsx`, `icons.jsx`) lives in `_archive/` — the active codebase is `src/`.
 
 ```
 DropInn/
-├── Stick Figure Quest.html   # Entry point — all CSS + script tags
-├── icons.jsx                 # SVG icon library (loaded first)
-├── app.jsx                   # Game engine + scene UI components
-├── screens.jsx               # Screen router + all modals/overlays
-├── CLAUDE.md                 # This file
-└── DESIGN.md                 # Full v3 brief and success criteria
+├── index.html                    # Vite entry point
+├── src/
+│   ├── main.tsx                  # ReactDOM.createRoot
+│   ├── App.tsx                   # Screen router
+│   ├── data/
+│   │   ├── campaign.ts           # Actions (social/combat/dragon), players, NPC, bot plays
+│   │   └── outcomes.ts           # All narrative outcomes + round intro texts
+│   ├── lib/engine.ts             # d20 resolution engine
+│   ├── store/
+│   │   ├── gameStore.ts          # In-scene phase state (Zustand)
+│   │   └── lobbyStore.ts         # Lobby + persistence (Zustand persist)
+│   └── components/
+│       ├── AppBar.tsx
+│       ├── Room/                 # Full scene UI
+│       ├── Lobby/
+│       ├── overlays/
+│       ├── modals/
+│       └── icons/                # Defs, Coins, Seals, Misc
+├── _archive/                     # Old CDN/Babel version — not imported
+├── CLAUDE.md                     # This file
+└── DESIGN.md                     # Full v3 brief and success criteria
 ```
-
-**Load order matters:** `icons.jsx` → `app.jsx` → `screens.jsx`. Each file attaches exports to `window.*`. Babel transforms JSX at runtime — no npm, no node_modules.
 
 ## State management
 
-`screens.jsx / OuterShell` owns top-level state:
+`lobbyStore` (persisted to `sfq-v1-state`) owns:
 - `screen`: `'lobby' | 'previously' | 'room'`
 - `overlay`: modal name or null
 - `completed`, `xp`, `hasSalve`, `spotlightTokens`
-- `toast`: transient message string
 
-`app.jsx / App` owns in-scene game state:
-- `phase`: `Idle → Bots → Player → Reveal → Resolve → Reward`
-- `envelopes`, `drag`, `timer`, `storyText`
+`gameStore` (in-memory) owns in-scene state:
+- `phase`: `idle → bots → player → reveal → resolve → reward`
+- `envelopes`, `drag`, `timer`, `storyLog`, `rollResult`
 
-Cross-component communication uses `window.dispatchEvent(new CustomEvent('sfq-event', { detail: { type: '...' } }))`.
+## Action system
+
+Scene type determines which actions appear in the tray:
+- **`social`** — Charm (CHA), Bluff (ING), Read Room (INT), Bribe (ING) — used in town/NPC scenes
+- **`combat`** — Fire Bolt (INT), Thunderwave (INT), Shield (INT), Disengage (ATH) — bandit ambush
+- **`dragon`** — Arcane Burst (INT), Commune (CHA), Dispel (INT), Dash (ATH) — finale
+
+V1 (Scene 1) uses `social` for all 3 rounds. `ACTIONS_BY_ROUND` and `SCENE_TYPE_BY_ROUND` in `campaign.ts` control this — swap values there to change scene types per round.
+
+`disengage` and `dash` are auto-succeed (low-DC repositioning moves).
 
 ## Key design decisions
 
 - **Phase state machine** drives the entire game loop. Never break out of it with direct state mutations.
 - **Drag gesture** is the primary commit mechanic — pointer events on the stage div, distance math vs. drop zone center.
-- **Bot plays** are hardcoded: Bram intimidates, Aria examines. Player must pick from the remaining 4 coins.
-- **All narrative outcomes are pre-written strings** — no LLM in V1.
-- **d20 + trait roll** determines success/failure per action. DC is hardcoded per action type.
-- `localStorage` key: `sfq-v1-state` — saves XP, hasSalve, spotlightTokensLeft, completed, turn_count.
+- **Bot plays vary by round** — see `BOT_PLAYS_BY_ROUND` in `campaign.ts`.
+- **All narrative outcomes are pre-written strings** — no LLM in V1. See `outcomes.ts`.
+- **d20 + trait roll** determines success/failure per action. DC is hardcoded per action.
+- `localStorage` key: `sfq-v1-state` — saves XP, hasSalve, spotlightTokens, completed.
 
 ## NPC framework (V1: one hardcoded NPC)
 
@@ -65,12 +86,10 @@ Do NOT add: real multiplayer, backend, LLM calls, NPC generator, functional lobb
 
 ## Running locally
 
-Open `Stick Figure Quest.html` directly in a browser. No server required (Babel transpiles at load time). For file:// CORS issues with the JSX src imports, serve with any static server:
-
 ```
-npx serve .
-# or
-python -m http.server 8080
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # outputs to dist/
 ```
 
 ## V2 roadmap hooks
