@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>One-Shot Adventure — MVP Screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --navy-900:#0B1424;
+    --navy-800:#0F1B2D;
+    --navy-700:#16243F;
+    --navy-600:#1A2B47;
+    --navy-500:#22345A;
+    --wood-900:#3A2414;
+    --wood-700:#5D3A22;
+    --wood-500:#7A4A2A;
+    --parchment:#E8D9B4;
+    --parchment-light:#F2E3BE;
+    --parchment-dark:#C9B888;
+    --gold:#E8C760;
+    --gold-bright:#F6DD8B;
+    --gold-dark:#B8902E;
+    --gold-deep:#7A5A12;
+    --hp-green:#4ADE80;
+    --persuade:#8E5BD9;
+    --intimidate:#C53030;
+    --examine:#D4A017;
+    --move:#3B82F6;
+    --ink:#1F1408;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(ellipse at 50% 0%, #1a2540 0%, #0a0f1c 60%, #05080f 100%) fixed;
+    color:#E8D9B4;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding: 56px 24px 120px;
+  }
+
+  .heading{font-family:'Cinzel', serif; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;}
+  .body-serif{font-family:'EB Garamond', serif;}
+  .hand{font-family:'Caveat', cursive; font-weight:700;}
+  .ui-num{font-family:'Inter'; font-weight:700; font-variant-numeric: tabular-nums;}
+
+  .gold-text{
+    background: linear-gradient(180deg, #FCE89B 0%, #E8C760 45%, #B8902E 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+  }
+
+  /* Page chrome */
+  .page-head{
+    max-width:1400px; margin:0 auto 32px;
+    border-bottom:1px solid rgba(232,199,96,0.18);
+    padding-bottom:24px;
+  }
+  .page-head h1{
+    font-family:'Cinzel'; font-weight:700; letter-spacing:0.06em;
+    font-size:32px; margin:0; color:#FFE9A8;
+  }
+  .page-head p{
+    font-family:'EB Garamond'; font-style:italic; font-size:18px;
+    color:#A99668; margin:8px 0 0; max-width:680px;
+  }
+  .page-head .crumb{
+    font-family:'Inter'; font-size:11px; letter-spacing:0.18em;
+    text-transform:uppercase; color:#7a6a44; margin-bottom:6px;
+  }
+
+  /* Sections */
+  .section{
+    max-width:1400px; margin:0 auto 64px;
+  }
+  .section-head{
+    margin-bottom: 24px;
+    padding-bottom:14px;
+    border-bottom:1px dashed rgba(232,199,96,0.18);
+    display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap;
+  }
+  .section-head .num{
+    font-family:'Cinzel'; font-size:11px; letter-spacing:0.24em;
+    color:#8E6A1A; padding:4px 10px;
+    border:1px solid rgba(232,199,96,0.3); border-radius:2px;
+  }
+  .section-head h2{
+    font-family:'Cinzel'; font-weight:600; letter-spacing:0.04em;
+    font-size:22px; margin:0; color:#FFE9A8;
+  }
+  .section-head p{
+    font-family:'EB Garamond'; font-style:italic; font-size:15px;
+    color:#A99668; margin:0; flex:1; min-width:240px;
+  }
+
+  /* Phones grid */
+  .phones{
+    display:grid; gap:36px 28px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    align-items:start;
+  }
+  .phone-wrap{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .phone-cap{
+    font-family:'Inter'; font-size:11px; letter-spacing:0.18em; text-transform:uppercase;
+    color:#FFE9A8; font-weight:600;
+  }
+  .phone-cap .sub{
+    display:block; font-family:'EB Garamond'; font-style:italic;
+    font-size:13px; letter-spacing:0; text-transform:none;
+    color:#857148; margin-top:2px; font-weight:400;
+  }
+
+  .phone{
+    position:relative;
+    width:100%; aspect-ratio: 440/900;
+    background:#0F1B2D;
+    overflow:hidden;
+    border-radius: 22px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 30px 60px rgba(0,0,0,0.55),
+      0 8px 22px rgba(0,0,0,0.45);
+    isolation:isolate;
+    container-type: inline-size;
+  }
+  /* Use container query units so children scale with phone width */
+  .phone *{ box-sizing:border-box; }
+
+  /* Inner scaling root */
+  .frame{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    color:#fff;
+  }
+
+  /* ---------- App-bar (shared) ---------- */
+  .navbar{
+    height: 11.5%;
+    min-height:46px;
+    background: linear-gradient(180deg, #1B2C4A 0%, #16243F 60%, #0E1A30 100%);
+    border-bottom: 1px solid rgba(232,199,96,0.18);
+    box-shadow: inset 0 -2px 6px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0 12px; position:relative; z-index:5;
+  }
+  .icon-btn{
+    width:36px; height:36px; border-radius:8px;
+    background:linear-gradient(180deg,#1B2C4A,#0E1A30);
+    border:1px solid rgba(232,199,96,0.25);
+    display:flex; align-items:center; justify-content:center;
+    color:#E8C760;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.6);
+    cursor:pointer; padding:0; flex-shrink:0;
+    position:relative;
+  }
+  .icon-btn .badge{
+    position:absolute; top:1px; right:1px;
+    min-width:14px; height:14px; padding:0 3px; border-radius:7px;
+    background:#C53030; color:#fff; font-size:9px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid #0F1B2D;
+  }
+  .navbar-title{
+    flex:1; text-align:center;
+    font-family:'Cinzel'; font-weight:700;
+    font-size:15px; letter-spacing:0.04em;
+    background: linear-gradient(180deg, #FCE89B 0%, #E8C760 45%, #B8902E 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+  }
+  .navbar-title small{ display:block; font-size:8px; letter-spacing:0.22em; color:#7a6a44; -webkit-text-fill-color:#7a6a44; margin-top:1px; }
+
+  /* ---------- LOBBY ---------- */
+  .lobby-bg{
+    flex:1; min-height:0;
+    background:
+      radial-gradient(ellipse at 50% 100%, #1F3160 0%, #0F1B2D 60%, #0A1220 100%);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+
+  .filter-bar{
+    padding:10px 12px;
+    border-bottom:1px solid rgba(232,199,96,0.12);
+    background: rgba(15,27,45,0.8);
+    display:flex; align-items:center; gap:6px;
+    overflow:hidden; flex-wrap:nowrap;
+    flex-shrink:0;
+  }
+  .filter-bar::after{
+    content:''; flex-shrink:0; width:18px;
+    background:linear-gradient(90deg, transparent, #0F1B2D);
+    height:24px; pointer-events:none;
+  }
+  .chip{
+    flex-shrink:0;
+    padding:5px 10px;
+    background: linear-gradient(180deg,#1B2C4A,#0E1A30);
+    border:1px solid rgba(232,199,96,0.28);
+    border-radius: 14px;
+    font-family:'Inter'; font-size:11px; font-weight:600;
+    color:#C9B888; letter-spacing:0.02em;
+    display:inline-flex; align-items:center; gap:4px;
+    cursor:pointer;
+  }
+  .chip.on{
+    background: linear-gradient(180deg,#E8C760,#8E6A1A);
+    border-color:#5C3F09; color:#3A2410;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 0 8px rgba(232,199,96,0.4);
+  }
+  .chip.clear{
+    background:transparent; border-color:rgba(200,160,80,0.4); color:#A99668; margin-left:auto;
+  }
+  .chip svg{ width:11px; height:11px; }
+
+  .lobby-list{
+    flex:1; min-height:0;
+    overflow-y:auto;
+    padding:12px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .room-card{
+    background: linear-gradient(180deg,#1A2B47 0%, #0F1B2D 100%);
+    border:1px solid rgba(232,199,96,0.3);
+    border-radius:10px;
+    padding:12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+    display:flex; flex-direction:column; gap:10px;
+    position:relative;
+  }
+  .room-card.featured{
+    border:1px solid #E8C760;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 3px rgba(232,199,96,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .room-row{display:flex; align-items:center; gap:8px;}
+  .room-title{
+    font-family:'Cinzel'; font-weight:700; font-size:14px;
+    letter-spacing:0.03em;
+    background: linear-gradient(180deg, #FCE89B 0%, #E8C760 45%, #B8902E 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.15; flex:1;
+  }
+  .status-dot{
+    width:8px; height:8px; border-radius:50%;
+    box-shadow: 0 0 6px currentColor;
+    flex-shrink:0;
+  }
+  .status-dot.active{ color:#4ADE80; background:#4ADE80; animation: pulseDot 1.6s ease-in-out infinite;}
+  .status-dot.sleeping{ color:#7a6a44; background:#7a6a44; }
+  .status-dot.open{ color:#3B82F6; background:#3B82F6; }
+  @keyframes pulseDot{ 0%,100%{opacity:1;} 50%{opacity:0.45;}}
+
+  .status-badge{
+    font-family:'Inter'; font-size:9px; font-weight:700; letter-spacing:0.14em;
+    text-transform:uppercase; padding:3px 7px; border-radius:3px;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .status-badge.active{ background:rgba(74,222,128,0.12); color:#4ADE80; border:1px solid rgba(74,222,128,0.4);}
+  .status-badge.sleeping{ background:rgba(122,106,68,0.18); color:#A99668; border:1px solid rgba(122,106,68,0.4);}
+  .status-badge.open{ background:rgba(59,130,246,0.12); color:#7AB3FF; border:1px solid rgba(59,130,246,0.4);}
+
+  .theme-tag{
+    font-family:'EB Garamond'; font-style:italic; font-size:13px;
+    color:#C9B888;
+  }
+  .theme-tag::before{ content:''; display:inline-block; width:14px; height:1px; background:#5C3F09; margin-right:6px; vertical-align:middle;}
+
+  .avatars{ display:flex; }
+  .avatars .a{
+    width:24px; height:24px; border-radius:50%;
+    border:2px solid #0F1B2D;
+    margin-right:-7px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cinzel'; font-size:10px; font-weight:700;
+    position:relative;
+  }
+  .avatars .a.purple{ background:linear-gradient(180deg,#B68CF0,#4A1F8A); color:#FFEFCB;}
+  .avatars .a.green{ background:linear-gradient(180deg,#86F2A0,#22863a); color:#0c4a1a;}
+  .avatars .a.red{ background:linear-gradient(180deg,#F36A6A,#7E1A1A); color:#FFE9A8;}
+  .avatars .a.empty{
+    background: repeating-linear-gradient(45deg,#16243F,#16243F 3px,#1F3160 3px,#1F3160 6px);
+    color:#5C3F09;
+    border-style:dashed; border-color:rgba(232,199,96,0.4);
+  }
+  .avatars .online{
+    position:absolute; bottom:-1px; right:-2px;
+    width:8px; height:8px; border-radius:50%;
+    background:#4ADE80; border:2px solid #0F1B2D;
+  }
+
+  .progress{
+    display:flex; align-items:center; gap:8px;
+    font-family:'EB Garamond'; font-size:12px; color:#C9B888;
+  }
+  .pbar{
+    flex:1; height:6px; border-radius:3px;
+    background:linear-gradient(180deg,#0a0a0a,#1a1a1a);
+    border:1px solid rgba(0,0,0,0.6);
+    overflow:hidden;
+  }
+  .pbar > div{
+    height:100%;
+    background:linear-gradient(90deg,#E8C760,#B8902E);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  .meta-row{ display:flex; align-items:center; gap:10px; font-family:'Inter'; font-size:10px; color:#A99668;}
+  .meta-row .item{ display:flex; align-items:center; gap:4px;}
+  .meta-row svg{ width:12px; height:12px;}
+
+  .resume-btn{
+    margin-top:2px;
+    padding:9px 12px; border-radius:6px;
+    font-family:'Cinzel'; font-size:11px; font-weight:700; letter-spacing:0.14em;
+    background:linear-gradient(180deg,#E8C760,#8E6A1A);
+    color:#3A2410; border:1.5px solid #5C3F09;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.5);
+    cursor:pointer; text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .resume-btn.ghost{
+    background: transparent; color:#C9B888;
+    border:1px solid rgba(232,199,96,0.35);
+    box-shadow:none;
+  }
+
+  .lobby-actionbar{
+    flex-shrink:0;
+    background:linear-gradient(180deg,#16243F 0%, #0F1B2D 100%);
+    border-top: 1px solid rgba(232,199,96,0.2);
+    padding:10px 12px; display:flex; gap:8px; align-items:center;
+  }
+  .btn-primary{
+    flex:1; padding:10px 12px; border-radius:6px;
+    font-family:'Cinzel'; font-size:11px; font-weight:700; letter-spacing:0.16em;
+    background:linear-gradient(180deg,#E8C760,#8E6A1A);
+    color:#3A2410; border:1.5px solid #5C3F09;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.5);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn-primary.disabled{
+    background: linear-gradient(180deg,#3a3a44,#1a1a22);
+    color:#7a6a44; border-color:#3a2a14; cursor:not-allowed;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    opacity:0.7;
+  }
+  .btn-secondary{
+    flex:1; padding:10px 12px; border-radius:6px;
+    font-family:'Cinzel'; font-size:11px; font-weight:700; letter-spacing:0.16em;
+    background: linear-gradient(180deg,#1B2C4A,#0E1A30);
+    color:#E8C760; border:1px solid rgba(232,199,96,0.35);
+    cursor:pointer;
+  }
+
+  /* Empty state */
+  .empty-state{
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:36px; text-align:center; gap:14px;
+    color:#A99668;
+  }
+  .empty-state .glyph{
+    width:84px; height:84px; border-radius:50%;
+    border:2px dashed rgba(232,199,96,0.28);
+    display:flex; align-items:center; justify-content:center;
+    color:#7a6a44;
+    margin-bottom:6px;
+  }
+  .empty-state h3{
+    font-family:'Cinzel'; font-size:15px; font-weight:700; letter-spacing:0.06em;
+    margin:0; color:#FFE9A8;
+  }
+  .empty-state p{
+    font-family:'EB Garamond'; font-style:italic; font-size:14px; line-height:1.4;
+    margin:0; color:#A99668;
+  }
+
+  /* Filter sheet (overlay) */
+  .sheet-shade{
+    position:absolute; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(2px);
+    z-index:10;
+  }
+  .sheet{
+    position:absolute; left:0; right:0; bottom:0; z-index:11;
+    background:linear-gradient(180deg,#1A2B47 0%, #0F1B2D 100%);
+    border-top:2px solid #E8C760;
+    border-radius:14px 14px 0 0;
+    padding:14px 14px 18px;
+    box-shadow:0 -10px 24px rgba(0,0,0,0.6);
+    max-height:80%;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .sheet .grab{ width:40px; height:4px; background:rgba(232,199,96,0.4); border-radius:2px; margin:0 auto;}
+  .sheet h4{
+    font-family:'Cinzel'; font-size:12px; letter-spacing:0.16em;
+    color:#E8C760; margin:6px 0 -2px; text-transform:uppercase;
+  }
+  .sheet h4 small{ font-family:'EB Garamond'; font-style:italic; font-size:12px; letter-spacing:0; color:#7a6a44; text-transform:none; margin-left:8px;}
+  .seg{
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+
+  /* ---------- ROOM-state cards (overlays on game) ---------- */
+  .room-frame{
+    flex:1; min-height:0;
+    background:radial-gradient(ellipse at 50% 30%, #1A2B47 0%, #0A1220 100%);
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+
+  .scene-header{
+    background:linear-gradient(180deg,#1F3160 0%, #182747 100%);
+    border-top:1px solid rgba(232,199,96,0.35);
+    border-bottom:1px solid rgba(232,199,96,0.35);
+    padding:10px 12px; display:flex; align-items:center; gap:10px;
+    flex-shrink:0;
+  }
+  .scene-header .loc{
+    font-family:'Cinzel'; font-weight:700; font-size:12px; letter-spacing:0.06em;
+    background: linear-gradient(180deg, #FCE89B, #B8902E);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1.1;
+  }
+  .scene-header .loc small{ display:block; font-size:9px; letter-spacing:0.22em; color:#7a6a44; -webkit-text-fill-color:#7a6a44;}
+  .turn-pill{
+    margin-left:auto;
+    padding:3px 10px; border-radius:99px;
+    background:linear-gradient(180deg,#E8C760,#8E6A1A); color:#3A2410;
+    font-family:'Cinzel'; font-size:10px; font-weight:700; letter-spacing:0.14em;
+    border:1px solid #5C3F09;
+  }
+
+  /* Faded behind */
+  .behind{
+    flex:1; position:relative; opacity:0.55;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(232,199,96,0.06), transparent 50%),
+      linear-gradient(180deg,#0F1B2D,#0A1220);
+    overflow:hidden;
+  }
+  .behind .ring{
+    position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
+    width:62%; aspect-ratio:1; border-radius:50%;
+    background: radial-gradient(ellipse at 50% 50%, #8B5A35 0%, #6B3F22 50%, #3A2414 100%);
+    border:4px solid #3A2414;
+    box-shadow:0 12px 24px rgba(0,0,0,0.6), inset 0 -8px 14px rgba(0,0,0,0.4);
+  }
+
+  /* ---------- "Previously on…" card ---------- */
+  .prev-card{
+    position:absolute; left:14px; right:14px; top:14%;
+    z-index:6;
+    padding: 14px 14px 16px;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(160,130,80,0.25) 0 30%, transparent 60%),
+      radial-gradient(ellipse at 80% 70%, rgba(160,130,80,0.2) 0 30%, transparent 60%),
+      linear-gradient(180deg, #F2E3BE 0%, #E8D9B4 50%, #C9B888 100%);
+    border-radius:6px;
+    box-shadow:
+      inset 0 0 30px rgba(120,90,40,0.35),
+      0 14px 30px rgba(0,0,0,0.6),
+      0 0 0 1px #B8A66A,
+      0 0 0 4px rgba(232,199,96,0.15);
+    color:#1F1408;
+  }
+  .prev-card .ribbon{
+    position:absolute; top:-10px; left:14px;
+    background:linear-gradient(180deg,#A02828,#5C1010);
+    color:#FFE9A8; padding:4px 10px;
+    font-family:'Cinzel'; font-size:9px; font-weight:700; letter-spacing:0.2em;
+    text-transform:uppercase;
+    border:1px solid #5C1010;
+    box-shadow:0 2px 4px rgba(0,0,0,0.5);
+    clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
+  }
+  .prev-card h3{
+    font-family:'Cinzel'; font-size:12px; letter-spacing:0.12em;
+    color:#5C3F09; margin:6px 0 6px; text-transform:uppercase;
+    text-align:center;
+  }
+  .prev-card .summary{
+    font-family:'EB Garamond'; font-size:14px; line-height:1.4;
+    color:#3A2C18; font-style:italic;
+  }
+  .prev-card .summary em{ background:rgba(232,199,96,0.4); font-style:normal; padding:0 2px;}
+  .prev-card .countdown{
+    margin-top:10px; padding-top:10px;
+    border-top:1px dashed rgba(120,80,40,0.4);
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:'Inter'; font-size:10px; color:#5C3F09; letter-spacing:0.06em;
+  }
+  .prev-card .countdown .skip{ color:#5C3F09; cursor:pointer; text-decoration:underline;}
+
+  .prev-strip{
+    margin-top:10px; padding:8px 10px;
+    background:rgba(60,40,20,0.12);
+    border-left:3px solid #B8902E;
+    font-family:'EB Garamond'; font-size:13px; line-height:1.45; color:#3A2C18;
+  }
+  .prev-strip strong{font-family:'Cinzel'; font-size:9px; letter-spacing:0.16em; color:#5C3F09; display:block; margin-bottom:3px; text-transform:uppercase;}
+
+  /* ---------- Drop-in narrative (inline scroll) ---------- */
+  .scroll-card{
+    position:relative;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(160,130,80,0.22) 0 30%, transparent 60%),
+      linear-gradient(180deg, #F2E3BE 0%, #E8D9B4 50%, #C9B888 100%);
+    box-shadow: inset 0 0 24px rgba(120,90,40,0.35);
+    border-top:1px solid #B8A66A; border-bottom:1px solid #B8A66A;
+    padding:14px 16px;
+    color:#1F1408;
+    font-family:'EB Garamond'; font-size:14px; line-height:1.45;
+  }
+  .scroll-card .nowyou{
+    background:linear-gradient(180deg,#FFE9A8,#E8C760);
+    color:#3A2410; padding:2px 8px; border-radius:3px;
+    font-family:'Cinzel'; font-size:9px; letter-spacing:0.18em;
+    text-transform:uppercase; font-weight:700;
+    display:inline-block; margin-bottom:6px;
+  }
+
+  /* ---------- NPC dialogue panel ---------- */
+  .npc-portrait{
+    width:100%; aspect-ratio:1.3/1;
+    background:
+      radial-gradient(ellipse at 50% 90%, rgba(0,0,0,0.5), transparent 60%),
+      linear-gradient(180deg, #2a3f6d 0%, #16243F 80%);
+    position:relative; overflow:hidden;
+    border-bottom:1px solid rgba(232,199,96,0.3);
+  }
+  .stick-figure{ position:absolute; left:50%; bottom:14%; transform:translateX(-50%);}
+  .market-bg{
+    position:absolute; left:0; right:0; bottom:0; height:30%;
+    background:
+      linear-gradient(180deg, transparent, rgba(0,0,0,0.5)),
+      repeating-linear-gradient(90deg, #1A2B47 0 18px, #0F1B2D 18px 36px);
+    opacity:0.6;
+  }
+  .market-tent{
+    position:absolute; bottom:24%; right:8%;
+    width:40%; height:50%;
+    background:linear-gradient(180deg,#7E1A1A,#3A0606);
+    clip-path: polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%);
+    opacity:0.55;
+  }
+  .npc-name-bar{
+    padding:10px 14px;
+    background:linear-gradient(180deg,#1B2C4A,#0E1A30);
+    border-bottom:1px solid rgba(232,199,96,0.3);
+  }
+  .npc-name-bar .name{
+    font-family:'Cinzel'; font-size:15px; font-weight:700;
+    background:linear-gradient(180deg, #FCE89B, #B8902E);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:0.04em;
+  }
+  .npc-name-bar .role{
+    font-family:'EB Garamond'; font-style:italic; font-size:12px;
+    color:#A99668; margin-top:1px;
+  }
+  .trait-pills{
+    display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;
+  }
+  .trait-pills .tp{
+    font-family:'Inter'; font-size:9px; font-weight:600; letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:3px 7px; border-radius:9px;
+    background:rgba(232,199,96,0.08);
+    border:1px solid rgba(232,199,96,0.3);
+    color:#C9B888;
+  }
+  .trait-pills .tp.demeanor{ background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.4); color:#A78BFA;}
+  .trait-pills .tp.motiv{ background:rgba(212,160,23,0.12); border-color:rgba(212,160,23,0.4); color:#FCD34D;}
+  .quirk{
+    margin-top:8px;
+    font-family:'EB Garamond'; font-style:italic; font-size:12px;
+    color:#A99668;
+  }
+  .quirk::before{ content:'✦  '; color:#E8C760;}
+
+  .dialogue-list{
+    flex:1; overflow-y:auto;
+    padding:10px 12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .topic-row{
+    background:rgba(232,217,180,0.04);
+    border:1px solid rgba(232,199,96,0.2);
+    border-left:3px solid #B8902E;
+    border-radius:4px;
+    padding:9px 10px;
+    cursor:pointer;
+  }
+  .topic-row .topic{
+    font-family:'Cinzel'; font-size:10px; letter-spacing:0.14em;
+    color:#E8C760; text-transform:uppercase; margin-bottom:4px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .topic-row .topic .req{
+    font-family:'Inter'; font-size:9px; letter-spacing:0.06em;
+    color:#A78BFA; text-transform:none;
+  }
+  .topic-row .said{
+    font-family:'EB Garamond'; font-style:italic; font-size:13px;
+    line-height:1.4; color:#E8D9B4;
+  }
+  .topic-row.locked{ opacity:0.5;}
+  .topic-row.locked .topic{ color:#7a6a44;}
+  .topic-row.spoken{
+    background:rgba(232,217,180,0.02); border-left-color:#5C3F09;
+  }
+  .topic-row.spoken .topic{color:#7a6a44; }
+
+  /* ---------- Generic modal card ---------- */
+  .modal-shade{
+    position:absolute; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(2px); z-index:9;
+  }
+  .modal{
+    position:absolute; left:14px; right:14px; top:50%; transform:translateY(-50%);
+    z-index:10;
+    background:linear-gradient(180deg,#1A2B47,#0F1B2D);
+    border:1.5px solid #E8C760;
+    border-radius:10px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 4px rgba(232,199,96,0.12);
+    overflow:hidden;
+  }
+  .modal-head{
+    padding:12px 14px;
+    background:linear-gradient(180deg,#1F3160,#16243F);
+    border-bottom:1px solid rgba(232,199,96,0.28);
+    display:flex; align-items:center; gap:8px;
+  }
+  .modal-head .title{
+    font-family:'Cinzel'; font-size:12px; letter-spacing:0.16em;
+    background:linear-gradient(180deg, #FCE89B, #B8902E);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-transform:uppercase;
+  }
+  .modal-body{ padding:14px;}
+  .modal-foot{
+    padding:10px 14px;
+    border-top:1px solid rgba(232,199,96,0.2);
+    background:rgba(0,0,0,0.25);
+    display:flex; gap:8px;
+  }
+
+  /* Inventory grid */
+  .inv-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
+  }
+  .inv-cell{
+    aspect-ratio:1; border-radius:6px;
+    background: linear-gradient(180deg, rgba(40,30,20,0.5), rgba(20,15,10,0.7));
+    border:1px solid rgba(232,199,96,0.25);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,0.4);
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    color:#C9B888; font-size:18px;
+  }
+  .inv-cell.has{
+    background: linear-gradient(180deg, #2a3f6d, #16243F);
+    border-color: #E8C760;
+    box-shadow: 0 0 0 1px rgba(232,199,96,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .inv-cell .qty{
+    position:absolute; right:3px; bottom:1px;
+    font-family:'Inter'; font-size:9px; font-weight:700;
+    color:#FFE9A8;
+  }
+  .inv-cell.legendary{ border-color:#E8C760; box-shadow:0 0 8px rgba(232,199,96,0.45), inset 0 1px 0 rgba(255,255,255,0.08);}
+  .inv-cell.consumable{ border-color:#6EE7B7;}
+  .inv-cell svg{ width:60%; height:60%;}
+
+  .inv-detail{
+    margin-top:12px; padding:10px;
+    border-top:1px dashed rgba(232,199,96,0.2);
+    display:flex; gap:10px;
+  }
+  .inv-detail .pic{
+    width:48px; height:48px; flex-shrink:0;
+    background:linear-gradient(180deg,#2a3f6d,#16243F);
+    border:1px solid #E8C760; border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    color:#6EE7B7;
+  }
+  .inv-detail h5{
+    font-family:'Cinzel'; font-size:12px; margin:0 0 3px; color:#FFE9A8; letter-spacing:0.04em;
+  }
+  .inv-detail .flav{
+    font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668; line-height:1.35;
+  }
+
+  /* Spotlight modal */
+  .spot-glow{
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(255,221,120,0.18), transparent 55%);
+    pointer-events:none;
+  }
+  .spot-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .spot-row .coin{
+    width:48px; height:48px; flex-shrink:0;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FFF6CB, #E8C760 55%, #8E6A1A 100%);
+    border:2px solid #5C3F09;
+    box-shadow:0 0 16px rgba(232,199,96,0.6);
+    display:flex; align-items:center; justify-content:center;
+    color:#3A2410; font-family:'Cinzel'; font-size:14px; font-weight:700;
+  }
+  .spot-row h4{
+    font-family:'Cinzel'; font-size:13px; letter-spacing:0.1em;
+    color:#FFE9A8; margin:0;
+  }
+  .spot-row p{
+    font-family:'EB Garamond'; font-style:italic; font-size:12px;
+    color:#A99668; margin:2px 0 0; line-height:1.35;
+  }
+  .spot-input{
+    width:100%; min-height:88px;
+    background:linear-gradient(180deg, #F2E3BE, #C9B888);
+    border:1.5px solid #B8902E;
+    border-radius:5px;
+    padding:10px;
+    font-family:'Caveat', cursive; font-weight:700;
+    font-size:18px; line-height:1.3;
+    color:#1F1408;
+    resize:none; outline:none;
+  }
+  .spot-tip{
+    font-family:'EB Garamond'; font-style:italic; font-size:11px;
+    color:#7a6a44; margin-top:6px;
+  }
+  .spot-counter{
+    font-family:'Inter'; font-size:10px; color:#A99668; margin-top:4px; text-align:right;
+  }
+
+  /* Notifications */
+  .notif-list{
+    display:flex; flex-direction:column;
+  }
+  .notif{
+    display:flex; gap:10px; padding:12px 14px;
+    border-bottom:1px solid rgba(232,199,96,0.12);
+    background: rgba(232,199,96,0.04);
+  }
+  .notif.new{ background:rgba(232,199,96,0.08); border-left:3px solid #E8C760;}
+  .notif.new .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#E8C760; box-shadow:0 0 6px #E8C760;
+    margin-top:6px; flex-shrink:0;
+  }
+  .notif .glyph{
+    width:32px; height:32px; flex-shrink:0;
+    border-radius:50%;
+    background:linear-gradient(180deg,#1B2C4A,#0E1A30);
+    border:1px solid rgba(232,199,96,0.3);
+    display:flex; align-items:center; justify-content:center; color:#E8C760;
+  }
+  .notif .body{flex:1; min-width:0;}
+  .notif .body .ti{
+    font-family:'Inter'; font-weight:600; font-size:12px; color:#FFE9A8; line-height:1.3;
+  }
+  .notif .body .sub{
+    font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668; margin-top:2px; line-height:1.3;
+  }
+  .notif .when{ font-family:'Inter'; font-size:9px; color:#7a6a44; flex-shrink:0; margin-top:2px;}
+
+  /* Profile detail */
+  .profile-hero{
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(167,139,250,0.18), transparent 60%),
+      linear-gradient(180deg,#1A2B47,#0F1B2D);
+    padding:18px 14px 14px;
+    text-align:center; border-bottom:1px solid rgba(232,199,96,0.25);
+  }
+  .profile-hero .nm{
+    font-family:'EB Garamond'; font-weight:500; font-size:24px;
+    color:#FFEFCB; margin:6px 0 0;
+  }
+  .profile-hero .cls{
+    font-family:'EB Garamond'; font-style:italic; font-size:13px;
+    color:#A78BFA;
+  }
+  .profile-hero .lvl{
+    display:inline-flex; gap:10px; align-items:baseline;
+    margin-top:8px; padding:4px 12px; border-radius:99px;
+    background:rgba(232,199,96,0.1); border:1px solid rgba(232,199,96,0.3);
+    font-family:'Inter'; font-size:11px; color:#E8C760; font-weight:600; letter-spacing:0.06em;
+  }
+  .profile-hero .lvl strong{ font-family:'Cinzel'; color:#FFE9A8; font-size:13px;}
+
+  .stat-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:12px 14px;
+  }
+  .stat-row .sc{
+    text-align:center; padding:8px 4px; border-radius:5px;
+  }
+  .stat-row .sc .l{ font-family:'Cinzel'; font-size:9px; letter-spacing:0.14em; opacity:0.8;}
+  .stat-row .sc .v{ font-family:'Inter'; font-size:18px; font-weight:700; margin-top:2px;}
+  .stat-row .sc.int{ background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.4); color:#A78BFA;}
+  .stat-row .sc.ath{ background:rgba(110,231,183,0.12); border:1px solid rgba(110,231,183,0.4); color:#6EE7B7;}
+  .stat-row .sc.ing{ background:rgba(252,211,77,0.12); border:1px solid rgba(252,211,77,0.4); color:#FCD34D;}
+  .stat-row .sc.cha{ background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.4); color:#F87171;}
+
+  .xp-rail{
+    margin:0 14px 12px; padding:10px 12px;
+    background:rgba(232,199,96,0.05);
+    border:1px solid rgba(232,199,96,0.2); border-radius:6px;
+  }
+  .xp-rail .lab{
+    font-family:'Cinzel'; font-size:10px; letter-spacing:0.14em;
+    display:flex; justify-content:space-between; color:#C9B888; margin-bottom:6px;
+  }
+  .xp-rail .bar{
+    height:8px; border-radius:4px;
+    background:linear-gradient(180deg,#0a0a0a,#1a1a1a); overflow:hidden;
+    border:1px solid rgba(0,0,0,0.5);
+  }
+  .xp-rail .bar > div{
+    height:100%; width:62%;
+    background:linear-gradient(90deg,#A78BFA,#5b3ec9);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  /* Tap-to-confirm action card */
+  .confirm-popover{
+    position:absolute; left:14px; right:14px; bottom:24%;
+    z-index:10;
+    background:linear-gradient(180deg,#1A2B47,#0F1B2D);
+    border:1.5px solid #E8C760;
+    border-radius:10px;
+    padding:12px 14px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.6);
+  }
+  .confirm-popover .head{
+    display:flex; align-items:center; gap:10px;
+  }
+  .confirm-popover .pcoin{
+    width:44px; height:44px; flex-shrink:0; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #DCBDFB, #8E5BD9 60%, #4A1F8A);
+    border:2px solid #4A1F8A;
+    box-shadow:0 0 14px rgba(167,139,250,0.6);
+    display:flex; align-items:center; justify-content:center; color:#FFEFCB;
+  }
+  .confirm-popover h4{
+    font-family:'Cinzel'; font-size:12px; letter-spacing:0.12em;
+    color:#FFE9A8; margin:0; text-transform:uppercase;
+  }
+  .confirm-popover p{
+    font-family:'EB Garamond'; font-style:italic; font-size:12px;
+    color:#A99668; margin:2px 0 0; line-height:1.35;
+  }
+  .confirm-popover .check{
+    margin-top:10px; padding-top:10px;
+    border-top:1px dashed rgba(232,199,96,0.2);
+    font-family:'EB Garamond'; font-size:13px; color:#C9B888; line-height:1.4;
+  }
+  .confirm-popover .check strong{font-family:'Cinzel'; font-size:9px; letter-spacing:0.16em; color:#A78BFA; display:block; margin-bottom:2px;}
+
+  /* Stub V2 card */
+  .v2-stub{
+    position:absolute; left:18px; right:18px; top:50%;
+    transform:translateY(-50%);
+    z-index:6; padding:18px;
+    background:
+      repeating-linear-gradient(45deg, rgba(232,199,96,0.04) 0 8px, transparent 8px 16px),
+      linear-gradient(180deg,#1A2B47,#0F1B2D);
+    border:1.5px dashed rgba(232,199,96,0.5);
+    border-radius:10px; text-align:center;
+  }
+  .v2-stub .badge{
+    display:inline-block; padding:3px 10px; border-radius:99px;
+    background:linear-gradient(180deg,#A78BFA,#5b3ec9); color:#FFEFCB;
+    font-family:'Cinzel'; font-size:9px; letter-spacing:0.18em; text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .v2-stub h3{
+    font-family:'Cinzel'; font-size:15px; letter-spacing:0.06em;
+    color:#FFE9A8; margin:0 0 6px;
+  }
+  .v2-stub p{
+    font-family:'EB Garamond'; font-style:italic; font-size:13px;
+    color:#A99668; margin:0; line-height:1.4;
+  }
+
+  /* Reward card */
+  .reward{
+    position:absolute; left:0; right:0; bottom:0; z-index:7;
+    padding:14px 14px 18px;
+    background:linear-gradient(180deg,#1F3160 0%, #0E1A30 100%);
+    border-top:2px solid #E8C760;
+    box-shadow: 0 -10px 24px rgba(0,0,0,0.7);
+  }
+  .reward .row{ display:flex; align-items:center; gap:10px;}
+  .reward .pcoin{
+    width:48px; height:48px; flex-shrink:0; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FFF6CB, #E8C760 55%, #8E6A1A);
+    border:2px solid #5C3F09;
+    box-shadow:0 0 14px rgba(232,199,96,0.7);
+    display:flex; align-items:center; justify-content:center; color:#3A2410;
+  }
+  .reward .body{flex:1;}
+  .reward h4{
+    font-family:'Cinzel'; font-size:12px; letter-spacing:0.14em;
+    background:linear-gradient(180deg, #FCE89B, #B8902E);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin:0;
+  }
+  .reward .desc{ font-family:'EB Garamond'; font-size:13px; color:#FFEFCB; margin-top:3px;}
+  .reward .desc .xp{ color:#FFE9A8; font-family:'Inter'; font-weight:700;}
+  .reward .desc .item{ color:#6EE7B7;}
+
+  .reward .breakdown{
+    margin-top:10px; padding-top:10px;
+    border-top:1px dashed rgba(232,199,96,0.2);
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+  .reward .breakdown .crumb{
+    font-family:'Inter'; font-size:10px; color:#C9B888;
+    padding:3px 7px; border-radius:99px;
+    background:rgba(232,199,96,0.08); border:1px solid rgba(232,199,96,0.2);
+  }
+
+  /* Leave modal */
+  .leave-illust{
+    width:100%; height:90px;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.5), transparent 60%),
+      linear-gradient(180deg, #1F3160 0%, #16243F 100%);
+    border-bottom:1px solid rgba(232,199,96,0.2);
+    position:relative; overflow:hidden;
+  }
+  .leave-illust .door{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:56px; height:78px;
+    background:linear-gradient(180deg,#7A4A2A,#3A2414);
+    border:2px solid #1F1408; border-radius:28px 28px 4px 4px;
+  }
+  .leave-illust .door::after{
+    content:''; position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    width:6px; height:6px; border-radius:50%; background:#E8C760;
+    box-shadow:0 0 6px #E8C760;
+  }
+  .leave-illust .glow{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:100px; height:100px; border-radius:50%;
+    background:radial-gradient(circle, rgba(232,199,96,0.35), transparent 60%);
+  }
+
+  /* HP/segmented detail bits */
+  .seg-bar{display:flex; gap:3px; height:8px; flex:1;}
+  .seg-bar > div{flex:1; border-radius:2px; border:1px solid rgba(0,0,0,0.6);}
+  .seg-bar > div.on{background:linear-gradient(180deg,#F36A6A,#7E1A1A);}
+  .seg-bar > div.off{background:linear-gradient(180deg,#1F0808,#0a0303);}
+
+  /* small stick figure */
+  .sf{ width:74px; height:120px; position:relative;}
+  .sf .head{ position:absolute; left:50%; top:0; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#E8D9B4; border:2.5px solid #1F1408;}
+  .sf .body{ position:absolute; left:50%; top:24px; transform:translateX(-50%); width:2.5px; height:46px; background:#1F1408;}
+  .sf .arm{position:absolute; top:30px; left:50%; width:30px; height:2.5px; background:#1F1408; transform-origin:left; transform:translateX(-50%) rotate(20deg);}
+  .sf .arm.r{ transform:translateX(-50%) rotate(-160deg);}
+  .sf .leg{position:absolute; top:70px; left:50%; width:2.5px; height:36px; background:#1F1408; transform-origin: top; transform:translateX(-50%) rotate(15deg);}
+  .sf .leg.r{ transform:translateX(-50%) rotate(-15deg);}
+  .sf .satchel{
+    position:absolute; left:50%; top:46px; transform:translateX(-50%) translateX(10px) rotate(8deg);
+    width:18px; height:14px; background:#7A4A2A; border:2px solid #3A2414; border-radius:3px;
+  }
+
+  /* Annotations */
+  .anno{
+    margin-top:8px; padding:8px 10px;
+    background:rgba(232,199,96,0.04);
+    border-left:2px solid rgba(232,199,96,0.4);
+    border-radius:0 4px 4px 0;
+    font-family:'EB Garamond'; font-style:italic; font-size:13px;
+    color:#A99668; line-height:1.4;
+  }
+  .anno strong{
+    font-family:'Cinzel'; font-size:9px; letter-spacing:0.18em;
+    color:#E8C760; display:block; margin-bottom:2px; text-transform:uppercase;
+  }
+
+  /* HEAT/state notes column */
+  .handoff-box{
+    max-width:1400px; margin:48px auto 0;
+    border:1px solid rgba(232,199,96,0.18);
+    border-radius:8px;
+    padding:24px 28px;
+    background: linear-gradient(180deg, rgba(31,49,96,0.2), rgba(15,27,45,0.2));
+  }
+  .handoff-box h2{
+    font-family:'Cinzel'; font-size:18px; letter-spacing:0.06em;
+    color:#FFE9A8; margin:0 0 6px;
+  }
+  .handoff-box p{
+    font-family:'EB Garamond'; font-style:italic; font-size:14px;
+    color:#A99668; margin:0 0 18px;
+  }
+  .state-grid{
+    display:grid; gap:16px;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .state-card{
+    padding:14px;
+    background:rgba(15,27,45,0.6);
+    border:1px solid rgba(232,199,96,0.18);
+    border-radius:6px;
+  }
+  .state-card h3{
+    font-family:'Cinzel'; font-size:11px; letter-spacing:0.14em;
+    color:#E8C760; margin:0 0 8px; text-transform:uppercase;
+  }
+  .state-card pre{
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+    font-size:11px; line-height:1.45;
+    color:#C9B888; margin:0; white-space:pre-wrap;
+  }
+  .state-card pre .k{ color:#A78BFA;}
+  .state-card pre .s{ color:#6EE7B7;}
+  .state-card pre .n{ color:#FCD34D;}
+
+  /* HP bar small  */
+  .hpb{display:flex; align-items:center; gap:6px;}
+  .hpb .bar{flex:1; height:8px; border-radius:5px; background:#0a0a0a; border:1px solid rgba(0,0,0,0.7); overflow:hidden;}
+  .hpb .bar > div{height:100%; background:linear-gradient(180deg,#86F2A0,#22863a);}
+  .hpb .v{font-family:'Inter'; font-size:10px; color:#FFEFCB;}
+
+  /* helper svg sizing */
+  svg.icon{ display:block; }
+</style>
+</head>
+
+<body>
+
+<!-- ============= SVG SHARED DEFS ============= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="goldGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#FCE89B"/><stop offset="45%" stop-color="#E8C760"/><stop offset="100%" stop-color="#8E6A1A"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#F36A6A"/><stop offset="100%" stop-color="#7E1A1A"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#B68CF0"/><stop offset="100%" stop-color="#4A1F8A"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#86F2A0"/><stop offset="100%" stop-color="#22863a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ============= PAGE HEADER ============= -->
+<header class="page-head">
+  <div class="crumb">One-Shot Adventure · MVP UI Spec</div>
+  <h1>Lobby, Drop-in &amp; Room States</h1>
+  <p>A companion design overview to <em>Stick Figure Quest</em> — the screens and modals around the in-scene loop, ready for backend handoff. Each frame is a phone-sized mock with the shipped visual system; annotations call out what the engine needs to drive.</p>
+</header>
+
+<!-- ============= 1. LOBBY ============= -->
+<section class="section">
+  <div class="section-head">
+    <div class="num">01</div>
+    <h2>Lobby — Adventures</h2>
+    <p>Discovery feed &amp; filter system. V1: one hardcoded room visible, filters mostly decorative, theme filter demoes empty state.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- LOBBY: default -->
+    <div class="phone-wrap">
+      <div class="phone-cap">A · Default lobby
+        <span class="sub">First load. One sleeping room. Filters at "Any".</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2 L4 6 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V6 Z" fill="url(#goldGrad)" stroke="#5C3F09" stroke-width="0.8"/></svg>
+            </button>
+            <div class="navbar-title">Adventures<small>· One Shot ·</small></div>
+            <button class="icon-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 4 C9 4 7 6 7 9 V13 L5 16 V17 H19 V16 L17 13 V9 C17 6 15 4 12 4 Z M10 19 C10 20.5 11 21 12 21 C13 21 14 20.5 14 19 Z" fill="url(#goldGrad)" stroke="#5C3F09" stroke-width="0.6"/></svg>
+              <span class="badge">2</span>
+            </button>
+          </div>
+
+          <div class="lobby-bg">
+            <div class="filter-bar">
+              <div class="chip on">Any progress
+                <svg viewBox="0 0 12 12"><path d="M3 4 L6 8 L9 4" stroke="#3A2410" stroke-width="1.4" fill="none"/></svg>
+              </div>
+              <div class="chip">2–4 players</div>
+              <div class="chip">⏱ Any</div>
+              <div class="chip">Theme</div>
+              <div class="chip">🌐 Public</div>
+            </div>
+
+            <div class="lobby-list">
+              <!-- The featured room -->
+              <div class="room-card featured">
+                <div class="room-row">
+                  <div class="room-title">The Dragon of Ash Hollow</div>
+                  <span class="status-dot sleeping"></span>
+                </div>
+                <div class="room-row" style="gap:6px;">
+                  <span class="status-badge sleeping">Sleeping · 2d</span>
+                  <span class="theme-tag">Dragon Slaying</span>
+                </div>
+                <div class="room-row">
+                  <div class="avatars">
+                    <div class="a purple">Y</div>
+                    <div class="a green">B</div>
+                    <div class="a empty">+</div>
+                  </div>
+                  <div style="margin-left:auto; font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668;">2 of 3 · drop-in welcome</div>
+                </div>
+                <div class="progress">
+                  <div class="pbar"><div style="width:30%;"></div></div>
+                  <span class="ui-num" style="color:#FFE9A8; font-size:11px;">30%</span>
+                </div>
+                <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#7a6a44;">Scene 1 of 3 — Thornwick Market</div>
+                <div class="meta-row">
+                  <span class="item">⏱ <span class="ui-num">30s</span> turns</span>
+                  <span class="item">🌐 Public</span>
+                  <span class="item" style="margin-left:auto; color:#E8C760;">Tap to wake →</span>
+                </div>
+                <div class="resume-btn"><span>▷</span> Resume Adventure</div>
+              </div>
+
+              <!-- Faded second room (placeholder for "more coming in V2") -->
+              <div class="room-card" style="opacity:0.45; filter:saturate(0.6);">
+                <div class="room-row">
+                  <div class="room-title">More campaigns coming in V2</div>
+                </div>
+                <div style="font-family:'EB Garamond'; font-style:italic; font-size:13px; color:#A99668;">Heists, Hauntings, Royal Intrigue, and more.</div>
+              </div>
+            </div>
+
+            <div class="lobby-actionbar">
+              <button class="btn-primary disabled">＋ Create New</button>
+              <button class="btn-secondary">⚑ My Campaigns</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>V1 hardcodes one room; backend should still treat it as a list, sorted by <code>last_activity</code> desc. Tap → load <code>previously-on</code> card before scene mount.</div>
+    </div>
+
+    <!-- LOBBY: filter sheet open -->
+    <div class="phone-wrap">
+      <div class="phone-cap">B · Filter sheet
+        <span class="sub">Tap any chip → bottom-sheet with full ranges.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2 L4 6 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V6 Z" fill="url(#goldGrad)"/></svg>
+            </button>
+            <div class="navbar-title">Adventures<small>· filter ·</small></div>
+            <button class="icon-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 4 C9 4 7 6 7 9 V13 L5 16 V17 H19 V16 L17 13 V9 C17 6 15 4 12 4 Z" fill="url(#goldGrad)"/></svg>
+              <span class="badge">2</span>
+            </button>
+          </div>
+
+          <div class="lobby-bg">
+            <div class="filter-bar">
+              <div class="chip on">Active</div>
+              <div class="chip on">2 players</div>
+              <div class="chip">⏱ 30s</div>
+              <div class="chip on">Dragon</div>
+              <div class="chip">🌐 Public</div>
+            </div>
+            <div class="lobby-list" style="opacity:0.35; filter:blur(0.5px);">
+              <div class="room-card">
+                <div class="room-row">
+                  <div class="room-title">The Dragon of Ash Hollow</div>
+                  <span class="status-dot sleeping"></span>
+                </div>
+                <div class="room-row" style="gap:6px;">
+                  <span class="status-badge sleeping">Sleeping</span>
+                  <span class="theme-tag">Dragon</span>
+                </div>
+                <div class="progress"><div class="pbar"><div style="width:30%"></div></div><span class="ui-num" style="color:#FFE9A8; font-size:11px;">30%</span></div>
+              </div>
+            </div>
+
+            <div class="sheet-shade"></div>
+            <div class="sheet">
+              <div class="grab"></div>
+
+              <h4>Progress <small>any state</small></h4>
+              <div class="seg">
+                <div class="chip on">Any</div>
+                <div class="chip">Just started <span style="opacity:0.5; margin-left:4px;">0–25%</span></div>
+                <div class="chip">In progress</div>
+                <div class="chip">Wrapping up</div>
+              </div>
+
+              <h4>Players in room</h4>
+              <div class="seg">
+                <div class="chip">1</div><div class="chip on">2</div><div class="chip">3</div><div class="chip">4</div>
+              </div>
+
+              <h4>Turn duration</h4>
+              <div class="seg">
+                <div class="chip">15s</div><div class="chip on">30s</div><div class="chip">60s</div><div class="chip">2m</div>
+              </div>
+
+              <h4>Theme</h4>
+              <div class="seg">
+                <div class="chip on">Dragon</div><div class="chip">Princess</div><div class="chip">Heist</div><div class="chip">Mystery</div><div class="chip">Horror</div>
+              </div>
+
+              <div class="seg" style="margin-top:6px;">
+                <div class="chip clear">Clear all</div>
+                <div class="btn-primary" style="flex:1.2; padding:10px;">Apply</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>UX note</strong>Sheet height = ~80%. Live "n results" preview should appear once filtering is wired in V2.</div>
+    </div>
+
+    <!-- LOBBY: empty state (theme = horror) -->
+    <div class="phone-wrap">
+      <div class="phone-cap">C · No matches
+        <span class="sub">Demo state when "Theme: Horror" is selected.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2 L4 6 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V6 Z" fill="url(#goldGrad)"/></svg>
+            </button>
+            <div class="navbar-title">Adventures</div>
+            <button class="icon-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 4 C9 4 7 6 7 9 V13 L5 16 V17 H19 V16 L17 13 V9 C17 6 15 4 12 4 Z" fill="url(#goldGrad)"/></svg>
+            </button>
+          </div>
+          <div class="lobby-bg">
+            <div class="filter-bar">
+              <div class="chip">Any</div>
+              <div class="chip">2–4 players</div>
+              <div class="chip">⏱ Any</div>
+              <div class="chip on">Theme: Horror ✕</div>
+              <div class="chip clear">Clear</div>
+            </div>
+            <div class="empty-state">
+              <div class="glyph">
+                <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M28 28 L36 36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+              </div>
+              <h3>No campaigns match</h3>
+              <p>The taverns are quiet on this front.<br/>Try widening the search, or be the first to start one.</p>
+              <div style="display:flex; gap:8px; margin-top:6px;">
+                <div class="btn-secondary" style="flex:0;">Clear filters</div>
+                <div class="btn-primary disabled" style="flex:0;">＋ Create</div>
+              </div>
+            </div>
+            <div class="lobby-actionbar">
+              <button class="btn-primary disabled">＋ Create New</button>
+              <button class="btn-secondary">⚑ My Campaigns</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>V1 trigger</strong>Selecting "Horror" forces this state regardless of underlying data — proves the empty pattern without needing real filtering.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============= 2. ENTRY ============= -->
+<section class="section">
+  <div class="section-head">
+    <div class="num">02</div>
+    <h2>Drop-in transitions</h2>
+    <p>From "tap room" to "playable" in under 5 seconds. The drop-in narrative is the brand — never silent, always diegetic.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- Previously on -->
+    <div class="phone-wrap">
+      <div class="phone-cap">D · "Previously on…"
+        <span class="sub">Auto-dismisses in 10s. Skippable.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest<small>· Ash Hollow ·</small></div>
+            <button class="icon-btn">⛬</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Thornwick<br/><small>Market</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill">Turn 1</div>
+          </div>
+
+          <div class="behind">
+            <div class="ring"></div>
+
+            <div class="prev-card">
+              <div class="ribbon">Previously on…</div>
+              <h3>The Dragon of Ash Hollow</h3>
+              <div class="summary">
+                Yanni and Bram have arrived in <em>Thornwick</em>. The town is uneasy. Smoke rises from the northern road, where the dragon was last seen. The villagers speak of a gremlin merchant who may know more.
+              </div>
+              <div class="prev-strip">
+                <strong>Catch up</strong>
+                Scene 1 of 3 · 1 village razed · Yanni Lv 3 · Bram Lv 3
+              </div>
+              <div class="countdown">
+                <span>Continuing in <span class="ui-num" style="color:#5C1010;">7s</span>…</span>
+                <span class="skip">Skip ►</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Copy rule</strong>≤ 3 sentences, &lt;15s reading. Engine fills <code>history_summary</code> from the previous session's outcome line.</div>
+    </div>
+
+    <!-- Drop-in narrative -->
+    <div class="phone-wrap">
+      <div class="phone-cap">E · Drop-in event
+        <span class="sub">Hand-written line as you arrive. The party reacts.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest</div>
+            <button class="icon-btn">⛬</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Thornwick<br/><small>Market</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill">Turn 1</div>
+          </div>
+
+          <div class="scroll-card" style="margin:14px 8px 0; border-radius:4px;">
+            <div class="nowyou">You arrive</div>
+            <div style="font-family:'EB Garamond'; font-size:14px; line-height:1.45;">
+              You arrive at Thornwick Market, drawn by the rising smoke. Yanni and Bram turn at the sound of your boots, and Bram raises a hand in greeting.
+            </div>
+            <div style="display:flex; gap:6px; margin-top:10px; align-items:center;">
+              <div class="avatars" style="margin-right:auto;">
+                <div class="a purple"><span style="position:relative;">Y</span><span class="online"></span></div>
+                <div class="a green">B<span class="online"></span></div>
+                <div class="a red">YOU<span class="online"></span></div>
+              </div>
+              <span class="hand" style="color:#5C3F09; font-size:18px;">— enter the scene</span>
+            </div>
+          </div>
+
+          <div style="flex:1; padding:14px 8px; display:flex; flex-direction:column; gap:8px;">
+            <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668; padding:0 6px;">
+              Pip Bramblebottom eyes you sidelong. Yanni's wand crackles softly in greeting.
+            </div>
+            <div style="display:flex; align-items:center; justify-content:center; padding:18px; opacity:0.5;">
+              <div style="font-family:'Cinzel'; font-size:11px; color:#7a6a44; letter-spacing:0.16em;">↓ COINS APPEAR ↓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>Fires once on first room mount per session. Stick-figure portraits update online state from <code>PartyMember.online</code>.</div>
+    </div>
+
+    <!-- Stub V2 (after Scene 1 complete, returning) -->
+    <div class="phone-wrap">
+      <div class="phone-cap">F · Coming in V2
+        <span class="sub">Returning after finishing Scene 1.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest</div>
+            <button class="icon-btn">⛬</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Ash Hollow<br/><small>Foothills</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill" style="background:linear-gradient(180deg,#A78BFA,#5b3ec9); color:#FFEFCB;">Scene 2</div>
+          </div>
+
+          <div class="behind">
+            <div class="ring"></div>
+
+            <div class="v2-stub">
+              <span class="badge">V2</span>
+              <h3>Bandit Ambush</h3>
+              <p>Scene 2 is queued — combat encounter with the road-bandits of Ash Hollow.</p>
+              <p style="margin-top:10px; color:#7a6a44;">Available when real-time multiplayer &amp; LLM narration are wired in.</p>
+              <div style="margin-top:12px; display:flex; gap:6px; justify-content:center;">
+                <div class="btn-secondary" style="flex:0; padding:8px 14px;">Back to Lobby</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Stub contract</strong>Engine should still emit a Scene-2 record with <code>type:'combat'</code> &amp; <code>status:'queued'</code> so the V2 generator can replace it without UI churn.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============= 3. NPC + ACTION ============= -->
+<section class="section">
+  <div class="section-head">
+    <div class="num">03</div>
+    <h2>Encounters &amp; commit fallback</h2>
+    <p>NPC reveals the trait framework in his lines, not a stat block. Tap-to-confirm for accessibility.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- NPC card -->
+    <div class="phone-wrap">
+      <div class="phone-cap">G · Pip Bramblebottom
+        <span class="sub">Tap NPC on the table to inspect.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Pip Bramblebottom</div>
+            <button class="icon-btn">⌫</button>
+          </div>
+
+          <div class="npc-portrait">
+            <div class="market-tent"></div>
+            <div class="market-bg"></div>
+            <div class="stick-figure">
+              <div class="sf">
+                <div class="head" style="background:#A6C485; width:22px; height:22px;"></div>
+                <div class="body"></div>
+                <div class="arm"></div>
+                <div class="arm r"></div>
+                <div class="leg"></div>
+                <div class="leg r"></div>
+                <div class="satchel"></div>
+              </div>
+            </div>
+            <!-- coin pile near hand -->
+            <div style="position:absolute; left:62%; bottom:18%; width:14px; height:8px; background:#E8C760; border:1px solid #5C3F09; border-radius:3px; box-shadow:0 -3px 0 #B8902E, 0 -6px 0 #E8C760, 0 -9px 0 #B8902E;"></div>
+          </div>
+
+          <div class="npc-name-bar">
+            <div class="name">Pip Bramblebottom</div>
+            <div class="role">Goblin merchant · Thornwick Market</div>
+            <div class="trait-pills">
+              <span class="tp">Goblin</span>
+              <span class="tp">He / him</span>
+              <span class="tp">Slim</span>
+              <span class="tp">Shabby</span>
+              <span class="tp demeanor">Suspicious</span>
+              <span class="tp motiv">Greed</span>
+            </div>
+            <div class="quirk">constantly counts coins, even mid-conversation</div>
+          </div>
+
+          <div class="dialogue-list">
+            <div class="topic-row">
+              <div class="topic"><span>The Dragon</span> <span class="req">unlocks on Examine ⚯</span></div>
+              <div class="said">"Aye, the beast was last seen near Ash Hollow. Shame about Greenholt — gone in a single night."</div>
+            </div>
+            <div class="topic-row spoken">
+              <div class="topic"><span>Wares</span> <span class="req">spoken</span></div>
+              <div class="said">"Best prices in Thornwick! Quality… varies. Caveat emptor and all that."</div>
+            </div>
+            <div class="topic-row">
+              <div class="topic"><span>The Town</span> <span class="req">free</span></div>
+              <div class="said">"Folk are scared. Not buying like they used to. Coins go further when no one's spending them."</div>
+            </div>
+            <div class="topic-row locked">
+              <div class="topic"><span>The Smoke ▣ </span><span class="req">CHA ≥ 14 to ask</span></div>
+              <div class="said">— locked —</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Trait → voice</strong>Lines reference his quirk ("counts coins"), demeanor ("Folk are scared"), motivation ("coins go further"). V2 LLM gets the same trait block as a system prompt.</div>
+    </div>
+
+    <!-- Tap-to-confirm fallback -->
+    <div class="phone-wrap">
+      <div class="phone-cap">H · Tap-to-commit
+        <span class="sub">Drag is primary; double-tap on a coin opens this.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">≡</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest</div>
+            <button class="icon-btn">⌫</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Thornwick<br/><small>Market</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill">Turn 3</div>
+          </div>
+          <div class="behind"><div class="ring"></div></div>
+
+          <div class="modal-shade"></div>
+          <div class="confirm-popover">
+            <div class="head">
+              <div class="pcoin">
+                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 4 L14 9 L19 9 L15 12 L17 17 L12 14 L7 17 L9 12 L5 9 L10 9 Z" fill="#FFEFCB"/></svg>
+              </div>
+              <div>
+                <h4>Commit · Persuade</h4>
+                <p>You'll roll <span style="color:#A78BFA;">d20 + CHA</span> against Pip's resolve.</p>
+              </div>
+            </div>
+            <div class="check">
+              <strong>Target — Pip Bramblebottom</strong>
+              "Folk are scared. Not buying like they used to. Coins go further when no one's spending them."
+            </div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+              <button class="btn-secondary" style="flex:1;">Cancel</button>
+              <button class="btn-primary" style="flex:1.4;">Commit ⌁</button>
+            </div>
+            <div style="font-family:'EB Garamond'; font-style:italic; font-size:11px; color:#7a6a44; margin-top:8px; text-align:center;">
+              Tip: drag the coin to the table for a faster turn.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>A11y</strong>Card is fully keyboardable. Same engine call as drag — emit <code>commitAction(actionId, targetId?)</code>.</div>
+    </div>
+
+    <!-- Spotlight token -->
+    <div class="phone-wrap">
+      <div class="phone-cap">I · Spotlight token
+        <span class="sub">One free-text move. V1 maps to 1 of 3 hardcoded outcomes.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">≡</button>
+            <div class="navbar-title" style="font-size:13px;">Spotlight Token</div>
+            <button class="icon-btn">×</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Thornwick<br/><small>Market</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill">Turn 3</div>
+          </div>
+          <div class="behind"><div class="ring"></div></div>
+
+          <div class="modal-shade"></div>
+          <div class="modal" style="top:12%; transform:none;">
+            <div class="spot-glow"></div>
+            <div class="modal-head">
+              <div class="title">★  Spotlight Move</div>
+              <span class="ui-num" style="margin-left:auto; color:#FFE9A8; font-size:11px;">2 left</span>
+            </div>
+            <div class="modal-body" style="position:relative;">
+              <div class="spot-row">
+                <div class="coin">★</div>
+                <div>
+                  <h4>One sentence. Anything.</h4>
+                  <p>Describe what your character does — the table will improvise the result.</p>
+                </div>
+              </div>
+              <textarea class="spot-input" placeholder="e.g., I slide a gold piece across the table and meet his eye…">I slide a gold piece across the table and quietly mention the dragon's name.</textarea>
+              <div class="spot-counter">68 / 140</div>
+              <div class="spot-tip">✦ Tip: Spotlight moves can re-roll a failure or unlock locked dialogue.</div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn-secondary" style="flex:1;">Cancel</button>
+              <button class="btn-primary" style="flex:1.4;">Play to Table ★</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>V1 mapping</strong>Engine matches input keywords ("dragon", "coin", "wares") → one of 3 hardcoded narrative beats. Result lands as a hand-written note on the table.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============= 4. PERSISTENT MENUS ============= -->
+<section class="section">
+  <div class="section-head">
+    <div class="num">04</div>
+    <h2>Player menus</h2>
+    <p>The three footer buttons: inventory, help, leave. Each opens a card; nothing is destructive without a confirm.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- Inventory -->
+    <div class="phone-wrap">
+      <div class="phone-cap">J · Inventory
+        <span class="sub">12-slot grid. Tap an item for flavor + actions.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Yanni's Pack</div>
+            <button class="icon-btn">⛬</button>
+          </div>
+
+          <div style="padding:12px; background:linear-gradient(180deg,#16243F,#0F1B2D); display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="font-family:'Cinzel'; color:#E8C760; font-size:11px; letter-spacing:0.14em;">Carry</div>
+              <div class="seg-bar" style="height:6px; flex:1;">
+                <div class="on" style="background:linear-gradient(180deg,#FCD34D,#B8902E);"></div>
+                <div class="on" style="background:linear-gradient(180deg,#FCD34D,#B8902E);"></div>
+                <div class="on" style="background:linear-gradient(180deg,#FCD34D,#B8902E);"></div>
+                <div class="off"></div><div class="off"></div>
+              </div>
+              <div class="ui-num" style="color:#FFE9A8; font-size:11px;">5/12</div>
+            </div>
+          </div>
+
+          <div style="padding:12px; flex:1;">
+            <div class="inv-grid">
+              <div class="inv-cell has consumable">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 4 H15 V8 L17 14 V20 H7 V14 L9 8 Z" fill="#6EE7B7" stroke="#1f8f3a"/></svg>
+                <span class="qty">×2</span>
+              </div>
+              <div class="inv-cell has">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3 L16 9 L12 21 L8 9 Z" fill="url(#purpleGrad)"/></svg>
+              </div>
+              <div class="inv-cell has legendary">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 5 H19 V8 H17 V19 L12 16 L7 19 V8 H5 Z" fill="url(#goldGrad)" stroke="#5C3F09"/></svg>
+              </div>
+              <div class="inv-cell has">
+                <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="6" fill="#A78BFA"/></svg>
+                <span class="qty">×4</span>
+              </div>
+              <div class="inv-cell has">
+                <svg viewBox="0 0 24 24" width="20" height="20"><rect x="6" y="4" width="12" height="16" rx="1" fill="url(#goldGrad)" stroke="#5C3F09"/><line x1="9" y1="8" x2="15" y2="8" stroke="#5C3F09" stroke-width="0.8"/><line x1="9" y1="11" x2="15" y2="11" stroke="#5C3F09" stroke-width="0.8"/></svg>
+              </div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+              <div class="inv-cell"></div>
+            </div>
+
+            <div class="inv-detail">
+              <div class="pic">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 4 H15 V8 L17 14 V20 H7 V14 L9 8 Z" fill="#6EE7B7" stroke="#1f8f3a"/></svg>
+              </div>
+              <div style="flex:1;">
+                <h5>Healing Salve <span style="font-family:'Inter'; font-size:10px; color:#6EE7B7; margin-left:6px;">consumable</span></h5>
+                <div class="flav">A mossy ointment that smells of pine and copper. <span style="color:#6EE7B7;">Restores 1d6 HP.</span></div>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <div class="btn-primary" style="flex:1; padding:8px; font-size:10px;">Use ▾</div>
+              <div class="btn-secondary" style="flex:1; padding:8px; font-size:10px;">Give to…</div>
+              <div class="btn-secondary" style="flex:0.6; padding:8px; font-size:10px; color:#F87171; border-color:rgba(248,113,113,0.4);">Drop</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>Persists in <code>Player.inventory[]</code>. "Give to…" surfaces party members at runtime; bots accept silently.</div>
+    </div>
+
+    <!-- Help -->
+    <div class="phone-wrap">
+      <div class="phone-cap">K · Help &amp; gestures
+        <span class="sub">Quick reference. Lives on the help button.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Quick Help</div>
+            <button class="icon-btn">⛬</button>
+          </div>
+          <div style="flex:1; overflow:auto; padding:12px; background:linear-gradient(180deg,#16243F,#0F1B2D);">
+
+            <div style="font-family:'Cinzel'; font-size:11px; letter-spacing:0.16em; color:#E8C760; margin-bottom:8px;">Gestures</div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(232,199,96,0.06); border:1px solid rgba(232,199,96,0.2); border-radius:6px;">
+                <div style="width:36px; height:36px; flex-shrink:0; border-radius:50%; background:radial-gradient(circle at 35% 30%,#DCBDFB,#8E5BD9 60%,#4A1F8A); border:2px solid #4A1F8A;"></div>
+                <div style="flex:1;">
+                  <div style="font-family:'Cinzel'; font-size:11px; color:#FFE9A8; letter-spacing:0.06em;">Drag → Table</div>
+                  <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668;">Commit your action for the round.</div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(232,199,96,0.06); border:1px solid rgba(232,199,96,0.2); border-radius:6px;">
+                <div style="width:36px; height:36px; flex-shrink:0; border-radius:50%; background:radial-gradient(circle at 35% 30%,#FFF6CB,#E8C760 55%,#8E6A1A); border:2px solid #5C3F09; display:flex; align-items:center; justify-content:center; color:#3A2410;">★</div>
+                <div style="flex:1;">
+                  <div style="font-family:'Cinzel'; font-size:11px; color:#FFE9A8; letter-spacing:0.06em;">Tap Spotlight</div>
+                  <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668;">Take one free-text move per scene (2 left).</div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(232,199,96,0.06); border:1px solid rgba(232,199,96,0.2); border-radius:6px;">
+                <div style="width:36px; height:36px; flex-shrink:0; border-radius:50%; background:linear-gradient(180deg,#1B2C4A,#0E1A30); border:1.5px solid rgba(232,199,96,0.4); display:flex; align-items:center; justify-content:center; color:#E8C760; font-family:'Cinzel'; font-size:14px;">⛬</div>
+                <div style="flex:1;">
+                  <div style="font-family:'Cinzel'; font-size:11px; color:#FFE9A8; letter-spacing:0.06em;">Tap NPC / Tile</div>
+                  <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668;">Inspect — see traits, dialogue, locked options.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-family:'Cinzel'; font-size:11px; letter-spacing:0.16em; color:#E8C760; margin:14px 0 8px;">Trait letters</div>
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px;">
+              <div style="font-family:'EB Garamond'; font-size:13px; color:#C9B888;"><strong style="color:#A78BFA; font-family:Cinzel;">INT</strong> Lore, magic, recall</div>
+              <div style="font-family:'EB Garamond'; font-size:13px; color:#C9B888;"><strong style="color:#6EE7B7; font-family:Cinzel;">ATH</strong> Force, climb, brawl</div>
+              <div style="font-family:'EB Garamond'; font-size:13px; color:#C9B888;"><strong style="color:#FCD34D; font-family:Cinzel;">ING</strong> Tinker, sneak, lock</div>
+              <div style="font-family:'EB Garamond'; font-size:13px; color:#C9B888;"><strong style="color:#F87171; font-family:Cinzel;">CHA</strong> Persuade, lie, lead</div>
+            </div>
+
+            <div style="font-family:'Cinzel'; font-size:11px; letter-spacing:0.16em; color:#E8C760; margin:14px 0 6px;">Drop in / out</div>
+            <div style="font-family:'EB Garamond'; font-style:italic; font-size:13px; color:#A99668; line-height:1.45;">
+              Leave any time — your XP and items persist. Offline characters "guard the rear" while you're away. Tap a sleeping room to wake it.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Surface</strong>Static content for V1; localized strings only. No engine binding.</div>
+    </div>
+
+    <!-- Leave confirm -->
+    <div class="phone-wrap">
+      <div class="phone-cap">L · Leave gracefully
+        <span class="sub">Confirm modal — narrative exit, never silent.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">≡</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest</div>
+            <button class="icon-btn">⌫</button>
+          </div>
+          <div class="behind" style="opacity:0.4;"><div class="ring"></div></div>
+
+          <div class="modal-shade"></div>
+          <div class="modal">
+            <div class="leave-illust">
+              <div class="glow"></div>
+              <div class="door"></div>
+            </div>
+            <div class="modal-head">
+              <div class="title">⌫ Leave the Party</div>
+            </div>
+            <div class="modal-body">
+              <div style="font-family:'EB Garamond'; font-size:14px; line-height:1.5; color:#E8D9B4;">
+                <em style="color:#A99668;">"You step away from the party. Yanni nods, knowing the road calls you elsewhere. Your companions continue without you."</em>
+              </div>
+              <div style="margin-top:12px; padding:10px; background:rgba(110,231,183,0.08); border:1px solid rgba(110,231,183,0.3); border-radius:5px; font-family:'EB Garamond'; font-size:12px; color:#6EE7B7;">
+                ✓ XP, items &amp; progress are saved. The room stays open for your return.
+              </div>
+              <div style="margin-top:8px; font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#7a6a44;">
+                Yanni and Bram are still online. They'll continue without you, or pause if they leave too.
+              </div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn-secondary" style="flex:1;">Stay</button>
+              <button class="btn-primary" style="flex:1.2; background:linear-gradient(180deg,#A02828,#5C1010); color:#FFE9A8; border-color:#5C1010;">Step Away ⌫</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>Sets <code>PartyMember.online = false</code>; appends exit line to scroll. If last online → room → <code>sleeping</code>.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============= 5. PROFILE / NOTIFS / REWARD ============= -->
+<section class="section">
+  <div class="section-head">
+    <div class="num">05</div>
+    <h2>Profile, notifications, scene end</h2>
+    <p>Persistent state surfaced as drawers from the app-bar, plus the existing reward card with breakdown.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- Profile -->
+    <div class="phone-wrap">
+      <div class="phone-cap">M · Player profile
+        <span class="sub">Tap your portrait → character sheet.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Character</div>
+            <button class="icon-btn">⌫</button>
+          </div>
+
+          <div class="profile-hero">
+            <div class="sf" style="margin:0 auto;">
+              <div class="head" style="background:#A78BFA;"></div>
+              <div class="body"></div>
+              <div class="arm"></div>
+              <div class="arm r"></div>
+              <div class="leg"></div>
+              <div class="leg r"></div>
+            </div>
+            <div class="nm">Yanni</div>
+            <div class="cls">— Wizard, Order of the Quill —</div>
+            <div class="lvl">LEVEL <strong>3</strong> · 240 XP</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="sc int"><div class="l">INT</div><div class="v">+3</div></div>
+            <div class="sc ath"><div class="l">ATH</div><div class="v">+1</div></div>
+            <div class="sc ing"><div class="l">ING</div><div class="v">+2</div></div>
+            <div class="sc cha"><div class="l">CHA</div><div class="v">+2</div></div>
+          </div>
+
+          <div class="xp-rail">
+            <div class="lab"><span>XP to LV 4</span><span>240 / 400</span></div>
+            <div class="bar"><div></div></div>
+          </div>
+
+          <div style="padding:0 14px 14px; flex:1;">
+            <div style="font-family:'Cinzel'; font-size:11px; letter-spacing:0.14em; color:#E8C760; margin-bottom:8px;">HP &amp; armor</div>
+            <div class="hpb" style="margin-bottom:6px;">
+              <div class="bar"><div style="width:80%;"></div></div>
+              <div class="v">8 / 10 HP</div>
+            </div>
+            <div style="font-family:'EB Garamond'; font-size:13px; color:#C9B888;">Armor Class <strong style="color:#FFE9A8; font-family:Inter;">12</strong></div>
+
+            <div style="font-family:'Cinzel'; font-size:11px; letter-spacing:0.14em; color:#E8C760; margin:14px 0 8px;">Active campaigns</div>
+            <div style="padding:8px 10px; border:1px solid rgba(232,199,96,0.25); border-radius:5px; background:rgba(232,199,96,0.04);">
+              <div style="font-family:'Cinzel'; font-size:11px; color:#FFE9A8;">Dragon of Ash Hollow</div>
+              <div style="font-family:'EB Garamond'; font-style:italic; font-size:12px; color:#A99668;">Scene 1 · with Bram, Aria</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>Reads <code>Player</code> + <code>Campaign[]</code> the player has joined. V1: one campaign.</div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="phone-wrap">
+      <div class="phone-cap">N · Notifications
+        <span class="sub">Bell icon. Drop-ins, scene wakes, item drops.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">←</button>
+            <div class="navbar-title" style="font-size:13px;">Notifications</div>
+            <button class="icon-btn">✓</button>
+          </div>
+
+          <div class="notif-list" style="flex:1; overflow:auto;">
+            <div class="notif new">
+              <div class="dot"></div>
+              <div class="glyph">★</div>
+              <div class="body">
+                <div class="ti">Bram joined Ash Hollow</div>
+                <div class="sub">"The fighter sets his pack down beside the fire."</div>
+              </div>
+              <div class="when">just now</div>
+            </div>
+            <div class="notif new">
+              <div class="dot"></div>
+              <div class="glyph">⚔</div>
+              <div class="body">
+                <div class="ti">Bram found Healing Salve</div>
+                <div class="sub">A mossy ointment behind Pip's stall.</div>
+              </div>
+              <div class="when">5m</div>
+            </div>
+            <div class="notif">
+              <div style="width:8px; flex-shrink:0;"></div>
+              <div class="glyph">🜲</div>
+              <div class="body">
+                <div class="ti">The dragon razed Greenholt</div>
+                <div class="sub">Smoke can be seen from Thornwick.</div>
+              </div>
+              <div class="when">2d</div>
+            </div>
+            <div class="notif">
+              <div style="width:8px; flex-shrink:0;"></div>
+              <div class="glyph">⛬</div>
+              <div class="body">
+                <div class="ti">Yanni is sleeping</div>
+                <div class="sub">Room idled. Tap to wake.</div>
+              </div>
+              <div class="when">2d</div>
+            </div>
+          </div>
+          <div style="padding:10px 12px; border-top:1px solid rgba(232,199,96,0.18); display:flex; gap:8px;">
+            <div class="btn-secondary" style="flex:1;">Mark all read</div>
+            <div class="btn-secondary" style="flex:1;">Settings</div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Source</strong>Engine event stream — campaign milestones, party joins, item drops. Each one is a one-line diegetic phrase.</div>
+    </div>
+
+    <!-- Reward + breakdown -->
+    <div class="phone-wrap">
+      <div class="phone-cap">O · Scene end · reward
+        <span class="sub">Existing card extended with a roll breakdown.</span>
+      </div>
+      <div class="phone">
+        <div class="frame">
+          <div class="navbar">
+            <button class="icon-btn">≡</button>
+            <div class="navbar-title" style="font-size:13px;">Stick Figure Quest</div>
+            <button class="icon-btn">⌫</button>
+          </div>
+          <div class="scene-header">
+            <div class="loc">Thornwick<br/><small>Market — cleared</small></div>
+            <div class="seg-bar" style="max-width:90px;">
+              <div class="on"></div><div class="off"></div><div class="off"></div><div class="off"></div><div class="off"></div>
+            </div>
+            <div class="turn-pill" style="background:linear-gradient(180deg,#86F2A0,#22863a); color:#0c4a1a;">✓ Scene 1</div>
+          </div>
+
+          <div class="scroll-card" style="margin:12px 8px 0;">
+            <div style="font-family:'EB Garamond'; font-size:14px; line-height:1.45; color:#1F1408;">
+              The gremlin eyes your party warily. Yanni's silver tongue catches him off-guard, and Bram's looming presence seals the deal. The merchant nervously offers a tip: <em style="background:rgba(232,199,96,0.4);">the dragon was last seen near Ash Hollow.</em>
+            </div>
+          </div>
+
+          <div style="flex:1;"></div>
+
+          <div class="reward" style="position:relative;">
+            <div class="row">
+              <div class="pcoin">
+                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 4 L14 9 L19 9 L15 12 L17 17 L12 14 L7 17 L9 12 L5 9 L10 9 Z" fill="#3A2410"/></svg>
+              </div>
+              <div class="body">
+                <h4>RESOLUTION REWARD</h4>
+                <div class="desc"><span class="xp">+50 XP</span>. Bram found a <span class="item">Healing Salve</span>.</div>
+              </div>
+              <div class="btn-primary" style="flex:0; padding:9px 14px; font-size:10px;">CONTINUE</div>
+            </div>
+
+            <div class="breakdown">
+              <span class="crumb"><span style="color:#A78BFA;">Yanni</span>  Persuade · <span class="ui-num">17</span> vs DC 14</span>
+              <span class="crumb"><span style="color:#6EE7B7;">Bram</span>  Intimidate · <span class="ui-num">15</span> vs DC 14</span>
+              <span class="crumb"><span style="color:#F87171;">Aria</span>  Examine · <span class="ui-num">11</span> vs DC 12</span>
+            </div>
+
+            <div style="margin-top:10px; padding:10px; background:rgba(110,231,183,0.06); border-left:3px solid #6EE7B7; border-radius:0 4px 4px 0; font-family:'EB Garamond'; font-style:italic; font-size:13px; color:#6EE7B7;">
+              ▶ Up next — <strong style="color:#FFE9A8; font-family:Cinzel; font-size:11px; letter-spacing:0.1em;">SCENE 2 · BANDIT AMBUSH</strong> on the road to Ash Hollow.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="anno"><strong>Engine</strong>Roll log is the audit trail; bot rolls included. Item drop chosen from <code>Scene.rewards.possible_items</code> by RNG.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============= HANDOFF NOTES ============= -->
+<section class="handoff-box">
+  <h2>Engineering handoff — surface area</h2>
+  <p>The minimum API the front-end needs to drive every screen above. All in-memory in V1; localStorage shape mirrors this 1:1.</p>
+
+  <div class="state-grid">
+
+    <div class="state-card">
+      <h3>Lobby</h3>
+<pre><span class="k">listCampaigns</span>(filters?) → <span class="s">Campaign[]</span>
+<span class="k">enterRoom</span>(id) → emits "previously-on" event
+<span class="k">wakeRoom</span>(id) → status: sleeping → active</pre>
+    </div>
+
+    <div class="state-card">
+      <h3>Scene</h3>
+<pre><span class="k">getCurrentScene</span>(roomId) → <span class="s">Scene</span>
+<span class="k">commitAction</span>(actionId, targetId?)
+<span class="k">spotlightMove</span>(text) → mapped narrative
+<span class="k">resolveTurn</span>() → rolls + outcome line</pre>
+    </div>
+
+    <div class="state-card">
+      <h3>NPC</h3>
+<pre>NPC.<span class="k">traits</span>: { race, gender,
+  demeanor, appearance, build,
+  motivation, quirk }
+NPC.<span class="k">dialogue_topics</span>[] → topic + said
++ optional unlock requirement</pre>
+    </div>
+
+    <div class="state-card">
+      <h3>Player &amp; persistence</h3>
+<pre><span class="k">getPlayer</span>() → <span class="s">Player</span>
+<span class="k">leaveRoom</span>(id) → narrated exit
+<span class="k">grantReward</span>(xp, item?)
+all writes persist to <span class="n">localStorage</span></pre>
+    </div>
+
+    <div class="state-card">
+      <h3>Notifications</h3>
+<pre><span class="k">subscribeEvents</span>(cb)
+event.kind: "join" | "leave" |
+  "item_drop" | "scene_complete" |
+  "world_tick"</pre>
+    </div>
+
+    <div class="state-card">
+      <h3>V2 stubs to plan for</h3>
+<pre>· <span class="k">npc_generator</span>(theme) → NPC[]
+· <span class="k">llm_narrate</span>(scene, outcome)
+· <span class="k">ws_presence</span>(roomId)
+· <span class="k">filter_query</span> in lobby</pre>
+    </div>
+
+  </div>
+
+  <p style="margin-top:24px; font-style:normal; color:#7a6a44; font-size:12px; font-family:'Inter';">
+    See <code style="color:#E8C760;">Stick Figure Quest.html</code> for the live in-scene prototype these states wrap around.
+  </p>
+</section>
+
+</body>
+</html>
