@@ -28,12 +28,30 @@ export const Room = () => {
   const tableRef    = useRef<HTMLDivElement | null>(null);
   const persuadeCoinRef = useRef<HTMLDivElement>(null);
   const trailIdRef  = useRef(0);
+  const timeoutIdsRef = useRef<number[]>([]);
+  const commitLockedRef = useRef(false);
 
   const spotlightTokens = lobby.spotlightTokens;
   const pendingSpotlight = g.pendingSpotlight;
 
+  const clearScheduled = useCallback(() => {
+    timeoutIdsRef.current.forEach(window.clearTimeout);
+    timeoutIdsRef.current = [];
+  }, []);
+
+  const schedule = useCallback((callback: () => void, delay: number) => {
+    const id = window.setTimeout(() => {
+      timeoutIdsRef.current = timeoutIdsRef.current.filter(timeoutId => timeoutId !== id);
+      callback();
+    }, delay);
+    timeoutIdsRef.current.push(id);
+    return id;
+  }, []);
+
   /* -------- scene sequence -------- */
   const startSequence = useCallback(() => {
+    clearScheduled();
+    commitLockedRef.current = false;
     const round = useGameStore.getState().sceneRound;
     const introText = ROUND_INTROS[round] ?? ROUND_INTROS[1];
     g.resetForNewRound(introText);
@@ -41,32 +59,32 @@ export const Room = () => {
 
     const bots = BOT_PLAYS_BY_ROUND[round] ?? BOT_PLAYS_BY_ROUND[1];
 
-    setTimeout(() => {
+    schedule(() => {
       g.setPhase('bots');
       g.setEnvelopes(prev => ({
         ...prev,
         bram: { appearing: true, sealFlash: true, revealed: false, actionLabel: bots.bram.label },
       }));
-      setTimeout(() => g.setEnvelopes(prev => {
+      schedule(() => g.setEnvelopes(prev => {
         const e = { ...prev };
         if (e.bram) e.bram = { ...e.bram, appearing: false, sealFlash: false };
         return e;
       }), 700);
     }, 800);
 
-    setTimeout(() => {
+    schedule(() => {
       g.setEnvelopes(prev => ({
         ...prev,
         aria: { appearing: true, sealFlash: true, revealed: false, actionLabel: bots.aria.label },
       }));
-      setTimeout(() => g.setEnvelopes(prev => {
+      schedule(() => g.setEnvelopes(prev => {
         const e = { ...prev };
         if (e.aria) e.aria = { ...e.aria, appearing: false, sealFlash: false };
         return e;
       }), 700);
     }, 2000);
 
-    setTimeout(() => {
+    schedule(() => {
       g.setPhase('player');
       const stage = stageRef.current;
       const coin  = persuadeCoinRef.current;
@@ -76,9 +94,10 @@ export const Room = () => {
         g.setHint({ visible: true, x: cr.left - sr.left + 22, y: cr.top - sr.top + 18 });
       }
     }, 3200);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearScheduled, g, schedule]);
 
   useEffect(() => { startSequence(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => clearScheduled(), [clearScheduled]);
 
   /* -------- timer countdown -------- */
   useEffect(() => {
@@ -94,9 +113,47 @@ export const Room = () => {
     return () => clearInterval(id);
   }, [g.phase, g.timer]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* -------- reveal sequence -------- */
+  const triggerReveal = useCallback((result: RollResult | null) => {
+    g.setPhase('reveal');
+    const order = ['yanni', 'bram', 'aria'];
+    order.forEach((id, i) => {
+      schedule(() => {
+        g.setEnvelopes(prev => {
+          const e = { ...prev };
+          if (e[id]) e[id] = { ...e[id], revealed: true };
+          return e;
+        });
+      }, 350 + i * 180);
+    });
+
+    schedule(() => {
+      g.setPhase('resolve');
+      const narrative = result?.narrative ?? '';
+      g.setCurrentStoryText(narrative);
+      g.bumpStoryKey();
+      g.appendStoryEntry({
+        turn: useGameStore.getState().turn,
+        text: narrative,
+        kind: 'resolution',
+        roll: result ?? undefined,
+      });
+    }, 1500);
+
+    schedule(() => {
+      g.setPhase('reward');
+      const currentRound = useGameStore.getState().sceneRound;
+      if (currentRound >= 3) {
+        lobby.onSceneComplete(result);
+      }
+    }, 2900);
+  }, [g, lobby, schedule]);
+
   /* -------- commit action -------- */
   const commitAction = useCallback((action: Action) => {
-    if (useGameStore.getState().phase !== 'player') return;
+    if (useGameStore.getState().phase !== 'player' || commitLockedRef.current) return;
+    commitLockedRef.current = true;
+    g.setPhase('reveal');
     g.setHint({ visible: false, x: 0, y: 0 });
     g.setTapAction(null);
 
@@ -124,7 +181,7 @@ export const Room = () => {
       yanni: { appearing: true, sealFlash: true, revealed: false, actionLabel: `${action.label} Gremlin` },
     }));
 
-    setTimeout(() => {
+    schedule(() => {
       g.setEnvelopes(prev => {
         const e = { ...prev };
         if (e.yanni) e.yanni = { ...e.yanni, appearing: false, sealFlash: false };
@@ -132,48 +189,13 @@ export const Room = () => {
       });
       triggerReveal(result);
     }, 700);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* -------- reveal sequence -------- */
-  const triggerReveal = useCallback((result: RollResult | null) => {
-    g.setPhase('reveal');
-    const order = ['yanni', 'bram', 'aria'];
-    order.forEach((id, i) => {
-      setTimeout(() => {
-        g.setEnvelopes(prev => {
-          const e = { ...prev };
-          if (e[id]) e[id] = { ...e[id], revealed: true };
-          return e;
-        });
-      }, 350 + i * 180);
-    });
-
-    setTimeout(() => {
-      g.setPhase('resolve');
-      const narrative = result?.narrative ?? '';
-      g.setCurrentStoryText(narrative);
-      g.bumpStoryKey();
-      g.appendStoryEntry({
-        turn: useGameStore.getState().turn,
-        text: narrative,
-        kind: 'resolution',
-        roll: result ?? undefined,
-      });
-    }, 1500);
-
-    setTimeout(() => {
-      g.setPhase('reward');
-      const currentRound = useGameStore.getState().sceneRound;
-      if (currentRound >= 3) {
-        lobby.onSceneComplete(result);
-      }
-    }, 2900);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [g, schedule, triggerReveal]);
 
   /* -------- continue reward -------- */
   const onContinueReward = useCallback(() => {
+    clearScheduled();
     g.setDismissing(true);
-    setTimeout(() => {
+    schedule(() => {
       g.setDismissing(false);
       const currentRound = useGameStore.getState().sceneRound;
       if (currentRound >= 3) {
@@ -184,7 +206,7 @@ export const Room = () => {
         startSequence();
       }
     }, 460);
-  }, [startSequence]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearScheduled, g, lobby, schedule, startSequence]);
 
   /* -------- drag handling -------- */
   const onPointerDown = useCallback((e: React.PointerEvent, action: Action) => {
