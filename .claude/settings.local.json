@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Unity Projects\\\\Sudoku Defense Unity Version\\\\SudokuDefense\\\\Sudoku Defense\\\\DropInn\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(xargs head -50)"
+    ]
+  }
+}

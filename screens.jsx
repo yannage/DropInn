@@ -5,16 +5,34 @@
 const { useState: useState_, useEffect: useEffect_, useRef: useRef_, useCallback: useCallback_ } = React;
 const SceneApp = window.SceneApp;
 
+/* ========== PERSISTENCE ========== */
+
+const STORAGE_KEY = 'sfq-v1-state';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveState(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
 /* ============================================================
  * LOBBY
  * ============================================================ */
 
 const FILTERS = [
-  { id: 'progress', label: 'Progress' },
-  { id: 'players',  label: 'Players'  },
-  { id: 'duration', label: '30s'      },
-  { id: 'theme',    label: 'Theme'    },
-  { id: 'visibility', label: 'Public' },
+  { id: 'progress',   label: 'Progress' },
+  { id: 'players',    label: 'Players'  },
+  { id: 'duration',   label: '30s'      },
+  { id: 'theme',      label: 'Theme'    },
+  { id: 'visibility', label: 'Public'   },
 ];
 
 const RoomCard = ({ room, onTap, featured }) => (
@@ -70,14 +88,14 @@ const RoomCard = ({ room, onTap, featured }) => (
   </div>
 );
 
-const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed }) => {
+const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed, xp }) => {
   const [activeFilters, setActiveFilters] = useState_({});
   const [filterSheetKind, setFilterSheetKind] = useState_(null);
   const [emptyView, setEmptyView] = useState_(false);
 
   const room = {
     title: 'The Dragon of Ash Hollow',
-    statusDot: completed ? 'sleeping' : 'sleeping',
+    statusDot: 'sleeping',
     statusBadge: completed ? 'complete' : 'sleeping',
     statusLabel: completed ? 'Scene Complete' : 'Sleeping · 2d',
     theme: 'Dragon Slaying',
@@ -89,7 +107,7 @@ const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed }) => {
     turnDuration: '30s',
     visibilityIcon: '🌐',
     progress: completed ? 50 : 30,
-    progressLabel: completed ? 'Scene 2 of 3' : 'Scene 1 of 3 · 30%',
+    progressLabel: completed ? 'Scene 2 of 3 · 50%' : 'Scene 1 of 3 · 30%',
     lastBeat: completed
       ? 'You convinced Pip to talk. Bram pocketed a healing salve.'
       : 'Yanni and Bram await in Thornwick Market.',
@@ -122,7 +140,7 @@ const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed }) => {
             <div style={{
               fontFamily:'EB Garamond', fontStyle:'italic', fontSize:11, color:'#A99668',
               marginTop:1
-            }}>Yanni · Wizard · Lvl 3</div>
+            }}>Yanni · Wizard · Lvl 3 · {xp} XP</div>
           </div>
         </div>
         <div onClick={onOpenNotifs} style={{
@@ -197,7 +215,7 @@ const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed }) => {
             <span style={{flex:1, height:1, background:'rgba(232,199,96,0.18)'}}/>
           </div>
 
-          {/* Locked / coming soon cards for atmosphere */}
+          {/* Atmosphere cards (coming in V2) */}
           <div className="room-card" style={{opacity:0.55}}>
             <div className="room-row">
               <div className="room-title">The Stolen Crown</div>
@@ -281,17 +299,17 @@ const Lobby = ({ onEnterRoom, onOpenProfile, onOpenNotifs, completed }) => {
 
 const FilterSheet = ({ kind, active, onClose, onPick }) => {
   const optionsMap = {
-    progress: ['Any', 'Just started · 0–25%', 'In progress · 25–75%', 'Wrapping up · 75–100%'],
-    players:  ['Any', '1 in room', '2 in room', '3 in room', '4 in room'],
-    duration: ['15s', '30s', '60s', '2 min'],
-    theme:    ['Dragon', 'Princess', 'Heist', 'Mystery', 'Horror'],
+    progress:   ['Any', 'Just started · 0–25%', 'In progress · 25–75%', 'Wrapping up · 75–100%'],
+    players:    ['Any', '1 in room', '2 in room', '3 in room', '4 in room'],
+    duration:   ['15s', '30s', '60s', '2 min'],
+    theme:      ['Dragon', 'Princess', 'Heist', 'Mystery', 'Horror'],
     visibility: ['Public', 'Friends only', 'Private link'],
   };
   const titleMap = {
-    progress: 'Filter by Progress',
-    players: 'Filter by Players',
-    duration: 'Filter by Turn Duration',
-    theme: 'Filter by Theme',
+    progress:   'Filter by Progress',
+    players:    'Filter by Players',
+    duration:   'Filter by Turn Duration',
+    theme:      'Filter by Theme',
     visibility: 'Filter by Visibility',
   };
   const opts = optionsMap[kind] || [];
@@ -321,10 +339,10 @@ const FilterSheet = ({ kind, active, onClose, onPick }) => {
 };
 
 /* ============================================================
- * PREVIOUSLY-ON OVERLAY (shown when entering the room)
+ * PREVIOUSLY-ON OVERLAY
  * ============================================================ */
 
-const PreviouslyOn = ({ onContinue }) => {
+const PreviouslyOn = ({ onContinue, completed }) => {
   const [seconds, setSeconds] = useState_(8);
   useEffect_(()=>{
     if (seconds <= 0) { onContinue(); return; }
@@ -485,17 +503,17 @@ const Help = ({ onClose }) => (
       title="Drag a coin to commit"
       sub="Drag any action coin onto the table to seal your move. Hold tight — gestures take a moment."/>
     <HelpRow glyph="✦"
-      title="Tap and hold to confirm"
-      sub="If dragging is awkward, long-press a coin and confirm in the popover."/>
+      title="Tap to confirm"
+      sub="Tap a coin and confirm in the popover — no dragging required."/>
     <HelpRow glyph="✉"
       title="Sealed envelopes hide actions"
-      sub="No one sees what others picked until the timer expires or all four players commit."/>
+      sub="No one sees what others picked until the timer expires or all players commit."/>
     <HelpRow glyph="★"
       title="Spotlight tokens bend the story"
-      sub="Spend a token to write a short improvised action. The DM weaves it into the next outcome."/>
+      sub="Spend a token to write a short improvised action. Choose from suggestions or write your own."/>
     <HelpRow glyph="⌬"
       title="Drop in or out anytime"
-      sub="Leaving is graceful — your character ‘guards the rear’ until you return. XP and items persist."/>
+      sub="Leaving is graceful — your character 'guards the rear' until you return. XP and items persist."/>
   </Modal>
 );
 
@@ -620,19 +638,22 @@ const NPCDetail = ({ onClose }) => (
     <div className="topic-row">
       <div className="topic"><span>The Dragon</span><span className="req">CHA / INT</span></div>
       <div className="said">
-        “Aye, the beast was last seen near Ash Hollow. Shame about Greenholt — gone in a single night.”
+        "Aye, the beast was last seen near Ash Hollow. Shame about Greenholt — gone in a single night."
+        <em style={{display:'block', fontSize:11, color:'#7a6a44', marginTop:3}}>*counts three coins without looking up*</em>
       </div>
     </div>
     <div className="topic-row">
       <div className="topic"><span>His Wares</span><span className="req">INT</span></div>
       <div className="said">
-        “Best prices in Thornwick! Quality… varies. Caveat emptor and all that.”
+        "Best prices in Thornwick! Quality… varies. Caveat emptor and all that."
+        <em style={{display:'block', fontSize:11, color:'#7a6a44', marginTop:3}}>*taps coin on counter suspiciously*</em>
       </div>
     </div>
     <div className="topic-row">
       <div className="topic"><span>The Town</span><span className="req">CHA</span></div>
       <div className="said">
-        “Folk are scared. Not buying like they used to. Coins go further when no one's spending them.”
+        "Folk are scared. Not buying like they used to. Coins go further when no one's spending them."
+        <em style={{display:'block', fontSize:11, color:'#7a6a44', marginTop:3}}>*pockets a coin with practiced quickness*</em>
       </div>
     </div>
     <div className="topic-row locked">
@@ -648,12 +669,18 @@ const NPCDetail = ({ onClose }) => (
  * SPOTLIGHT MODAL
  * ============================================================ */
 
-const Spotlight = ({ onClose, onCommit }) => {
+const SPOTLIGHT_OUTCOMES = [
+  "Your gambit catches Pip mid-count. He drops two coppers. 'Fine. Ash Hollow. Now go away.'",
+  "The goblin's eyes dart to his strongbox. He shifts it behind him. You've rattled him.",
+  "Pip laughs — a sharp, suspicious bark — then covers his mouth and glances away. You've found a thread.",
+];
+
+const Spotlight = ({ onClose, onCommit, tokensLeft }) => {
   const [text, setText] = useState_('');
   const remaining = 120 - text.length;
   const valid = text.trim().length >= 6;
   return (
-    <Modal title="Spotlight Token · 1 of 2" onClose={onClose}
+    <Modal title={`Spotlight Token · ${tokensLeft} of 2`} onClose={onClose}
       footer={
         <>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
@@ -669,7 +696,7 @@ const Spotlight = ({ onClose, onCommit }) => {
         fontFamily:'EB Garamond', fontStyle:'italic', fontSize:13,
         color:'#C9B888', lineHeight:1.45, marginBottom:10
       }}>
-        Bend the story. Describe one improvised action — the DM will weave it into the next outcome.
+        Bend the story. Describe one improvised action — the outcome will weave it in.
         Keep it brief and specific.
       </div>
       <textarea
@@ -683,7 +710,7 @@ const Spotlight = ({ onClose, onCommit }) => {
         display:'flex', justifyContent:'space-between', marginTop:6,
         fontFamily:'Inter', fontSize:10, color:'#7a6a44'
       }}>
-        <span>Tokens left after use: 1</span>
+        <span>Tokens left after use: {Math.max(0, tokensLeft - 1)}</span>
         <span>{remaining} chars</span>
       </div>
 
@@ -727,7 +754,7 @@ const Notifications = ({ onClose }) => (
         <div className="glyph">✦</div>
         <div className="body">
           <div className="ti">Bram dropped an item for you</div>
-          <div className="sub">A Healing Salve waits in your pack — “Stay sharp, friend.”</div>
+          <div className="sub">A Healing Salve waits in your pack — "Stay sharp, friend."</div>
         </div>
         <div className="when">2m</div>
       </div>
@@ -763,7 +790,7 @@ const Notifications = ({ onClose }) => (
  * PROFILE / CHARACTER SHEET
  * ============================================================ */
 
-const Profile = ({ onClose, xp }) => (
+const Profile = ({ onClose, xp, spotlightTokens }) => (
   <Modal title="Character Sheet" onClose={onClose}
     footer={
       <>
@@ -786,7 +813,7 @@ const Profile = ({ onClose, xp }) => (
           Wizard · Level 3 · {xp} / 300 XP
         </div>
         <div className="pbar" style={{marginTop:6, height:5}}>
-          <div style={{width:`${(xp/300)*100}%`}}/>
+          <div style={{width:`${Math.min(100,(xp/300)*100)}%`}}/>
         </div>
       </div>
     </div>
@@ -796,8 +823,8 @@ const Profile = ({ onClose, xp }) => (
       color:'#7a6a44', textTransform:'uppercase', margin:'16px 0 4px'
     }}>Traits</div>
     <div className="stat-row" style={{padding:0}}>
-      <div className="sc int"><div className="l">INT</div><div className="v">+4</div></div>
-      <div className="sc ath"><div className="l">ATH</div><div className="v">+0</div></div>
+      <div className="sc int"><div className="l">INT</div><div className="v">+3</div></div>
+      <div className="sc ath"><div className="l">ATH</div><div className="v">+1</div></div>
       <div className="sc ing"><div className="l">ING</div><div className="v">+2</div></div>
       <div className="sc cha"><div className="l">CHA</div><div className="v">+3</div></div>
     </div>
@@ -811,9 +838,9 @@ const Profile = ({ onClose, xp }) => (
       background:'rgba(232,199,96,0.05)', borderRadius:5,
       border:'1px solid rgba(232,199,96,0.18)'
     }}>
-      <Stat label="HP" value="22 / 22" color="#F87171"/>
+      <Stat label="HP" value="8 / 10" color="#F87171"/>
       <Stat label="AC" value="13" color="#A99668"/>
-      <Stat label="✦ Tokens" value="2 / 2" color="#E8C760"/>
+      <Stat label="✦ Tokens" value={`${spotlightTokens} / 2`} color="#E8C760"/>
     </div>
 
     <div style={{
@@ -840,7 +867,7 @@ const Stat = ({label, value, color}) => (
 );
 
 /* ============================================================
- * V2 STUB — shown when entering a completed room
+ * V2 STUB
  * ============================================================ */
 
 const V2Stub = ({ onClose }) => (
@@ -869,78 +896,63 @@ const V2Stub = ({ onClose }) => (
         Prototype Loop Complete
       </div>
       <div style={{fontFamily:'EB Garamond', fontStyle:'italic', fontSize:12, color:'#A99668', marginTop:4, lineHeight:1.4}}>
-        You've validated drop-in → scene → reward → leave → rejoin. Hand off to engineering.
+        You've validated drop-in → scene → reward → leave → rejoin. The core loop works.
       </div>
     </div>
   </Modal>
 );
 
 /* ============================================================
- * TAP-TO-COMMIT FALLBACK POPOVER
- * ============================================================ */
-
-const TapConfirm = ({ action, onCancel, onConfirm }) => (
-  <>
-    <div className="modal-shade" onClick={onCancel}/>
-    <div className="confirm-popover">
-      <div style={{
-        fontFamily:'Cinzel', fontSize:10, letterSpacing:'0.16em',
-        color:'#7a6a44', textTransform:'uppercase'
-      }}>Confirm Action</div>
-      <div style={{
-        fontFamily:'EB Garamond', fontStyle:'italic', fontSize:15,
-        color:'#FFE9A8', margin:'8px 0 12px', lineHeight:1.35
-      }}>
-        Commit <strong style={{fontStyle:'normal', color:'#E8C760'}}>{action}</strong> on the gremlin?
-      </div>
-      <div style={{display:'flex', gap:8}}>
-        <button className="btn-secondary" onClick={onCancel}>Cancel</button>
-        <button className="btn-primary" onClick={onConfirm}>Commit ✦</button>
-      </div>
-      <div style={{
-        marginTop:8, fontFamily:'Inter', fontSize:9, color:'#5C3F09',
-        textAlign:'center', letterSpacing:'0.04em'
-      }}>Tip: drag the coin onto the table for the same effect.</div>
-    </div>
-  </>
-);
-
-/* ============================================================
- * OUTER SHELL — screen router + overlay manager
+ * OUTER SHELL — screen router + overlay manager + persistence
  * ============================================================ */
 
 function OuterShell() {
-  // 'lobby' | 'previously' | 'room'
-  const [screen, setScreen] = useState_('lobby');
-  // overlay name: 'inventory' | 'help' | 'leave' | 'profile' | 'notifs' | 'npc' | 'spotlight' | 'v2' | 'tap' | null
+  // Load persisted state
+  const persisted = loadState();
+
+  const [screen, setScreen] = useState_(persisted?.screen === 'lobby' ? 'lobby' : 'lobby');
   const [overlay, setOverlay] = useState_(null);
   const [showDropIn, setShowDropIn] = useState_(false);
-  const [completed, setCompleted] = useState_(false);
-  const [xp, setXp] = useState_(240);
-  const [hasSalve, setHasSalve] = useState_(false);
+  const [completed, setCompleted] = useState_(persisted?.completed ?? false);
+  const [xp, setXp] = useState_(persisted?.xp ?? 240);
+  const [hasSalve, setHasSalve] = useState_(persisted?.hasSalve ?? false);
+  const [spotlightTokens, setSpotlightTokens] = useState_(persisted?.spotlightTokens ?? 2);
   const [toast, setToast] = useState_(null);
 
-  // Listen for events bubbled up from SceneApp via window
+  // Persist on every relevant state change
+  useEffect_(()=>{
+    saveState({ completed, xp, hasSalve, spotlightTokens });
+  }, [completed, xp, hasSalve, spotlightTokens]);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(()=> setToast(null), 2400);
+  };
+
+  // Listen for events bubbled from SceneApp
   useEffect_(()=>{
     const handler = (e)=>{
       const t = e.detail?.type;
-      if (t === 'open-inventory')   setOverlay('inventory');
-      else if (t === 'open-help')   setOverlay('help');
-      else if (t === 'open-leave')  setOverlay('leave');
-      else if (t === 'open-npc')    setOverlay('npc');
+      if (t === 'open-inventory')      setOverlay('inventory');
+      else if (t === 'open-help')      setOverlay('help');
+      else if (t === 'open-leave')     setOverlay('leave');
+      else if (t === 'open-npc')       setOverlay('npc');
       else if (t === 'open-spotlight') setOverlay('spotlight');
-      else if (t === 'open-profile') setOverlay('profile');
-      else if (t === 'open-notifs') setOverlay('notifs');
-      else if (t === 'tap-confirm') setOverlay({kind:'tap', action:e.detail.action});
-      else if (t === 'scene-complete'){
-        setXp(290); setHasSalve(true); setCompleted(true);
-        setToast('+50 XP · Healing Salve gained');
-        setTimeout(()=> setToast(null), 2200);
+      else if (t === 'open-profile')   setOverlay('profile');
+      else if (t === 'open-notifs')    setOverlay('notifs');
+      else if (t === 'scene-complete') {
+        const newXp = xp + 50;
+        setXp(newXp);
+        setHasSalve(true);
+        setCompleted(true);
+        // Restore spotlight tokens on scene complete
+        setSpotlightTokens(2);
+        showToast('+50 XP · Healing Salve gained');
       }
     };
     window.addEventListener('sfq-event', handler);
     return ()=> window.removeEventListener('sfq-event', handler);
-  }, []);
+  }, [xp]);
 
   const enterRoom = useCallback_(()=>{
     if (completed) { setOverlay('v2'); return; }
@@ -956,8 +968,20 @@ function OuterShell() {
   const onLeaveConfirmed = useCallback_(()=>{
     setOverlay(null);
     setScreen('lobby');
-    setToast('You step away. The road calls.');
-    setTimeout(()=> setToast(null), 2400);
+    showToast('You step away. The road calls.');
+  }, []);
+
+  const onSpotlightCommit = useCallback_((text)=>{
+    setOverlay(null);
+    setSpotlightTokens(t => Math.max(0, t - 1));
+    // Pick a random hardcoded outcome
+    const outcomes = [
+      "Your gambit catches Pip mid-count. He drops two coppers. 'Fine. Ash Hollow. Now go away.'",
+      "The goblin's eyes dart to his strongbox. He shifts it behind him. You've rattled him.",
+      "Pip laughs — a sharp, suspicious bark — then covers his mouth and glances away. You've found a thread.",
+    ];
+    const result = outcomes[Math.floor(Math.random() * outcomes.length)];
+    showToast('Spotlight: ' + result.slice(0, 40) + '…');
   }, []);
 
   return (
@@ -968,45 +992,41 @@ function OuterShell() {
           onOpenProfile={()=> setOverlay('profile')}
           onOpenNotifs={()=> setOverlay('notifs')}
           completed={completed}
+          xp={xp}
         />
       )}
 
       {screen === 'previously' && (
         <>
-          {/* Render the room behind for context, dimmed */}
           <div style={{position:'absolute', inset:0, opacity:0.3, filter:'blur(2px)'}}>
-            <SceneApp/>
+            <SceneApp spotlightTokens={spotlightTokens} xp={xp} hp={8}/>
           </div>
-          <PreviouslyOn onContinue={finishPreviously}/>
+          <PreviouslyOn onContinue={finishPreviously} completed={completed}/>
         </>
       )}
 
       {screen === 'room' && (
         <>
-          <SceneApp/>
+          <SceneApp spotlightTokens={spotlightTokens} xp={xp} hp={8}/>
           {showDropIn && <DropInBanner onClose={()=> setShowDropIn(false)}/>}
         </>
       )}
 
       {/* Overlays */}
-      {overlay === 'inventory' && <Inventory onClose={()=> setOverlay(null)} hasSalve={hasSalve}/>}
-      {overlay === 'help'      && <Help onClose={()=> setOverlay(null)}/>}
-      {overlay === 'leave'     && <LeaveConfirm onCancel={()=> setOverlay(null)} onConfirm={onLeaveConfirmed}/>}
-      {overlay === 'npc'       && <NPCDetail onClose={()=> setOverlay(null)}/>}
-      {overlay === 'spotlight' && <Spotlight onClose={()=> setOverlay(null)} onCommit={(t)=>{
-        setOverlay(null);
-        setToast('Spotlight committed — DM is weaving…');
-        setTimeout(()=> setToast(null), 2000);
-      }}/>}
-      {overlay === 'profile'   && <Profile onClose={()=> setOverlay(null)} xp={xp}/>}
-      {overlay === 'notifs'    && <Notifications onClose={()=> setOverlay(null)}/>}
-      {overlay === 'v2'        && <V2Stub onClose={()=>{ setOverlay(null); setScreen('lobby'); }}/>}
-      {overlay && overlay.kind === 'tap' && (
-        <TapConfirm action={overlay.action}
-          onCancel={()=> setOverlay(null)}
-          onConfirm={()=>{ setOverlay(null); window.dispatchEvent(new CustomEvent('sfq-tap-commit')); }}
+      {overlay === 'inventory'  && <Inventory onClose={()=> setOverlay(null)} hasSalve={hasSalve}/>}
+      {overlay === 'help'       && <Help onClose={()=> setOverlay(null)}/>}
+      {overlay === 'leave'      && <LeaveConfirm onCancel={()=> setOverlay(null)} onConfirm={onLeaveConfirmed}/>}
+      {overlay === 'npc'        && <NPCDetail onClose={()=> setOverlay(null)}/>}
+      {overlay === 'spotlight'  && (
+        <Spotlight
+          onClose={()=> setOverlay(null)}
+          onCommit={onSpotlightCommit}
+          tokensLeft={spotlightTokens}
         />
       )}
+      {overlay === 'profile'    && <Profile onClose={()=> setOverlay(null)} xp={xp} spotlightTokens={spotlightTokens}/>}
+      {overlay === 'notifs'     && <Notifications onClose={()=> setOverlay(null)}/>}
+      {overlay === 'v2'         && <V2Stub onClose={()=>{ setOverlay(null); setScreen('lobby'); }}/>}
 
       {toast && <div className="toast">{toast}</div>}
     </>

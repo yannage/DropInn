@@ -7,9 +7,9 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 /* ========== CONSTANTS ========== */
 
 const PLAYERS = [
-  { id:'yanni', name:'Yanni', sealColor:'purple', sealIcon: window.SealStar  },
-  { id:'bram',  name:'Bram',  sealColor:'green',  sealIcon: window.SealSwords},
-  { id:'aria',  name:'Aria',  sealColor:'red',    sealIcon: window.SealHeart },
+  { id:'yanni', name:'Yanni', sealColor:'purple', sealIcon: window.SealStar   },
+  { id:'bram',  name:'Bram',  sealColor:'green',  sealIcon: window.SealSwords },
+  { id:'aria',  name:'Aria',  sealColor:'red',    sealIcon: window.SealHeart  },
 ];
 
 /* envelope on-table positions (% of table area) */
@@ -20,20 +20,68 @@ const SLOT_POS = {
 };
 
 const ACTIONS = [
-  { id:'persuade',   label:'Persuade',   coinColor:'persuade',   Coin: window.PersuadeCoin   },
-  { id:'intimidate', label:'Intimidate', coinColor:'intimidate', Coin: window.IntimidateCoin },
-  { id:'examine',    label:'Examine',    coinColor:'examine',    Coin: window.ExamineCoin    },
-  { id:'move',       label:'Move',       coinColor:'move',       Coin: window.MoveCoin       },
+  { id:'persuade',   label:'Persuade',   coinColor:'persuade',   Coin: window.PersuadeCoin,   trait:'CHA', dc:12 },
+  { id:'intimidate', label:'Intimidate', coinColor:'intimidate', Coin: window.IntimidateCoin, trait:'ATH', dc:14 },
+  { id:'examine',    label:'Examine',    coinColor:'examine',    Coin: window.ExamineCoin,    trait:'INT', dc:10 },
+  { id:'move',       label:'Move',       coinColor:'move',       Coin: window.MoveCoin,       trait:'ATH', dc:8  },
 ];
 
 const BOT_PLAYS = {
   bram : { actionId:'intimidate', label:'Intimidate Gremlin' },
   aria : { actionId:'examine',    label:'Examine wares'      },
 };
-const PLAYER_LABEL = 'Persuade Gremlin';
+
+/* Yanni's base traits (used for resolution roll) */
+const YANNI_TRAITS = { INT: 3, ATH: 1, ING: 2, CHA: 3 };
+
+/* ========== RESOLUTION ENGINE ========== */
+
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+/* Returns { roll, mod, total, success, narrative } */
+function resolveAction(actionId) {
+  const action = ACTIONS.find(a => a.id === actionId);
+  if (!action) return null;
+
+  if (actionId === 'move') {
+    return {
+      roll: 20, mod: 0, total: 20, success: true,
+      narrative: OUTCOMES.move.success,
+    };
+  }
+
+  const roll = rollD20();
+  const mod = YANNI_TRAITS[action.trait] || 0;
+  const total = roll + mod;
+  const success = total >= action.dc;
+  const narrative = success ? OUTCOMES[actionId].success : OUTCOMES[actionId].failure;
+
+  return { roll, mod, total, success, narrative };
+}
+
+/* ========== NARRATIVE OUTCOMES (all reference Pip's traits) ========== */
 
 const INTRO_TEXT = "Thornwick Market buzzes nervously. Smoke curls from the northern road as villagers whisper and stare. A wiry gremlin merchant clutches a satchel of trinkets and watches your party closely.";
-const RESOLUTION_TEXT = "The gremlin eyes your party warily. Yanni's silver tongue catches him off-guard, and Bram's looming presence seals the deal. The merchant nervously offers a tip: the dragon was last seen near Ash Hollow.";
+
+const OUTCOMES = {
+  persuade: {
+    success: "The suspicious gremlin pauses his coin-counting — your words cut through his greed like a blade. Pip pockets his coins and leans in. 'The dragon,' he mutters, 'was last seen near Ash Hollow. Don't tell anyone I said that.' He resumes counting immediately.",
+    failure:  "Pip's eyes narrow as he tallies another copper. 'Don't know nothin',' he mutters, clearly lying. His shabby coat rustles as he shuffles backward. He keeps counting. You'll need a different approach.",
+  },
+  intimidate: {
+    success: "Bram looms over the stall. The slim goblin's coin-counting stutters — three coppers scatter across the ground. 'Fine, fine! Ash Hollow! Just — don't break anything. The profit margins are already terrible.' He scrabbles after the coins.",
+    failure:  "The gremlin barely looks up from his stack. 'Seen bigger,' he says, resuming his count with practiced calm. Bram's threat lands like a wet scroll. Pip clicks another coin into place.",
+  },
+  examine: {
+    success: "Aria spots a crude map half-hidden beneath Pip's weighing scales. The suspicious merchant snatches it back — but not before she notes a red X near Ash Hollow. He pockets a coin, pointedly, and refuses to meet her eyes.",
+    failure:  "The wares are a jumble of dubious junk. Whatever Pip knows, he's buried it well under layers of suspicious clutter, coin stacks, and deliberate misdirection.",
+  },
+  move: {
+    success: "The party moves deeper into the market, noting the fearful eyes of the townsfolk. Smoke thickens on the northern road. One path leads toward the tavern; another toward the smell of ash.",
+  },
+};
 
 /* ========== APP-BAR ========== */
 
@@ -95,8 +143,22 @@ const SceneHeader = ({turn, razed=1, total=5}) => (
     zIndex:4,
   }}>
     <div style={{flexShrink:0, marginTop:-2}}><ShieldEmblem size={42}/></div>
-    <div className="heading gold-text" style={{fontSize:15, letterSpacing:'0.06em', flex:1, marginLeft:2, lineHeight:1.1}}>
-      Thornwick<br/>Market
+    <div style={{display:'flex', flexDirection:'column', gap:2}}>
+      <div className="heading gold-text" style={{fontSize:15, letterSpacing:'0.06em', lineHeight:1.1}}>
+        Thornwick<br/>Market
+      </div>
+      {/* NPC button */}
+      <button
+        onClick={()=>window.dispatchEvent(new CustomEvent('sfq-event',{detail:{type:'open-npc'}}))}
+        style={{
+          background:'rgba(232,199,96,0.1)', border:'1px solid rgba(232,199,96,0.3)',
+          borderRadius:4, padding:'2px 6px', cursor:'pointer',
+          fontFamily:'EB Garamond', fontStyle:'italic', fontSize:11, color:'#C9B888',
+          display:'flex', alignItems:'center', gap:4,
+        }}
+      >
+        <span style={{fontSize:10}}>👤</span> Pip
+      </button>
     </div>
 
     {/* center turn badge */}
@@ -133,7 +195,7 @@ const SceneHeader = ({turn, razed=1, total=5}) => (
 
 /* ========== STORY SCROLL ========== */
 
-const StoryScroll = ({text, refreshKey}) => {
+const StoryScroll = ({text, refreshKey, rollResult}) => {
   const lines = useMemo(()=> text.split(/(?<=\.)\s+/).filter(Boolean), [text]);
   return (
     <div style={{
@@ -172,16 +234,35 @@ const StoryScroll = ({text, refreshKey}) => {
           ))}
         </div>
 
+        {/* roll result badge */}
+        {rollResult && (
+          <div style={{
+            position:'absolute', bottom:8, left:10,
+            background: rollResult.success
+              ? 'linear-gradient(180deg,#22863a,#0c4a1a)'
+              : 'linear-gradient(180deg,#7E1A1A,#3A0606)',
+            border:`1px solid ${rollResult.success ? '#6EE7B7' : '#F87171'}`,
+            borderRadius:4, padding:'3px 8px',
+            fontFamily:'Cinzel', fontSize:9, letterSpacing:'0.12em',
+            color: rollResult.success ? '#6EE7B7' : '#F87171',
+            animation:'textRise 0.4s ease both',
+          }}>
+            d20+{rollResult.mod} = {rollResult.total} {rollResult.success ? '✓' : '✗'} ({rollResult.trait} {rollResult.dc})
+          </div>
+        )}
+
         {/* book button */}
-        <button style={{
-          position:'absolute', bottom:8, right:8,
-          width:34, height:34, borderRadius:'50%',
-          background:'linear-gradient(180deg,#1F3160,#0E1A30)',
-          border:'2px solid #E8C760',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          cursor:'pointer', padding:0,
-          boxShadow:'0 2px 4px rgba(0,0,0,0.5)',
-        }}>
+        <button
+          onClick={()=>window.dispatchEvent(new CustomEvent('sfq-event',{detail:{type:'open-npc'}}))}
+          style={{
+            position:'absolute', bottom:8, right:8,
+            width:34, height:34, borderRadius:'50%',
+            background:'linear-gradient(180deg,#1F3160,#0E1A30)',
+            border:'2px solid #E8C760',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            cursor:'pointer', padding:0,
+            boxShadow:'0 2px 4px rgba(0,0,0,0.5)',
+          }}>
           <BookIcon size={18}/>
         </button>
       </div>
@@ -196,7 +277,7 @@ const StoryScroll = ({text, refreshKey}) => {
 /* ========== SHARED TABLE ========== */
 
 const SharedTable = ({
-  envelopes, dropZoneActive, dropZoneHot, dragInfo, revealed, onTableMount, dropZoneRef,
+  envelopes, dropZoneActive, dropZoneHot, revealed, onTableMount, dropZoneRef,
 }) => {
   return (
     <div className="cobblestones" style={{
@@ -319,35 +400,40 @@ const SharedTable = ({
   );
 };
 
-/* ========== ACTION TRAY ========== */
+/* ========== ACTION TRAY (with ref on persuade coin) ========== */
 
-const ActionTray = ({onPointerDown, draggingActionId, hiddenActionId, timer}) => {
+const ActionTrayWithRef = ({coinRef, onPointerDown, onTapAction, draggingActionId, hiddenActionId, timer, phase}) => {
+  const Phase = { Player:'player' };
+  const isPlayerPhase = phase === 'player';
   return (
     <div className="panel-bg" style={{
       position:'relative', display:'flex', alignItems:'center',
       gap:6, padding:'14px 8px 18px',
       borderTop:'1px solid rgba(232,199,96,0.25)',
     }}>
-      {/* corner ornaments */}
       <CornerOrnament style={{top:4, left:4}}/>
       <CornerOrnament style={{top:4, right:4, transform:'scaleX(-1)'}}/>
 
       {ACTIONS.map((a, i)=>{
-        const isActive = draggingActionId === a.id || a.id === 'persuade';
         const hidden = hiddenActionId === a.id;
+        const isDragging = draggingActionId === a.id;
         return (
           <div key={a.id} style={{
             flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-            opacity: hidden ? 0 : 1,
             visibility: hidden ? 'hidden' : 'visible',
           }}>
             <div
+              ref={a.id === 'persuade' ? coinRef : null}
               onPointerDown={(e)=> onPointerDown(e, a)}
+              onClick={()=> isPlayerPhase && !isDragging && onTapAction(a)}
               className={(a.id === 'persuade') ? 'coin-glow idle-bob' : 'idle-bob'}
               style={{
                 width:62, height:62, borderRadius:'50%',
-                cursor:'grab', position:'relative', touchAction:'none',
+                cursor: isPlayerPhase ? 'grab' : 'default',
+                position:'relative', touchAction:'none',
                 animationDelay: `${i*0.2}s`,
+                opacity: isDragging ? 0.25 : (!isPlayerPhase ? 0.5 : 1),
+                transition:'opacity 0.15s',
               }}>
               <a.Coin size={62}/>
             </div>
@@ -358,21 +444,23 @@ const ActionTray = ({onPointerDown, draggingActionId, hiddenActionId, timer}) =>
         );
       })}
 
-      {/* timer */}
       <div style={{
         width:72, padding:'6px 4px',
         marginLeft:4, marginRight:2,
-        display:'flex', alignItems:'center', gap:4,
+        display:'flex', alignItems:'center', gap:2,
         flexDirection:'column',
         background:'linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.15))',
         borderRadius:6,
         border:'1px solid rgba(232,199,96,0.25)',
       }}>
         <div style={{display:'flex', alignItems:'center', gap:4}}>
-          <HourglassIcon size={28}/>
-          <div className="ui-num gold-text" style={{fontSize:18, lineHeight:1}}>{timer}s</div>
+          <HourglassIcon size={26}/>
+          <div className="ui-num gold-text" style={{
+            fontSize:18, lineHeight:1,
+            color: timer <= 5 ? '#F87171' : undefined,
+          }}>{timer}s</div>
         </div>
-        <div className="heading" style={{fontSize:9, color:'#C9B888', marginTop:-2}}>left</div>
+        <div className="heading" style={{fontSize:9, color:'#C9B888', marginTop:-2, letterSpacing:'0.06em'}}>left</div>
       </div>
     </div>
   );
@@ -386,28 +474,39 @@ const CornerOrnament = ({style}) => (
 );
 
 /* ========== SPOTLIGHT ROW ========== */
-const SpotlightRow = () => (
+
+const SpotlightRow = ({tokensLeft}) => (
   <div className="panel-bg" style={{
     display:'flex', alignItems:'center', justifyContent:'center', gap:36,
     padding:'8px 12px', borderTop:'1px solid rgba(232,199,96,0.18)',
   }}>
-    {[0,1].map(i=>(
-      <div key={i}
-        onClick={()=> window.dispatchEvent(new CustomEvent('sfq-event',{detail:{type:'open-spotlight'}}))}
-        style={{display:'flex', alignItems:'center', gap:8, position:'relative', cursor:'pointer'}}>
-        <div style={{filter:'drop-shadow(0 0 10px rgba(255,221,120,0.5))'}}>
-          <SpotlightCoin size={32}/>
+    {[0,1].map(i=>{
+      const used = i >= tokensLeft;
+      return (
+        <div key={i}
+          onClick={()=> {
+            if (!used) window.dispatchEvent(new CustomEvent('sfq-event',{detail:{type:'open-spotlight'}}));
+          }}
+          style={{
+            display:'flex', alignItems:'center', gap:8, position:'relative',
+            cursor: used ? 'default' : 'pointer',
+            opacity: used ? 0.35 : 1,
+            transition:'opacity 0.3s',
+          }}>
+          <div style={{filter: used ? 'none' : 'drop-shadow(0 0 10px rgba(255,221,120,0.5))'}}>
+            <SpotlightCoin size={32}/>
+          </div>
+          <div className="heading gold-text" style={{fontSize:12, letterSpacing:'0.1em'}}>SPOTLIGHT</div>
+          {i===0 && !used && <div style={{position:'absolute', right:-14, top:-2}}><StarSparkleIcon size={10}/></div>}
         </div>
-        <div className="heading gold-text" style={{fontSize:12, letterSpacing:'0.1em'}}>SPOTLIGHT</div>
-        {i===0 && <div style={{position:'absolute', right:-14, top:-2}}><StarSparkleIcon size={10}/></div>}
-      </div>
-    ))}
+      );
+    })}
   </div>
 );
 
 /* ========== PLAYER CARD ========== */
 
-const PlayerCard = () => (
+const PlayerCard = ({hp=8, maxHp=10, xp=240}) => (
   <div style={{
     display:'flex', alignItems:'center', gap:10,
     padding:'10px 8px',
@@ -421,15 +520,16 @@ const PlayerCard = () => (
     <div style={{flex:1, minWidth:0, display:'flex', flexDirection:'column', gap:6}}>
       <div style={{display:'flex', alignItems:'baseline', gap:8, flexWrap:'wrap'}}>
         <div className="body-serif" style={{fontSize:24, color:'#FFEFCB', fontWeight:500, letterSpacing:'0.02em'}}>Yanni</div>
+        <div className="ui-num" style={{fontSize:10, color:'#A99668'}}>{xp} XP</div>
       </div>
       <div style={{display:'flex', alignItems:'center', gap:5}}>
         <HatGlyph size={14}/>
-        <div className="body-serif" style={{fontSize:14, color:'#A78BFA', fontStyle:'italic'}}>Wizard</div>
+        <div className="body-serif" style={{fontSize:14, color:'#A78BFA', fontStyle:'italic'}}>Wizard · Lvl 3</div>
       </div>
       {/* HP bar */}
       <div style={{display:'flex', alignItems:'center', gap:6}}>
         <HeartIcon size={16}/>
-        <div className="ui-num" style={{fontSize:12, color:'#FFEFCB', minWidth:38}}>8 / 10</div>
+        <div className="ui-num" style={{fontSize:12, color:'#FFEFCB', minWidth:38}}>{hp} / {maxHp}</div>
         <div style={{
           flex:1, height:10, borderRadius:6,
           background:'linear-gradient(180deg,#0a0a0a,#1a1a1a)',
@@ -438,10 +538,11 @@ const PlayerCard = () => (
           overflow:'hidden', position:'relative',
         }}>
           <div style={{
-            width:'80%', height:'100%',
+            width:`${(hp/maxHp)*100}%`, height:'100%',
             background:'linear-gradient(180deg,#86F2A0,#22863a)',
             boxShadow:'inset 0 1px 0 rgba(255,255,255,0.4)',
             position:'relative',
+            transition:'width 0.5s ease',
           }}>
             <div style={{
               position:'absolute', top:0, left:0, right:0, height:'40%',
@@ -452,10 +553,10 @@ const PlayerCard = () => (
       </div>
       {/* trait chips */}
       <div style={{display:'flex', gap:4, flexWrap:'wrap'}}>
-        <Chip label="INT +3" color="purple"/>
-        <Chip label="ATH +1" color="green"/>
-        <Chip label="ING +2" color="yellow"/>
-        <Chip label="CHA +2" color="red"/>
+        <Chip label={`INT +${YANNI_TRAITS.INT}`} color="purple"/>
+        <Chip label={`ATH +${YANNI_TRAITS.ATH}`} color="green"/>
+        <Chip label={`ING +${YANNI_TRAITS.ING}`} color="yellow"/>
+        <Chip label={`CHA +${YANNI_TRAITS.CHA}`} color="red"/>
       </div>
     </div>
     {/* right: 3 buttons */}
@@ -511,7 +612,7 @@ const DragLayer = ({drag}) => {
   return (
     <>
       {/* particle trail behind */}
-      {trail.map((t,i)=>(
+      {trail.map((t)=>(
         <div key={t.id} style={{
           position:'absolute',
           left: t.x - 4, top: t.y - 4,
@@ -557,7 +658,7 @@ const IntroHint = ({visible, originX, originY}) => {
 
 /* ========== REWARD CARD ========== */
 
-const RewardCard = ({onContinue, dismissing}) => (
+const RewardCard = ({onContinue, dismissing, rollResult}) => (
   <div style={{
     position:'absolute', left:0, right:0, bottom:0, zIndex:80,
     padding:'12px 14px 18px',
@@ -573,10 +674,18 @@ const RewardCard = ({onContinue, dismissing}) => (
         <SpotlightCoin size={48}/>
       </div>
       <div style={{flex:1}}>
-        <div className="heading gold-text" style={{fontSize:14, letterSpacing:'0.1em'}}>RESOLUTION REWARD</div>
+        <div className="heading gold-text" style={{fontSize:14, letterSpacing:'0.1em'}}>SCENE COMPLETE</div>
         <div className="body-serif" style={{fontSize:14, color:'#FFEFCB', marginTop:3}}>
           <span className="ui-num" style={{color:'#FFE9A8'}}>+50 XP</span>. Bram found a <span style={{color:'#6EE7B7'}}>Healing Salve</span>.
         </div>
+        {rollResult && (
+          <div className="ui-num" style={{
+            fontSize:10, marginTop:4,
+            color: rollResult.success ? '#6EE7B7' : '#F87171',
+          }}>
+            Roll: d20+{rollResult.mod} = {rollResult.total} — {rollResult.success ? 'Success' : 'Partial success'}
+          </div>
+        )}
       </div>
       <button
         onClick={onContinue}
@@ -593,30 +702,82 @@ const RewardCard = ({onContinue, dismissing}) => (
   </div>
 );
 
+/* ========== TAP-CONFIRM POPOVER ========== */
+
+const TapConfirmPopover = ({action, onCancel, onConfirm}) => {
+  if (!action) return null;
+  return (
+    <>
+      <div
+        onClick={onCancel}
+        style={{position:'absolute', inset:0, zIndex:70, background:'rgba(0,0,0,0.5)'}}
+      />
+      <div style={{
+        position:'absolute', left:14, right:14, bottom:'28%',
+        zIndex:71,
+        background:'linear-gradient(180deg,#1A2B47,#0F1B2D)',
+        border:'1.5px solid #E8C760',
+        borderRadius:10, padding:'14px',
+        boxShadow:'0 14px 30px rgba(0,0,0,0.6)',
+        animation:'rewardSlideUp 0.25s ease both',
+      }}>
+        <div className="heading" style={{fontSize:10, letterSpacing:'0.16em', color:'#7a6a44', marginBottom:8}}>
+          CONFIRM ACTION
+        </div>
+        <div className="body-serif" style={{fontSize:15, color:'#FFE9A8', lineHeight:1.35, marginBottom:12}}>
+          Commit <strong style={{fontStyle:'normal', color:'#E8C760'}}>{action.label}</strong> on Pip Bramblebottom?
+        </div>
+        <div style={{display:'flex', gap:8}}>
+          <button className="btn-secondary" onClick={onCancel}
+            style={{flex:1, padding:'10px', borderRadius:6, fontFamily:'Cinzel', fontSize:11,
+              background:'linear-gradient(180deg,#1B2C4A,#0E1A30)', color:'#E8C760',
+              border:'1px solid rgba(232,199,96,0.35)', cursor:'pointer'}}>
+            Cancel
+          </button>
+          <button className="btn-primary" onClick={()=> onConfirm(action)}
+            style={{flex:1, padding:'10px', borderRadius:6, fontFamily:'Cinzel', fontSize:11,
+              background:'linear-gradient(180deg,#E8C760,#8E6A1A)', color:'#3A2410',
+              border:'1.5px solid #5C3F09', cursor:'pointer',
+              boxShadow:'inset 0 1px 0 rgba(255,255,255,0.4)'}}>
+            Commit ✦
+          </button>
+        </div>
+        <div style={{
+          marginTop:8, fontFamily:'Inter', fontSize:9, color:'#5C3F09', textAlign:'center'
+        }}>Tip: drag the coin onto the table for the same effect.</div>
+      </div>
+    </>
+  );
+};
+
 /* ========== MAIN APP ========== */
 
 const Phase = {
-  Idle: 'idle',           // initial state: empty table
-  Bots: 'bots',           // bots dropping envelopes one by one
-  Player: 'player',       // hint shown, waiting for player drag
-  Reveal: 'reveal',       // all envelopes flip
-  Resolve: 'resolve',     // story scroll text changes
-  Reward: 'reward',       // reward card up
+  Idle:    'idle',
+  Bots:    'bots',
+  Player:  'player',
+  Reveal:  'reveal',
+  Resolve: 'resolve',
+  Reward:  'reward',
 };
 
-function App() {
+function App({spotlightTokens, xp, hp}) {
   const [phase, setPhase] = useState(Phase.Idle);
   const [turn, setTurn] = useState(1);
   const [storyText, setStoryText] = useState(INTRO_TEXT);
   const [storyKey, setStoryKey] = useState(0);
-  const [timer, setTimer] = useState(26);
+  const [timer, setTimer] = useState(30);
 
-  const [envelopes, setEnvelopes] = useState({});     // by playerId
-  const [hiddenAction, setHiddenAction] = useState(null);  // hides slot in tray when committed
+  const [envelopes, setEnvelopes] = useState({});
+  const [hiddenAction, setHiddenAction] = useState(null);
   const [drag, setDrag] = useState(null);
   const [dropZoneHot, setDropZoneHot] = useState(false);
   const [hint, setHint] = useState({visible:false, x:0, y:0});
   const [dismissing, setDismissing] = useState(false);
+  const [rollResult, setRollResult] = useState(null);
+
+  // Tap-to-confirm popover state
+  const [tapAction, setTapAction] = useState(null);
 
   const dropZoneRef = useRef(null);
   const tableRef = useRef(null);
@@ -627,15 +788,17 @@ function App() {
   /* ===== Demo loop driver ===== */
   const startSequence = useCallback(()=>{
     setPhase(Phase.Idle);
-    setTurn(1);
+    setTurn(t => t);
     setEnvelopes({});
     setHiddenAction(null);
     setStoryText(INTRO_TEXT);
     setStoryKey(k=>k+1);
-    setTimer(26);
+    setTimer(30);
     setHint({visible:false, x:0, y:0});
+    setRollResult(null);
+    setTapAction(null);
 
-    // Bots commit
+    // Bot: Bram commits
     setTimeout(()=>{
       setPhase(Phase.Bots);
       setEnvelopes(prev=>({
@@ -651,6 +814,7 @@ function App() {
       }, 700);
     }, 800);
 
+    // Bot: Aria commits
     setTimeout(()=>{
       setEnvelopes(prev=>({
         ...prev,
@@ -665,10 +829,9 @@ function App() {
       }, 700);
     }, 2000);
 
-    // Now wait for player drag
+    // Player's turn — show hand hint over persuade coin
     setTimeout(()=>{
       setPhase(Phase.Player);
-      // show hand hint over persuade coin
       const stage = stageRef.current;
       const coin = persuadeCoinRef.current;
       if (stage && coin){
@@ -679,24 +842,52 @@ function App() {
     }, 3200);
   }, []);
 
-  // initial run
   useEffect(()=>{
     startSequence();
   }, [startSequence]);
 
-  // timer countdown during Player phase
+  // Timer countdown during Player phase
   useEffect(()=>{
     if (phase !== Phase.Player) return;
+    if (timer <= 0) {
+      // Timer expired — auto-commit move (graceful fallback)
+      commitAction(ACTIONS.find(a=>a.id==='move'));
+      return;
+    }
     const id = setInterval(()=> setTimer(t => Math.max(0, t-1)), 1000);
     return ()=> clearInterval(id);
+  }, [phase, timer]);
+
+  /* ===== Commit an action (from drag or tap) ===== */
+  const commitAction = useCallback((action)=>{
+    if (phase !== Phase.Player) return;
+    setHint({visible:false, x:0, y:0});
+    setTapAction(null);
+
+    const result = resolveAction(action.id);
+    setRollResult(result);
+
+    setHiddenAction(action.id);
+    setEnvelopes(prev=>({
+      ...prev,
+      yanni:{ appearing:true, sealFlash:true, revealed:false, actionLabel: `${action.label} Gremlin` }
+    }));
+
+    setTimeout(()=>{
+      setEnvelopes(prev=>{
+        const e={...prev};
+        if (e.yanni) e.yanni = {...e.yanni, appearing:false, sealFlash:false};
+        return e;
+      });
+      triggerReveal(result);
+    }, 700);
   }, [phase]);
 
   /* ===== After player commits, run reveal sequence ===== */
-  const triggerReveal = useCallback(()=>{
+  const triggerReveal = useCallback((result)=>{
     setPhase(Phase.Reveal);
-    setHint({visible:false, x:0, y:0});
 
-    // flip envelopes one by one (yanni → bram → aria), 150ms apart
+    // flip envelopes one by one
     const order = ['yanni','bram','aria'];
     order.forEach((id, i)=>{
       setTimeout(()=>{
@@ -708,17 +899,19 @@ function App() {
       }, 350 + i*180);
     });
 
-    // story update
+    // story update with outcome narrative
     setTimeout(()=>{
       setPhase(Phase.Resolve);
-      setStoryText(RESOLUTION_TEXT);
+      setStoryText(result ? result.narrative : OUTCOMES.move.success);
       setStoryKey(k=>k+1);
     }, 1500);
 
-    // reward card slides up
+    // reward card slides up + notify outer shell
     setTimeout(()=>{
       setPhase(Phase.Reward);
-      window.dispatchEvent(new CustomEvent('sfq-event',{detail:{type:'scene-complete'}}));
+      window.dispatchEvent(new CustomEvent('sfq-event',{
+        detail:{ type:'scene-complete', roll: result }
+      }));
     }, 2900);
   }, []);
 
@@ -726,14 +919,21 @@ function App() {
     setDismissing(true);
     setTimeout(()=>{
       setDismissing(false);
+      setTurn(t=>t+1);
       startSequence();
     }, 460);
   }, [startSequence]);
 
+  /* ===== Tap-to-commit handler ===== */
+  const handleTapAction = useCallback((action)=>{
+    if (phase !== Phase.Player) return;
+    setHint({visible:false, x:0, y:0});
+    setTapAction(action);
+  }, [phase]);
+
   /* ===== Drag handling ===== */
   const onCoinPointerDown = useCallback((e, action)=>{
     if (phase !== Phase.Player) return;
-    if (action.id !== 'persuade') return; // hero gesture only on persuade for the demo
     e.preventDefault();
     e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
 
@@ -744,6 +944,7 @@ function App() {
 
     setDrag({
       Coin: action.Coin,
+      action,
       actionId: action.id,
       x: e.clientX - sr.left,
       y: e.clientY - sr.top,
@@ -753,16 +954,15 @@ function App() {
     });
   }, [phase]);
 
-  // pointer move/up handled at stage level
   useEffect(()=>{
     if (!drag) return;
     const stage = stageRef.current;
     if (!stage) return;
+
     const onMove = (e)=>{
       const sr = stage.getBoundingClientRect();
       const x = e.clientX - sr.left;
       const y = e.clientY - sr.top;
-      // hover detection
       const dz = dropZoneRef.current;
       let hover = false;
       if (dz){
@@ -772,7 +972,6 @@ function App() {
         hover = Math.sqrt(dx*dx + dy*dy) < 60;
       }
       setDropZoneHot(hover);
-      // trail
       const id = ++trailIdRef.current;
       setDrag(prev=> prev ? ({
         ...prev,
@@ -783,6 +982,7 @@ function App() {
         ].slice(-22),
       }) : prev);
     };
+
     const onUp = (e)=>{
       const dz = dropZoneRef.current;
       let dropped = false;
@@ -792,26 +992,15 @@ function App() {
         const dx = e.clientX - cx, dy = e.clientY - cy;
         dropped = Math.sqrt(dx*dx + dy*dy) < 60;
       }
+      const action = drag.action;
       setDrag(null);
       setDropZoneHot(false);
 
-      if (dropped){
-        // commit envelope for yanni
-        setHiddenAction('persuade');
-        setEnvelopes(prev=>({
-          ...prev,
-          yanni:{ appearing:true, sealFlash:true, revealed:false, actionLabel: PLAYER_LABEL }
-        }));
-        setTimeout(()=>{
-          setEnvelopes(prev=>{
-            const e={...prev};
-            if (e.yanni) e.yanni = {...e.yanni, appearing:false, sealFlash:false};
-            return e;
-          });
-          triggerReveal();
-        }, 700);
+      if (dropped) {
+        commitAction(action);
       }
     };
+
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
@@ -820,21 +1009,15 @@ function App() {
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
     };
-  }, [drag, triggerReveal]);
+  }, [drag, commitAction]);
 
-  // attach persuade coin ref via callback after first paint
-  const handleCoinPointerDownWithRef = (e, action)=>{
-    onCoinPointerDown(e, action);
-  };
-
-  // mount stageRef on app root
   return (
-    <div ref={stageRef} style={{position:'relative', width:'100%', height:'100%', overflow:'hidden'}}>
+    <div ref={stageRef} style={{position:'relative', width:'100%', height:'100%', overflow:'hidden', display:'flex', flexDirection:'column'}}>
       <Defs/>
 
       <AppBar/>
       <SceneHeader turn={turn} razed={1} total={5}/>
-      <StoryScroll text={storyText} refreshKey={storyKey}/>
+      <StoryScroll text={storyText} refreshKey={storyKey} rollResult={rollResult}/>
 
       <SharedTable
         envelopes={envelopes}
@@ -847,80 +1030,38 @@ function App() {
 
       <ActionTrayWithRef
         coinRef={persuadeCoinRef}
-        onPointerDown={handleCoinPointerDownWithRef}
+        onPointerDown={onCoinPointerDown}
+        onTapAction={handleTapAction}
         draggingActionId={drag?.actionId}
         hiddenActionId={hiddenAction}
         timer={timer}
+        phase={phase}
       />
 
-      <SpotlightRow/>
-      <PlayerCard/>
+      <SpotlightRow tokensLeft={spotlightTokens ?? 2}/>
+      <PlayerCard hp={hp ?? 8} maxHp={10} xp={xp ?? 240}/>
 
       <IntroHint visible={hint.visible} originX={hint.x} originY={hint.y}/>
       <DragLayer drag={drag}/>
 
+      {/* Tap-to-confirm popover */}
+      {tapAction && (
+        <TapConfirmPopover
+          action={tapAction}
+          onCancel={()=> setTapAction(null)}
+          onConfirm={commitAction}
+        />
+      )}
+
       {(phase === Phase.Reward || dismissing) && (
-        <RewardCard onContinue={onContinueReward} dismissing={dismissing}/>
+        <RewardCard
+          onContinue={onContinueReward}
+          dismissing={dismissing}
+          rollResult={rollResult}
+        />
       )}
     </div>
   );
 }
-
-/* Wrapper that injects ref onto the persuade coin so we can position the hand hint */
-const ActionTrayWithRef = ({coinRef, onPointerDown, draggingActionId, hiddenActionId, timer}) => {
-  return (
-    <div className="panel-bg" style={{
-      position:'relative', display:'flex', alignItems:'center',
-      gap:6, padding:'14px 8px 18px',
-      borderTop:'1px solid rgba(232,199,96,0.25)',
-    }}>
-      <CornerOrnament style={{top:4, left:4}}/>
-      <CornerOrnament style={{top:4, right:4, transform:'scaleX(-1)'}}/>
-
-      {ACTIONS.map((a, i)=>{
-        const hidden = hiddenActionId === a.id;
-        return (
-          <div key={a.id} style={{
-            flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-            visibility: hidden ? 'hidden' : 'visible',
-          }}>
-            <div
-              ref={a.id === 'persuade' ? coinRef : null}
-              onPointerDown={(e)=> onPointerDown(e, a)}
-              className={(a.id === 'persuade') ? 'coin-glow idle-bob' : 'idle-bob'}
-              style={{
-                width:62, height:62, borderRadius:'50%',
-                cursor:'grab', position:'relative', touchAction:'none',
-                animationDelay: `${i*0.2}s`,
-                opacity: draggingActionId === a.id ? 0.25 : 1,
-                transition:'opacity 0.15s',
-              }}>
-              <a.Coin size={62}/>
-            </div>
-            <div className="heading gold-text" style={{fontSize:11, marginTop:2}}>
-              {a.label}
-            </div>
-          </div>
-        );
-      })}
-
-      <div style={{
-        width:72, padding:'6px 4px',
-        marginLeft:4, marginRight:2,
-        display:'flex', alignItems:'center', gap:2,
-        flexDirection:'column',
-        background:'linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.15))',
-        borderRadius:6,
-        border:'1px solid rgba(232,199,96,0.25)',
-      }}>
-        <div style={{display:'flex', alignItems:'center', gap:4}}>
-          <HourglassIcon size={26}/>
-          <div className="ui-num gold-text" style={{fontSize:18, lineHeight:1}}>{timer}s</div>
-        </div>
-        <div className="heading" style={{fontSize:9, color:'#C9B888', marginTop:-2, letterSpacing:'0.06em'}}>left</div>
-      </div>
-    </div>
-  );
-};
 
 window.SceneApp = App;
