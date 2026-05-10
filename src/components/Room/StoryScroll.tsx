@@ -5,7 +5,7 @@ import type { StoryEntry, RollResult } from '../../lib/engine';
 
 interface Props {
   text: string;
-  refreshKey: number;
+  refreshKey: number | string;
   rollResult: RollResult | null;
   storyLog: StoryEntry[];
 }

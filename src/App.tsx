@@ -1,83 +1,89 @@
-import { useState, useEffect } from 'react';
-import { Defs } from './components/icons';
+import { useEffect, useState } from 'react';
 import { AppBar } from './components/AppBar';
+import { Defs } from './components/icons';
 import { Lobby } from './components/Lobby/Lobby';
-import { Room } from './components/Room/Room';
-import { PreviouslyOn } from './components/overlays/PreviouslyOn';
+import { Help } from './components/modals/Help';
+import { Inventory } from './components/modals/Inventory';
+import { LeaveConfirm } from './components/modals/LeaveConfirm';
+import { Notifications } from './components/modals/Notifications';
+import { NPCDetail } from './components/modals/NPCDetail';
+import { Profile } from './components/modals/Profile';
+import { SpotlightModal } from './components/modals/Spotlight';
+import { V2Stub } from './components/modals/V2Stub';
 import { DropInBanner } from './components/overlays/DropInBanner';
 import { HistoryLog } from './components/overlays/HistoryLog';
-import { Inventory } from './components/modals/Inventory';
-import { Help } from './components/modals/Help';
-import { LeaveConfirm } from './components/modals/LeaveConfirm';
-import { NPCDetail } from './components/modals/NPCDetail';
-import { SpotlightModal } from './components/modals/Spotlight';
-import { Notifications } from './components/modals/Notifications';
-import { Profile } from './components/modals/Profile';
-import { V2Stub } from './components/modals/V2Stub';
+import { PreviouslyOn } from './components/overlays/PreviouslyOn';
+import { MultiplayerRoom } from './components/Room/MultiplayerRoom';
 import { useLobbyStore } from './store/lobbyStore';
+import { useMultiplayerStore } from './store/multiplayerStore';
+import { usePlayerStore } from './store/playerStore';
 
 export default function App() {
   const { screen, overlay, setScreen, completed } = useLobbyStore();
   const [showDropIn, setShowDropIn] = useState(false);
+  const syncRoom = useMultiplayerStore((state) => state.syncRoom);
+  const room = useMultiplayerStore((state) => state.room);
+  const activeRoomCode = usePlayerStore((state) => state.activeRoomCode);
 
   const handleEnterRoom = () => {
     setShowDropIn(true);
     setScreen('room');
   };
 
-  // When room loads, show drop-in banner
+  useEffect(() => {
+    if (activeRoomCode && !room) {
+      void syncRoom();
+    }
+  }, [activeRoomCode, room, syncRoom]);
+
   useEffect(() => {
     if (screen === 'room' && showDropIn) {
-      const id = setTimeout(() => setShowDropIn(false), 4500);
-      return () => clearTimeout(id);
+      const id = window.setTimeout(() => setShowDropIn(false), 4500);
+      return () => window.clearTimeout(id);
     }
+
+    return undefined;
   }, [screen, showDropIn]);
 
   return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100dvh',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#0F1B2D',
-    }}>
-      <Defs/>
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100dvh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#0F1B2D',
+      }}
+    >
+      <Defs />
 
-      {screen === 'lobby' && (
-        <>
-          <Lobby/>
-        </>
-      )}
+      {screen === 'lobby' && <Lobby />}
 
       {screen === 'previously' && (
-        <PreviouslyOn
-          completed={completed}
-          onContinue={handleEnterRoom}
-        />
+        <PreviouslyOn completed={completed} onContinue={handleEnterRoom} />
       )}
 
       {screen === 'room' && (
         <>
-          <AppBar/>
+          <AppBar />
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-            <Room/>
-            {showDropIn && <DropInBanner onClose={() => setShowDropIn(false)}/>}
+            <MultiplayerRoom />
+            {showDropIn && <DropInBanner onClose={() => setShowDropIn(false)} />}
           </div>
         </>
       )}
 
-      {/* Overlays */}
-      {overlay === 'history'   && <HistoryLog/>}
-      {overlay === 'inventory' && <Inventory/>}
-      {overlay === 'help'      && <Help/>}
-      {overlay === 'leave'     && <LeaveConfirm/>}
-      {overlay === 'npc'       && <NPCDetail/>}
-      {overlay === 'spotlight' && <SpotlightModal/>}
-      {overlay === 'notifs'    && <Notifications/>}
-      {overlay === 'profile'   && <Profile/>}
-      {overlay === 'v2stub'    && <V2Stub/>}
+      {overlay === 'history' && <HistoryLog />}
+      {overlay === 'inventory' && <Inventory />}
+      {overlay === 'help' && <Help />}
+      {overlay === 'leave' && <LeaveConfirm />}
+      {overlay === 'npc' && <NPCDetail />}
+      {overlay === 'spotlight' && <SpotlightModal />}
+      {overlay === 'notifs' && <Notifications />}
+      {overlay === 'profile' && <Profile />}
+      {overlay === 'v2stub' && <V2Stub />}
     </div>
   );
 }

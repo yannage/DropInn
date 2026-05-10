@@ -1,216 +1,440 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  CHARACTER_CLASS_PRESETS,
+  getCharacterInitial,
+  getCharacterLabel,
+} from '../../lib/character';
 import { useLobbyStore } from '../../store/lobbyStore';
-import { BellIcon, FriendsIcon } from '../icons';
+import { useMultiplayerStore } from '../../store/multiplayerStore';
+import { getSelectedCharacter, usePlayerStore } from '../../store/playerStore';
+import { BellIcon } from '../icons';
 import { RoomCard } from './RoomCard';
-import { FilterSheet } from './FilterSheet';
 
-const FILTERS = [
-  { id: 'progress',   label: 'Progress'  },
-  { id: 'players',    label: 'Players'   },
-  { id: 'duration',   label: '30s'       },
-  { id: 'theme',      label: 'Theme'     },
-  { id: 'visibility', label: 'Public'    },
-];
+const partyColors = ['purple', 'green', 'red', 'purple'] as const;
 
 export const Lobby = () => {
   const lobby = useLobbyStore();
-  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const [filterSheetKind, setFilterSheetKind] = useState<string | null>(null);
-  const [emptyView, setEmptyView] = useState(false);
+  const selectedCharacter = usePlayerStore(getSelectedCharacter);
+  const characters = usePlayerStore((state) => state.characters);
+  const selectCharacter = usePlayerStore((state) => state.selectCharacter);
+  const activeRoomCode = usePlayerStore((state) => state.activeRoomCode);
+  const room = useMultiplayerStore((state) => state.room);
+  const loading = useMultiplayerStore((state) => state.loading);
+  const error = useMultiplayerStore((state) => state.error);
+  const clearError = useMultiplayerStore((state) => state.clearError);
+  const createRoom = useMultiplayerStore((state) => state.createRoom);
+  const joinRoom = useMultiplayerStore((state) => state.joinRoom);
+  const syncRoom = useMultiplayerStore((state) => state.syncRoom);
+  const [roomCodeInput, setRoomCodeInput] = useState('');
 
-  const { completed, xp } = lobby;
+  useEffect(() => {
+    if (activeRoomCode && !room) {
+      void syncRoom();
+    }
+  }, [activeRoomCode, room, syncRoom]);
 
-  const room = {
-    title: 'The Dragon of Ash Hollow',
-    statusDot: 'sleeping',
-    statusBadge: completed ? 'complete' : 'sleeping',
-    statusLabel: completed ? 'Scene Complete' : 'Sleeping · 2d',
-    theme: 'Dragon Slaying',
-    party: [
-      { color: 'purple', initial: 'Y', name: 'Yanni' },
-      { color: 'green',  initial: 'B', name: 'Bram'  },
-    ],
-    maxPlayers: 4,
-    turnDuration: '30s',
-    visibilityIcon: '🌐',
-    progress: completed ? 50 : 30,
-    progressLabel: completed ? 'Scene 2 of 3 · 50%' : 'Scene 1 of 3 · 30%',
-    lastBeat: completed
-      ? 'You convinced Pip to talk. Bram pocketed a healing salve.'
-      : 'Yanni and Bram await in Thornwick Market.',
-    cta: completed ? 'Continue Adventure' : 'Wake the Room',
+  const featuredRoom = useMemo(() => {
+    if (!room) return null;
+
+    const statusMeta = {
+      lobby: { dot: 'sleeping', badge: 'sleeping', label: 'Gathering Party' },
+      active: { dot: 'active', badge: 'active', label: `Round ${room.sceneRound} Active` },
+      reward: { dot: 'active', badge: 'active', label: 'Resolution Ready' },
+      completed: { dot: 'complete', badge: 'complete', label: 'Reward Ready' },
+    }[room.status];
+
+    return {
+      title: room.campaignTitle,
+      statusDot: statusMeta.dot,
+      statusBadge: statusMeta.badge,
+      statusLabel: statusMeta.label,
+      theme: room.roomTheme,
+      party: room.participants.map((participant, index) => ({
+        color: partyColors[index % partyColors.length],
+        initial: getCharacterInitial(participant.character.name),
+        name: participant.character.name,
+      })),
+      maxPlayers: 4,
+      turnDuration: '30s',
+      visibilityIcon: 'MP',
+      progress: Math.min(100, Math.max(20, Math.round((room.sceneRound / 3) * 100))),
+      progressLabel: `Scene ${room.sceneRound} of 3`,
+      lastBeat: room.currentStoryText,
+      cta: room.status === 'lobby' ? 'Enter Staging Room' : 'Resume Adventure',
+    };
+  }, [room]);
+
+  const handleCreateRoom = async () => {
+    if (!selectedCharacter) return;
+    await createRoom(selectedCharacter);
+
+    if (useMultiplayerStore.getState().room) {
+      lobby.setScreen('room');
+    }
   };
 
-  const handleRoomTap = () => {
-    if (completed) {
-      lobby.openOverlay('v2stub');
-    } else {
-      lobby.setScreen('previously');
+  const handleJoinRoom = async () => {
+    if (!selectedCharacter) return;
+
+    const normalizedCode = roomCodeInput.trim().toUpperCase();
+    if (!normalizedCode) return;
+
+    await joinRoom(normalizedCode, selectedCharacter);
+    const joinedRoom = useMultiplayerStore.getState().room;
+    if (joinedRoom?.roomCode === normalizedCode) {
+      lobby.setScreen('room');
     }
   };
 
   return (
     <div className="lobby-bg">
-      {/* HEADER */}
-      <div className="navbar-bg" style={{
-        height: 54,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 12px',
-        borderBottom: '1px solid rgba(232,199,96,0.18)',
-        flexShrink: 0,
-      }}>
+      <div
+        className="navbar-bg"
+        style={{
+          height: 54,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 12px',
+          borderBottom: '1px solid rgba(232,199,96,0.18)',
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             onClick={() => lobby.openOverlay('profile')}
             style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'linear-gradient(180deg,#B68CF0,#4A1F8A)',
-              border: '2px solid #E8C760', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Cinzel, serif', fontWeight: 700, color: '#FFEFCB', fontSize: 14,
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: selectedCharacter?.accent ?? 'linear-gradient(180deg,#B68CF0,#4A1F8A)',
+              border: '2px solid #E8C760',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'Cinzel, serif',
+              fontWeight: 700,
+              color: '#FFEFCB',
+              fontSize: 14,
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 0 6px rgba(232,199,96,0.4)',
             }}
-          >Y</div>
+          >
+            {selectedCharacter ? getCharacterInitial(selectedCharacter.name) : '?'}
+          </div>
           <div>
-            <div style={{
-              fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: 16, letterSpacing: '0.06em',
-              background: 'linear-gradient(180deg, #FCE89B 0%, #E8C760 45%, #B8902E 100%)',
-              WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-              lineHeight: 1,
-            }}>Adventures</div>
-            <div style={{
-              fontFamily: 'EB Garamond, serif', fontStyle: 'italic', fontSize: 11, color: '#A99668',
-              marginTop: 1,
-            }}>Yanni · Wizard · Lvl 3 · {xp} XP</div>
+            <div
+              style={{
+                fontFamily: 'Cinzel, serif',
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: '0.06em',
+                background: 'linear-gradient(180deg, #FCE89B 0%, #E8C760 45%, #B8902E 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                lineHeight: 1,
+              }}
+            >
+              Adventures
+            </div>
+            <div
+              style={{
+                fontFamily: 'EB Garamond, serif',
+                fontStyle: 'italic',
+                fontSize: 11,
+                color: '#A99668',
+                marginTop: 1,
+              }}
+            >
+              {selectedCharacter
+                ? `${selectedCharacter.name} · ${getCharacterLabel(selectedCharacter.classKey)} · Lvl ${selectedCharacter.level} · ${selectedCharacter.xp} XP`
+                : 'Create a hero to begin'}
+            </div>
           </div>
         </div>
+
         <div
           onClick={() => lobby.openOverlay('notifs')}
           style={{
-            position: 'relative', cursor: 'pointer', width: 36, height: 36,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative',
+            cursor: 'pointer',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: 'linear-gradient(180deg,#1B2C4A,#0E1A30)',
-            border: '1px solid rgba(232,199,96,0.3)', borderRadius: 8,
+            border: '1px solid rgba(232,199,96,0.3)',
+            borderRadius: 8,
           }}
         >
-          <BellIcon size={18}/>
-          <div style={{
-            position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%',
-            background: '#A02828', border: '1.5px solid #0F1B2D', color: '#FFE9A8',
-            fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>2</div>
+          <BellIcon size={18} />
+          <div
+            style={{
+              position: 'absolute',
+              top: -3,
+              right: -3,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              background: '#A02828',
+              border: '1.5px solid #0F1B2D',
+              color: '#FFE9A8',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 9,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            2
+          </div>
         </div>
       </div>
 
-      {/* FILTER BAR */}
-      <div className="filter-bar">
-        {FILTERS.map(f => (
-          <button
-            key={f.id}
-            className={`chip ${activeFilters[f.id] ? 'on' : ''}`}
-            onClick={() => setFilterSheetKind(f.id)}
+      <div className="lobby-list">
+        <div
+          style={{
+            background: 'linear-gradient(180deg, rgba(232,199,96,0.12), rgba(15,27,45,0.6))',
+            border: '1px solid rgba(232,199,96,0.22)',
+            borderRadius: 12,
+            padding: 14,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              color: '#7a6a44',
+              textTransform: 'uppercase',
+            }}
           >
-            {f.label} <span style={{ opacity: 0.6 }}>▾</span>
+            Saved Characters
+          </div>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginTop: 10, paddingBottom: 2 }}>
+            {characters.map((character) => {
+              const selected = selectedCharacter?.id === character.id;
+              const preset = CHARACTER_CLASS_PRESETS[character.classKey];
+              return (
+                <button
+                  key={character.id}
+                  onClick={() => selectCharacter(character.id)}
+                  style={{
+                    minWidth: 122,
+                    borderRadius: 10,
+                    border: selected ? '1.5px solid #E8C760' : '1px solid rgba(232,199,96,0.18)',
+                    background: selected
+                      ? 'linear-gradient(180deg, rgba(232,199,96,0.24), rgba(27,44,74,0.96))'
+                      : 'linear-gradient(180deg, rgba(27,44,74,0.92), rgba(14,26,48,0.96))',
+                    color: '#FFE9A8',
+                    padding: '10px 10px 12px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        background: preset.accent,
+                        border: '1.5px solid rgba(255,239,203,0.45)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: 'Cinzel, serif',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#1F1408',
+                      }}
+                    >
+                      {getCharacterInitial(character.name)}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontFamily: 'Cinzel, serif',
+                          fontSize: 10,
+                          color: '#FFE9A8',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {character.name}
+                      </div>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: '#A99668' }}>
+                        {preset.label} · {character.xp} XP
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => lobby.openOverlay('profile')}>
+            Manage Characters
           </button>
-        ))}
-        {Object.keys(activeFilters).length > 0 && (
-          <button className="chip clear" onClick={() => { setActiveFilters({}); setEmptyView(false); }}>
-            ✕ Clear
+        </div>
+
+        {featuredRoom ? (
+          <>
+            <div
+              style={{
+                fontFamily: 'Cinzel, serif',
+                fontSize: 10,
+                letterSpacing: '0.16em',
+                color: '#7a6a44',
+                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }} />
+              <span>Current Party</span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }} />
+            </div>
+            <RoomCard room={featuredRoom} featured onTap={() => lobby.setScreen('room')} />
+          </>
+        ) : activeRoomCode ? (
+          <div
+            style={{
+              background: 'linear-gradient(180deg,#1A2B47 0%, #0F1B2D 100%)',
+              border: '1px solid rgba(232,199,96,0.22)',
+              borderRadius: 10,
+              padding: 14,
+            }}
+          >
+            <div style={{ fontFamily: 'Cinzel, serif', fontSize: 12, color: '#FFE9A8' }}>
+              Reconnect to room {activeRoomCode}
+            </div>
+            <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#A99668', marginTop: 6 }}>
+              The last room code is still saved. Refresh the shared state, then step back in.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button className="btn-secondary" onClick={() => { void syncRoom(); }} disabled={loading}>
+                Refresh Room
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div
+          style={{
+            background: 'linear-gradient(180deg,#1A2B47 0%, #0F1B2D 100%)',
+            border: '1px solid rgba(232,199,96,0.22)',
+            borderRadius: 12,
+            padding: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              color: '#7a6a44',
+              textTransform: 'uppercase',
+            }}
+          >
+            Multiplayer Setup
+          </div>
+          <div
+            style={{
+              fontFamily: 'EB Garamond, serif',
+              fontStyle: 'italic',
+              fontSize: 14,
+              lineHeight: 1.45,
+              color: '#E8D9B4',
+            }}
+          >
+            Create a room for your party, or join another room with a code. Your selected character is saved and follows you into every session.
+          </div>
+          <button className="btn-primary" onClick={() => { void handleCreateRoom(); }} disabled={loading || !selectedCharacter}>
+            Create Multiplayer Room
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={roomCodeInput}
+              onChange={(event) => setRoomCodeInput(event.target.value.toUpperCase().slice(0, 6))}
+              placeholder="ROOM CODE"
+              style={{
+                flex: 1,
+                borderRadius: 8,
+                border: '1px solid rgba(232,199,96,0.3)',
+                background: 'rgba(0,0,0,0.2)',
+                color: '#FFE9A8',
+                padding: '0 12px',
+                fontFamily: 'Cinzel, serif',
+                fontSize: 13,
+                letterSpacing: '0.18em',
+                minHeight: 42,
+              }}
+            />
+            <button className="btn-secondary" onClick={() => { void handleJoinRoom(); }} disabled={loading || roomCodeInput.trim().length < 4}>
+              Join
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'linear-gradient(180deg,#1A2B47 0%, #0F1B2D 100%)',
+            border: '1px solid rgba(232,199,96,0.12)',
+            borderRadius: 12,
+            padding: 14,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: 10,
+              letterSpacing: '0.16em',
+              color: '#7a6a44',
+              textTransform: 'uppercase',
+            }}
+          >
+            What Changed
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              fontFamily: 'EB Garamond, serif',
+              fontStyle: 'italic',
+              fontSize: 14,
+              lineHeight: 1.45,
+              color: '#A99668',
+            }}
+          >
+            Multiplayer rooms now persist shared party state, selected characters stay saved on this device, and room codes are ready for Netlify-backed play instead of a single scripted run.
+          </div>
+        </div>
+
+        {error && (
+          <button
+            onClick={clearError}
+            style={{
+              background: 'rgba(160,40,40,0.18)',
+              border: '1px solid rgba(248,113,113,0.45)',
+              borderRadius: 8,
+              color: '#FFE9A8',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 11,
+              padding: '10px 12px',
+              textAlign: 'left',
+            }}
+          >
+            {error}
           </button>
         )}
       </div>
-
-      {/* LIST */}
-      {emptyView ? (
-        <div className="empty-state">
-          <div className="glyph">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-              <circle cx="17" cy="17" r="9" stroke="currentColor" strokeWidth="2"/>
-              <path d="M24 24 L32 32" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <h3>NO CAMPAIGNS MATCH</h3>
-          <p>The realm holds no quests of that nature. Try a different theme, or clear your filters.</p>
-          <button className="btn-secondary" style={{ flex: 'none', padding: '8px 16px' }}
-            onClick={() => { setActiveFilters({}); setEmptyView(false); }}>
-            Clear Filters
-          </button>
-        </div>
-      ) : (
-        <div className="lobby-list">
-          <div style={{
-            fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.16em', color: '#7a6a44',
-            textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }}/>
-            <span>Continue Where You Left Off</span>
-            <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }}/>
-          </div>
-          <RoomCard room={room} featured onTap={handleRoomTap}/>
-
-          <div style={{
-            fontFamily: 'Cinzel, serif', fontSize: 10, letterSpacing: '0.16em', color: '#7a6a44',
-            textTransform: 'uppercase', marginTop: 6,
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }}/>
-            <span>Discover · Open to Drop-Ins</span>
-            <span style={{ flex: 1, height: 1, background: 'rgba(232,199,96,0.18)' }}/>
-          </div>
-
-          <div className="room-card" style={{ opacity: 0.55 }}>
-            <div className="room-row">
-              <div className="room-title">The Stolen Crown</div>
-              <span className="status-dot active"/>
-              <span className="status-badge active">Active · 3</span>
-            </div>
-            <div className="theme-tag">Heist · Royal Court</div>
-            <div className="room-row" style={{ justifyContent: 'space-between' }}>
-              <div className="avatars">
-                <div className="a red">M</div>
-                <div className="a green">T</div>
-                <div className="a purple">K</div>
-                <div className="a empty">+</div>
-              </div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668' }}>⏱ 60s · 🌐</div>
-            </div>
-            <div className="room-row" style={{ gap: 8 }}>
-              <div className="pbar"><div style={{ width: '70%' }}/></div>
-              <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, color: '#A99668', letterSpacing: '0.06em' }}>
-                Scene 4 of 5
-              </div>
-            </div>
-            <div style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 9, letterSpacing: '0.18em',
-              textTransform: 'uppercase', color: '#7a6a44', textAlign: 'center', paddingTop: 4,
-            }}>· COMING IN V2 ·</div>
-          </div>
-          <div style={{ height: 8 }}/>
-        </div>
-      )}
-
-      {/* ACTION BAR */}
-      <div className="lobby-actionbar">
-        <button className="btn-primary disabled" disabled>✦ Create Adventure</button>
-        <button className="btn-secondary" onClick={() => setEmptyView(false)}>My Campaigns</button>
-      </div>
-
-      {filterSheetKind && (
-        <FilterSheet
-          kind={filterSheetKind}
-          active={activeFilters[filterSheetKind]}
-          onClose={() => setFilterSheetKind(null)}
-          onPick={val => {
-            const next = { ...activeFilters };
-            if (val == null) delete next[filterSheetKind]; else next[filterSheetKind] = val;
-            setActiveFilters(next);
-            if (filterSheetKind === 'theme' && val && val !== 'Dragon') setEmptyView(true);
-            else setEmptyView(false);
-            setFilterSheetKind(null);
-          }}
-        />
-      )}
     </div>
   );
 };
