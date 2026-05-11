@@ -21,6 +21,8 @@ export const Inventory = () => {
 
   const inventory = selectedCharacter?.inventory ?? [];
   const hasSalve = inventory.includes('Healing Salve');
+  const hasAshhideCharm = inventory.includes('Ashhide Charm');
+  const hasCrackedToken = inventory.includes('Cracked Ash Token');
 
   const items: Item[] = [
     {
@@ -43,6 +45,24 @@ export const Inventory = () => {
     },
     {
       i: 2,
+      name: 'Ashhide Charm',
+      glyph: 'W',
+      kind: 'rare',
+      desc: 'Won from the Ash Hollow Ambush. It is warm even when the room is cold.',
+      hidden: !hasAshhideCharm,
+      qty: 1,
+    },
+    {
+      i: 3,
+      name: 'Cracked Ash Token',
+      glyph: 'T',
+      kind: 'keepsake',
+      desc: 'A rough lesson from a failed encounter. It still counts as progress.',
+      hidden: !hasCrackedToken,
+      qty: 1,
+    },
+    {
+      i: 4,
       name: 'Healing Salve',
       glyph: '+',
       kind: 'consumable',
@@ -50,8 +70,8 @@ export const Inventory = () => {
       hidden: !hasSalve,
       qty: 1,
     },
-    { i: 3, name: 'Coin Pouch', glyph: 'O', kind: 'has', desc: '24 gold pieces. Heavier than it should be.', qty: 24 },
-    { i: 4, name: 'Travel Rations', glyph: 'D', kind: 'has', desc: '3 days of dried bread and salted meat.', qty: 3 },
+    { i: 5, name: 'Coin Pouch', glyph: 'O', kind: 'has', desc: '24 gold pieces. Heavier than it should be.', qty: 24 },
+    { i: 6, name: 'Travel Rations', glyph: 'D', kind: 'has', desc: '3 days of dried bread and salted meat.', qty: 3 },
   ];
 
   const slots = Array.from({ length: 16 }).map((_, index) => items.find((item) => item.i === index && !item.hidden));

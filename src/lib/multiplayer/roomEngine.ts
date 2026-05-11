@@ -1,9 +1,18 @@
-import { ACTIONS_BY_ROUND, BOT_PLAYS_BY_ROUND, CAMPAIGN_TITLE, YANNI_TRAITS, type Action } from '../../data/campaign';
-import { OUTCOMES, ROUND_INTROS } from '../../data/outcomes';
-import type { RollResult, StoryEntry } from '../engine';
+import type { StoryEntry } from '../engine';
 import type { CharacterProfile } from '../character';
+import {
+  BATTLE_ACTIONS,
+  createInitialBattleState,
+  getBattleReward,
+  resolveBattleTurn,
+  type BattleActionDefinition,
+  type BattleActionId,
+  type BattleCommit,
+  type BattleResolution,
+  type BattleState,
+} from '../battle/engine';
 
-export type MultiplayerStatus = 'lobby' | 'active' | 'reward' | 'completed';
+export type MultiplayerStatus = 'lobby' | 'active' | 'completed';
 
 export interface RoomParticipantState {
   sessionId: string;
@@ -13,20 +22,12 @@ export interface RoomParticipantState {
   leftAt: number | null;
 }
 
-export interface CommittedAction {
-  actionId: string;
-  committedAt: number;
-}
+export interface CommittedAction extends BattleCommit {}
 
-export interface ActionResolution extends RollResult {
-  sessionId: string;
-  characterId: string;
-  characterName: string;
-  actionId: string;
-  actionLabel: string;
-}
+export interface ActionResolution extends BattleResolution {}
 
 export interface RoomState {
+  id?: string;
   roomCode: string;
   campaignTitle: string;
   hostSessionId: string;
@@ -43,6 +44,7 @@ export interface RoomState {
   continueVotes: Record<string, number>;
   rewardClaims: Record<string, number>;
   lastResults: ActionResolution[];
+  battleState: BattleState;
   participants: RoomParticipantState[];
   completedAt: number | null;
   lastResolvedTurnKey: string | null;
@@ -53,9 +55,12 @@ export interface RoomParticipantView {
   character: CharacterProfile;
   isHost: boolean;
   online: boolean;
-  committedActionId: string | null;
+  committedActionId: BattleActionId | null;
   hasContinued: boolean;
   rewardClaimed: boolean;
+  hp: number;
+  maxHp: number;
+  downed: boolean;
 }
 
 export interface RoomView {
@@ -79,31 +84,28 @@ export interface RoomView {
   canContinue: boolean;
   canClaimReward: boolean;
   lastResults: ActionResolution[];
+  battleState: BattleState;
+  battleActions: BattleActionDefinition[];
+  rewardLabel: string;
+  rewardXp: number;
+  rewardItem?: string;
   roomTheme: string;
 }
 
 const ONLINE_WINDOW_MS = 20_000;
 const ROUND_DURATION_MS = 30_000;
-const MAX_SCENE_ROUND = 3;
+const CAMPAIGN_TITLE = 'The Dragon of Ash Hollow';
+const BATTLE_INTRO = 'Ash Hollow erupts in smoke as an ash-black warg breaks from the tree line. The party has one job: drop it before it drops you.';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
+const makeLobbyBattleState = (characters: CharacterProfile[]): BattleState => ({
+  ...createInitialBattleState(characters),
+  status: 'lobby',
+  enemyIntent: 'Waiting for the party to begin.',
+});
+
 const turnKeyFor = (room: RoomState) => `${room.sceneRound}:${room.turn}`;
-
-const actionHash = (seed: string) => {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0;
-  }
-  return Math.abs(hash);
-};
-
-const deterministicD20 = (seed: string) => (actionHash(seed) % 20) + 1;
-
-const getActionForRound = (sceneRound: number, actionId: string) => {
-  const actions = ACTIONS_BY_ROUND[sceneRound] ?? ACTIONS_BY_ROUND[1];
-  return actions.find((action) => action.id === actionId) ?? actions[actions.length - 1];
-};
 
 const getOnlineParticipants = (room: RoomState, now: number) => (
   room.participants.filter((participant) => (
@@ -111,96 +113,58 @@ const getOnlineParticipants = (room: RoomState, now: number) => (
   ))
 );
 
-const makeOutcome = (action: Action, success: boolean) => {
-  const outcome = OUTCOMES[action.id];
-  if (!outcome) {
-    return success ? 'The party presses forward.' : 'The effort falters, but the story moves on.';
-  }
+const getActiveBattleParticipants = (room: RoomState, now: number) => (
+  getOnlineParticipants(room, now).filter((participant) => (
+    !room.battleState.downedCharacterIds.includes(participant.character.id)
+  ))
+);
 
-  return success
-    ? outcome.success
-    : outcome.failure ?? outcome.success;
-};
-
-const resolveDeterministicAction = (
+const appendLogLines = (
   room: RoomState,
-  participant: RoomParticipantState,
-  action: Action,
-): ActionResolution => {
-  if (action.id === 'disengage' || action.id === 'dash') {
+  turn: number,
+  logLines: string[],
+  results: ActionResolution[],
+) => {
+  const resultByCharacterId = new Map(results.map((result) => [result.characterId, result]));
+  const entries = logLines.map<StoryEntry>((text) => {
+    const matchingRoll = [...resultByCharacterId.values()].find((result) => text.includes(result.characterName));
     return {
-      sessionId: participant.sessionId,
-      characterId: participant.character.id,
-      characterName: participant.character.name,
-      actionId: action.id,
-      actionLabel: action.label,
-      roll: 20,
-      mod: 0,
-      total: 20,
-      success: true,
-      narrative: makeOutcome(action, true),
-      trait: action.trait,
-      dc: action.dc,
+      turn,
+      text,
+      kind: 'resolution',
+      roll: matchingRoll,
     };
-  }
+  });
 
-  const seed = [
-    room.roomCode,
-    room.sceneRound,
-    room.turn,
-    participant.sessionId,
-    action.id,
-  ].join(':');
-
-  const roll = deterministicD20(seed);
-  const mod = participant.character.traits[action.trait] ?? YANNI_TRAITS[action.trait] ?? 0;
-  const total = roll + mod;
-  const success = total >= action.dc;
-
-  return {
-    sessionId: participant.sessionId,
-    characterId: participant.character.id,
-    characterName: participant.character.name,
-    actionId: action.id,
-    actionLabel: action.label,
-    roll,
-    mod,
-    total,
-    success,
-    narrative: makeOutcome(action, success),
-    trait: action.trait,
-    dc: action.dc,
-  };
+  room.storyLog = [...room.storyLog, ...entries].slice(-24);
+  room.currentStoryText = logLines.join(' ');
 };
 
-const appendRoundResults = (room: RoomState) => {
-  const lines = room.lastResults.map((result) => `${result.characterName}: ${result.narrative}`);
-  const botPlay = BOT_PLAYS_BY_ROUND[room.sceneRound]?.bram;
-
-  if (botPlay) {
-    lines.push(`Bram ${botPlay.label.toLowerCase()} while Pip keeps one eye on the stall and the other on the smoke outside.`);
-  }
-
-  room.currentStoryText = lines.join(' ');
-  room.storyLog = [
-    ...room.storyLog,
-    ...room.lastResults.map((result) => ({
-      turn: room.turn,
-      text: `${result.characterName}: ${result.narrative}`,
-      kind: 'resolution' as const,
-      roll: result,
-    })),
-  ];
+const ensureRosterHp = (room: RoomState) => {
+  room.participants.forEach((participant) => {
+    if (room.battleState.partyHpByCharacterId[participant.character.id] == null) {
+      room.battleState.partyHpByCharacterId[participant.character.id] = Math.max(1, participant.character.hp);
+    }
+  });
 };
 
 const ensureRoomResolved = (roomInput: RoomState, now = Date.now()) => {
   const room = clone(roomInput);
   if (room.status !== 'active' || room.turnStartedAt == null) return room;
 
-  const onlineParticipants = getOnlineParticipants(room, now);
-  if (onlineParticipants.length === 0) return room;
+  ensureRosterHp(room);
 
-  const everyoneCommitted = onlineParticipants.every((participant) => room.actionCommits[participant.sessionId]);
+  const activeParticipants = getActiveBattleParticipants(room, now);
+  if (activeParticipants.length === 0) {
+    room.status = 'completed';
+    room.completedAt = now;
+    room.battleState.status = 'failure';
+    room.currentStoryText = 'The party is down. Ash Hollow is lost for now, but every survivor keeps what they learned.';
+    room.updatedAt = now;
+    return room;
+  }
+
+  const everyoneCommitted = activeParticipants.every((participant) => room.actionCommits[participant.sessionId]);
   const timedOut = now >= room.turnStartedAt + room.roundDurationMs;
   const turnKey = turnKeyFor(room);
 
@@ -208,18 +172,40 @@ const ensureRoomResolved = (roomInput: RoomState, now = Date.now()) => {
     return room;
   }
 
-  room.lastResults = onlineParticipants.map((participant) => {
-    const fallbackAction = (ACTIONS_BY_ROUND[room.sceneRound] ?? ACTIONS_BY_ROUND[1]).slice(-1)[0];
-    const committed = room.actionCommits[participant.sessionId];
-    const action = getActionForRound(room.sceneRound, committed?.actionId ?? fallbackAction.id);
-    return resolveDeterministicAction(room, participant, action);
-  });
+  const result = resolveBattleTurn(
+    room.roomCode,
+    room.turn,
+    room.battleState,
+    activeParticipants.map((participant) => ({
+      sessionId: participant.sessionId,
+      character: participant.character,
+      online: true,
+      leftAt: participant.leftAt,
+    })),
+    room.actionCommits,
+  );
 
-  appendRoundResults(room);
-  room.status = 'reward';
+  room.lastResults = result.results;
+  room.battleState = result.battleState;
+  appendLogLines(room, room.turn, result.logLines, result.results);
   room.lastResolvedTurnKey = turnKey;
-  room.updatedAt = now;
 
+  if (result.battleState.status === 'victory' || result.battleState.status === 'failure') {
+    room.status = 'completed';
+    room.completedAt = now;
+    room.actionCommits = {};
+    room.continueVotes = {};
+    room.currentStoryText = result.logLines.join(' ');
+  } else {
+    room.turn += 1;
+    room.sceneRound = result.battleState.round;
+    room.turnStartedAt = now;
+    room.actionCommits = {};
+    room.continueVotes = {};
+    room.lastResolvedTurnKey = null;
+  }
+
+  room.updatedAt = now;
   return room;
 };
 
@@ -236,12 +222,13 @@ export const createRoomState = (character: CharacterProfile, sessionId: string, 
   sceneRound: 1,
   turn: 1,
   turnStartedAt: null,
-  currentStoryText: 'Gather your party, choose your drop-in hero, and step into Thornwick together.',
+  currentStoryText: 'Share the room code, pick saved heroes, then start the Ash Hollow Ambush.',
   storyLog: [],
   actionCommits: {},
   continueVotes: {},
   rewardClaims: {},
   lastResults: [],
+  battleState: makeLobbyBattleState([character]),
   participants: [{
     sessionId,
     character,
@@ -276,6 +263,12 @@ export const touchParticipant = (
     });
   }
 
+  ensureRosterHp(room);
+
+  if (room.status === 'lobby') {
+    room.battleState = makeLobbyBattleState(room.participants.map((participant) => participant.character));
+  }
+
   room.updatedAt = now;
   return ensureRoomResolved(room, now);
 };
@@ -299,16 +292,22 @@ export const leaveRoomState = (roomInput: RoomState, sessionId: string, now = Da
 
 export const startRoomState = (roomInput: RoomState, sessionId: string, now = Date.now()) => {
   const room = clone(roomInput);
-  if (room.hostSessionId !== sessionId) return ensureRoomResolved(room, now);
+  if (room.hostSessionId !== sessionId || room.status !== 'lobby') return ensureRoomResolved(room, now);
+
+  const activeCharacters = room.participants
+    .filter((participant) => participant.leftAt == null)
+    .map((participant) => participant.character);
 
   room.status = 'active';
   room.sceneRound = 1;
   room.turn = 1;
   room.turnStartedAt = now;
-  room.currentStoryText = ROUND_INTROS[1];
-  room.storyLog = [{ turn: 1, text: ROUND_INTROS[1], kind: 'intro' }];
+  room.battleState = createInitialBattleState(activeCharacters);
+  room.currentStoryText = BATTLE_INTRO;
+  room.storyLog = [{ turn: 1, text: BATTLE_INTRO, kind: 'intro' }];
   room.actionCommits = {};
   room.continueVotes = {};
+  room.rewardClaims = {};
   room.lastResults = [];
   room.completedAt = null;
   room.lastResolvedTurnKey = null;
@@ -326,55 +325,35 @@ export const commitRoomAction = (
   const room = ensureRoomResolved(roomInput, now);
   if (room.status !== 'active') return room;
 
-  room.actionCommits[sessionId] = { actionId, committedAt: now };
+  const participant = getActiveBattleParticipants(room, now)
+    .find((entry) => entry.sessionId === sessionId);
+  if (!participant || room.actionCommits[sessionId]) return room;
+
+  room.actionCommits[sessionId] = {
+    actionId: (BATTLE_ACTIONS.some((action) => action.id === actionId) ? actionId : 'strike') as BattleActionId,
+    committedAt: now,
+  };
   room.updatedAt = now;
 
   return ensureRoomResolved(room, now);
 };
 
 export const continueRoomState = (roomInput: RoomState, sessionId: string, now = Date.now()) => {
-  const room = ensureRoomResolved(roomInput, now);
-  if (room.status !== 'reward' && room.status !== 'completed') return room;
-
+  const room = clone(roomInput);
   room.continueVotes[sessionId] = now;
   room.updatedAt = now;
-
-  const onlineParticipants = getOnlineParticipants(room, now);
-  const hostTriggered = room.hostSessionId === sessionId;
-  const everyoneReady = onlineParticipants.length > 0 && onlineParticipants.every((participant) => room.continueVotes[participant.sessionId]);
-
-  if (!hostTriggered && !everyoneReady) {
-    return room;
-  }
-
-  if (room.sceneRound >= MAX_SCENE_ROUND) {
-    room.status = 'completed';
-    room.completedAt = now;
-    room.currentStoryText = 'Thornwick exhales. The scene is complete, the party levels up, and the road to Ash Hollow waits for whoever returns first.';
-    return room;
-  }
-
-  const nextRound = room.sceneRound + 1;
-  room.sceneRound = nextRound;
-  room.turn += 1;
-  room.status = 'active';
-  room.turnStartedAt = now;
-  room.currentStoryText = ROUND_INTROS[nextRound] ?? ROUND_INTROS[1];
-  room.storyLog = [
-    ...room.storyLog,
-    { turn: room.turn, text: room.currentStoryText, kind: 'intro' },
-  ];
-  room.actionCommits = {};
-  room.continueVotes = {};
-  room.lastResults = [];
-  room.lastResolvedTurnKey = null;
-
-  return room;
+  return ensureRoomResolved(room, now);
 };
 
 export const claimRoomReward = (roomInput: RoomState, sessionId: string, now = Date.now()) => {
   const room = clone(roomInput);
+  const participant = room.participants.find((entry) => entry.sessionId === sessionId);
+
   room.rewardClaims[sessionId] = now;
+  if (participant) {
+    room.battleState.rewardClaimedByCharacterId[participant.character.id] = now;
+  }
+
   room.updatedAt = now;
   return room;
 };
@@ -383,15 +362,23 @@ export const buildRoomView = (roomInput: RoomState, sessionId: string, now = Dat
   const room = ensureRoomResolved(roomInput, now);
   const participants = room.participants
     .filter((participant) => participant.leftAt == null)
-    .map((participant) => ({
-      sessionId: participant.sessionId,
-      character: participant.character,
-      isHost: participant.sessionId === room.hostSessionId,
-      online: (now - participant.lastSeenAt) <= ONLINE_WINDOW_MS,
-      committedActionId: room.actionCommits[participant.sessionId]?.actionId ?? null,
-      hasContinued: Boolean(room.continueVotes[participant.sessionId]),
-      rewardClaimed: Boolean(room.rewardClaims[participant.sessionId]),
-    }));
+    .map((participant) => {
+      const hp = room.battleState.partyHpByCharacterId[participant.character.id] ?? participant.character.hp;
+      const downed = room.battleState.downedCharacterIds.includes(participant.character.id) || hp <= 0;
+
+      return {
+        sessionId: participant.sessionId,
+        character: participant.character,
+        isHost: participant.sessionId === room.hostSessionId,
+        online: (now - participant.lastSeenAt) <= ONLINE_WINDOW_MS,
+        committedActionId: room.actionCommits[participant.sessionId]?.actionId ?? null,
+        hasContinued: Boolean(room.continueVotes[participant.sessionId]),
+        rewardClaimed: Boolean(room.rewardClaims[participant.sessionId]),
+        hp,
+        maxHp: participant.character.maxHp,
+        downed,
+      };
+    });
 
   const currentPlayer = participants.find((participant) => participant.sessionId === sessionId) ?? null;
   const committedCount = participants.filter((participant) => participant.committedActionId).length;
@@ -399,6 +386,7 @@ export const buildRoomView = (roomInput: RoomState, sessionId: string, now = Dat
   const timeRemainingMs = room.status === 'active' && room.turnStartedAt != null
     ? Math.max(0, (room.turnStartedAt + room.roundDurationMs) - now)
     : 0;
+  const reward = getBattleReward(room.battleState.status);
 
   return {
     roomCode: room.roomCode,
@@ -417,10 +405,16 @@ export const buildRoomView = (roomInput: RoomState, sessionId: string, now = Dat
     currentPlayer,
     isHost: currentPlayer?.isHost ?? false,
     canStart: room.status === 'lobby' && (currentPlayer?.isHost ?? false),
-    canCommit: room.status === 'active' && currentPlayer != null && currentPlayer.committedActionId == null,
-    canContinue: room.status === 'reward' && currentPlayer != null && !(currentPlayer.hasContinued && !currentPlayer.isHost),
+    canCommit: room.status === 'active' && currentPlayer != null && !currentPlayer.downed && currentPlayer.committedActionId == null,
+    canContinue: false,
     canClaimReward: room.status === 'completed' && currentPlayer != null && !currentPlayer.rewardClaimed,
     lastResults: room.lastResults,
-    roomTheme: 'Dragon Slaying',
+    battleState: room.battleState,
+    battleActions: BATTLE_ACTIONS,
+    rewardLabel: reward.label,
+    rewardXp: reward.xp,
+    rewardItem: reward.item,
+    roomTheme: 'Co-op Battle',
   };
 };
+

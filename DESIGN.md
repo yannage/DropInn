@@ -1,189 +1,134 @@
-# D&D One-Shot — Design Brief v3
-
-Source of truth for V1 scope and success criteria.
+# DropInn Design Brief - V1 Battle MVP
 
 ## Goal
 
-Validate the core loop: discover a campaign in the lobby → drop in → see "previously on..." → complete a scene → gain XP/items → leave gracefully → feel pulled to come back.
+Make DropInn feel like a game, not just a story reader. V1 is complete when a player can create/select a saved character, join a co-op multiplayer room, resolve a real battle sequence with shared enemy HP and party HP, earn XP/items, refresh, and keep progression.
 
-**The question this prototype answers:** does dropping into a campaign for 10–15 minutes feel rewarding and immersive enough that a player would return tomorrow?
+The core question for V1:
+
+> Does a 5-10 minute co-op battle with saved character progress feel worth returning to?
 
 ## Audience
 
-13+ D&D enthusiasts. Lunch-break friendly. Depth and atmosphere over casual vibes.
+13+ fantasy and tabletop RPG players who want a fast session. The tone is storybook fantasy with readable game-state feedback. The UI should stay compact enough for mobile, but the primary loop must be battle-first.
 
-**Aesthetic:** Hearthstone / Slay the Spire territory — painted storybook fantasy, approachable but not childish. Stick-figure character art is intentional (Order of the Stick), not placeholder.
+## V1 Stack
 
-## Stack (V1)
+- Vite + React 18 + TypeScript
+- Zustand for UI/cache state
+- Supabase anonymous auth
+- Supabase Postgres for characters, rooms, turn actions, battle logs, and rewards
+- Supabase Realtime for room update propagation
+- Netlify static hosting
 
-- Vanilla React 18 + Babel standalone (no build)
-- Tailwind-style inline CSS (no framework — all styles in HTML `<style>`)
-- localStorage for persistence
-- No backend, no LLM, no real multiplayer
+## V1 Loop
 
-## Screens
+1. Player lands in the lobby.
+2. App signs in anonymously if Supabase is configured.
+3. Player creates or selects a saved character.
+4. Host creates a room and shares the room code.
+5. Guest joins with a saved character.
+6. Host starts "Ash Hollow Ambush".
+7. Each active player commits one action per round.
+8. Player actions resolve together.
+9. Enemy attacks if still alive.
+10. Battle continues, wins, or fails.
+11. Each participating character claims XP/item reward once.
+12. Refresh restores selected character and active room.
 
-### Lobby
+## Battle Design
 
-- Header: "Adventures" title + profile avatar + notifications bell
-- Filter bar: Progress / Players / Turn Duration / Theme / Visibility (decorative except Theme)
-- Theme filter → non-Dragon selection shows empty state
-- Room card: title, status badge, theme tag, party avatars, progress bar, turn duration, visibility
-- One active room: "The Dragon of Ash Hollow" — Sleeping, 2 bots (Yanni + Bram), 30% progress
-- Bottom: disabled "Create Adventure" + "My Campaigns" button
+### Encounter
 
-### Room (6 stacked regions)
+The first playable room is "Ash Hollow Ambush". An Ash Warg attacks the party. Enemy max HP scales with party size so solo and two-player testing are both viable.
 
-1. **Campaign Banner** (~8%) — title + party avatars, tappable
-2. **Scene Header** (~8%) — location, turn counter, dragon progress bar
-3. **Story Scroll** (~30%) — parchment narrative, book button → history
-4. **Shared Table** (~20%) — round wood table, sealed envelopes → flip reveal
-5. **Action Tray** (~22%) — 4 coins + 2 spotlight tokens + turn timer
-6. **Player Card** (~12%) — avatar, name, class, HP bar, trait chips, inventory/help/leave
+### State
 
-## Engine types
+The room stores:
 
-```typescript
-type Campaign = {
-  id: string;
-  title: string;
-  theme: 'dragon' | 'princess' | 'heist' | 'mystery' | 'horror';
-  scenes: Scene[];
-  current_scene_id: string;
-  world_state: WorldState;
-  party: PartyMember[];
-  history_summary: string;
-  status: 'active' | 'sleeping';
-  visibility: 'private' | 'public';
-  max_players: 2 | 3 | 4;
-  turn_duration_seconds: 15 | 30 | 60 | 120;
-  progress_percent: number;
-  last_activity: number;
-};
+- `status`: lobby, active, completed
+- `battle_state.status`: lobby, active, victory, failure
+- `round`
+- `enemyHp` and `enemyMaxHp`
+- `enemyIntent`
+- `partyHpByCharacterId`
+- `downedCharacterIds`
+- `lastResolvedTurn`
+- `rewardClaimedByCharacterId`
 
-type Player = {
-  id: string; name: string; class: 'wizard' | 'fighter' | 'rogue';
-  level: number; xp: number; hp: number; max_hp: number; ac: number;
-  traits: { INT: number; ATH: number; ING: number; CHA: number };
-  inventory: Item[];
-  spotlight_tokens: number;
-};
+### Actions
 
-type NPCTraits = {
-  race: 'human'|'goblin'|'dragonborn'|'elf'|'halfling'|'orc'|'tiefling';
-  gender: 'male'|'female'|'nonbinary';
-  demeanor: 'friendly'|'suspicious'|'anxious'|'boisterous'|'aloof'|'bold'|'melancholy';
-  appearance: 'shabby'|'polished'|'weathered'|'striking'|'plain'|'imposing'|'unkempt';
-  build: 'tall'|'short'|'stocky'|'slim'|'broad';
-  motivation: 'greed'|'fame'|'revenge'|'boredom'|'philanthropy'|'survival'|'loyalty'|'curiosity';
-  quirk: string;
-};
-```
+| Action | DC | Effect |
+| --- | ---: | --- |
+| Strike | 11 | 6 damage on success, 2 on failure |
+| Heavy | 15 | 11 damage on success, 0 on failure |
+| Guard | 11 | Reduce incoming damage by 6, deal 2 on success |
+| Aid | 10 | Heal lowest damaged ally by 5, or grant +2 momentum |
 
-## Hardcoded NPC: Pip Bramblebottom
+Class flavor changes action labels only:
 
-```typescript
-{
-  id: 'thornwick_gremlin_merchant',
-  name: 'Pip Bramblebottom',
-  role: 'merchant',
-  traits: {
-    race: 'goblin', gender: 'male', demeanor: 'suspicious',
-    appearance: 'shabby', build: 'slim', motivation: 'greed',
-    quirk: 'constantly counts coins, even mid-conversation',
-  },
-  dialogue_topics: [
-    { topic: 'dragon', response: 'Aye, the beast was last seen near Ash Hollow. Shame about Greenholt — gone in a single night.' },
-    { topic: 'wares', response: "Best prices in Thornwick! Quality... varies. Caveat emptor and all that." },
-    { topic: 'town', response: "Folk are scared. Not buying like they used to. Coins go further when no one's spending them." },
-  ],
-}
-```
+- Wizard: Arcane Dart, Overchannel, Ward, Mend
+- Fighter: Blade Strike, Cleave, Guard, Rally
+- Rogue: Quick Cut, Backstab, Evasion, Distract
+- Cleric: Radiant Blow, Judgement, Sanctuary, Blessing
 
-## Resolution loop
+### Resolution
 
-1. Scene loads → 3–4 action coins available
-2. Each online player drags/taps a coin onto the table (sealed envelopes)
-3. Bots auto-commit after ~1s delay (scripted for V1)
-4. When all online players committed or timer expires → envelopes flip face-up
-5. Engine rolls d20 + relevant trait modifier per player vs. DC
-6. Outcome narrative appended to story scroll
-7. World state updates
-8. Scene complete → XP + item drop → party can leave or continue
+1. Aid resolves first.
+2. Strike, Heavy, and Guard resolve.
+3. Enemy HP is reduced.
+4. If enemy HP reaches 0, battle ends in victory before counterattack.
+5. Enemy deals `4 + round` damage to every standing active hero.
+6. Guard reduces that hero's incoming damage by 6.
+7. Heroes at 0 HP are downed.
+8. If every active hero is downed, battle ends in failure.
+9. Otherwise the next round begins immediately.
 
-## Action DCs and trait mods (V1)
+## Progression
 
-| Action | Trait | DC |
-|--------|-------|----|
-| Persuade | CHA | 12 |
-| Intimidate | ATH | 14 |
-| Examine | INT | 10 |
-| Move | ATH | 8 |
+Characters start at level 3 with 240 XP. Rewards are applied once per character per completed room.
 
-## Hardcoded narrative outcomes (Scene 1: Thornwick Market)
+| Result | Reward |
+| --- | --- |
+| Victory | +75 XP, Ashhide Charm |
+| Failure | +15 XP, Cracked Ash Token |
 
-All outcomes reference Pip's traits (suspicious, greed, counts coins):
+Level thresholds:
 
-### Persuade success (CHA roll ≥ 12)
-"The suspicious gremlin pauses his coin-counting. Your words cut through his greed — he pockets his coins and leans forward. 'The dragon,' he mutters, 'was last seen near Ash Hollow. Don't tell anyone I said that.' He resumes counting immediately."
+- Level 4 at 300 XP
+- Level 5 at 450 XP
 
-### Persuade failure (CHA roll < 12)
-"Pip's eyes narrow as he counts another coin. 'Don't know nothin',' he mutters, clearly lying. His shabby coat rustles as he shuffles away. You'll need a different approach."
+## UX Direction
 
-### Intimidate success (ATH roll ≥ 14)
-"Bram looms over the stall. The slim goblin's coin-counting stutters — he drops three coppers. 'Fine, fine! Ash Hollow! Just — just don't break anything, the profit margins are already terrible.'"
+The room screen prioritizes battle readability:
 
-### Intimidate failure (ATH roll < 14)
-"The gremlin barely looks up. 'Seen bigger,' he says, resuming his count. Bram's threat lands like a wet scroll."
+- Enemy HP and intent at the top.
+- Battlefield visual in the center.
+- Party cards with HP, online/downed state, and committed action state.
+- Action bar with selected and committed states.
+- Compact combat log instead of a long story scroll.
+- Reward panel after victory or failure.
 
-### Examine success (INT roll ≥ 10)
-"Aria spots a crude map half-hidden beneath Pip's scales. The suspicious merchant snatches it back, but not before she notes a red X near Ash Hollow. He pockets a coin, pointedly."
+Story remains present as combat-log flavor, but combat state is the primary experience.
 
-### Examine failure (INT roll < 10)
-"The wares are a jumble of junk. Whatever Pip knows, he's buried it well under layers of suspicious clutter and coin stacks."
+## Success Criteria
 
-### Move (always succeeds — narrative only)
-"The party moves deeper into the market, noting the fearful eyes of the townsfolk. One direction leads toward the tavern; another toward the smoke."
+- A new player can create a character and start a room without reading docs.
+- Two anonymous sessions can join the same room and see Realtime state updates.
+- Actions commit once per round and cannot be changed after commit.
+- Enemy HP changes after attacks.
+- Player HP changes after enemy attacks.
+- Battle can reach victory and failure.
+- XP and item rewards persist after refresh.
+- Netlify deploy works with base build settings plus Supabase env vars.
 
-## V1 demo flow
+## Post-V1 Direction
 
-1. Lobby → tap "The Dragon of Ash Hollow" card
-2. Previously-on overlay (8s countdown, skippable)
-3. Drop-in banner appears: *"You arrive at Thornwick Market..."*
-4. Scene 1 loads: Pip Bramblebottom at his stall. Bram and Aria bot-commit within 1s.
-5. Player drags/taps a coin → all envelopes flip → d20 + trait resolves → narrative updates
-6. Scene complete → +50 XP, Bram found Healing Salve
-7. Leave → confirm modal → graceful narrative → lobby (sleeping status)
-8. Rejoin → V2Stub ("Scene 2: Bandit Ambush — Coming in V2")
+- Account upgrade from anonymous auth.
+- More encounters and enemy types.
+- Tactical positioning or lanes.
+- Public matchmaking.
+- Server-side authoritative turn resolver.
+- Richer animation and audio pass.
+- LLM-assisted narration constrained by battle results.
 
-## Critical interaction details
-
-- **Drop-in/drop-out always narrated.** Brand-defining — invest real polish.
-- **Pause/resume seamless.** Under 5 seconds from tap to playable.
-- **"Previously on" under 15s reading time.** 2–3 sentences max.
-- **Action commit feels weighty.** Drag resistance + snap + particle trail.
-- **Sealed envelopes flip face-up** when timer expires or all commit.
-- **Spotlight tokens** open free-text modal; 3 hardcoded outcomes if player submits.
-- **Leave button frictionless.** Confirm modal, graceful narrative.
-- **NPC dialogue references traits.** Pip's suspicion + greed + coin-counting must show in lines.
-
-## V1 non-goals
-
-❌ Real multiplayer | ❌ Backend | ❌ LLM | ❌ NPC generator | ❌ Functional filters (except Theme) | ❌ Character creation | ❌ Multiple campaigns | ❌ Scenes 2+ | ❌ Custom art
-
-## Success criteria
-
-1. Lobby clearly communicates what kinds of games exist
-2. Drop-in feels diegetic and welcoming
-3. Complete-a-scene → gain XP → leave loop rewards 10–15 min play
-4. Rejoining feels like resuming an adventure, not loading a save file
-5. Pip feels like a real character — suspicion, greed, coin-counting evident in dialogue
-
-## V2 roadmap
-
-- WebSocket real multiplayer (room state synced)
-- Claude API narration (constrained to engine outcomes)
-- 3–5 starter campaigns
-- NPC generation pipeline using trait framework
-- Scenes 2 (bandit ambush) + 3 (dragon confrontation)
-- Polished art pass

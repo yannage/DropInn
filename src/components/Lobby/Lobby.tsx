@@ -16,6 +16,10 @@ export const Lobby = () => {
   const lobby = useLobbyStore();
   const selectedCharacter = usePlayerStore(getSelectedCharacter);
   const characters = usePlayerStore((state) => state.characters);
+  const playerReady = usePlayerStore((state) => state.ready);
+  const playerBackend = usePlayerStore((state) => state.backend);
+  const playerError = usePlayerStore((state) => state.playerError);
+  const clearPlayerError = usePlayerStore((state) => state.clearPlayerError);
   const selectCharacter = usePlayerStore((state) => state.selectCharacter);
   const activeRoomCode = usePlayerStore((state) => state.activeRoomCode);
   const room = useMultiplayerStore((state) => state.room);
@@ -26,22 +30,43 @@ export const Lobby = () => {
   const joinRoom = useMultiplayerStore((state) => state.joinRoom);
   const syncRoom = useMultiplayerStore((state) => state.syncRoom);
   const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [handledRoomLink, setHandledRoomLink] = useState(false);
 
   useEffect(() => {
-    if (activeRoomCode && !room) {
+    if (playerReady && activeRoomCode && !room) {
       void syncRoom();
     }
-  }, [activeRoomCode, room, syncRoom]);
+  }, [activeRoomCode, playerReady, room, syncRoom]);
+
+  useEffect(() => {
+    if (handledRoomLink || !playerReady || !selectedCharacter || room || activeRoomCode) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const linkedRoomCode = (params.get('room') ?? params.get('join'))?.trim().toUpperCase();
+    if (!linkedRoomCode || linkedRoomCode.length < 4) return;
+
+    setHandledRoomLink(true);
+    void joinRoom(linkedRoomCode, selectedCharacter).then(() => {
+      const joinedRoom = useMultiplayerStore.getState().room;
+      if (joinedRoom?.roomCode === linkedRoomCode) {
+        lobby.setScreen('room');
+      }
+    });
+  }, [activeRoomCode, handledRoomLink, joinRoom, lobby, playerReady, room, selectedCharacter]);
 
   const featuredRoom = useMemo(() => {
     if (!room) return null;
 
     const statusMeta = {
       lobby: { dot: 'sleeping', badge: 'sleeping', label: 'Gathering Party' },
-      active: { dot: 'active', badge: 'active', label: `Round ${room.sceneRound} Active` },
-      reward: { dot: 'active', badge: 'active', label: 'Resolution Ready' },
-      completed: { dot: 'complete', badge: 'complete', label: 'Reward Ready' },
+      active: { dot: 'active', badge: 'active', label: `Battle Round ${room.sceneRound}` },
+      completed: {
+        dot: 'complete',
+        badge: 'complete',
+        label: room.battleState.status === 'victory' ? 'Victory' : 'Aftermath',
+      },
     }[room.status];
+    const defeatedPercent = Math.round(((room.battleState.enemyMaxHp - room.battleState.enemyHp) / room.battleState.enemyMaxHp) * 100);
 
     return {
       title: room.campaignTitle,
@@ -57,15 +82,15 @@ export const Lobby = () => {
       maxPlayers: 4,
       turnDuration: '30s',
       visibilityIcon: 'MP',
-      progress: Math.min(100, Math.max(20, Math.round((room.sceneRound / 3) * 100))),
-      progressLabel: `Scene ${room.sceneRound} of 3`,
+      progress: room.status === 'lobby' ? 10 : Math.min(100, Math.max(10, defeatedPercent)),
+      progressLabel: `Enemy HP ${room.battleState.enemyHp}/${room.battleState.enemyMaxHp}`,
       lastBeat: room.currentStoryText,
-      cta: room.status === 'lobby' ? 'Enter Staging Room' : 'Resume Adventure',
+      cta: room.status === 'lobby' ? 'Enter Staging Room' : 'Resume Battle',
     };
   }, [room]);
 
   const handleCreateRoom = async () => {
-    if (!selectedCharacter) return;
+    if (!selectedCharacter || !playerReady) return;
     await createRoom(selectedCharacter);
 
     if (useMultiplayerStore.getState().room) {
@@ -74,7 +99,7 @@ export const Lobby = () => {
   };
 
   const handleJoinRoom = async () => {
-    if (!selectedCharacter) return;
+    if (!selectedCharacter || !playerReady) return;
 
     const normalizedCode = roomCodeInput.trim().toUpperCase();
     if (!normalizedCode) return;
@@ -149,7 +174,7 @@ export const Lobby = () => {
             >
               {selectedCharacter
                 ? `${selectedCharacter.name} · ${getCharacterLabel(selectedCharacter.classKey)} · Lvl ${selectedCharacter.level} · ${selectedCharacter.xp} XP`
-                : 'Create a hero to begin'}
+                : playerReady ? 'Create a hero to begin' : 'Loading profile...'}
             </div>
           </div>
         </div>
@@ -356,9 +381,10 @@ export const Lobby = () => {
             }}
           >
             Create a room for your party, or join another room with a code. Your selected character is saved and follows you into every session.
+            {playerBackend === 'local' ? ' Local dev fallback is active until Supabase env vars are set.' : ''}
           </div>
-          <button className="btn-primary" onClick={() => { void handleCreateRoom(); }} disabled={loading || !selectedCharacter}>
-            Create Multiplayer Room
+          <button className="btn-primary" onClick={() => { void handleCreateRoom(); }} disabled={loading || !selectedCharacter || !playerReady}>
+            Create Battle Room
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
@@ -378,7 +404,7 @@ export const Lobby = () => {
                 minHeight: 42,
               }}
             />
-            <button className="btn-secondary" onClick={() => { void handleJoinRoom(); }} disabled={loading || roomCodeInput.trim().length < 4}>
+            <button className="btn-secondary" onClick={() => { void handleJoinRoom(); }} disabled={loading || !playerReady || roomCodeInput.trim().length < 4}>
               Join
             </button>
           </div>
@@ -413,9 +439,27 @@ export const Lobby = () => {
               color: '#A99668',
             }}
           >
-            Multiplayer rooms now persist shared party state, selected characters stay saved on this device, and room codes are ready for Netlify-backed play instead of a single scripted run.
+            V1 now centers on a co-op battle MVP: saved heroes, room-code parties, shared enemy HP, damage, rewards, and Supabase-ready persistence.
           </div>
         </div>
+
+        {playerError && (
+          <button
+            onClick={clearPlayerError}
+            style={{
+              background: 'rgba(160,40,40,0.18)',
+              border: '1px solid rgba(248,113,113,0.45)',
+              borderRadius: 8,
+              color: '#FFE9A8',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 11,
+              padding: '10px 12px',
+              textAlign: 'left',
+            }}
+          >
+            {playerError}
+          </button>
+        )}
 
         {error && (
           <button

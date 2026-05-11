@@ -9,10 +9,11 @@
   "scripts": {
     "dev": "vite",
     "build": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@netlify/blobs": "^10.7.4",
+    "@supabase/supabase-js": "^2.105.4",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
@@ -26,6 +27,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.7.2",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vitest": "^4.1.5"
   }
 }

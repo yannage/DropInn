@@ -24,6 +24,8 @@ export default function App() {
   const syncRoom = useMultiplayerStore((state) => state.syncRoom);
   const room = useMultiplayerStore((state) => state.room);
   const activeRoomCode = usePlayerStore((state) => state.activeRoomCode);
+  const playerReady = usePlayerStore((state) => state.ready);
+  const initializePlayer = usePlayerStore((state) => state.initializePlayer);
 
   const handleEnterRoom = () => {
     setShowDropIn(true);
@@ -31,10 +33,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (activeRoomCode && !room) {
+    void initializePlayer();
+  }, [initializePlayer]);
+
+  useEffect(() => {
+    if (playerReady && activeRoomCode && !room) {
       void syncRoom();
     }
-  }, [activeRoomCode, room, syncRoom]);
+  }, [activeRoomCode, playerReady, room, syncRoom]);
 
   useEffect(() => {
     if (screen === 'room' && showDropIn) {

@@ -12,6 +12,9 @@ import { Modal } from './Modal';
 export const Profile = () => {
   const closeOverlay = useLobbyStore((state) => state.closeOverlay);
   const characters = usePlayerStore((state) => state.characters);
+  const playerReady = usePlayerStore((state) => state.ready);
+  const playerError = usePlayerStore((state) => state.playerError);
+  const clearPlayerError = usePlayerStore((state) => state.clearPlayerError);
   const createCharacter = usePlayerStore((state) => state.createCharacter);
   const selectCharacter = usePlayerStore((state) => state.selectCharacter);
   const selectedCharacter = usePlayerStore(getSelectedCharacter);
@@ -25,8 +28,8 @@ export const Profile = () => {
       : 'No special loot yet';
   }, [selectedCharacter]);
 
-  const handleCreateCharacter = () => {
-    const created = createCharacter(characterName, classKey);
+  const handleCreateCharacter = async () => {
+    const created = await createCharacter(characterName, classKey);
     if (created) {
       setCharacterName('');
     }
@@ -229,9 +232,14 @@ export const Profile = () => {
               );
             })}
           </div>
-          <button className="btn-primary" onClick={handleCreateCharacter} disabled={characterName.trim().length < 2}>
-            Create And Select
+          <button className="btn-primary" onClick={handleCreateCharacter} disabled={!playerReady || characterName.trim().length < 2}>
+            {playerReady ? 'Create And Select' : 'Loading Profile...'}
           </button>
+          {playerError && (
+            <button className="btn-secondary" onClick={clearPlayerError}>
+              {playerError}
+            </button>
+          )}
         </div>
       </div>
     </Modal>

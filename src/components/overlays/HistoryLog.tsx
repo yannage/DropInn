@@ -120,7 +120,7 @@ export const HistoryLog = () => {
         >
           {room
             ? `Room ${room.roomCode} · ${room.participantCount} adventurer${room.participantCount === 1 ? '' : 's'} in party`
-            : 'Previously: Yanni and Bram arrived in Thornwick, following smoke on the northern road.'}
+            : 'Previously: the party reached Ash Hollow and prepared for the first ambush.'}
         </div>
       </div>
     </>

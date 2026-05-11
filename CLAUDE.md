@@ -1,101 +1,116 @@
-# DropInn — D&D One-Shot Prototype
+# DropInn - Multiplayer Battle MVP
 
-## Project overview
+## Project Overview
 
-A browser-based D&D one-shot adventure prototype validating the **drop-in async play loop**: lobby → drop in → complete a scene → earn XP/items → leave gracefully → rejoin seamlessly. V1 is a fully hardcoded single-scene demo, no backend.
+DropInn is a browser-based co-op D&D-inspired battle prototype. V1 validates the loop:
 
-## Architecture
+1. Create or select a saved character.
+2. Create or join a room by code.
+3. Fight a shared "Ash Hollow Ambush" encounter.
+4. Resolve simultaneous party actions against enemy HP.
+5. Take damage, win or fail, claim XP/items, and persist progression.
 
-**Vite + React 18 + TypeScript + Zustand.** The CDN/Babel prototype (`app.jsx`, `screens.jsx`, `icons.jsx`) lives in `_archive/` — the active codebase is `src/`.
+Supabase is the production source of truth for anonymous users, characters, rooms, battle state, turn actions, logs, and rewards. Localhost falls back to localStorage when Supabase env vars are missing so development and Browser QA still work without a live project.
 
+## Stack
+
+- Vite + React 18 + TypeScript
+- Zustand for UI state and local cache
+- Supabase JS for anonymous auth, Postgres persistence, and Realtime room updates
+- Vitest for pure engine coverage
+- Netlify for static hosting
+
+## Active Code Map
+
+```text
+src/
+  App.tsx                         Screen router and player initialization
+  data/                           Legacy campaign/social data used by older room components
+  lib/
+    battle/engine.ts              Pure battle mechanics and deterministic turn resolution
+    multiplayer/api.ts            Supabase/local room repository
+    multiplayer/roomEngine.ts     Room state machine around the battle engine
+    progression.ts                XP thresholds and reward application
+    supabase/client.ts            Supabase client, anonymous auth, session namespacing
+    supabase/characters.ts        Character persistence repository
+  store/
+    playerStore.ts                Anonymous user/session, characters, selected character, rewards
+    multiplayerStore.ts           Room actions, sync, Realtime subscription bridge
+    lobbyStore.ts                 Screen and overlay state
+  components/
+    Lobby/                        Character selection and multiplayer room setup
+    Room/MultiplayerRoom.tsx      Battle-first room UI
+    modals/                       Profile, inventory, help, leave, etc.
+supabase/migrations/
+  202605100001_battle_mvp.sql     Tables, indexes, RLS, and Realtime publication
 ```
-DropInn/
-├── index.html                    # Vite entry point
-├── src/
-│   ├── main.tsx                  # ReactDOM.createRoot
-│   ├── App.tsx                   # Screen router
-│   ├── data/
-│   │   ├── campaign.ts           # Actions (social/combat/dragon), players, NPC, bot plays
-│   │   └── outcomes.ts           # All narrative outcomes + round intro texts
-│   ├── lib/engine.ts             # d20 resolution engine
-│   ├── store/
-│   │   ├── gameStore.ts          # In-scene phase state (Zustand)
-│   │   └── lobbyStore.ts         # Lobby + persistence (Zustand persist)
-│   └── components/
-│       ├── AppBar.tsx
-│       ├── Room/                 # Full scene UI
-│       ├── Lobby/
-│       ├── overlays/
-│       ├── modals/
-│       └── icons/                # Defs, Coins, Seals, Misc
-├── _archive/                     # Old CDN/Babel version — not imported
-├── CLAUDE.md                     # This file
-└── DESIGN.md                     # Full v3 brief and success criteria
+
+The archived CDN prototype remains in `_archive/` and is not imported by the Vite app.
+
+## Battle MVP
+
+The first playable room is "Ash Hollow Ambush". The room stores a `battleState` object with enemy HP, round, enemy intent, party HP by character id, downed characters, last resolved turn, and reward claims.
+
+Core actions:
+
+- `Strike`: DC 11, reliable damage, 6 on success and 2 on failure.
+- `Heavy`: DC 15, risky damage, 11 on success and 0 on failure.
+- `Guard`: reduces incoming damage by 6 and deals 2 on success.
+- `Aid`: heals the lowest damaged ally by 5, or grants +2 momentum if nobody is hurt.
+
+Resolution order:
+
+1. Aid effects resolve.
+2. Damage/guard actions resolve.
+3. Enemy HP updates.
+4. Enemy attacks if still alive for `4 + round` damage.
+5. Downed state updates.
+6. Battle continues, wins, or fails.
+
+Rewards:
+
+- Victory: `+75 XP` and `Ashhide Charm`.
+- Failure: `+15 XP` and `Cracked Ash Token`.
+- Level 4 unlocks at 300 XP. Level 5 unlocks at 450 XP.
+
+## Supabase
+
+Required production env vars:
+
+```text
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
 ```
 
-## State management
+The Supabase auth storage key is namespaced by `?session=` in local dev. This allows Browser QA to simulate two anonymous users in one browser:
 
-`lobbyStore` (persisted to `sfq-v1-state`) owns:
-- `screen`: `'lobby' | 'previously' | 'room'`
-- `overlay`: modal name or null
-- `completed`, `xp`, `hasSalve`, `spotlightTokens`
-
-`gameStore` (in-memory) owns in-scene state:
-- `phase`: `idle → bots → player → reveal → resolve → reward`
-- `envelopes`, `drag`, `timer`, `storyLog`, `rollResult`
-
-## Action system
-
-Scene type determines which actions appear in the tray:
-- **`social`** — Charm (CHA), Bluff (ING), Read Room (INT), Bribe (ING) — used in town/NPC scenes
-- **`combat`** — Fire Bolt (INT), Thunderwave (INT), Shield (INT), Disengage (ATH) — bandit ambush
-- **`dragon`** — Arcane Burst (INT), Commune (CHA), Dispel (INT), Dash (ATH) — finale
-
-V1 (Scene 1) uses `social` for all 3 rounds. `ACTIONS_BY_ROUND` and `SCENE_TYPE_BY_ROUND` in `campaign.ts` control this — swap values there to change scene types per round.
-
-`disengage` and `dash` are auto-succeed (low-DC repositioning moves).
-
-## Key design decisions
-
-- **Phase state machine** drives the entire game loop. Never break out of it with direct state mutations.
-- **Drag gesture** is the primary commit mechanic — pointer events on the stage div, distance math vs. drop zone center.
-- **Bot plays vary by round** — see `BOT_PLAYS_BY_ROUND` in `campaign.ts`.
-- **All narrative outcomes are pre-written strings** — no LLM in V1. See `outcomes.ts`.
-- **d20 + trait roll** determines success/failure per action. DC is hardcoded per action.
-- `localStorage` key: `sfq-v1-state` — saves XP, hasSalve, spotlightTokens, completed.
-
-## NPC framework (V1: one hardcoded NPC)
-
-Pip Bramblebottom — goblin merchant, suspicious demeanor, greed motivation, "constantly counts coins" quirk. All NPC dialogue and resolution narrative must reference his traits. See DESIGN.md for full framework spec.
-
-## V1 explicit non-goals
-
-Do NOT add: real multiplayer, backend, LLM calls, NPC generator, functional lobby filters (except Theme), character creation, multiple campaigns, Scenes 2+, custom art.
-
-## Palette
-
-| Token | Hex |
-|---|---|
-| Parchment cream | `#F4E8D0` / `#E8D9B4` |
-| Leather brown | `#6B4423` / `#5C3F09` |
-| Forest green | `#3D5A3F` |
-| Deep red | `#8B2E2E` |
-| Ink black | `#1F1F1F` / `#1F1408` |
-| Gold | `#E8C760` |
-| Navy | `#0F1B2D` |
-
-## Running locally
-
+```text
+http://localhost:5173/?session=host
+http://localhost:5173/?session=guest
 ```
+
+Run the migration in `supabase/migrations/202605100001_battle_mvp.sql` before deploying with Supabase env vars. See `SUPABASE_SETUP.md` for full setup.
+
+## Commands
+
+```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # outputs to dist/
+npm run dev
+npm run test
+npm run build
+npm run preview
 ```
 
-## V2 roadmap hooks
+The build command intentionally calls local binaries through `node ./node_modules/...` so Netlify does not hit executable-bit issues with `tsc` or `vite`.
 
-- Replace `window.sfq-v1-state` localStorage with WebSocket room state
-- Replace hardcoded narrative strings with Claude API calls (constrained to engine outcomes)
-- NPC generation pipeline: sample trait axes → generate name + dialogue → cache at world creation
-- Add Scenes 2 (bandit ambush) and 3 (dragon confrontation)
-- Real presence indicators from WebSocket heartbeats
+## Current V1 Non-Goals
+
+- Tactical grid movement.
+- Public matchmaking.
+- Account upgrade from anonymous auth.
+- Server-authoritative anti-cheat.
+- LLM-generated narration.
+- Multiple campaigns.
+
+These are post-V1 items. The current milestone is a working co-op battle MVP with saved progression.
+
