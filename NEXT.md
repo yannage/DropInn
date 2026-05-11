@@ -8,9 +8,10 @@
 - [x] Add XP/item reward application with level thresholds.
 - [x] Add Supabase client, anonymous auth bootstrap, and session namespacing.
 - [x] Add Supabase schema migration with RLS, indexes, and Realtime publication.
+- [x] Add follow-up migration to remove recursive room RLS policies.
 - [x] Replace Netlify Blob room endpoint with Supabase/local repository path.
 - [x] Add Vitest coverage for battle mechanics, rewards, progression, and duplicate commits.
-- [ ] Run Supabase migration in the target project.
+- [ ] Run both Supabase migrations in the target project.
 - [ ] Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Netlify.
 - [ ] Browser QA with two Supabase-backed anonymous sessions.
 - [ ] Netlify deployment QA with the production Supabase project.
@@ -72,4 +73,3 @@ Deployment QA:
 - [ ] Public/private room visibility.
 - [ ] Tactical movement or lane positioning.
 - [ ] LLM narration constrained by battle result JSON.
-

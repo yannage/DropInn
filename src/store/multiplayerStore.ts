@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { multiplayerApi } from '../lib/multiplayer/api';
 import type { CharacterProfile } from '../lib/character';
 import type { RoomView } from '../lib/multiplayer/roomEngine';
+import { getErrorMessage } from '../lib/errors';
 import { getSelectedCharacter, usePlayerStore } from './playerStore';
 
 interface MultiplayerState {
@@ -38,7 +39,7 @@ const withRequest = async (
   try {
     await run();
   } catch (error) {
-    set({ error: error instanceof Error ? error.message : 'Something went wrong.' });
+    set({ error: getErrorMessage(error) });
   } finally {
     if (loading) {
       set({ loading: false });
@@ -167,4 +168,3 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
     return claimed;
   },
 }));
-

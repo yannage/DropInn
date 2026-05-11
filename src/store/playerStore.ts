@@ -8,6 +8,7 @@ import {
   type CharacterProfile,
 } from '../lib/character';
 import { applyCharacterReward } from '../lib/progression';
+import { getErrorMessage } from '../lib/errors';
 import { ensureAnonymousUser, isSupabaseConfigured } from '../lib/supabase/client';
 import { listSupabaseCharacters, upsertSupabaseCharacter } from '../lib/supabase/characters';
 
@@ -129,7 +130,7 @@ export const usePlayerStore = create<PlayerState>()(
           set({
             ready: true,
             backend: 'error',
-            playerError: error instanceof Error ? error.message : 'Unable to initialize Supabase.',
+            playerError: getErrorMessage(error, 'Unable to initialize Supabase.'),
           });
         }
       },
@@ -157,7 +158,7 @@ export const usePlayerStore = create<PlayerState>()(
           }));
           return persisted;
         } catch (error) {
-          set({ playerError: error instanceof Error ? error.message : 'Unable to save character.' });
+          set({ playerError: getErrorMessage(error, 'Unable to save character.') });
           return character;
         }
       },
@@ -189,7 +190,7 @@ export const usePlayerStore = create<PlayerState>()(
             )),
           }));
         } catch (error) {
-          set({ playerError: error instanceof Error ? error.message : 'Unable to save character progress.' });
+          set({ playerError: getErrorMessage(error, 'Unable to save character progress.') });
         }
       },
 

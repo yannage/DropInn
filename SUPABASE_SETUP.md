@@ -37,10 +37,11 @@ Anonymous users are still authenticated users for RLS policies, so policies can 
 
 ## 3. Run Migration
 
-Apply:
+Apply both migrations in order:
 
 ```text
 supabase/migrations/202605100001_battle_mvp.sql
+supabase/migrations/202605110001_fix_recursive_room_policies.sql
 ```
 
 Options:
@@ -56,7 +57,7 @@ The migration creates:
 - `turn_actions`
 - `battle_logs`
 
-It also enables RLS, adds owner/party policies, creates indexes, and adds multiplayer tables to `supabase_realtime`.
+They also enable RLS, add MVP-safe policies, create indexes, and add multiplayer tables to `supabase_realtime`.
 
 ## 4. Confirm Realtime
 
@@ -137,4 +138,4 @@ Expected flow:
 - Room not found on join: confirm the host room is still in lobby or the joining user has access.
 - Realtime does not update: confirm tables are in `supabase_realtime`; polling still syncs every 2.5 seconds as a fallback.
 - RLS error: rerun the migration and confirm `auth.uid()` policies exist.
-
+- `42P17 infinite recursion detected in policy`: run `supabase/migrations/202605110001_fix_recursive_room_policies.sql`. The first policy pass used cross-table `exists` checks that can recurse under RLS.
