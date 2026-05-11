@@ -96,6 +96,9 @@ In Netlify:
 4. Add `VITE_SUPABASE_ANON_KEY`.
 5. Redeploy.
 
+URL: https://jfwjgjwltqhloqhsqkxp.supabase.co
+Publishable Key: sb_publishable_l5NUgsOipcJ0qV8HU1KTQA_WTeoIo-U
+
 Build settings:
 
 ```text
