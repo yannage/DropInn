@@ -19,34 +19,22 @@ export const StoryScroll = ({ text, refreshKey, rollResult, storyLog }: Props) =
   }, [storyLog]);
 
   return (
-    <div style={{
-      position: 'relative', padding: '8px 4px 12px',
-      display: 'flex', alignItems: 'stretch',
-      filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.5))',
-      flexShrink: 0,
-    }}>
+    <section className="story-scroll-shell">
       <div style={{ flexShrink: 0, alignSelf: 'center' }}>
-        <ScrollRod side="left" height={148}/>
+        <ScrollRod side="left" height={180}/>
       </div>
 
-      <div style={{
-        flex: 1, position: 'relative',
-        background: 'linear-gradient(180deg, #F2E3BE 0%, #E8D9B4 50%, #C9B888 100%)',
-        backgroundImage: 'radial-gradient(ellipse at 20% 30%, rgba(160,130,80,0.22) 0 30%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(160,130,80,0.18) 0 30%, transparent 60%), linear-gradient(180deg, #F2E3BE 0%, #E8D9B4 50%, #C9B888 100%)',
-        boxShadow: 'inset 0 0 30px rgba(120,90,40,0.35), inset 0 2px 4px rgba(160,130,80,0.25)',
-        borderTop: '1px solid #B8A66A',
-        borderBottom: '1px solid #B8A66A',
-        padding: '14px 18px 14px 12px',
-        marginLeft: -4, marginRight: -4,
-        overflow: 'hidden',
-      }}>
+      <div className="story-scroll">
         <div style={{ position: 'absolute', right: 4, bottom: 0, pointerEvents: 'none' }}>
           <CastleWatermark width={120} height={104} opacity={0.22}/>
         </div>
 
-        <div key={refreshKey} className="body-serif" style={{
-          fontSize: 14.5, lineHeight: 1.45, color: '#1F1408', position: 'relative', maxWidth: '80%',
-        }}>
+        <div className="story-scroll__header">
+          <div className="heading story-scroll__title">Story Scroll</div>
+          <div className="story-scroll__hint">Latest scene text and outcome notes</div>
+        </div>
+
+        <div key={refreshKey} className="body-serif story-scroll__body">
           {lines.map((line, i) => (
             <div key={i} style={{
               animation: `textRise 0.5s ease-out ${i * 0.08}s both`,
@@ -58,7 +46,7 @@ export const StoryScroll = ({ text, refreshKey, rollResult, storyLog }: Props) =
         {/* spotlight entry — player's spoken words + outcome */}
         {lastSpotlight && (
           <div style={{
-            marginTop: 8, maxWidth: '82%',
+            marginTop: 8, maxWidth: '92%',
             borderLeft: '3px solid #E8C760',
             paddingLeft: 8,
             animation: 'textRise 0.5s ease-out both',
@@ -79,7 +67,7 @@ export const StoryScroll = ({ text, refreshKey, rollResult, storyLog }: Props) =
 
         {rollResult && (
           <div style={{
-            position: 'absolute', bottom: 8, left: 10,
+            position: 'absolute', bottom: 10, left: 12,
             background: rollResult.success
               ? 'linear-gradient(180deg,#22863a,#0c4a1a)'
               : 'linear-gradient(180deg,#7E1A1A,#3A0606)',
@@ -110,8 +98,8 @@ export const StoryScroll = ({ text, refreshKey, rollResult, storyLog }: Props) =
       </div>
 
       <div style={{ flexShrink: 0, alignSelf: 'center' }}>
-        <ScrollRod side="right" height={148}/>
+        <ScrollRod side="right" height={180}/>
       </div>
-    </div>
+    </section>
   );
 };

@@ -21,6 +21,7 @@ import { usePlayerStore } from './store/playerStore';
 export default function App() {
   const { screen, overlay, setScreen, completed } = useLobbyStore();
   const [showDropIn, setShowDropIn] = useState(false);
+  const forceMockRoom = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
   const syncRoom = useMultiplayerStore((state) => state.syncRoom);
   const room = useMultiplayerStore((state) => state.room);
   const activeRoomCode = usePlayerStore((state) => state.activeRoomCode);
@@ -65,13 +66,13 @@ export default function App() {
     >
       <Defs />
 
-      {screen === 'lobby' && <Lobby />}
+      {!forceMockRoom && screen === 'lobby' && <Lobby />}
 
-      {screen === 'previously' && (
+      {!forceMockRoom && screen === 'previously' && (
         <PreviouslyOn completed={completed} onContinue={handleEnterRoom} />
       )}
 
-      {screen === 'room' && (
+      {(screen === 'room' || forceMockRoom) && (
         <>
           <AppBar />
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>

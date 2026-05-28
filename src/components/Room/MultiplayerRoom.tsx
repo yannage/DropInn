@@ -1,10 +1,134 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getBattleReward, getClassActionLabel } from '../../lib/battle/engine';
 import { getCharacterInitial, getCharacterLabel } from '../../lib/character';
+import type { CharacterProfile } from '../../lib/character';
+import type { RoomView } from '../../lib/multiplayer/roomEngine';
 import { useLobbyStore } from '../../store/lobbyStore';
 import { useMultiplayerStore } from '../../store/multiplayerStore';
 import { getSelectedCharacter, usePlayerStore } from '../../store/playerStore';
-import { PlayerCard } from './PlayerCard';
+import { BattleStoryScroll } from './BattleStoryScroll';
+import { PhaseShowcase } from './PhaseShowcase';
+import { BattleDecisionTable } from './BattleDecisionTable';
+
+const buildMockRoomView = (character: CharacterProfile, sessionId: string): RoomView => ({
+  roomCode: 'MOCK',
+  campaignTitle: 'The Dragon of Ash Hollow',
+  status: 'active',
+  sceneRound: 2,
+  turn: 4,
+  turnStartedAt: Date.now(),
+  timeRemainingMs: 18000,
+  currentStoryText: 'The ash warg lunges over the broken cart as the market stalls splinter.',
+  storyLog: [
+    { turn: 3, text: 'Bram drives the beast back with a shield rush.', kind: 'resolution' },
+    { turn: 3, text: 'Yanni catches the opening and cracks it with an arcane dart.', kind: 'resolution' },
+    { turn: 4, text: 'The warg circles low, looking for the weakest flank.', kind: 'resolution' },
+  ],
+  participants: [
+    {
+      sessionId,
+      character,
+      isHost: true,
+      online: true,
+      committedActionId: null,
+      hasContinued: false,
+      rewardClaimed: false,
+      hp: Math.max(1, character.hp - 2),
+      maxHp: character.maxHp,
+      downed: false,
+    },
+    {
+      sessionId: 'ally-bram',
+      character: { ...character, id: 'bram', name: 'Bram', classKey: 'fighter', accent: '#6EE7B7' },
+      isHost: false,
+      online: true,
+      committedActionId: 'guard',
+      hasContinued: false,
+      rewardClaimed: false,
+      hp: 14,
+      maxHp: 18,
+      downed: false,
+    },
+    {
+      sessionId: 'ally-aria',
+      character: { ...character, id: 'aria', name: 'Aria', classKey: 'cleric', accent: '#F59EAA' },
+      isHost: false,
+      online: true,
+      committedActionId: 'aid',
+      hasContinued: false,
+      rewardClaimed: false,
+      hp: 10,
+      maxHp: 16,
+      downed: false,
+    },
+  ],
+  participantCount: 3,
+  committedCount: 2,
+  continueCount: 0,
+  currentPlayer: {
+    sessionId,
+    character,
+    isHost: true,
+    online: true,
+    committedActionId: null,
+    hasContinued: false,
+    rewardClaimed: false,
+    hp: Math.max(1, character.hp - 2),
+    maxHp: character.maxHp,
+    downed: false,
+  },
+  isHost: true,
+  canStart: false,
+  canCommit: true,
+  canContinue: false,
+  canClaimReward: false,
+  lastResults: [
+    {
+      sessionId: 'ally-bram',
+      characterId: 'bram',
+      characterName: 'Bram',
+      actionId: 'guard',
+      actionLabel: 'Guard',
+      roll: 14,
+      mod: 3,
+      total: 17,
+      success: true,
+      damage: 2,
+      healing: 0,
+      incomingDamage: 0,
+      remainingHp: 14,
+      narrative: 'Bram braces the line and blunts the charge.',
+      trait: 'ATH',
+      dc: 11,
+    },
+  ],
+  battleState: {
+    status: 'active',
+    round: 2,
+    enemyName: 'Ash Warg',
+    enemyHp: 19,
+    enemyMaxHp: 34,
+    enemyIntent: 'Leap on the front line for 5 damage unless the party wards the strike.',
+    partyHpByCharacterId: {
+      [character.id]: Math.max(1, character.hp - 2),
+      bram: 14,
+      aria: 10,
+    },
+    downedCharacterIds: [],
+    lastResolvedTurn: 3,
+    rewardClaimedByCharacterId: {},
+  },
+  battleActions: [
+    { id: 'strike', label: 'Strike', trait: 'ATH', dc: 11, successDamage: 6, failureDamage: 2, description: 'Reliable damage.' },
+    { id: 'heavy', label: 'Heavy', trait: 'ATH', dc: 15, successDamage: 11, failureDamage: 0, description: 'Risky burst damage.' },
+    { id: 'guard', label: 'Guard', trait: 'ATH', dc: 11, successDamage: 2, failureDamage: 0, guardReduction: 6, description: 'Brace the line.' },
+    { id: 'aid', label: 'Aid', trait: 'CHA', dc: 10, heal: 5, description: 'Patch up the weakest ally.' },
+  ],
+  rewardLabel: 'No reward yet',
+  rewardXp: 0,
+  rewardItem: undefined,
+  roomTheme: 'Ash Hollow Ambush',
+});
 
 const hpColorFor = (hp: number, maxHp: number) => {
   const ratio = maxHp > 0 ? hp / maxHp : 0;
@@ -52,6 +176,8 @@ export const MultiplayerRoom = () => {
   const playerState = usePlayerStore();
   const selectedCharacter = getSelectedCharacter(playerState);
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
+  const roomView = room ?? (previewMode ? buildMockRoomView(selectedCharacter, playerState.sessionId) : null);
 
   useEffect(() => {
     void syncRoom();
@@ -70,11 +196,11 @@ export const MultiplayerRoom = () => {
   }, [room?.currentPlayer?.committedActionId, room?.status, room?.turn]);
 
   const ownResult = useMemo(
-    () => room?.lastResults.find((result) => result.sessionId === playerState.sessionId) ?? null,
-    [playerState.sessionId, room?.lastResults],
+    () => roomView?.lastResults.find((result) => result.sessionId === playerState.sessionId) ?? null,
+    [playerState.sessionId, roomView?.lastResults],
   );
 
-  if (!room) {
+  if (!roomView) {
     return (
       <div style={{
         display: 'flex',
@@ -92,10 +218,13 @@ export const MultiplayerRoom = () => {
     );
   }
 
-  const timerSeconds = Math.ceil(room.timeRemainingMs / 1000);
-  const battle = room.battleState;
+  const timerSeconds = Math.ceil(roomView.timeRemainingMs / 1000);
+  const battle = roomView.battleState;
   const reward = getBattleReward(battle.status);
-  const recentLog = room.storyLog.slice(-5);
+  const recentLog = roomView.storyLog.slice(-5);
+  const actionLabels = Object.fromEntries(
+    roomView.battleActions.map((action) => [action.id, getClassActionLabel(selectedCharacter.classKey, action.id)]),
+  ) as Record<string, string>;
 
   const handleFinish = async () => {
     await claimReward();
@@ -148,12 +277,12 @@ export const MultiplayerRoom = () => {
             color: '#A99668',
             marginTop: 2,
           }}>
-            Room {room.roomCode} - {room.participantCount} hero{room.participantCount === 1 ? '' : 'es'}
+            Room {roomView.roomCode} - {roomView.participantCount} hero{roomView.participantCount === 1 ? '' : 'es'}
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          {room.participants.map((participant) => (
+          {roomView.participants.map((participant) => (
             <div key={participant.sessionId} style={{ position: 'relative' }}>
               <div style={{
                 width: 30,
@@ -187,220 +316,130 @@ export const MultiplayerRoom = () => {
         </div>
       </div>
 
-      <div style={{
-        padding: '12px',
-        borderBottom: '1px solid rgba(232,199,96,0.14)',
-        background: 'linear-gradient(180deg, rgba(160,40,40,0.18), rgba(15,27,45,0.72))',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="heading gold-text" style={{ fontSize: 15 }}>
-              {battle.enemyName}
-            </div>
-            <div style={{ marginTop: 6 }}>
-              <HealthBar hp={battle.enemyHp} maxHp={battle.enemyMaxHp} height={10} />
-            </div>
-            <div style={{
-              marginTop: 5,
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 10,
-              color: '#FFE9A8',
-              letterSpacing: '0.04em',
-            }}>
-              HP {battle.enemyHp}/{battle.enemyMaxHp}
-            </div>
-          </div>
-          <div style={{ textAlign: 'right', minWidth: 92 }}>
-            <div className="ui-num" style={{ fontSize: 18, color: timerSeconds <= 5 && room.status === 'active' ? '#F87171' : '#FFE9A8' }}>
-              {room.status === 'active' ? `${timerSeconds}s` : room.status.toUpperCase()}
-            </div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668', marginTop: 3 }}>
-              Round {room.sceneRound}
-            </div>
-          </div>
-        </div>
-        <div style={{
-          marginTop: 8,
-          padding: '8px 10px',
-          borderRadius: 8,
-          background: 'rgba(0,0,0,0.22)',
-          border: '1px solid rgba(232,199,96,0.14)',
-          fontFamily: 'EB Garamond, serif',
-          fontStyle: 'italic',
-          color: '#E8D9B4',
-          fontSize: 14,
-          lineHeight: 1.35,
-        }}>
-          Intent: {battle.enemyIntent}
-        </div>
-      </div>
+      {roomView.status === 'active' ? (
+        <div style={{ display: 'flex', flex: 1, minHeight: 0, flexDirection: 'column', overflow: 'hidden' }}>
+          <BattleStoryScroll
+            enemyIntent={battle.enemyIntent}
+            lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
+          />
+          <PhaseShowcase
+            sceneType="combat"
+            phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
+            timer={timerSeconds}
+          />
+          <BattleDecisionTable
+            actions={roomView.battleActions}
+            labels={actionLabels}
+            selectedActionId={selectedActionId}
+            committedActionId={roomView.currentPlayer?.committedActionId}
+            canCommit={previewMode ? true : roomView.canCommit}
+            loading={loading}
+            onSelect={setSelectedActionId}
+            onCommit={() => { if (selectedActionId && !previewMode) void commitAction(selectedActionId); }}
+            onRefresh={() => { if (!previewMode) void syncRoom(); }}
+          />
 
-      <div style={{
-        position: 'relative',
-        flex: 1,
-        minHeight: 0,
-        overflowY: 'auto',
-        padding: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-      }}>
-        <div style={{
-          minHeight: 132,
-          borderRadius: 16,
-          border: '1px solid rgba(232,199,96,0.18)',
-          background:
-            'radial-gradient(circle at 50% 20%, rgba(248,113,113,0.22), transparent 34%), linear-gradient(180deg, rgba(27,44,74,0.78), rgba(8,14,27,0.92))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.42)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage:
-              'linear-gradient(120deg, transparent 0 42%, rgba(232,199,96,0.06) 42% 44%, transparent 44% 100%)',
-            opacity: 0.9,
-          }} />
-          <div style={{
-            width: 92,
-            height: 92,
-            borderRadius: '45% 55% 50% 50%',
-            background: battle.status === 'victory'
-              ? 'linear-gradient(180deg,#374151,#111827)'
-              : 'linear-gradient(180deg,#D85B4C,#5B1010)',
-            border: '2px solid rgba(255,233,168,0.45)',
-            boxShadow: battle.status === 'active'
-              ? '0 0 34px rgba(248,113,113,0.45), inset 0 -16px 24px rgba(0,0,0,0.35)'
-              : 'inset 0 -16px 24px rgba(0,0,0,0.45)',
-            transform: battle.status === 'victory' ? 'rotate(12deg) scale(0.72)' : 'rotate(-4deg)',
-            transition: 'transform 260ms ease, opacity 260ms ease',
-            opacity: battle.status === 'victory' ? 0.55 : 1,
-            zIndex: 1,
-          }}>
-            <div style={{
-              width: 16,
-              height: 16,
-              borderRadius: '50%',
-              background: '#FFE9A8',
-              margin: '22px 0 0 20px',
-              boxShadow: '36px 2px 0 #FFE9A8',
-            }} />
-          </div>
-          {room.lastResults.filter((result) => result.damage > 0).slice(-3).map((result, index) => (
-            <div key={`${result.characterId}-${result.damage}-${index}`} style={{
-              position: 'absolute',
-              top: 24 + index * 16,
-              right: 64 + index * 18,
-              color: '#FFE9A8',
-              fontFamily: 'Cinzel, serif',
-              fontWeight: 700,
-              fontSize: 18,
-              textShadow: '0 2px 6px rgba(0,0,0,0.75)',
-              animation: 'textRise 420ms ease both',
-              zIndex: 2,
-            }}>
-              -{result.damage}
-            </div>
-          ))}
-        </div>
+          <div className="party-strip">
+            {roomView.participants.map((participant) => {
+              const result = roomView.lastResults.find((entry) => entry.sessionId === participant.sessionId);
+              const committedAction = roomView.battleActions.find((action) => action.id === participant.committedActionId);
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-          {room.participants.map((participant) => {
-            const result = room.lastResults.find((entry) => entry.sessionId === participant.sessionId);
-            const committedAction = room.battleActions.find((action) => action.id === participant.committedActionId);
-
-            return (
-              <div key={participant.sessionId} style={{
-                borderRadius: 12,
-                border: participant.sessionId === playerState.sessionId
-                  ? '1.5px solid #E8C760'
-                  : '1px solid rgba(232,199,96,0.2)',
-                background: participant.downed
-                  ? 'linear-gradient(180deg, rgba(80,20,20,0.75), rgba(15,27,45,0.9))'
-                  : 'linear-gradient(180deg, rgba(27,44,74,0.92), rgba(14,26,48,0.96))',
-                padding: 10,
-                minHeight: 104,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: participant.character.accent,
-                    border: '1.5px solid rgba(255,239,203,0.45)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Cinzel, serif',
-                    fontWeight: 700,
-                    fontSize: 12,
-                    color: '#1F1408',
-                  }}>
-                    {getCharacterInitial(participant.character.name)}
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontFamily: 'Cinzel, serif', fontSize: 10, color: '#FFE9A8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {participant.character.name}
+              return (
+                <div
+                  key={participant.sessionId}
+                  className="party-strip__card"
+                  style={{
+                    borderColor: participant.sessionId === playerState.sessionId ? 'rgba(232,199,96,0.46)' : 'rgba(232,199,96,0.18)',
+                    opacity: participant.downed ? 0.58 : 1,
+                  }}
+                >
+                  <div className="party-strip__identity">
+                    <div className="party-strip__avatar" style={{ background: participant.character.accent }}>
+                      {getCharacterInitial(participant.character.name)}
                     </div>
-                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: '#A99668' }}>
-                      {getCharacterLabel(participant.character.classKey)} {participant.isHost ? '- Host' : ''}
+                    <div style={{ minWidth: 0 }}>
+                      <div className="party-strip__name">{participant.character.name}</div>
+                      <div className="party-strip__class">{getCharacterLabel(participant.character.classKey)}{participant.isHost ? ' · Host' : ''}</div>
                     </div>
                   </div>
-                </div>
-                <div style={{ marginTop: 8 }}>
                   <HealthBar hp={participant.hp} maxHp={participant.maxHp} />
-                  <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', fontFamily: 'Inter, sans-serif', fontSize: 9, color: '#C9B888' }}>
+                  <div className="party-strip__meta">
                     <span>HP {participant.hp}/{participant.maxHp}</span>
                     <span>{participant.downed ? 'Downed' : participant.online ? 'Online' : 'Away'}</span>
                   </div>
+                  <div className="party-strip__result">
+                    {result
+                      ? `${result.actionLabel}: ${result.damage > 0 ? `${result.damage} dmg` : result.healing > 0 ? `${result.healing} heal` : result.success ? 'setup' : 'miss'}`
+                      : committedAction
+                        ? `${actionLabels[committedAction.id]} locked`
+                        : 'Choosing...'}
+                  </div>
                 </div>
-                <div style={{ marginTop: 8, fontFamily: 'Cinzel, serif', fontSize: 9, color: '#E8C760' }}>
-                  {result
-                    ? `${result.actionLabel}: ${result.damage > 0 ? `${result.damage} dmg` : result.healing > 0 ? `${result.healing} heal` : result.success ? 'setup' : 'miss'}`
-                    : committedAction
-                      ? `${getClassActionLabel(participant.character.classKey, committedAction.id)} locked`
-                      : room.status === 'active'
-                        ? 'Choosing...'
-                        : 'Ready'}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-
+      ) : (
         <div style={{
-          borderRadius: 12,
-          border: '1px solid rgba(232,199,96,0.18)',
-          background: 'rgba(5,10,18,0.55)',
-          padding: 10,
+          position: 'relative',
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
         }}>
-          <div className="heading" style={{ fontSize: 9, color: '#7a6a44', marginBottom: 6 }}>
-            Combat Log
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {recentLog.length > 0 ? recentLog.map((entry, index) => (
-              <div key={`${entry.turn}-${index}`} style={{
-                fontFamily: 'EB Garamond, serif',
-                fontStyle: 'italic',
-                fontSize: 13,
-                lineHeight: 1.3,
-                color: index === recentLog.length - 1 ? '#FFE9A8' : '#A99668',
-              }}>
-                {entry.text}
+          <div style={{
+            padding: '12px',
+            borderRadius: 16,
+            border: '1px solid rgba(232,199,96,0.18)',
+            background: 'linear-gradient(180deg, rgba(160,40,40,0.18), rgba(15,27,45,0.72))',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="heading gold-text" style={{ fontSize: 15 }}>
+                  {battle.enemyName}
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  <HealthBar hp={battle.enemyHp} maxHp={battle.enemyMaxHp} height={10} />
+                </div>
+                <div style={{
+                  marginTop: 5,
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10,
+                  color: '#FFE9A8',
+                  letterSpacing: '0.04em',
+                }}>
+                  HP {battle.enemyHp}/{battle.enemyMaxHp}
+                </div>
               </div>
-            )) : (
-              <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', fontSize: 13, color: '#A99668' }}>
-                Battle notes will appear here once the first round resolves.
+              <div style={{ textAlign: 'right', minWidth: 92 }}>
+                <div className="ui-num" style={{ fontSize: 18, color: '#FFE9A8' }}>
+                  {roomView.status.toUpperCase()}
+                </div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668', marginTop: 3 }}>
+                  Round {roomView.sceneRound}
+                </div>
               </div>
-            )}
+            </div>
+            <div style={{
+              marginTop: 8,
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(0,0,0,0.22)',
+              border: '1px solid rgba(232,199,96,0.14)',
+              fontFamily: 'EB Garamond, serif',
+              fontStyle: 'italic',
+              color: '#E8D9B4',
+              fontSize: 14,
+              lineHeight: 1.35,
+            }}>
+              Intent: {battle.enemyIntent}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="panel-bg" style={{
         padding: '10px 12px',
@@ -410,77 +449,22 @@ export const MultiplayerRoom = () => {
         gap: 8,
         flexShrink: 0,
       }}>
-        {room.status === 'lobby' && (
+        {roomView.status === 'lobby' && (
           <>
             <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
-              Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{room.roomCode}</strong>. The host starts the Ash Hollow Ambush when everyone has selected a saved hero.
+              Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{roomView.roomCode}</strong>. The host starts the Ash Hollow Ambush when everyone has selected a saved hero.
             </div>
             <button
               className="btn-primary"
               onClick={() => { void startRoom(); }}
-              disabled={!room.canStart || loading}
+              disabled={!roomView.canStart || loading || previewMode}
             >
-              {room.canStart ? 'Begin Battle' : 'Waiting for Host'}
+              {roomView.canStart ? 'Begin Battle' : 'Waiting for Host'}
             </button>
           </>
         )}
 
-        {room.status === 'active' && (
-          <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-              {room.battleActions.map((action) => {
-                const selected = selectedActionId === action.id;
-                const committed = room.currentPlayer?.committedActionId === action.id;
-                const label = getClassActionLabel(selectedCharacter.classKey, action.id);
-                return (
-                  <button
-                    key={action.id}
-                    onClick={() => setSelectedActionId(action.id)}
-                    disabled={!room.canCommit || loading}
-                    style={{
-                      padding: '12px 10px',
-                      borderRadius: 8,
-                      textAlign: 'left',
-                      background: selected || committed
-                        ? 'linear-gradient(180deg,#E8C760,#8E6A1A)'
-                        : 'linear-gradient(180deg,#1B2C4A,#0E1A30)',
-                      border: selected || committed
-                        ? '1.5px solid #5C3F09'
-                        : '1px solid rgba(232,199,96,0.28)',
-                      color: selected || committed ? '#3A2410' : '#FFE9A8',
-                      cursor: room.canCommit ? 'pointer' : 'default',
-                    }}
-                  >
-                    <div className="heading" style={{ fontSize: 10, letterSpacing: '0.12em' }}>{label}</div>
-                    <div style={{
-                      marginTop: 4,
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 10,
-                      color: selected || committed ? '#5C3F09' : '#C9B888',
-                    }}>
-                      {action.trait} DC{action.dc} - {action.description}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="btn-primary"
-                onClick={() => { if (selectedActionId) void commitAction(selectedActionId); }}
-                disabled={!room.canCommit || !selectedActionId || loading}
-              >
-                {room.currentPlayer?.committedActionId ? 'Waiting for Party' : 'Commit Action'}
-              </button>
-              <button className="btn-secondary" onClick={() => { void syncRoom(); }} disabled={loading}>
-                Refresh
-              </button>
-            </div>
-          </>
-        )}
-
-        {room.status === 'completed' && (
+        {roomView.status === 'completed' && (
           <>
             <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
               {battle.status === 'victory'
@@ -488,8 +472,8 @@ export const MultiplayerRoom = () => {
                 : `The party fell back. Claim ${reward.label}, then regroup.`}
               {ownResult ? ` Your last action: ${ownResult.actionLabel} (${ownResult.total}).` : ''}
             </div>
-            <button className="btn-primary" onClick={() => { void handleFinish(); }} disabled={loading}>
-              {room.canClaimReward ? `Claim ${reward.label}` : 'Return to Lobby'}
+            <button className="btn-primary" onClick={() => { void handleFinish(); }} disabled={loading || previewMode}>
+              {roomView.canClaimReward ? `Claim ${reward.label}` : 'Return to Lobby'}
             </button>
           </>
         )}
@@ -518,9 +502,6 @@ export const MultiplayerRoom = () => {
           </button>
         )}
       </div>
-
-      <PlayerCard character={selectedCharacter} xp={selectedCharacter.xp} />
     </div>
   );
 };
-

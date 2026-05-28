@@ -10,10 +10,9 @@ import type { RollResult } from '../../lib/engine';
 import { CampaignBanner } from './CampaignBanner';
 import { SceneHeader } from './SceneHeader';
 import { StoryScroll } from './StoryScroll';
-import { SharedTable } from './SharedTable';
-import { ActionTray } from './ActionTray';
-import { SpotlightRow } from './SpotlightRow';
-import { PlayerCard } from './PlayerCard';
+import { PhaseShowcase } from './PhaseShowcase';
+import { DecisionTable } from './DecisionTable';
+import { RoomFooterRail } from './RoomFooterRail';
 import { DragLayer } from './DragLayer';
 import { IntroHint } from './IntroHint';
 import { RewardCard } from './RewardCard';
@@ -25,7 +24,6 @@ export const Room = () => {
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const stageRef    = useRef<HTMLDivElement>(null);
-  const tableRef    = useRef<HTMLDivElement | null>(null);
   const persuadeCoinRef = useRef<HTMLDivElement>(null);
   const trailIdRef  = useRef(0);
   const timeoutIdsRef = useRef<number[]>([]);
@@ -310,25 +308,25 @@ export const Room = () => {
         rollResult={g.rollResult}
         storyLog={g.storyLog}
       />
-      <SharedTable
+      <PhaseShowcase
+        sceneType={currentSceneType}
+        phase={g.phase}
+        timer={g.timer}
+      />
+      <DecisionTable
+        actions={currentActions}
+        sceneType={currentSceneType}
         envelopes={g.envelopes}
         dropZoneHot={g.dropZoneHot}
         dropZoneRef={dropZoneRef}
-        onTableMount={el => { tableRef.current = el; }}
-      />
-      <ActionTray
-        actions={currentActions}
-        sceneType={currentSceneType}
         coinRef={persuadeCoinRef}
         onPointerDown={onPointerDown}
         onTapAction={a => { g.setHint({ visible: false, x: 0, y: 0 }); g.setTapAction(a); }}
         draggingActionId={g.drag?.actionId ?? null}
         hiddenActionId={g.hiddenAction}
-        timer={g.timer}
         phase={g.phase}
       />
-      <SpotlightRow tokensLeft={spotlightTokens}/>
-      <PlayerCard xp={lobby.xp} hp={8} maxHp={10}/>
+      <RoomFooterRail xp={lobby.xp} hp={8} maxHp={10} tokensLeft={spotlightTokens}/>
 
       {/* floating drag layer */}
       <DragLayer drag={g.drag}/>
