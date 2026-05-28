@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getBattleReward, getClassActionLabel } from '../../lib/battle/engine';
 import { getCharacterInitial, getCharacterLabel } from '../../lib/character';
 import type { CharacterProfile } from '../../lib/character';
@@ -185,6 +185,7 @@ export const MultiplayerRoom = () => {
   const [focusTable, setFocusTable] = useState(false);
   const [turnCommitLock, setTurnCommitLock] = useState(false);
   const [lockedTurn, setLockedTurn] = useState<number | null>(null);
+  const previousTurnRef = useRef<number | null>(null);
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
   const roomView = room ?? (previewMode ? buildMockRoomView(selectedCharacter, playerState.sessionId) : null);
   const isWide = viewport.width >= 980;
@@ -221,6 +222,17 @@ export const MultiplayerRoom = () => {
       setSelectedActionId(null);
     }
   }, [lockedTurn, roomView]);
+
+  useEffect(() => {
+    if (!roomView || roomView.status !== 'active') return;
+
+    const previousTurn = previousTurnRef.current;
+    if (previousTurn != null && previousTurn !== roomView.turn) {
+      setShowStory(true);
+      setFocusTable(false);
+    }
+    previousTurnRef.current = roomView.turn;
+  }, [roomView]);
 
   useEffect(() => {
     if (error && turnCommitLock && !roomView?.currentPlayer?.committedActionId) {
@@ -285,6 +297,7 @@ export const MultiplayerRoom = () => {
     roomView.battleActions.map((action) => [action.id, getClassActionLabel(selectedCharacter.classKey, action.id)]),
   ) as Record<string, string>;
   const interactionLocked = turnCommitLock || Boolean(roomView.currentPlayer?.committedActionId);
+  const activeOnlineParticipants = roomView.participants.filter((participant) => participant.online && !participant.downed).length;
 
   const handleFinish = async () => {
     await claimReward();
@@ -416,6 +429,7 @@ export const MultiplayerRoom = () => {
                 <BattleStoryScroll
                   enemyIntent={battle.enemyIntent}
                   lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
+                  currentText={roomView.currentStoryText}
                 />
               )}
               {!focusTable && (
@@ -423,6 +437,10 @@ export const MultiplayerRoom = () => {
                   sceneType="combat"
                   phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
                   timer={timerSeconds}
+                  title={battle.enemyName}
+                  description={roomView.currentPlayer?.committedActionId
+                    ? 'Your move is locked. The field is resolving now.'
+                    : roomView.currentStoryText}
                 />
               )}
             </div>
@@ -441,8 +459,14 @@ export const MultiplayerRoom = () => {
                   if (!selectedActionId || interactionLocked) return;
                   setTurnCommitLock(true);
                   setLockedTurn(roomView.turn);
+                  setShowStory(true);
+                  setFocusTable(false);
                   if (!previewMode) {
-                    void commitAction(selectedActionId);
+                    void commitAction(selectedActionId).then(() => {
+                      if (activeOnlineParticipants <= 1) {
+                        void syncRoom();
+                      }
+                    });
                   }
                 }}
                 onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}

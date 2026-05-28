@@ -7,6 +7,8 @@ interface Props {
   sceneType: SceneType;
   phase: string;
   timer: number;
+  title?: string;
+  description?: string;
 }
 
 const PHASE_STATUS: Record<string, string> = {
@@ -24,7 +26,7 @@ const SceneGlyph = ({ sceneType }: { sceneType: SceneType }) => {
   return <ShieldEmblem size={42} />;
 };
 
-export const PhaseShowcase = ({ sceneType, phase, timer }: Props) => {
+export const PhaseShowcase = ({ sceneType, phase, timer, title, description }: Props) => {
   const visual = SCENE_VISUALS[sceneType];
 
   return (
@@ -46,8 +48,8 @@ export const PhaseShowcase = ({ sceneType, phase, timer }: Props) => {
         </div>
         <div className="phase-card__beams" />
         <div className="phase-card__copy">
-          <div className="heading phase-card__title">{visual.title}</div>
-          <p className="body-serif phase-card__description">{visual.description}</p>
+          <div className="heading phase-card__title">{title ?? visual.title}</div>
+          <p className="body-serif phase-card__description">{description ?? visual.description}</p>
         </div>
         <div className="phase-card__timer">
           <div className="heading">Decision Window</div>

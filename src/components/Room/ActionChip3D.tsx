@@ -37,15 +37,19 @@ const buildFaceTexture = (label: string, glyph: string, color: string) => {
   ctx.arc(256, 256, 150, 0, Math.PI * 2);
   ctx.stroke();
 
+  ctx.save();
+  ctx.translate(256, 256);
+  ctx.rotate(-Math.PI / 2);
   ctx.fillStyle = 'rgba(33,19,8,0.95)';
   ctx.font = '700 138px Cinzel, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(glyph, 256, 230);
+  ctx.fillText(glyph, 0, -26);
 
   ctx.fillStyle = 'rgba(33,19,8,0.82)';
   ctx.font = '600 42px Inter, sans-serif';
-  ctx.fillText(label.toUpperCase(), 256, 338);
+  ctx.fillText(label.toUpperCase(), 0, 82);
+  ctx.restore();
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.anisotropy = 8;

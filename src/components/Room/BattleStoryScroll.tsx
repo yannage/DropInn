@@ -1,10 +1,11 @@
 interface Props {
   enemyIntent: string;
   lines: string[];
+  currentText?: string;
 }
 
-export const BattleStoryScroll = ({ enemyIntent, lines }: Props) => {
-  const primary = lines[lines.length - 1] ?? 'The party braces for the first exchange.';
+export const BattleStoryScroll = ({ enemyIntent, lines, currentText }: Props) => {
+  const primary = currentText ?? lines[lines.length - 1] ?? 'The party braces for the first exchange.';
 
   return (
     <section className="story-scroll-shell">
