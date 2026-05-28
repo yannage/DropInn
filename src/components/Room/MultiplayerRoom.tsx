@@ -176,8 +176,18 @@ export const MultiplayerRoom = () => {
   const playerState = usePlayerStore();
   const selectedCharacter = getSelectedCharacter(playerState);
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === 'undefined' ? 1280 : window.innerWidth,
+    height: typeof window === 'undefined' ? 900 : window.innerHeight,
+  }));
+  const [showStory, setShowStory] = useState(true);
+  const [showRoster, setShowRoster] = useState(true);
+  const [focusTable, setFocusTable] = useState(false);
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
   const roomView = room ?? (previewMode ? buildMockRoomView(selectedCharacter, playerState.sessionId) : null);
+  const isWide = viewport.width >= 980;
+  const isTablet = viewport.width >= 700 && viewport.width < 980;
+  const needsCompact = viewport.width < 520 || viewport.height < 780;
 
   useEffect(() => {
     void syncRoom();
@@ -194,6 +204,31 @@ export const MultiplayerRoom = () => {
       setSelectedActionId(null);
     }
   }, [room?.currentPlayer?.committedActionId, room?.status, room?.turn]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    if (isWide) {
+      setShowStory(true);
+      setShowRoster(true);
+      setFocusTable(false);
+      return;
+    }
+
+    if (needsCompact) {
+      setShowStory(false);
+      setShowRoster(false);
+    } else {
+      setShowStory(true);
+      setShowRoster(true);
+    }
+  }, [isWide, needsCompact]);
 
   const ownResult = useMemo(
     () => roomView?.lastResults.find((result) => result.sessionId === playerState.sessionId) ?? null,
@@ -317,29 +352,73 @@ export const MultiplayerRoom = () => {
       </div>
 
       {roomView.status === 'active' ? (
-        <div style={{ display: 'flex', flex: 1, minHeight: 0, flexDirection: 'column', overflow: 'hidden' }}>
-          <BattleStoryScroll
-            enemyIntent={battle.enemyIntent}
-            lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
-          />
-          <PhaseShowcase
-            sceneType="combat"
-            phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
-            timer={timerSeconds}
-          />
-          <BattleDecisionTable
-            actions={roomView.battleActions}
-            labels={actionLabels}
-            selectedActionId={selectedActionId}
-            committedActionId={roomView.currentPlayer?.committedActionId}
-            canCommit={previewMode ? true : roomView.canCommit}
-            loading={loading}
-            onSelect={setSelectedActionId}
-            onCommit={() => { if (selectedActionId && !previewMode) void commitAction(selectedActionId); }}
-            onRefresh={() => { if (!previewMode) void syncRoom(); }}
-          />
+        <div
+          className={[
+            'battle-room',
+            isWide ? 'battle-room--wide' : isTablet ? 'battle-room--tablet' : 'battle-room--compact',
+            focusTable ? 'battle-room--focus' : '',
+          ].filter(Boolean).join(' ')}
+        >
+          <div className="battle-room__toolbar">
+            <button
+              type="button"
+              className={`battle-room__toggle ${showStory ? 'battle-room__toggle--on' : ''}`}
+              onClick={() => setShowStory(value => !value)}
+              disabled={focusTable}
+            >
+              Story
+            </button>
+            <button
+              type="button"
+              className={`battle-room__toggle ${showRoster ? 'battle-room__toggle--on' : ''}`}
+              onClick={() => setShowRoster(value => !value)}
+              disabled={focusTable}
+            >
+              Party
+            </button>
+            <button
+              type="button"
+              className={`battle-room__toggle ${focusTable ? 'battle-room__toggle--on' : ''}`}
+              onClick={() => setFocusTable(value => !value)}
+            >
+              Focus Table
+            </button>
+          </div>
 
-          <div className="party-strip">
+          <div className="battle-room__content">
+            <div className="battle-room__support">
+              {showStory && (
+                <BattleStoryScroll
+                  enemyIntent={battle.enemyIntent}
+                  lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
+                />
+              )}
+              {!focusTable && (
+                <PhaseShowcase
+                  sceneType="combat"
+                  phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
+                  timer={timerSeconds}
+                />
+              )}
+            </div>
+
+            <div className="battle-room__primary">
+              <BattleDecisionTable
+                actions={roomView.battleActions}
+                labels={actionLabels}
+                selectedActionId={selectedActionId}
+                committedActionId={roomView.currentPlayer?.committedActionId}
+                canCommit={previewMode ? true : roomView.canCommit}
+                loading={loading}
+                onSelect={setSelectedActionId}
+                onCommit={() => { if (selectedActionId && !previewMode) void commitAction(selectedActionId); }}
+                onRefresh={() => { if (!previewMode) void syncRoom(); }}
+              />
+            </div>
+          </div>
+
+          {showRoster && (
+            <div className="party-strip">
             {roomView.participants.map((participant) => {
               const result = roomView.lastResults.find((entry) => entry.sessionId === participant.sessionId);
               const committedAction = roomView.battleActions.find((action) => action.id === participant.committedActionId);
@@ -377,7 +456,8 @@ export const MultiplayerRoom = () => {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{
