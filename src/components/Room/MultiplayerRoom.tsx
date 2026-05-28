@@ -183,6 +183,8 @@ export const MultiplayerRoom = () => {
   const [showStory, setShowStory] = useState(true);
   const [showRoster, setShowRoster] = useState(true);
   const [focusTable, setFocusTable] = useState(false);
+  const [turnCommitLock, setTurnCommitLock] = useState(false);
+  const [lockedTurn, setLockedTurn] = useState<number | null>(null);
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
   const roomView = room ?? (previewMode ? buildMockRoomView(selectedCharacter, playerState.sessionId) : null);
   const isWide = viewport.width >= 980;
@@ -204,6 +206,28 @@ export const MultiplayerRoom = () => {
       setSelectedActionId(null);
     }
   }, [room?.currentPlayer?.committedActionId, room?.status, room?.turn]);
+
+  useEffect(() => {
+    if (!roomView) return;
+    if (roomView.status !== 'active') {
+      setTurnCommitLock(false);
+      setLockedTurn(null);
+      return;
+    }
+
+    if (lockedTurn != null && roomView.turn !== lockedTurn) {
+      setTurnCommitLock(false);
+      setLockedTurn(null);
+      setSelectedActionId(null);
+    }
+  }, [lockedTurn, roomView]);
+
+  useEffect(() => {
+    if (error && turnCommitLock && !roomView?.currentPlayer?.committedActionId) {
+      setTurnCommitLock(false);
+      setLockedTurn(null);
+    }
+  }, [error, roomView?.currentPlayer?.committedActionId, turnCommitLock]);
 
   useEffect(() => {
     const onResize = () => {
@@ -260,6 +284,7 @@ export const MultiplayerRoom = () => {
   const actionLabels = Object.fromEntries(
     roomView.battleActions.map((action) => [action.id, getClassActionLabel(selectedCharacter.classKey, action.id)]),
   ) as Record<string, string>;
+  const interactionLocked = turnCommitLock || Boolean(roomView.currentPlayer?.committedActionId);
 
   const handleFinish = async () => {
     await claimReward();
@@ -408,11 +433,19 @@ export const MultiplayerRoom = () => {
                 labels={actionLabels}
                 selectedActionId={selectedActionId}
                 committedActionId={roomView.currentPlayer?.committedActionId}
+                interactionLocked={interactionLocked}
                 canCommit={previewMode ? true : roomView.canCommit}
                 loading={loading}
-                onSelect={setSelectedActionId}
-                onCommit={() => { if (selectedActionId && !previewMode) void commitAction(selectedActionId); }}
-                onRefresh={() => { if (!previewMode) void syncRoom(); }}
+                onSelect={(actionId) => { if (!interactionLocked) setSelectedActionId(actionId); }}
+                onCommit={() => {
+                  if (!selectedActionId || interactionLocked) return;
+                  setTurnCommitLock(true);
+                  setLockedTurn(roomView.turn);
+                  if (!previewMode) {
+                    void commitAction(selectedActionId);
+                  }
+                }}
+                onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}
               />
             </div>
           </div>

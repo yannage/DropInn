@@ -91,8 +91,7 @@ export const ActionChip3D = ({
     scene.add(rim);
 
     const chip = new THREE.Group();
-    chip.rotation.x = -0.35;
-    chip.rotation.z = -0.2;
+    chip.rotation.x = Math.PI / 2 - 0.18;
     scene.add(chip);
 
     const topTexture = buildFaceTexture(label, glyph, topColor);
@@ -140,7 +139,7 @@ export const ActionChip3D = ({
     let raf = 0;
     const animate = () => {
       raf = window.requestAnimationFrame(animate);
-      chip.rotation.y += isActive ? 0.01 : 0.004;
+      chip.rotation.z += isActive ? 0.018 : 0.006;
       chip.position.y = isActive ? Math.sin(performance.now() / 450) * 0.04 : 0;
       renderer.render(scene, camera);
     };

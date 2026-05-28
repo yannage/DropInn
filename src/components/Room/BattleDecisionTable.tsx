@@ -7,6 +7,7 @@ interface Props {
   labels: Record<string, string>;
   selectedActionId: string | null;
   committedActionId: string | null | undefined;
+  interactionLocked: boolean;
   canCommit: boolean;
   loading: boolean;
   onSelect: (actionId: string) => void;
@@ -19,6 +20,7 @@ export const BattleDecisionTable = ({
   labels,
   selectedActionId,
   committedActionId,
+  interactionLocked,
   canCommit,
   loading,
   onSelect,
@@ -27,6 +29,7 @@ export const BattleDecisionTable = ({
 }: Props) => {
   const activeAction = actions.find((action) => action.id === (committedActionId ?? selectedActionId)) ?? null;
   const activeVisual = activeAction ? getVisualById(activeAction.id) : null;
+  const chipsLocked = interactionLocked || Boolean(committedActionId) || !canCommit;
 
   return (
     <section className="decision-shell">
@@ -87,8 +90,8 @@ export const BattleDecisionTable = ({
                 type="button"
                 className="chip-dock battle-chip"
                 onClick={() => onSelect(action.id)}
-                disabled={!canCommit || loading}
-                style={{ opacity: canCommit ? 1 : 0.58 }}
+                disabled={chipsLocked || loading}
+                style={{ opacity: chipsLocked ? 0.5 : 1 }}
               >
                 <div className="chip-dock__plate" style={selected ? { borderColor: `${visual.top}aa`, boxShadow: `0 0 24px ${visual.glow}` } : undefined}>
                   <ActionChip3D
@@ -98,7 +101,7 @@ export const BattleDecisionTable = ({
                     edgeColor={visual.edge}
                     glowColor={visual.glow}
                     size={72}
-                    isActive={selected || canCommit}
+                    isActive={selected || !chipsLocked}
                   />
                 </div>
                 <div className="heading chip-dock__label">{label}</div>
@@ -110,10 +113,10 @@ export const BattleDecisionTable = ({
       </div>
 
       <div className="battle-actions">
-        <button className="btn-primary" onClick={onCommit} disabled={!canCommit || !selectedActionId || loading || Boolean(committedActionId)}>
-          {committedActionId ? 'Waiting for Party' : 'Commit Action'}
+        <button className="btn-primary" onClick={onCommit} disabled={!canCommit || !selectedActionId || loading || interactionLocked || Boolean(committedActionId)}>
+          {committedActionId ? 'Waiting for Party' : interactionLocked ? 'Locked In' : 'Commit Action'}
         </button>
-        <button className="btn-secondary" onClick={onRefresh} disabled={loading}>
+        <button className="btn-secondary" onClick={onRefresh} disabled={loading || interactionLocked || Boolean(committedActionId)}>
           Refresh
         </button>
       </div>
