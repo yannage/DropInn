@@ -1,6 +1,6 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { CharacterProfile } from '../character';
-import { isSupabaseConfigured, requireSupabaseClient, shouldUseLocalDevFallback } from '../supabase/client';
+import { isLocalhost, isSupabaseConfigured, requireSupabaseClient, shouldUseLocalDevFallback } from '../supabase/client';
 import {
   buildRoomView,
   claimRoomReward,
@@ -10,6 +10,7 @@ import {
   leaveRoomState,
   startRoomState,
   touchParticipant,
+  type RoomMode,
   type RoomParticipantState,
   type RoomState,
   type RoomView,
@@ -33,6 +34,7 @@ interface RoomRequestPayload {
   sessionId: string;
   character?: CharacterProfile;
   actionId?: string;
+  roomMode?: RoomMode;
 }
 
 interface RoomResponsePayload {
@@ -42,6 +44,7 @@ interface RoomResponsePayload {
 interface RoomRow {
   id: string;
   room_code: string;
+  room_mode: RoomMode | null;
   campaign_title: string;
   host_user_id: string;
   created_at: string;
@@ -57,7 +60,8 @@ interface RoomRow {
   continue_votes: RoomState['continueVotes'];
   reward_claims: RoomState['rewardClaims'];
   last_results: RoomState['lastResults'];
-  battle_state: RoomState['battleState'];
+  battle_state: RoomState['battleState'] | null;
+  story_arc_state: RoomState['storyArcState'] | null;
   completed_at: string | null;
   last_resolved_turn_key: string | null;
 }
@@ -83,6 +87,22 @@ const fromIso = (timestamp: string | null) => (
   timestamp == null ? null : new Date(timestamp).getTime()
 );
 
+const shouldFallbackToLocalSchema = (error: unknown) => {
+  const message = typeof error === 'object' && error != null && 'message' in error
+    ? String((error as { message?: unknown }).message ?? '')
+    : error instanceof Error
+      ? error.message
+      : String(error);
+  return isLocalhost() && /(room_mode|story_arc_state|battle_state)/i.test(message);
+};
+
+const normalizeStoredRoom = (room: RoomState): RoomState => ({
+  ...room,
+  roomMode: room.roomMode ?? 'battle',
+  battleState: room.battleState ?? null,
+  storyArcState: room.storyArcState ?? null,
+});
+
 const readLocalRooms = (): Record<string, RoomState> => {
   if (typeof window === 'undefined') return {};
 
@@ -90,7 +110,10 @@ const readLocalRooms = (): Record<string, RoomState> => {
   if (!raw) return {};
 
   try {
-    return JSON.parse(raw) as Record<string, RoomState>;
+    const parsed = JSON.parse(raw) as Record<string, RoomState>;
+    return Object.fromEntries(
+      Object.entries(parsed).map(([code, room]) => [code, normalizeStoredRoom(room)]),
+    );
   } catch {
     return {};
   }
@@ -99,6 +122,12 @@ const readLocalRooms = (): Record<string, RoomState> => {
 const writeLocalRooms = (rooms: Record<string, RoomState>) => {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(LOCAL_ROOMS_KEY, JSON.stringify(rooms));
+};
+
+const hasLocalRoom = (roomCode?: string) => {
+  if (!roomCode) return false;
+  const rooms = readLocalRooms();
+  return Boolean(rooms[normalizeRoomCode(roomCode)]);
 };
 
 const requireLocalRoom = (rooms: Record<string, RoomState>, roomCode?: string) => {
@@ -122,9 +151,9 @@ const localRequest = async (payload: RoomRequestPayload): Promise<RoomResponsePa
   if (payload.action === 'create') {
     if (!payload.character) throw new Error('A character is required to create a room.');
 
-    let room = createRoomState(payload.character, payload.sessionId, now);
+    let room = createRoomState(payload.character, payload.sessionId, now, payload.roomMode ?? 'battle');
     while (rooms[room.roomCode]) {
-      room = createRoomState(payload.character, payload.sessionId, now);
+      room = createRoomState(payload.character, payload.sessionId, now, payload.roomMode ?? 'battle');
     }
 
     rooms[room.roomCode] = room;
@@ -170,6 +199,7 @@ const localRequest = async (payload: RoomRequestPayload): Promise<RoomResponsePa
 const roomRowToState = (row: RoomRow, participants: ParticipantRow[]): RoomState => ({
   id: row.id,
   roomCode: row.room_code,
+  roomMode: row.room_mode ?? 'battle',
   campaignTitle: row.campaign_title,
   hostSessionId: row.host_user_id,
   createdAt: fromIso(row.created_at) ?? Date.now(),
@@ -185,7 +215,8 @@ const roomRowToState = (row: RoomRow, participants: ParticipantRow[]): RoomState
   continueVotes: row.continue_votes ?? {},
   rewardClaims: row.reward_claims ?? {},
   lastResults: row.last_results ?? [],
-  battleState: row.battle_state,
+  battleState: row.battle_state ?? null,
+  storyArcState: row.story_arc_state ?? null,
   participants: participants.map<RoomParticipantState>((participant) => ({
     sessionId: participant.user_id,
     character: participant.character_snapshot,
@@ -199,6 +230,7 @@ const roomRowToState = (row: RoomRow, participants: ParticipantRow[]): RoomState
 
 const roomStateToPatch = (room: RoomState) => ({
   room_code: room.roomCode,
+  room_mode: room.roomMode,
   campaign_title: room.campaignTitle,
   host_user_id: room.hostSessionId,
   round_duration_ms: room.roundDurationMs,
@@ -213,6 +245,7 @@ const roomStateToPatch = (room: RoomState) => ({
   reward_claims: room.rewardClaims,
   last_results: room.lastResults,
   battle_state: room.battleState,
+  story_arc_state: room.storyArcState,
   completed_at: toIso(room.completedAt),
   last_resolved_turn_key: room.lastResolvedTurnKey,
   updated_at: toIso(room.updatedAt),
@@ -306,7 +339,7 @@ const supabaseRequest = async (payload: RoomRequestPayload): Promise<RoomRespons
   if (payload.action === 'create') {
     if (!payload.character) throw new Error('A character is required to create a room.');
 
-    let room = createRoomState(payload.character, payload.sessionId, now);
+    let room = createRoomState(payload.character, payload.sessionId, now, payload.roomMode ?? 'battle');
     let insertedRoom: RoomRow | null = null;
     const supabase = requireSupabaseClient();
 
@@ -323,7 +356,7 @@ const supabaseRequest = async (payload: RoomRequestPayload): Promise<RoomRespons
       if (!error) {
         insertedRoom = data as RoomRow;
       } else if (error.code === '23505') {
-        room = createRoomState(payload.character, payload.sessionId, now);
+        room = createRoomState(payload.character, payload.sessionId, now, payload.roomMode ?? 'battle');
       } else {
         throw error;
       }
@@ -385,8 +418,19 @@ const supabaseRequest = async (payload: RoomRequestPayload): Promise<RoomRespons
 };
 
 const requestRoom = async (payload: RoomRequestPayload): Promise<RoomResponsePayload> => {
+  if (isLocalhost() && hasLocalRoom(payload.roomCode)) {
+    return localRequest(payload);
+  }
+
   if (isSupabaseConfigured()) {
-    return supabaseRequest(payload);
+    try {
+      return await supabaseRequest(payload);
+    } catch (error) {
+      if (shouldFallbackToLocalSchema(error)) {
+        return localRequest(payload);
+      }
+      throw error;
+    }
   }
 
   if (shouldUseLocalDevFallback()) {
@@ -402,9 +446,18 @@ const subscribeToRoom = async (
   onRoom: RoomSubscriber,
 ) => {
   if (!isSupabaseConfigured()) return () => undefined;
+  if (isLocalhost() && hasLocalRoom(roomCode)) return () => undefined;
 
   const supabase = requireSupabaseClient();
-  const state = await fetchSupabaseRoomState(roomCode);
+  let state: RoomState;
+  try {
+    state = await fetchSupabaseRoomState(roomCode);
+  } catch (error) {
+    if (shouldFallbackToLocalSchema(error)) {
+      return () => undefined;
+    }
+    throw error;
+  }
   const channelName = `room:${state.roomCode}:${sessionId}`;
   let channel: RealtimeChannel | null = supabase.channel(channelName);
 
@@ -441,10 +494,11 @@ const subscribeToRoom = async (
 };
 
 export const multiplayerApi = {
-  createRoom: (sessionId: string, character: CharacterProfile) => requestRoom({
+  createRoom: (sessionId: string, character: CharacterProfile, roomMode: RoomMode) => requestRoom({
     action: 'create',
     sessionId,
     character,
+    roomMode,
   }),
 
   joinRoom: (roomCode: string, sessionId: string, character: CharacterProfile) => requestRoom({
@@ -494,4 +548,3 @@ export const multiplayerApi = {
 
   subscribeToRoom,
 };
-

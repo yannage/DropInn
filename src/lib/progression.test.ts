@@ -31,5 +31,12 @@ describe('progression', () => {
     expect(rewarded.level).toBe(4);
     expect(rewardedAgain.inventory.filter((item) => item === 'Ashhide Charm')).toHaveLength(1);
   });
-});
 
+  it('allows setback penalties to reduce XP and level', () => {
+    const advanced = { ...character, xp: 320, level: 4 };
+    const penalized = applyCharacterReward(advanced, -40);
+
+    expect(penalized.xp).toBe(280);
+    expect(penalized.level).toBe(3);
+  });
+});

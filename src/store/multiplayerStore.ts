@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { multiplayerApi } from '../lib/multiplayer/api';
 import type { CharacterProfile } from '../lib/character';
-import type { RoomView } from '../lib/multiplayer/roomEngine';
+import type { RoomMode, RoomView } from '../lib/multiplayer/roomEngine';
 import { getErrorMessage } from '../lib/errors';
 import { getSelectedCharacter, usePlayerStore } from './playerStore';
 
@@ -11,7 +11,7 @@ interface MultiplayerState {
   error: string | null;
 
   clearError: () => void;
-  createRoom: (character: CharacterProfile) => Promise<void>;
+  createRoom: (character: CharacterProfile, roomMode: RoomMode) => Promise<void>;
   joinRoom: (roomCode: string, character: CharacterProfile) => Promise<void>;
   syncRoom: () => Promise<void>;
   subscribeToCurrentRoom: () => Promise<void>;
@@ -71,9 +71,9 @@ export const useMultiplayerStore = create<MultiplayerState>((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  createRoom: async (character) => withRequest(set, async () => {
+  createRoom: async (character, roomMode) => withRequest(set, async () => {
     const sessionId = getSession();
-    const response = await multiplayerApi.createRoom(sessionId, character);
+    const response = await multiplayerApi.createRoom(sessionId, character, roomMode);
     usePlayerStore.getState().setActiveRoomCode(response.room.roomCode);
     set({ room: response.room });
     await startSubscription(set, response.room.roomCode, sessionId);

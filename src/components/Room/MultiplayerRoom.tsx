@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getBattleReward, getClassActionLabel } from '../../lib/battle/engine';
+import { getClassActionLabel } from '../../lib/battle/engine';
 import { getCharacterInitial, getCharacterLabel } from '../../lib/character';
 import type { CharacterProfile } from '../../lib/character';
 import { DEFAULT_CHARACTER } from '../../lib/character';
@@ -11,9 +11,12 @@ import { HeartIcon } from '../icons';
 import { BattleStoryScroll } from './BattleStoryScroll';
 import { PhaseShowcase } from './PhaseShowcase';
 import { BattleDecisionTable } from './BattleDecisionTable';
+import { StoryArcDecisionTable } from './StoryArcDecisionTable';
+import { StoryArcScroll } from './StoryArcScroll';
 
 const buildMockRoomView = (character: CharacterProfile, sessionId: string): RoomView => ({
   roomCode: 'MOCK',
+  roomMode: 'battle',
   campaignTitle: 'The Dragon of Ash Hollow',
   status: 'active',
   sceneRound: 2,
@@ -129,6 +132,8 @@ const buildMockRoomView = (character: CharacterProfile, sessionId: string): Room
   rewardLabel: 'No reward yet',
   rewardXp: 0,
   rewardItem: undefined,
+  storyArc: null,
+  storyActions: [],
   roomTheme: 'Ash Hollow Ambush',
 });
 
@@ -294,10 +299,19 @@ export const MultiplayerRoom = () => {
 
   const timerSeconds = Math.ceil(roomView.timeRemainingMs / 1000);
   const battle = roomView.battleState;
-  const reward = getBattleReward(battle.status);
+  const storyArc = roomView.storyArc;
+  const isStoryRoom = roomView.roomMode === 'story';
+  const reward = {
+    label: roomView.rewardLabel,
+    xp: roomView.rewardXp,
+    item: roomView.rewardItem,
+  };
   const recentLog = roomView.storyLog.slice(-5);
   const actionLabels = Object.fromEntries(
     roomView.battleActions.map((action) => [action.id, getClassActionLabel(selectedCharacter.classKey, action.id)]),
+  ) as Record<string, string>;
+  const storyActionLabels = Object.fromEntries(
+    roomView.storyActions.map((action) => [action.id, action.label]),
   ) as Record<string, string>;
   const interactionLocked = turnCommitLock || Boolean(roomView.currentPlayer?.committedActionId);
   const activeOnlineParticipants = roomView.participants.filter((participant) => participant.online && !participant.downed).length;
@@ -349,7 +363,7 @@ export const MultiplayerRoom = () => {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}>
-            Ash Hollow Ambush
+            {roomView.campaignTitle}
           </div>
           <div style={{
             fontFamily: 'Inter, sans-serif',
@@ -434,14 +448,34 @@ export const MultiplayerRoom = () => {
 
           <div className="battle-room__content">
             <div className="battle-room__support">
-              {showStory && (
+              {showStory && (isStoryRoom && storyArc ? (
+                <StoryArcScroll
+                  chapter={storyArc.chapter.charAt(0).toUpperCase() + storyArc.chapter.slice(1)}
+                  sceneTitle={storyArc.sceneTitle}
+                  objective={storyArc.objective}
+                  clues={storyArc.clues}
+                  setbackCount={storyArc.setbackCount}
+                  lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
+                  currentText={roomView.currentStoryText}
+                />
+              ) : battle ? (
                 <BattleStoryScroll
                   enemyIntent={battle.enemyIntent}
                   lines={recentLog.length > 0 ? recentLog.map((entry) => entry.text) : []}
                   currentText={roomView.currentStoryText}
                 />
-              )}
-              {!focusTable && !needsCompact && (
+              ) : null)}
+              {!focusTable && !needsCompact && (isStoryRoom && storyArc ? (
+                <PhaseShowcase
+                  sceneType={storyArc.phase === 'battle' ? (storyArc.chapter === 'end' ? 'dragon' : 'combat') : 'social'}
+                  phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
+                  timer={timerSeconds}
+                  title={storyArc.phase === 'battle' ? battle?.enemyName ?? storyArc.sceneTitle : storyArc.sceneTitle}
+                  description={roomView.currentPlayer?.committedActionId
+                    ? 'Your choice is locked. The room is resolving now.'
+                    : roomView.currentStoryText}
+                />
+              ) : battle ? (
                 <PhaseShowcase
                   sceneType="combat"
                   phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
@@ -451,45 +485,81 @@ export const MultiplayerRoom = () => {
                     ? 'Your move is locked. The field is resolving now.'
                     : roomView.currentStoryText}
                 />
-              )}
+              ) : null)}
             </div>
 
             <div className="battle-room__primary">
-              <BattleDecisionTable
-                actions={roomView.battleActions}
-                labels={actionLabels}
-                selectedActionId={selectedActionId}
-                committedActionId={roomView.currentPlayer?.committedActionId}
-                interactionLocked={interactionLocked}
-                canCommit={previewMode ? true : roomView.canCommit}
-                loading={loading}
-                enemyName={battle.enemyName}
-                enemyHp={battle.enemyHp}
-                enemyMaxHp={battle.enemyMaxHp}
-                playerHp={currentPlayerHp}
-                playerMaxHp={currentPlayerMaxHp}
-                round={roomView.sceneRound}
-                turn={roomView.turn}
-                currentPlayerLabel="You"
-                timerSeconds={timerSeconds}
-                onSelect={(actionId) => { if (!interactionLocked) setSelectedActionId(actionId); }}
-                onCommit={() => {
-                  if (!selectedActionId || interactionLocked) return;
-                  setTurnCommitLock(true);
-                  setLockedTurn(roomView.turn);
-                  setShowStory(true);
-                  setFocusTable(false);
-                  if (!previewMode) {
-                    void commitAction(selectedActionId).then(() => {
-                      if (activeOnlineParticipants <= 1) {
-                        void syncRoom();
-                      }
-                    });
-                  }
-                }}
-                onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}
-                onLeave={() => { void handleLeave(); }}
-              />
+              {isStoryRoom && storyArc && storyArc.phase !== 'battle' ? (
+                <StoryArcDecisionTable
+                  actions={roomView.storyActions}
+                  selectedActionId={selectedActionId}
+                  committedActionId={roomView.currentPlayer?.committedActionId}
+                  interactionLocked={interactionLocked}
+                  canCommit={previewMode ? true : roomView.canCommit}
+                  loading={loading}
+                  sceneTitle={storyArc.sceneTitle}
+                  objective={storyArc.objective}
+                  currentPlayerLabel="You"
+                  timerSeconds={timerSeconds}
+                  chapterLabel={storyArc.chapter.charAt(0).toUpperCase() + storyArc.chapter.slice(1)}
+                  clueCount={storyArc.clues.length}
+                  clueTarget={storyArc.clueTarget}
+                  setbackCount={storyArc.setbackCount}
+                  onSelect={(actionId) => { if (!interactionLocked) setSelectedActionId(actionId); }}
+                  onCommit={() => {
+                    if (!selectedActionId || interactionLocked) return;
+                    setTurnCommitLock(true);
+                    setLockedTurn(roomView.turn);
+                    setShowStory(true);
+                    setFocusTable(false);
+                    if (!previewMode) {
+                      void commitAction(selectedActionId).then(() => {
+                        if (activeOnlineParticipants <= 1) {
+                          void syncRoom();
+                        }
+                      });
+                    }
+                  }}
+                  onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}
+                  onLeave={() => { void handleLeave(); }}
+                />
+              ) : battle ? (
+                <BattleDecisionTable
+                  actions={roomView.battleActions}
+                  labels={actionLabels}
+                  selectedActionId={selectedActionId}
+                  committedActionId={roomView.currentPlayer?.committedActionId}
+                  interactionLocked={interactionLocked}
+                  canCommit={previewMode ? true : roomView.canCommit}
+                  loading={loading}
+                  enemyName={battle.enemyName}
+                  enemyHp={battle.enemyHp}
+                  enemyMaxHp={battle.enemyMaxHp}
+                  playerHp={currentPlayerHp}
+                  playerMaxHp={currentPlayerMaxHp}
+                  round={battle.round}
+                  turn={roomView.turn}
+                  currentPlayerLabel="You"
+                  timerSeconds={timerSeconds}
+                  onSelect={(actionId) => { if (!interactionLocked) setSelectedActionId(actionId); }}
+                  onCommit={() => {
+                    if (!selectedActionId || interactionLocked) return;
+                    setTurnCommitLock(true);
+                    setLockedTurn(roomView.turn);
+                    setShowStory(true);
+                    setFocusTable(false);
+                    if (!previewMode) {
+                      void commitAction(selectedActionId).then(() => {
+                        if (activeOnlineParticipants <= 1) {
+                          void syncRoom();
+                        }
+                      });
+                    }
+                  }}
+                  onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}
+                  onLeave={() => { void handleLeave(); }}
+                />
+              ) : null}
             </div>
           </div>
 
@@ -497,7 +567,8 @@ export const MultiplayerRoom = () => {
             <div className="party-strip">
             {roomView.participants.map((participant) => {
               const result = roomView.lastResults.find((entry) => entry.sessionId === participant.sessionId);
-              const committedAction = roomView.battleActions.find((action) => action.id === participant.committedActionId);
+              const committedBattleAction = roomView.battleActions.find((action) => action.id === participant.committedActionId);
+              const committedStoryAction = roomView.storyActions.find((action) => action.id === participant.committedActionId);
 
               return (
                 <div
@@ -525,9 +596,11 @@ export const MultiplayerRoom = () => {
                   <div className="party-strip__result">
                     {result
                       ? `${result.actionLabel}: ${result.damage > 0 ? `${result.damage} dmg` : result.healing > 0 ? `${result.healing} heal` : result.success ? 'setup' : 'miss'}`
-                      : committedAction
-                        ? `${actionLabels[committedAction.id]} locked`
-                        : 'Choosing...'}
+                      : committedBattleAction
+                        ? `${actionLabels[committedBattleAction.id]} locked`
+                        : committedStoryAction
+                          ? `${storyActionLabels[committedStoryAction.id]} locked`
+                          : 'Choosing...'}
                   </div>
                 </div>
               );
@@ -546,54 +619,102 @@ export const MultiplayerRoom = () => {
           flexDirection: 'column',
           gap: 12,
         }}>
-          <div style={{
-            padding: '12px',
-            borderRadius: 16,
-            border: '1px solid rgba(232,199,96,0.18)',
-            background: 'linear-gradient(180deg, rgba(160,40,40,0.18), rgba(15,27,45,0.72))',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="heading gold-text" style={{ fontSize: 15 }}>
-                  {battle.enemyName}
-                </div>
-                <div style={{ marginTop: 6 }}>
-                  <HealthBar hp={battle.enemyHp} maxHp={battle.enemyMaxHp} height={10} />
-                </div>
-                <div style={{
-                  marginTop: 5,
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 10,
-                  color: '#FFE9A8',
-                  letterSpacing: '0.04em',
-                }}>
-                  HP {battle.enemyHp}/{battle.enemyMaxHp}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', minWidth: 92 }}>
-                <div className="ui-num" style={{ fontSize: 18, color: '#FFE9A8' }}>
-                  {roomView.status.toUpperCase()}
-                </div>
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668', marginTop: 3 }}>
-                  Round {roomView.sceneRound}
-                </div>
-              </div>
-            </div>
+          {isStoryRoom && storyArc ? (
             <div style={{
-              marginTop: 8,
-              padding: '8px 10px',
-              borderRadius: 8,
-              background: 'rgba(0,0,0,0.22)',
-              border: '1px solid rgba(232,199,96,0.14)',
-              fontFamily: 'EB Garamond, serif',
-              fontStyle: 'italic',
-              color: '#E8D9B4',
-              fontSize: 14,
-              lineHeight: 1.35,
+              padding: '12px',
+              borderRadius: 16,
+              border: '1px solid rgba(232,199,96,0.18)',
+              background: 'linear-gradient(180deg, rgba(45,88,120,0.2), rgba(15,27,45,0.72))',
             }}>
-              Intent: {battle.enemyIntent}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="heading gold-text" style={{ fontSize: 15 }}>
+                    {storyArc.sceneTitle}
+                  </div>
+                  <div style={{
+                    marginTop: 6,
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    color: '#FFE9A8',
+                    letterSpacing: '0.04em',
+                  }}>
+                    {storyArc.chapter.toUpperCase()} · Leads {storyArc.clues.length}/{storyArc.clueTarget} · Setbacks {storyArc.setbackCount}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', minWidth: 92 }}>
+                  <div className="ui-num" style={{ fontSize: 18, color: '#FFE9A8' }}>
+                    {roomView.status.toUpperCase()}
+                  </div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668', marginTop: 3 }}>
+                    Checkpoint {storyArc.checkpointLabel}
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                marginTop: 8,
+                padding: '8px 10px',
+                borderRadius: 8,
+                background: 'rgba(0,0,0,0.22)',
+                border: '1px solid rgba(232,199,96,0.14)',
+                fontFamily: 'EB Garamond, serif',
+                fontStyle: 'italic',
+                color: '#E8D9B4',
+                fontSize: 14,
+                lineHeight: 1.35,
+              }}>
+                {roomView.currentStoryText}
+              </div>
             </div>
-          </div>
+          ) : battle ? (
+            <div style={{
+              padding: '12px',
+              borderRadius: 16,
+              border: '1px solid rgba(232,199,96,0.18)',
+              background: 'linear-gradient(180deg, rgba(160,40,40,0.18), rgba(15,27,45,0.72))',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="heading gold-text" style={{ fontSize: 15 }}>
+                    {battle.enemyName}
+                  </div>
+                  <div style={{ marginTop: 6 }}>
+                    <HealthBar hp={battle.enemyHp} maxHp={battle.enemyMaxHp} height={10} />
+                  </div>
+                  <div style={{
+                    marginTop: 5,
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    color: '#FFE9A8',
+                    letterSpacing: '0.04em',
+                  }}>
+                    HP {battle.enemyHp}/{battle.enemyMaxHp}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', minWidth: 92 }}>
+                  <div className="ui-num" style={{ fontSize: 18, color: '#FFE9A8' }}>
+                    {roomView.status.toUpperCase()}
+                  </div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#A99668', marginTop: 3 }}>
+                    Round {roomView.sceneRound}
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                marginTop: 8,
+                padding: '8px 10px',
+                borderRadius: 8,
+                background: 'rgba(0,0,0,0.22)',
+                border: '1px solid rgba(232,199,96,0.14)',
+                fontFamily: 'EB Garamond, serif',
+                fontStyle: 'italic',
+                color: '#E8D9B4',
+                fontSize: 14,
+                lineHeight: 1.35,
+              }}>
+                Intent: {battle.enemyIntent}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -609,14 +730,16 @@ export const MultiplayerRoom = () => {
           {roomView.status === 'lobby' && (
             <>
               <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
-                Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{roomView.roomCode}</strong>. The host starts the Ash Hollow Ambush when everyone has selected a saved hero.
+                Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{roomView.roomCode}</strong>. The host starts the {roomView.roomMode === 'story' ? 'Briar Glen story arc' : 'Ash Hollow Ambush'} when everyone has selected a saved hero.
               </div>
               <button
                 className="btn-primary"
                 onClick={() => { void startRoom(); }}
                 disabled={!roomView.canStart || loading || previewMode}
               >
-                {roomView.canStart ? 'Begin Battle' : 'Waiting for Host'}
+                {roomView.canStart
+                  ? roomView.roomMode === 'story' ? 'Begin Story Arc' : 'Begin Battle'
+                  : 'Waiting for Host'}
               </button>
             </>
           )}
@@ -624,9 +747,11 @@ export const MultiplayerRoom = () => {
           {roomView.status === 'completed' && (
             <>
               <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
-                {battle.status === 'victory'
-                  ? `Victory. Claim ${reward.label}, then return to the lobby.`
-                  : `The party fell back. Claim ${reward.label}, then regroup.`}
+                {roomView.roomMode === 'story'
+                  ? `Briar Glen is safe. Claim ${reward.label}, then return to the lobby.`
+                  : battle?.status === 'victory'
+                    ? `Victory. Claim ${reward.label}, then return to the lobby.`
+                    : `The party fell back. Claim ${reward.label}, then regroup.`}
                 {ownResult ? ` Your last action: ${ownResult.actionLabel} (${ownResult.total}).` : ''}
               </div>
               <button className="btn-primary" onClick={() => { void handleFinish(); }} disabled={loading || previewMode}>
@@ -694,7 +819,7 @@ export const MultiplayerRoom = () => {
           {showPlayerDetails && (
             <div className="player-drawer__details">
               <div>{getCharacterLabel(selectedCharacter.classKey)}</div>
-              <div>INT {selectedCharacter.traits.INT} · ATH {selectedCharacter.traits.ATH} · CHA {selectedCharacter.traits.CHA}</div>
+              <div>INT {selectedCharacter.traits.INT} · ATH {selectedCharacter.traits.ATH} · ING {selectedCharacter.traits.ING} · CHA {selectedCharacter.traits.CHA}</div>
               <div>Inventory: {selectedCharacter.inventory.length > 0 ? selectedCharacter.inventory.join(', ') : 'Empty'}</div>
             </div>
           )}

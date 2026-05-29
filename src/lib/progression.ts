@@ -15,8 +15,8 @@ export const applyCharacterReward = (
   xpAward: number,
   itemName?: string,
 ): CharacterProfile => {
-  const nextXp = character.xp + xpAward;
-  const nextLevel = Math.max(character.level, getLevelForXp(nextXp));
+  const nextXp = Math.max(0, character.xp + xpAward);
+  const nextLevel = getLevelForXp(nextXp);
   const nextInventory = itemName && !character.inventory.includes(itemName)
     ? [...character.inventory, itemName]
     : character.inventory;
@@ -28,4 +28,3 @@ export const applyCharacterReward = (
     inventory: nextInventory,
   };
 };
-

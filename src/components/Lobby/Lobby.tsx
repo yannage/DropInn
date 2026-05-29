@@ -31,6 +31,7 @@ export const Lobby = () => {
   const syncRoom = useMultiplayerStore((state) => state.syncRoom);
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [handledRoomLink, setHandledRoomLink] = useState(false);
+  const [hostMode, setHostMode] = useState<'battle' | 'story'>('battle');
 
   useEffect(() => {
     if (playerReady && activeRoomCode && !room) {
@@ -57,16 +58,53 @@ export const Lobby = () => {
   const featuredRoom = useMemo(() => {
     if (!room) return null;
 
-    const statusMeta = {
-      lobby: { dot: 'sleeping', badge: 'sleeping', label: 'Gathering Party' },
-      active: { dot: 'active', badge: 'active', label: `Battle Round ${room.sceneRound}` },
-      completed: {
-        dot: 'complete',
-        badge: 'complete',
-        label: room.battleState.status === 'victory' ? 'Victory' : 'Aftermath',
-      },
-    }[room.status];
-    const defeatedPercent = Math.round(((room.battleState.enemyMaxHp - room.battleState.enemyHp) / room.battleState.enemyMaxHp) * 100);
+    const storyArc = room.storyArc;
+    const isStory = room.roomMode === 'story';
+    const statusMeta = isStory
+      ? {
+          lobby: { dot: 'sleeping', badge: 'sleeping', label: 'Gathering Party' },
+          active: {
+            dot: 'active',
+            badge: 'active',
+            label: storyArc
+              ? `Story · ${storyArc.chapter.charAt(0).toUpperCase()}${storyArc.chapter.slice(1)}`
+              : 'Story Arc',
+          },
+          completed: {
+            dot: 'complete',
+            badge: 'complete',
+            label: 'Story Complete',
+          },
+        }[room.status]
+      : {
+          lobby: { dot: 'sleeping', badge: 'sleeping', label: 'Gathering Party' },
+          active: { dot: 'active', badge: 'active', label: `Battle Round ${room.sceneRound}` },
+          completed: {
+            dot: 'complete',
+            badge: 'complete',
+            label: room.battleState?.status === 'victory' ? 'Victory' : 'Aftermath',
+          },
+        }[room.status];
+    const progress = isStory
+      ? room.status === 'completed'
+        ? 100
+        : storyArc?.chapter === 'beginning'
+          ? 18 + (storyArc.clues.length * 22)
+          : storyArc?.chapter === 'middle'
+            ? 68
+            : storyArc?.phase === 'battle'
+              ? 92
+              : 84
+      : room.battleState
+        ? Math.round(((room.battleState.enemyMaxHp - room.battleState.enemyHp) / room.battleState.enemyMaxHp) * 100)
+        : 10;
+    const progressLabel = isStory
+      ? storyArc
+        ? `Clues ${storyArc.clues.length}/${storyArc.clueTarget} · Setbacks ${storyArc.setbackCount}`
+        : 'Story Arc'
+      : room.battleState
+        ? `Enemy HP ${room.battleState.enemyHp}/${room.battleState.enemyMaxHp}`
+        : 'Waiting for battle';
 
     return {
       title: room.campaignTitle,
@@ -81,17 +119,19 @@ export const Lobby = () => {
       })),
       maxPlayers: 4,
       turnDuration: '30s',
-      visibilityIcon: 'MP',
-      progress: room.status === 'lobby' ? 10 : Math.min(100, Math.max(10, defeatedPercent)),
-      progressLabel: `Enemy HP ${room.battleState.enemyHp}/${room.battleState.enemyMaxHp}`,
+      visibilityIcon: isStory ? 'ARC' : 'MP',
+      progress: room.status === 'lobby' ? 10 : Math.min(100, Math.max(10, progress)),
+      progressLabel,
       lastBeat: room.currentStoryText,
-      cta: room.status === 'lobby' ? 'Enter Staging Room' : 'Resume Battle',
+      cta: room.status === 'lobby'
+        ? `Enter ${isStory ? 'Story' : 'Battle'} Room`
+        : `Resume ${isStory ? 'Story Arc' : 'Battle'}`,
     };
   }, [room]);
 
   const handleCreateRoom = async () => {
     if (!selectedCharacter || !playerReady) return;
-    await createRoom(selectedCharacter);
+    await createRoom(selectedCharacter, hostMode);
 
     if (useMultiplayerStore.getState().room) {
       lobby.setScreen('room');
@@ -380,11 +420,29 @@ export const Lobby = () => {
               color: '#E8D9B4',
             }}
           >
-            Create a room for your party, or join another room with a code. Your selected character is saved and follows you into every session.
+            Host either a straight battle or a low-friction story arc. Your selected character is saved and follows you into every session.
             {playerBackend === 'local' ? ' Local dev fallback is active until Supabase env vars are set.' : ''}
           </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setHostMode('battle')}
+              style={hostMode === 'battle' ? { borderColor: '#E8C760', color: '#FFE9A8' } : undefined}
+            >
+              Battle
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setHostMode('story')}
+              style={hostMode === 'story' ? { borderColor: '#E8C760', color: '#FFE9A8' } : undefined}
+            >
+              Story Arc
+            </button>
+          </div>
           <button className="btn-primary" onClick={() => { void handleCreateRoom(); }} disabled={loading || !selectedCharacter || !playerReady}>
-            Create Battle Room
+            {hostMode === 'story' ? 'Create Story Arc Room' : 'Create Battle Room'}
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <input

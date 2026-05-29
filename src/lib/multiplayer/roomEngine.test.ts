@@ -50,7 +50,7 @@ describe('multiplayer room engine', () => {
     const weakened = {
       ...active,
       battleState: {
-        ...active.battleState,
+        ...active.battleState!,
         enemyHp: 4,
       },
     };
@@ -59,9 +59,69 @@ describe('multiplayer room engine', () => {
     const view = buildRoomView(completed, hostSession, now + 3);
 
     expect(view.status).toBe('completed');
-    expect(view.battleState.status).toBe('victory');
+    expect(view.battleState?.status).toBe('victory');
     expect(view.canClaimReward).toBe(true);
     expect(view.rewardXp).toBe(75);
   });
-});
 
+  it('resolves story room votes by majority and advances the scene', () => {
+    const host = makeCharacter('host-char', 'Host');
+    const guest = makeCharacter('guest-char', 'Guest');
+    const hostSession = 'host-user';
+    const guestSession = 'guest-user';
+    const now = 1000;
+
+    const created = createRoomState(host, hostSession, now, 'story');
+    const joined = touchParticipant(created, guestSession, guest, now + 1);
+    const active = startRoomState(joined, hostSession, now + 2);
+    const hostVote = commitRoomAction(active, hostSession, 'visit_inn', now + 3);
+    const resolved = commitRoomAction(hostVote, guestSession, 'visit_inn', now + 4);
+
+    expect(resolved.storyArcState?.sceneId).toBe('inn_scene');
+    expect(resolved.currentStoryText).toContain('Crooked Tankard');
+    expect(resolved.actionCommits).toEqual({});
+  });
+
+  it('respawns story parties at the checkpoint after a wipe and tracks the penalty', () => {
+    const host = makeCharacter('host-char', 'Host');
+    const hostSession = 'host-user';
+    const now = 1000;
+
+    const created = createRoomState(host, hostSession, now, 'story');
+    const active = startRoomState(created, hostSession, now + 1);
+    const doomed = {
+      ...active,
+      sceneRound: 2,
+      turn: 3,
+      currentStoryText: 'The reeds split and the lesser pack closes in.',
+      storyArcState: {
+        ...active.storyArcState!,
+        sceneId: 'pack_battle' as const,
+        checkpointSceneId: 'hunt_choice' as const,
+        battleState: {
+          status: 'active' as const,
+          round: 1,
+          enemyName: 'Reedfang Pack',
+          enemyHp: 18,
+          enemyMaxHp: 18,
+          enemyIntent: 'Slash every hero for 5 damage.',
+          partyHpByCharacterId: {
+            [host.id]: 1,
+          },
+          downedCharacterIds: [],
+          lastResolvedTurn: null,
+          rewardClaimedByCharacterId: {},
+        },
+      },
+    };
+
+    const wiped = commitRoomAction(doomed, hostSession, 'heavy', now + 2);
+
+    expect(wiped.status).toBe('active');
+    expect(wiped.storyArcState?.sceneId).toBe('hunt_choice');
+    expect(wiped.storyArcState?.battleState).toBeNull();
+    expect(wiped.storyArcState?.setbackCount).toBe(1);
+    expect(wiped.storyArcState?.xpPenalty).toBe(40);
+    expect(wiped.currentStoryText).toContain('wakes in Briar Glen');
+  });
+});
