@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { getBattleReward, getClassActionLabel } from '../../lib/battle/engine';
 import { getCharacterInitial, getCharacterLabel } from '../../lib/character';
 import type { CharacterProfile } from '../../lib/character';
+import { DEFAULT_CHARACTER } from '../../lib/character';
 import type { RoomView } from '../../lib/multiplayer/roomEngine';
 import { useLobbyStore } from '../../store/lobbyStore';
 import { useMultiplayerStore } from '../../store/multiplayerStore';
 import { getSelectedCharacter, usePlayerStore } from '../../store/playerStore';
+import { HeartIcon } from '../icons';
 import { BattleStoryScroll } from './BattleStoryScroll';
 import { PhaseShowcase } from './PhaseShowcase';
 import { BattleDecisionTable } from './BattleDecisionTable';
@@ -174,7 +176,7 @@ export const MultiplayerRoom = () => {
   const claimReward = useMultiplayerStore((state) => state.claimReward);
 
   const playerState = usePlayerStore();
-  const selectedCharacter = getSelectedCharacter(playerState);
+  const selectedCharacter = getSelectedCharacter(playerState) ?? DEFAULT_CHARACTER;
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === 'undefined' ? 1280 : window.innerWidth,
@@ -185,6 +187,7 @@ export const MultiplayerRoom = () => {
   const [focusTable, setFocusTable] = useState(false);
   const [turnCommitLock, setTurnCommitLock] = useState(false);
   const [lockedTurn, setLockedTurn] = useState<number | null>(null);
+  const [showPlayerDetails, setShowPlayerDetails] = useState(false);
   const previousTurnRef = useRef<number | null>(null);
   const previewMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockRoom') === '1';
   const roomView = room ?? (previewMode ? buildMockRoomView(selectedCharacter, playerState.sessionId) : null);
@@ -298,6 +301,10 @@ export const MultiplayerRoom = () => {
   ) as Record<string, string>;
   const interactionLocked = turnCommitLock || Boolean(roomView.currentPlayer?.committedActionId);
   const activeOnlineParticipants = roomView.participants.filter((participant) => participant.online && !participant.downed).length;
+  const currentPlayerView = roomView.currentPlayer;
+  const currentPlayerHp = currentPlayerView?.hp ?? selectedCharacter.hp;
+  const currentPlayerMaxHp = currentPlayerView?.maxHp ?? selectedCharacter.maxHp;
+  const currentPlayerXpPct = Math.max(0, Math.min(100, ((selectedCharacter.xp % 100) / 100) * 100));
 
   const handleFinish = async () => {
     await claimReward();
@@ -456,6 +463,15 @@ export const MultiplayerRoom = () => {
                 interactionLocked={interactionLocked}
                 canCommit={previewMode ? true : roomView.canCommit}
                 loading={loading}
+                enemyName={battle.enemyName}
+                enemyHp={battle.enemyHp}
+                enemyMaxHp={battle.enemyMaxHp}
+                playerHp={currentPlayerHp}
+                playerMaxHp={currentPlayerMaxHp}
+                round={roomView.sceneRound}
+                turn={roomView.turn}
+                currentPlayerLabel="You"
+                timerSeconds={timerSeconds}
                 onSelect={(actionId) => { if (!interactionLocked) setSelectedActionId(actionId); }}
                 onCommit={() => {
                   if (!selectedActionId || interactionLocked) return;
@@ -472,6 +488,7 @@ export const MultiplayerRoom = () => {
                   }
                 }}
                 onRefresh={() => { if (!previewMode && !interactionLocked) void syncRoom(); }}
+                onLeave={() => { void handleLeave(); }}
               />
             </div>
           </div>
@@ -580,67 +597,109 @@ export const MultiplayerRoom = () => {
         </div>
       )}
 
-      <div className="panel-bg" style={{
-        padding: '10px 12px',
-        borderTop: '1px solid rgba(232,199,96,0.18)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        flexShrink: 0,
-      }}>
-        {roomView.status === 'lobby' && (
-          <>
-            <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
-              Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{roomView.roomCode}</strong>. The host starts the Ash Hollow Ambush when everyone has selected a saved hero.
+      {(roomView.status !== 'active' || error) && (
+        <div className="panel-bg" style={{
+          padding: '10px 12px',
+          borderTop: '1px solid rgba(232,199,96,0.18)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          flexShrink: 0,
+        }}>
+          {roomView.status === 'lobby' && (
+            <>
+              <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
+                Share room code <strong style={{ fontStyle: 'normal', color: '#FFE9A8' }}>{roomView.roomCode}</strong>. The host starts the Ash Hollow Ambush when everyone has selected a saved hero.
+              </div>
+              <button
+                className="btn-primary"
+                onClick={() => { void startRoom(); }}
+                disabled={!roomView.canStart || loading || previewMode}
+              >
+                {roomView.canStart ? 'Begin Battle' : 'Waiting for Host'}
+              </button>
+            </>
+          )}
+
+          {roomView.status === 'completed' && (
+            <>
+              <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
+                {battle.status === 'victory'
+                  ? `Victory. Claim ${reward.label}, then return to the lobby.`
+                  : `The party fell back. Claim ${reward.label}, then regroup.`}
+                {ownResult ? ` Your last action: ${ownResult.actionLabel} (${ownResult.total}).` : ''}
+              </div>
+              <button className="btn-primary" onClick={() => { void handleFinish(); }} disabled={loading || previewMode}>
+                {roomView.canClaimReward ? `Claim ${reward.label}` : 'Return to Lobby'}
+              </button>
+            </>
+          )}
+
+          {roomView.status !== 'active' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-secondary" onClick={() => { void handleLeave(); }} disabled={loading}>
+                Leave Room
+              </button>
             </div>
+          )}
+
+          {error && (
             <button
-              className="btn-primary"
-              onClick={() => { void startRoom(); }}
-              disabled={!roomView.canStart || loading || previewMode}
+              onClick={clearError}
+              style={{
+                background: 'rgba(160,40,40,0.18)',
+                border: '1px solid rgba(248,113,113,0.45)',
+                borderRadius: 6,
+                color: '#FFE9A8',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                padding: '8px 10px',
+                textAlign: 'left',
+              }}
             >
-              {roomView.canStart ? 'Begin Battle' : 'Waiting for Host'}
+              {error}
             </button>
-          </>
-        )}
-
-        {roomView.status === 'completed' && (
-          <>
-            <div style={{ fontFamily: 'EB Garamond, serif', fontStyle: 'italic', color: '#E8D9B4', fontSize: 14 }}>
-              {battle.status === 'victory'
-                ? `Victory. Claim ${reward.label}, then return to the lobby.`
-                : `The party fell back. Claim ${reward.label}, then regroup.`}
-              {ownResult ? ` Your last action: ${ownResult.actionLabel} (${ownResult.total}).` : ''}
-            </div>
-            <button className="btn-primary" onClick={() => { void handleFinish(); }} disabled={loading || previewMode}>
-              {roomView.canClaimReward ? `Claim ${reward.label}` : 'Return to Lobby'}
-            </button>
-          </>
-        )}
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary" onClick={() => { void handleLeave(); }} disabled={loading}>
-            Leave Room
-          </button>
+          )}
         </div>
-
-        {error && (
-          <button
-            onClick={clearError}
-            style={{
-              background: 'rgba(160,40,40,0.18)',
-              border: '1px solid rgba(248,113,113,0.45)',
-              borderRadius: 6,
-              color: '#FFE9A8',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 11,
-              padding: '8px 10px',
-              textAlign: 'left',
-            }}
-          >
-            {error}
-          </button>
-        )}
-      </div>
+      )}
+      {roomView.status === 'active' && (
+        <button
+          type="button"
+          className={`player-drawer ${showPlayerDetails ? 'player-drawer--open' : ''}`}
+          onClick={() => setShowPlayerDetails((value) => !value)}
+        >
+          <div className="player-drawer__summary">
+            <div className="player-drawer__identity">
+              <div className="player-drawer__avatar" style={{ background: selectedCharacter.accent }}>
+                {getCharacterInitial(selectedCharacter.name)}
+              </div>
+              <div>
+                <div className="player-drawer__name">{selectedCharacter.name}</div>
+                <div className="player-drawer__meta">Lvl {selectedCharacter.level} · {selectedCharacter.xp} XP</div>
+              </div>
+            </div>
+            <div className="player-drawer__health">
+              <HeartIcon size={14} />
+              <span>{currentPlayerHp}/{currentPlayerMaxHp}</span>
+            </div>
+          </div>
+          <div className="player-drawer__bars">
+            <div className="player-drawer__bar player-drawer__bar--hp">
+              <span style={{ width: `${currentPlayerMaxHp > 0 ? (currentPlayerHp / currentPlayerMaxHp) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <div className="player-drawer__xpbar">
+            <div style={{ width: `${currentPlayerXpPct}%` }} />
+          </div>
+          {showPlayerDetails && (
+            <div className="player-drawer__details">
+              <div>{getCharacterLabel(selectedCharacter.classKey)}</div>
+              <div>INT {selectedCharacter.traits.INT} · ATH {selectedCharacter.traits.ATH} · CHA {selectedCharacter.traits.CHA}</div>
+              <div>Inventory: {selectedCharacter.inventory.length > 0 ? selectedCharacter.inventory.join(', ') : 'Empty'}</div>
+            </div>
+          )}
+        </button>
+      )}
     </div>
   );
 };

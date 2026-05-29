@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { ActionChip3D } from './ActionChip3D';
 import { getLabelGlyph, getVisualById } from './actionVisuals';
 import type { BattleActionDefinition } from '../../lib/battle/engine';
+import { DoorIcon, HeartIcon, HelpIcon } from '../icons';
 
 interface Props {
   actions: BattleActionDefinition[];
@@ -10,9 +12,19 @@ interface Props {
   interactionLocked: boolean;
   canCommit: boolean;
   loading: boolean;
+  enemyName: string;
+  enemyHp: number;
+  enemyMaxHp: number;
+  playerHp: number;
+  playerMaxHp: number;
+  round: number;
+  turn: number;
+  currentPlayerLabel: string;
+  timerSeconds: number;
   onSelect: (actionId: string) => void;
   onCommit: () => void;
   onRefresh: () => void;
+  onLeave: () => void;
 }
 
 export const BattleDecisionTable = ({
@@ -23,27 +35,88 @@ export const BattleDecisionTable = ({
   interactionLocked,
   canCommit,
   loading,
+  enemyName,
+  enemyHp,
+  enemyMaxHp,
+  playerHp,
+  playerMaxHp,
+  round,
+  turn,
+  currentPlayerLabel,
+  timerSeconds,
   onSelect,
   onCommit,
   onRefresh,
+  onLeave,
 }: Props) => {
   const activeAction = actions.find((action) => action.id === (committedActionId ?? selectedActionId)) ?? null;
   const activeVisual = activeAction ? getVisualById(activeAction.id) : null;
   const chipsLocked = interactionLocked || Boolean(committedActionId) || !canCommit;
+  const [showHelp, setShowHelp] = useState(false);
+  const timerRatio = Math.max(0, Math.min(1, timerSeconds / 30));
+  const enemyHpRatio = enemyMaxHp > 0 ? Math.max(0, Math.min(100, (enemyHp / enemyMaxHp) * 100)) : 0;
+  const playerHpRatio = playerMaxHp > 0 ? Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100)) : 0;
 
   return (
     <section className="decision-shell">
       <div className="decision-shell__heading">
-        <div>
-          <div className="heading decision-shell__title">Decision Table</div>
-          <div className="decision-shell__subtitle">
-            Choose one action chip, place it in the center, then lock it for the round.
+        <div className="decision-shell__hud">
+          <div className="decision-shell__vitals">
+            <div className="decision-pill">
+              <div className="decision-pill__stack">
+                <div className="decision-pill__copy">
+                  <span className="decision-pill__label">{enemyName}</span>
+                  <span className="decision-pill__value">{enemyHp}/{enemyMaxHp}</span>
+                </div>
+                <div className="decision-pill__bar">
+                  <span style={{ width: `${enemyHpRatio}%` }} />
+                </div>
+              </div>
+            </div>
+            <div className="decision-pill decision-pill--player">
+              <HeartIcon size={12} />
+              <div className="decision-pill__stack">
+                <div className="decision-pill__copy">
+                  <span className="decision-pill__label">You</span>
+                  <span className="decision-pill__value">{playerHp}/{playerMaxHp}</span>
+                </div>
+                <div className="decision-pill__bar decision-pill__bar--player">
+                  <span style={{ width: `${playerHpRatio}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="decision-shell__turninfo">
+            <div className="decision-shell__turnline">Round {round} / Turn {turn}</div>
+            <div className="decision-shell__turnline decision-shell__turnline--strong">Player: {currentPlayerLabel}</div>
+          </div>
+          <div className="decision-shell__tools">
+            <button type="button" className="decision-icon-btn" onClick={() => setShowHelp((value) => !value)} aria-label="Decision table info">
+              <HelpIcon size={16} />
+            </button>
+            <button type="button" className="decision-icon-btn" onClick={onLeave} aria-label="Leave room">
+              <DoorIcon size={16} />
+            </button>
+            <div
+              className="decision-clock"
+              style={{ ['--timer-fill' as string]: `${timerRatio * 360}deg` }}
+              aria-label={`${timerSeconds} seconds remaining`}
+            >
+              <span>{timerSeconds}</span>
+            </div>
           </div>
         </div>
-        <div className="decision-shell__badge" style={{ color: '#f3a37c', borderColor: 'rgba(243,163,124,0.35)' }}>
-          Battle Phase
+        <div className="decision-shell__titlebar">
+          <button type="button" className="decision-shell__titlebutton" onClick={() => setShowHelp((value) => !value)}>
+            <span className="heading decision-shell__title">Decision Table</span>
+          </button>
         </div>
       </div>
+      {showHelp && (
+        <div className="decision-shell__help">
+          Choose one action chip, place it in the center, then lock it for the round.
+        </div>
+      )}
 
       <div className="decision-surface battle-surface">
         <div className="decision-surface__felt" />
@@ -116,7 +189,7 @@ export const BattleDecisionTable = ({
         <button className="btn-primary" onClick={onCommit} disabled={!canCommit || !selectedActionId || loading || interactionLocked || Boolean(committedActionId)}>
           {committedActionId ? 'Waiting for Party' : interactionLocked ? 'Locked In' : 'Commit Action'}
         </button>
-        <button className="btn-secondary" onClick={onRefresh} disabled={loading || interactionLocked || Boolean(committedActionId)}>
+        <button className="battle-actions__mini" onClick={onRefresh} disabled={loading || interactionLocked || Boolean(committedActionId)}>
           Refresh
         </button>
       </div>
