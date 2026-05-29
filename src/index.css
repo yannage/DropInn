@@ -283,6 +283,96 @@ body {
   display: none;
 }
 
+.action-chip3d {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.action-chip3d__shadow {
+  position: absolute;
+  inset: auto 14% 6% 14%;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,0,0,0.34), rgba(0,0,0,0) 72%);
+  transform: translateY(12px) scaleX(1.04);
+}
+
+.action-chip3d__body {
+  position: relative;
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  transform: rotateX(18deg);
+  animation: chipAxisSpin 7s linear infinite;
+}
+
+.action-chip3d--active .action-chip3d__body {
+  animation-duration: 4.8s;
+}
+
+.action-chip3d__body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--chip-edge) 86%, #05080f 14%), var(--chip-edge));
+  transform: translateZ(-8px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.32);
+}
+
+.action-chip3d__rim {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background:
+    linear-gradient(180deg, rgba(255,239,189,0.95), rgba(206,164,73,0.92) 48%, rgba(119,85,17,0.9));
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--chip-glow) 45%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.action-chip3d__face {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.72), transparent 24%),
+    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--chip-top) 84%, #fff4cb 16%), var(--chip-top) 62%, color-mix(in srgb, var(--chip-edge) 64%, #15171d 36%) 100%);
+  border: 2px solid rgba(255,244,202,0.56);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  box-shadow: inset 0 -8px 14px rgba(0,0,0,0.18);
+}
+
+.action-chip3d__glyph {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(15px, 0.2vw + 13px, 22px);
+  font-weight: 700;
+  color: rgba(49,27,10,0.96);
+  line-height: 1;
+}
+
+.action-chip3d__label {
+  width: 72%;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(5px, 0.16vw + 5px, 8px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(57,31,12,0.78);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
 .story-scroll__header {
   display: flex;
   align-items: baseline;
@@ -791,7 +881,7 @@ body {
     gap: 10px;
   }
 
-  .battle-room--tablet .party-strip__card {
+.battle-room--tablet .party-strip__card {
     min-width: 180px;
   }
 }
@@ -956,6 +1046,7 @@ body {
 @media (max-width: 420px) {
   .story-scroll {
     min-height: 128px;
+    max-height: 132px;
   }
 
   .phase-card__copy {
@@ -978,8 +1069,78 @@ body {
     font-size: 10px;
   }
 
+  .story-scroll-shell {
+    padding: 6px 4px 8px;
+  }
+
+  .story-scroll {
+    padding: 9px 12px 12px 12px;
+  }
+
+  .story-scroll__body {
+    max-width: 100%;
+    max-height: 78px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .decision-shell {
+    margin: 0 8px 6px;
+    padding: 8px 8px 10px;
+  }
+
+  .decision-shell__heading {
+    align-items: center;
+    gap: 8px;
+  }
+
+  .decision-shell__subtitle {
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .decision-shell__badge {
+    display: none;
+  }
+
+  .battle-surface {
+    min-height: 258px;
+  }
+
+  .battle-surface__well {
+    top: 42%;
+  }
+
+  .battle-surface__well .decision-well {
+    width: 108px;
+    height: 108px;
+  }
+
   .chip-dock__plate {
-    min-height: 86px;
+    min-height: 74px;
+    border-radius: 14px;
+  }
+
+  .decision-surface__chips {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .chip-dock__label {
+    font-size: 8px;
+  }
+
+  .chip-dock__meta {
+    font-size: 8px;
+  }
+
+  .battle-actions {
+    margin-top: 6px;
+  }
+
+  .battle-actions .btn-primary,
+  .battle-actions .btn-secondary {
+    padding: 10px 8px;
+    font-size: 10px;
   }
 
   .room-footer {
@@ -989,6 +1150,11 @@ body {
   .room-footer__actions {
     justify-content: flex-start;
   }
+}
+
+@keyframes chipAxisSpin {
+  from { transform: rotateX(18deg) rotateZ(0deg); }
+  to { transform: rotateX(18deg) rotateZ(360deg); }
 }
 
 /* ========================= LOBBY ========================= */

@@ -258,7 +258,7 @@ export const MultiplayerRoom = () => {
     }
 
     if (needsCompact) {
-      setShowStory(false);
+      setShowStory(true);
       setShowRoster(false);
     } else {
       setShowStory(true);
@@ -406,14 +406,16 @@ export const MultiplayerRoom = () => {
             >
               Story
             </button>
-            <button
-              type="button"
-              className={`battle-room__toggle ${showRoster ? 'battle-room__toggle--on' : ''}`}
-              onClick={() => setShowRoster(value => !value)}
-              disabled={focusTable}
-            >
-              Party
-            </button>
+            {!needsCompact && (
+              <button
+                type="button"
+                className={`battle-room__toggle ${showRoster ? 'battle-room__toggle--on' : ''}`}
+                onClick={() => setShowRoster(value => !value)}
+                disabled={focusTable}
+              >
+                Party
+              </button>
+            )}
             <button
               type="button"
               className={`battle-room__toggle ${focusTable ? 'battle-room__toggle--on' : ''}`}
@@ -432,7 +434,7 @@ export const MultiplayerRoom = () => {
                   currentText={roomView.currentStoryText}
                 />
               )}
-              {!focusTable && (
+              {!focusTable && !needsCompact && (
                 <PhaseShowcase
                   sceneType="combat"
                   phase={roomView.currentPlayer?.committedActionId ? 'reveal' : 'player'}
@@ -474,7 +476,7 @@ export const MultiplayerRoom = () => {
             </div>
           </div>
 
-          {showRoster && (
+          {showRoster && !needsCompact && (
             <div className="party-strip">
             {roomView.participants.map((participant) => {
               const result = roomView.lastResults.find((entry) => entry.sessionId === participant.sessionId);
