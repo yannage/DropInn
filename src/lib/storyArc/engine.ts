@@ -3,6 +3,7 @@ import type { StoryEntry, RollResult } from '../engine';
 import {
   createInitialBattleState,
   deterministicD20,
+  getEnemyCounterDamage,
   resolveBattleTurn,
   type BattleCommit,
   type BattleParticipant,
@@ -149,7 +150,7 @@ const createConfiguredBattleState = (
 };
 
 const createPackBattleState = (characters: CharacterProfile[], state: StoryArcState) => {
-  let enemyMaxHp = 18 + characters.length * 8;
+  let enemyMaxHp = 10 + characters.length * 6;
 
   if (hasFlag(state, 'trail_advantage')) enemyMaxHp -= 6;
   if (hasFlag(state, 'bait_plan')) enemyMaxHp -= 3;
@@ -158,12 +159,12 @@ const createPackBattleState = (characters: CharacterProfile[], state: StoryArcSt
     characters,
     'Reedfang Pack',
     Math.max(14, enemyMaxHp),
-    'The pack will slash every standing hero for 5 damage unless the line holds.',
+    `The pack will slash every standing hero for ${getEnemyCounterDamage(1, characters.length)} damage unless the line holds.`,
   );
 };
 
 const createFinalBattleState = (characters: CharacterProfile[], state: StoryArcState) => {
-  let enemyMaxHp = 30 + characters.length * 10;
+  let enemyMaxHp = 14 + characters.length * 8;
   enemyMaxHp -= state.clueIds.length * 2;
 
   if (hasFlag(state, 'bell_advantage')) enemyMaxHp -= 8;
@@ -176,7 +177,7 @@ const createFinalBattleState = (characters: CharacterProfile[], state: StoryArcS
     characters,
     'Gloamfang, Byre Wraith',
     Math.max(20, enemyMaxHp),
-    'Gloamfang will rake every standing hero for 5 damage unless the party braces.',
+    `Gloamfang will rake every standing hero for ${getEnemyCounterDamage(1, characters.length)} damage unless the party braces.`,
   );
 };
 

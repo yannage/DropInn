@@ -170,6 +170,14 @@ export const getBattleReward = (status: BattleStatus) => {
   return { xp: 0, item: undefined, label: 'No reward yet' };
 };
 
+export const getEnemyHpForPartySize = (partySize: number) => (
+  Math.max(16, 8 + (Math.max(1, partySize) * 8))
+);
+
+export const getEnemyCounterDamage = (round: number, partySize: number) => (
+  2 + Math.max(1, round) + Math.max(0, partySize - 1)
+);
+
 export const createInitialBattleState = (
   characters: CharacterProfile[],
 ): BattleState => {
@@ -178,7 +186,7 @@ export const createInitialBattleState = (
     return acc;
   }, {});
 
-  const enemyMaxHp = Math.max(26, 18 + characters.length * 10);
+  const enemyMaxHp = getEnemyHpForPartySize(characters.length);
 
   return {
     status: 'active',
@@ -186,7 +194,7 @@ export const createInitialBattleState = (
     enemyName: 'Ash Warg',
     enemyHp: enemyMaxHp,
     enemyMaxHp,
-    enemyIntent: 'Rake every standing hero for 5 damage.',
+    enemyIntent: `Rake every standing hero for ${getEnemyCounterDamage(1, characters.length)} damage.`,
     partyHpByCharacterId,
     downedCharacterIds: [],
     lastResolvedTurn: null,
@@ -360,7 +368,7 @@ export const resolveBattleTurn = (
     return { battleState, results, logLines, enemyDefeated: true, partyDefeated: false };
   }
 
-  const incomingBaseDamage = 4 + battleState.round;
+  const incomingBaseDamage = getEnemyCounterDamage(battleState.round, activeParticipants.length);
 
   activeParticipants.forEach((participant) => {
     const currentHp = battleState.partyHpByCharacterId[participant.character.id] ?? participant.character.maxHp;
@@ -394,7 +402,7 @@ export const resolveBattleTurn = (
     logLines.push('The party is down. The encounter is lost, but lessons remain.');
   } else {
     battleState.round += 1;
-    battleState.enemyIntent = `Rake every standing hero for ${4 + battleState.round} damage.`;
+    battleState.enemyIntent = `Rake every standing hero for ${getEnemyCounterDamage(battleState.round, survivors.length)} damage.`;
   }
 
   battleState.lastResolvedTurn = turn;

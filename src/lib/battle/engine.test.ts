@@ -5,6 +5,8 @@ import {
   VICTORY_ITEM,
   VICTORY_XP,
   createInitialBattleState,
+  getEnemyCounterDamage,
+  getEnemyHpForPartySize,
   getBattleReward,
   resolveBattleTurn,
   type BattleParticipant,
@@ -47,9 +49,9 @@ describe('battle engine', () => {
     });
 
     expect(result.battleState.enemyHp).toBe(state.enemyHp - 6);
-    expect(result.battleState.partyHpByCharacterId.a).toBe(7);
+    expect(result.battleState.partyHpByCharacterId.a).toBe(9);
     expect(result.results[0].damage).toBe(6);
-    expect(result.results[0].incomingDamage).toBe(5);
+    expect(result.results[0].incomingDamage).toBe(3);
   });
 
   it('applies Guard reduction and chip damage', () => {
@@ -120,5 +122,11 @@ describe('battle engine', () => {
     expect(getBattleReward('failure').xp).toBe(FAILURE_XP);
     expect(getBattleReward('active').xp).toBe(0);
   });
-});
 
+  it('scales enemy hp and counter damage down for solo runs', () => {
+    expect(getEnemyHpForPartySize(1)).toBe(16);
+    expect(getEnemyHpForPartySize(3)).toBe(32);
+    expect(getEnemyCounterDamage(1, 1)).toBe(3);
+    expect(getEnemyCounterDamage(1, 3)).toBe(5);
+  });
+});

@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const ActionChip3D = ({
-  label,
+  label: _label,
   glyph,
   topColor,
   edgeColor,
@@ -33,7 +33,6 @@ export const ActionChip3D = ({
         <div className="action-chip3d__rim" />
         <div className="action-chip3d__face">
           <div className="action-chip3d__glyph">{glyph}</div>
-          <div className="action-chip3d__label">{label}</div>
         </div>
       </div>
     </div>
