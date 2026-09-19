@@ -1,116 +1,40 @@
-# DropInn - Multiplayer Battle MVP
+# DropInn — drop-in tabletop adventures
 
-## Project Overview
+DropInn’s default experience is V2: discover a live table, join with a ready hero, contribute to a short fantasy chapter, and leave whenever needed. Briar Glen has three linked chapters: the missing livestock, the riverside hunt, and the chapel. The older battle/story prototype remains available at `/?legacy=1`; it is not the main product flow.
 
-DropInn is a browser-based co-op D&D-inspired battle prototype. V1 validates the loop:
+## Code map
 
-1. Create or select a saved character.
-2. Create or join a room by code.
-3. Fight a shared "Ash Hollow Ambush" encounter.
-4. Resolve simultaneous party actions against enemy HP.
-5. Take damage, win or fail, claim XP/items, and persist progression.
+| Area | Source |
+| --- | --- |
+| Default entry and legacy switch | `src/App.tsx` |
+| Discovery, play, token actions, chat and recaps | `src/components/DropInn/DropInn.tsx` |
+| Authored responsive scene artwork | `src/components/DropInn/SceneArt.tsx`, `src/dropinn.css` |
+| Client session, sync, proposals and reward receipts | `src/store/adventureStore.ts` |
+| Shared types, authored chapters and pure reducer | `src/lib/dropinn/` |
+| Authenticated command service and persistence | `server/dropinn.ts` |
+| Optional OpenAI/Ollama adapters | `server/ai.ts` |
+| Hosted function and development adapter | `netlify/functions/dropinn.ts`, `vite.config.ts` |
+| V2 tables and transactional command/reward application | `supabase/migrations/202609190001_dropinn_v2.sql` |
 
-Supabase is the production source of truth for anonymous users, characters, rooms, battle state, turn actions, logs, and rewards. Localhost falls back to localStorage when Supabase env vars are missing so development and Browser QA still work without a live project.
+React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Legacy battle modules and tables coexist with V2; do not route new features through the old snapshot-writing multiplayer client. `_archive/` is reference material, not application code.
 
-## Stack
+## Invariants
 
-- Vite + React 18 + TypeScript
-- Zustand for UI state and local cache
-- Supabase JS for anonymous auth, Postgres persistence, and Realtime room updates
-- Vitest for pure engine coverage
-- Netlify for static hosting
+- The server validates identity, character ownership, actions and room revisions. Browsers send commands, not authoritative room snapshots. Presence updates are separate from gameplay writes.
+- A room has four seats, including labeled rules-based companions. New humans replace companions at a turn boundary. Character identity is pinned for the adventure.
+- Turns allow 30 seconds, resolve early when all active humans commit, and show results for six seconds. There is no host-only start or unanimous Continue requirement.
+- Missing input abstains in social scenes and defends in combat. Two missed turns release the seat. Empty rooms finish committed work and park; companions do not generate unattended progress.
+- Current turn identifiers reject stale actions. Same-turn submissions may use older revisions; the server retries transaction conflicts against fresh state. Command receipts and reward deltas are idempotent.
+- Each hero has one Spotlight attempt per chapter. Leaving and returning preserves its use, HP and contributions. Validated previews are signed and bound to the user, room, target and turn.
+- Class presets determine starting power regardless of saved XP. Downed heroes can Assist. Progress and danger contributions scale with human count; every chapter closes by ten rounds.
+- Authored mechanics own outcomes. Optional AI can prepare cosmetic variations, interpret supported scene interactions, and narrate resolved events. It cannot grant arbitrary rewards or revise a resolved turn.
 
-## Active Code Map
+## Development and deployment
 
-```text
-src/
-  App.tsx                         Screen router and player initialization
-  data/                           Legacy campaign/social data used by older room components
-  lib/
-    battle/engine.ts              Pure battle mechanics and deterministic turn resolution
-    multiplayer/api.ts            Supabase/local room repository
-    multiplayer/roomEngine.ts     Room state machine around the battle engine
-    progression.ts                XP thresholds and reward application
-    supabase/client.ts            Supabase client, anonymous auth, session namespacing
-    supabase/characters.ts        Character persistence repository
-  store/
-    playerStore.ts                Anonymous user/session, characters, selected character, rewards
-    multiplayerStore.ts           Room actions, sync, Realtime subscription bridge
-    lobbyStore.ts                 Screen and overlay state
-  components/
-    Lobby/                        Character selection and multiplayer room setup
-    Room/MultiplayerRoom.tsx      Battle-first room UI
-    modals/                       Profile, inventory, help, leave, etc.
-supabase/migrations/
-  202605100001_battle_mvp.sql     Tables, indexes, RLS, and Realtime publication
-```
+`npm run dev` provides both Vite and the local command service. The local repository is server memory: rooms and chat disappear when the development server restarts; browser hero data remains. Use `?session=host` and `?session=guest` for separate local identities.
 
-The archived CDN prototype remains in `_archive/` and is not imported by the Vite app.
+**Restart Vite after changing the server handler or its server-side dependencies.** The development plugin caches the loaded handler. `npm run preview` serves static assets only and does not provide `/api/dropinn`.
 
-## Battle MVP
+Hosted multiplayer requires Supabase Auth, migrations, browser Supabase configuration, and server-only credentials in the Netlify function. Never place service-role, signing, or model API secrets in `VITE_*` variables. See [service setup](server/DROPINN.md) and [Supabase setup](SUPABASE_SETUP.md).
 
-The first playable room is "Ash Hollow Ambush". The room stores a `battleState` object with enemy HP, round, enemy intent, party HP by character id, downed characters, last resolved turn, and reward claims.
-
-Core actions:
-
-- `Strike`: DC 11, reliable damage, 6 on success and 2 on failure.
-- `Heavy`: DC 15, risky damage, 11 on success and 0 on failure.
-- `Guard`: reduces incoming damage by 6 and deals 2 on success.
-- `Aid`: heals the lowest damaged ally by 5, or grants +2 momentum if nobody is hurt.
-
-Resolution order:
-
-1. Aid effects resolve.
-2. Damage/guard actions resolve.
-3. Enemy HP updates.
-4. Enemy attacks if still alive for `4 + round` damage.
-5. Downed state updates.
-6. Battle continues, wins, or fails.
-
-Rewards:
-
-- Victory: `+75 XP` and `Ashhide Charm`.
-- Failure: `+15 XP` and `Cracked Ash Token`.
-- Level 4 unlocks at 300 XP. Level 5 unlocks at 450 XP.
-
-## Supabase
-
-Required production env vars:
-
-```text
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
-```
-
-The Supabase auth storage key is namespaced by `?session=` in local dev. This allows Browser QA to simulate two anonymous users in one browser:
-
-```text
-http://localhost:5173/?session=host
-http://localhost:5173/?session=guest
-```
-
-Run the migration in `supabase/migrations/202605100001_battle_mvp.sql` before deploying with Supabase env vars. See `SUPABASE_SETUP.md` for full setup.
-
-## Commands
-
-```bash
-npm install
-npm run dev
-npm run test
-npm run build
-npm run preview
-```
-
-The build command intentionally calls local binaries through `node ./node_modules/...` so Netlify does not hit executable-bit issues with `tsc` or `vite`.
-
-## Current V1 Non-Goals
-
-- Tactical grid movement.
-- Public matchmaking.
-- Account upgrade from anonymous auth.
-- Server-authoritative anti-cheat.
-- LLM-generated narration.
-- Multiple campaigns.
-
-These are post-V1 items. The current milestone is a working co-op battle MVP with saved progression.
-
+Hosted rollout, actual model evaluation, and friend-group playtesting remain unfinished. Keep these distinct from the implemented local experience. [NEXT.md](NEXT.md) records those follow-ups; [DESIGN.md](DESIGN.md) describes the product behavior.

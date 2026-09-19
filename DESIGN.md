@@ -1,134 +1,43 @@
-# DropInn Design Brief - V1 Battle MVP
+# DropInn design
 
-## Goal
+**Open the app, find something happening, join immediately, do something creative, and leave with a memorable moment.**
 
-Make DropInn feel like a game, not just a story reader. V1 is complete when a player can create/select a saved character, join a co-op multiplayer room, resolve a real battle sequence with shared enemy HP and party HP, earn XP/items, refresh, and keep progression.
+The unit of value is a satisfying short visit. New roleplayers and experienced tabletop players should be able to participate during a spare five to ten minutes without organizing a group or committing to an entire campaign. A chapter’s five-to-eight-minute duration is a playtesting target, not a measured guarantee; early commitments can make play faster.
 
-The core question for V1:
+## The current experience
 
-> Does a 5-10 minute co-op battle with saved character progress feel worth returning to?
+1. The lobby shows live adventures, open seats, companions and chapter progress. Play Now finds a table or starts one, using an immediately available hero.
+2. A two-sentence catch-up explains the situation and current objective. A joining player receives a seat at the next safe turn boundary.
+3. Each player selects a scene target and contextual Fight, Influence, Investigate or Assist token. The preview explains the check and effect. Optional Spotlight offers a short custom idea to review before commitment.
+4. Humans choose simultaneously within 30 seconds; the round resolves early when everyone commits. Individual rolls and consequences remain visible for six seconds before the next turn.
+5. Players can leave, keep earned progress, and read their contribution recap. History later shows chapter outcomes and rewards earned after their departure.
 
-## Audience
+Scene artwork, targets, party status and tactile tokens share one compact, mobile-first layout. Chat is optional. Public cooperation includes local mute controls, reporting and server validation; report review is an operational responsibility, not an automated moderation promise.
 
-13+ fantasy and tabletop RPG players who want a fast session. The tone is storybook fantasy with readable game-state feedback. The UI should stay compact enough for mobile, but the primary loop must be battle-first.
+## Chapters and consequences
 
-## V1 Stack
+| Chapter | Immediate goal | Possible contributions |
+| --- | --- | --- |
+| The missing livestock | Help Mara and find the missing herd’s trail | Calm animals, free Mara, inspect tracks, clear the gate |
+| The riverside hunt | Cross the river and learn what binds the pack | Distract the pack, find cover, free the boat, question the ferryman |
+| The chapel | Free captives and resolve Gloamfang’s threat | Repair the ward, interrupt the guardian, ring the bell, rescue captives |
 
-- Vite + React 18 + TypeScript
-- Zustand for UI/cache state
-- Supabase anonymous auth
-- Supabase Postgres for characters, rooms, turn actions, battle logs, and rewards
-- Supabase Realtime for room update propagation
-- Netlify static hosting
+Every chapter closes within ten rounds with success, mixed success or a setback. Failed checks add danger while revealing a way forward; essential story facts do not depend on retrying a check. Chapter outcomes affect the next chapter’s starting conditions. Helping Mara provides a later advantage and epilogue acknowledgment; repairing the ward can restore the guardian instead of driving it away.
 
-## V1 Loop
+Fighters protect and interrupt, rogues create openings, wizards reveal magical advantages, and clerics heal or revive. Class-appropriate traits drive checks. Downed heroes retain Assist. Successful creative effects are limited to cover, distraction, revelation and rescue using existing scene targets.
 
-1. Player lands in the lobby.
-2. App signs in anonymously if Supabase is configured.
-3. Player creates or selects a saved character.
-4. Host creates a room and shares the room code.
-5. Guest joins with a saved character.
-6. Host starts "Ash Hollow Ambush".
-7. Each active player commits one action per round.
-8. Player actions resolve together.
-9. Enemy attacks if still alive.
-10. Battle continues, wins, or fails.
-11. Each participating character claims XP/item reward once.
-12. Refresh restores selected character and active room.
+## Drop-in rules
 
-## Battle Design
+- Four total seats; deterministic companions support human plans and are always labeled.
+- Human departures never require a replacement player to continue. No-human rooms park after finishing committed work.
+- Missing turns do not invent dialogue, spend Spotlight or make a major choice. Repeated inactivity releases the seat.
+- Heroes retain XP and keepsakes, but saved progression does not raise starting combat power. The hero used in an adventure stays pinned across rejoining.
+- Objective and danger contributions scale with human count. Additional humans create more individual contributions without reducing chapters to a couple of rounds.
 
-### Encounter
+## AI and boundaries
 
-The first playable room is "Ash Hollow Ambush". An Ash Warg attacks the party. Enemy max HP scales with party size so solo and two-player testing are both viable.
+The complete authored adventure works without a model. OpenAI and Ollama adapters optionally prepare cosmetic variations, interpret Spotlight ideas and narrate already validated outcomes. A five-second deadline protects play; unsupported or unavailable interpretations offer a standard action without spending the token. A generated proposal still requires player confirmation and a game check.
 
-### State
+Public hosted play should use hosted inference; a public function cannot reach Ollama on a player’s personal computer. Actual model quality and latency still need evaluation. Prepared variations currently change presentation, not the underlying three-chapter adventure structure.
 
-The room stores:
-
-- `status`: lobby, active, completed
-- `battle_state.status`: lobby, active, victory, failure
-- `round`
-- `enemyHp` and `enemyMaxHp`
-- `enemyIntent`
-- `partyHpByCharacterId`
-- `downedCharacterIds`
-- `lastResolvedTurn`
-- `rewardClaimedByCharacterId`
-
-### Actions
-
-| Action | DC | Effect |
-| --- | ---: | --- |
-| Strike | 11 | 6 damage on success, 2 on failure |
-| Heavy | 15 | 11 damage on success, 0 on failure |
-| Guard | 11 | Reduce incoming damage by 6, deal 2 on success |
-| Aid | 10 | Heal lowest damaged ally by 5, or grant +2 momentum |
-
-Class flavor changes action labels only:
-
-- Wizard: Arcane Dart, Overchannel, Ward, Mend
-- Fighter: Blade Strike, Cleave, Guard, Rally
-- Rogue: Quick Cut, Backstab, Evasion, Distract
-- Cleric: Radiant Blow, Judgement, Sanctuary, Blessing
-
-### Resolution
-
-1. Aid resolves first.
-2. Strike, Heavy, and Guard resolve.
-3. Enemy HP is reduced.
-4. If enemy HP reaches 0, battle ends in victory before counterattack.
-5. Enemy deals `4 + round` damage to every standing active hero.
-6. Guard reduces that hero's incoming damage by 6.
-7. Heroes at 0 HP are downed.
-8. If every active hero is downed, battle ends in failure.
-9. Otherwise the next round begins immediately.
-
-## Progression
-
-Characters start at level 3 with 240 XP. Rewards are applied once per character per completed room.
-
-| Result | Reward |
-| --- | --- |
-| Victory | +75 XP, Ashhide Charm |
-| Failure | +15 XP, Cracked Ash Token |
-
-Level thresholds:
-
-- Level 4 at 300 XP
-- Level 5 at 450 XP
-
-## UX Direction
-
-The room screen prioritizes battle readability:
-
-- Enemy HP and intent at the top.
-- Battlefield visual in the center.
-- Party cards with HP, online/downed state, and committed action state.
-- Action bar with selected and committed states.
-- Compact combat log instead of a long story scroll.
-- Reward panel after victory or failure.
-
-Story remains present as combat-log flavor, but combat state is the primary experience.
-
-## Success Criteria
-
-- A new player can create a character and start a room without reading docs.
-- Two anonymous sessions can join the same room and see Realtime state updates.
-- Actions commit once per round and cannot be changed after commit.
-- Enemy HP changes after attacks.
-- Player HP changes after enemy attacks.
-- Battle can reach victory and failure.
-- XP and item rewards persist after refresh.
-- Netlify deploy works with base build settings plus Supabase env vars.
-
-## Post-V1 Direction
-
-- Account upgrade from anonymous auth.
-- More encounters and enemy types.
-- Tactical positioning or lanes.
-- Public matchmaking.
-- Server-side authoritative turn resolver.
-- Richer animation and audio pass.
-- LLM-assisted narration constrained by battle results.
-
+The prior battle/story implementation remains at `/?legacy=1`. Tactical grids, unrestricted freeform mechanics, an autonomous AI dungeon master, and a catalog of additional adventures are outside this pass.

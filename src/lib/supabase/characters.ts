@@ -78,3 +78,18 @@ export const upsertSupabaseCharacter = async (
   return fromRow(data as CharacterRow);
 };
 
+/** Identity edits must never overwrite rewards awarded concurrently by the server. */
+export const updateSupabaseHeroIdentity = async (userId: string, character: CharacterProfile) => {
+  const supabase = requireSupabaseClient();
+  const { data, error } = await supabase.from('characters').update({
+    name: character.name,
+    class_key: character.classKey,
+    hp: character.hp,
+    max_hp: character.maxHp,
+    traits: character.traits,
+    accent: character.accent,
+    updated_at: new Date().toISOString(),
+  }).eq('id', character.id).eq('user_id', userId).select('*').single();
+  if (error) throw error;
+  return fromRow(data as CharacterRow);
+};
