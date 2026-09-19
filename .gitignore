@@ -3,7 +3,7 @@ dist/
 .netlify/
 *.log
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 .playwright-cli/
 output/
