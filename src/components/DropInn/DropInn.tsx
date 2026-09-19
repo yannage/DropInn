@@ -53,6 +53,7 @@ import { SceneArt } from './SceneArt';
 import { ActionTable } from './ActionTable';
 import { getScene, spotlightExample } from '../../lib/dropinn/scene';
 import { playTableSound } from './tableSound';
+import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
 
 const classes: CharacterClassKey[] = ['wizard', 'fighter', 'rogue', 'cleric'];
 const roleCopy: Record<CharacterClassKey, string> = {
@@ -198,6 +199,8 @@ function Modal({
 }
 
 function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
+  const markRecapSeen = useAdventureStore(state => state.markRecapSeen);
+  useEffect(() => { markRecapSeen(recap); }, [recap.code, recap.characterId, recap.outcomes.length, markRecapSeen]);
   return (
     <Modal title="Your adventure recap" onClose={onClose}>
       <span className="di-recap-seal">
@@ -233,13 +236,20 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
         <p className="di-muted">The door is always open for your next move.</p>
       )}
       {recap.keepsakes.length > 0 && (
-        <div className="di-keepsakes">
-          {recap.keepsakes.map((item) => (
-            <span key={item}>
-              <Star size={13} />
-              {item}
-            </span>
-          ))}
+        <div className="di-keepsake-stories">
+          <h3>Little things. Stories worth keeping.</h3>
+          {recap.keepsakes.map(item => {
+            const chapter = CHAPTERS.findIndex(chapter => chapter.keepsake === item);
+            const memory = recap.chapterHighlights?.[chapter];
+            return <article className="di-keepsake-story" key={item}>
+              <Star size={22} />
+              <div><strong>{item}</strong>
+                <small>{chapter >= 0 ? `Chapter ${chapter + 1} · ${CHAPTERS[chapter].title}` : recap.title}</small>
+                <p>{['A little bell to remember the villagers and the missing herd.', 'A river reed to remember the crossing to the chapel.', 'A moonstone to remember the guardian and Briar Glen’s fate.'][chapter] ?? 'A memento of the adventure you helped tell.'}</p>
+                {memory?.length ? <p className="di-keepsake-contribution"><b>Your part:</b> {memory.at(-1)}</p> : <p className="di-fine">Earned through your contributions to this chapter.</p>}
+              </div>
+            </article>;
+          })}
         </div>
       )}
       {recap.outcomes.map((outcome) => (
@@ -439,6 +449,7 @@ function Lobby() {
     prepareAdventure,
     setHero,
     recaps,
+    seenOutcomes,
   } = useAdventureStore();
   const [code, setCode] = useState('');
   const [name, setName] = useState(character?.name ?? '');
@@ -448,6 +459,8 @@ function Lobby() {
   const [editingHero, setEditingHero] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
+  const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
+  const recentVisits = [...recaps].sort((a, b) => Number(unseen(b) > 0) - Number(unseen(a) > 0));
   const liveRooms = rooms.filter(
     (item) => item.status !== 'completed' && item.openSeats > 0,
   );
@@ -613,7 +626,7 @@ function Lobby() {
                 <h2>Your recent visits</h2>
                 <BookOpen size={20} />
               </div>
-              {recaps.slice(0, 4).map((visit, i) => (
+              {recentVisits.slice(0, 4).map((visit, i) => (
                 <button
                   className="di-visit"
                   key={`${visit.code}-${i}`}
@@ -624,6 +637,7 @@ function Lobby() {
                   </span>
                   <span>
                     <strong>{visit.title}</strong>
+                    {unseen(visit) > 0 && <span className="di-new-outcome"><Sparkles size={12} /> {unseen(visit)} unread chapter {unseen(visit) === 1 ? 'ending' : 'endings'}</span>}
                     <small>
                       {visit.actions}{' '}
                       {visit.actions === 1 ? 'contribution' : 'contributions'} ·{' '}
@@ -1421,6 +1435,14 @@ function ActionChoices({
   const [token, setToken] = useState<TokenKind>('investigate');
   const [showSpotlight, setShowSpotlight] = useState(false);
   const [idea, setIdea] = useState('');
+  const guideKey = `dropinn-first-move-${userId}`;
+  const [guideDismissed, setGuideDismissed] = useState(() => {
+    try { return localStorage.getItem(guideKey) === 'seen'; } catch { return false; }
+  });
+  const dismissGuide = () => {
+    setGuideDismissed(true);
+    try { localStorage.setItem(guideKey, 'seen'); } catch { /* Guidance still dismisses for this visit. */ }
+  };
   const target =
     chapter.targets.find((item) => item.id === targetId) ?? chapter.targets[0];
   const spent =
@@ -1447,10 +1469,15 @@ function ActionChoices({
   }, [room.chapter, targetId]);
   return (
     <div className="di-action-choices">
+      {!guideDismissed && <aside className="di-first-move" aria-label="Your first move">
+        <div><strong>A coin. A choice. Your story.</strong>
+          <p>Drag a coin onto a scene card—or tap both. Read the effect, then press <b>Confirm move</b> beneath your coin. Bigger coins don’t change your odds.</p></div>
+        <button type="button" className="di-icon-button" aria-label="Dismiss first-move guide" onClick={dismissGuide}><X size={16} /></button>
+      </aside>}
       <ActionTable targets={chapter.targets} token={effectiveToken} targetId={target.id}
         downed={downed} disabled={loading} turn={room.turn}
         active={!showSpotlight} preview={description?.description ?? ''}
-        onConfirm={() => void commitAction({ token: effectiveToken, targetId: target.id })}
+        onConfirm={() => { dismissGuide(); void commitAction({ token: effectiveToken, targetId: target.id }); }}
         onChoose={(nextToken, nextTarget) => {
           setToken(nextToken); setTargetId(nextTarget); setShowSpotlight(false); clearProposal();
         }} />
@@ -1507,6 +1534,14 @@ function ActionChoices({
             if (idea.trim()) void propose(idea.trim(), target.id);
           }}
         >
+          <div className="di-suggested-ideas" role="group" aria-label="Suggested Spotlight ideas">
+            <span className="di-eyebrow">Borrow a spark—or write your own</span>
+            {spotlightSuggestions(room).map(suggestion => <button type="button" key={suggestion.label} disabled={proposing || loading}
+              onClick={() => { setTargetId(suggestion.targetId); setIdea(suggestion.idea); clearProposal(); void propose(suggestion.idea, suggestion.targetId); }}>
+              <Sparkles size={15} /><span><strong>{suggestion.label}</strong><small>{suggestion.idea}</small></span><ArrowRight size={14} />
+            </button>)}
+            <p className="di-fine">Suggested ideas work without AI. Review the attempt before spending your Spotlight.</p>
+          </div>
           <label htmlFor="creative-idea">How would you change the scene?</label>
           <textarea
             id="creative-idea"
@@ -1542,13 +1577,14 @@ function ActionChoices({
                   type="button"
                   className="di-button di-primary di-full"
                   disabled={loading}
-                  onClick={() =>
+                  onClick={() => {
+                    dismissGuide();
                     void commitAction({
                       token: 'spotlight',
                       targetId: target.id,
                       proposal: relevantProposal,
-                    })
-                  }
+                    });
+                  }}
                 >
                   <Sparkles size={16} />
                   Spend Spotlight & try it

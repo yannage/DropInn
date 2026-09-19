@@ -348,5 +348,11 @@ export function getCatchUp(room: AdventureRoom): string {
 
 export function getVisitRecap(room: AdventureRoom, userId: string): VisitRecap {
   const player = room.players[userId];
-  return { code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes] };
+  const chapterHighlights: Record<number, string[]> = {};
+  for (const moment of room.events.filter(item => item.actorId === userId && item.kind === 'action' && item.roll !== undefined)) {
+    const highlights = chapterHighlights[moment.chapter] ?? [];
+    highlights.push(moment.change?.text ?? moment.text);
+    chapterHighlights[moment.chapter] = highlights.slice(-2);
+  }
+  return { code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights };
 }

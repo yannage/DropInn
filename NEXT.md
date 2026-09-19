@@ -25,7 +25,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 
 - [ ] Configure and evaluate hosted Spotlight interpretation with feasible, impossible, ambiguous, and adversarial ideas.
 - [ ] Verify preview accuracy, bounded effects, five-second fallback, and token preservation on failure.
-- [ ] Add optional suggested Spotlight twists for players who prefer tapping to typing. Chapter-specific typed examples are now included.
+- [x] Add tappable, chapter-specific Spotlight suggestions. Authored suggestions work without inference, get signed server previews, and spend a token only on confirmation; changed/obsolete suggestions do not bypass interpretation.
 
 ### 4. Test the five-minute visit on phones
 
@@ -33,12 +33,12 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [ ] Check one-handed controls, small screens, keyboard focus, and the on-screen keyboard during Spotlight/chat.
   - Automated browser checks passed at 390px for touch drag, mouse drag, invalid drops, keyboard selection, long-hold reset, horizontal overflow and reduced-motion behavior. Physical-phone and on-screen-keyboard checks remain.
 - [ ] Tune turn and result-reveal pacing using observed waiting time and missed turns.
-- [ ] Make the first-turn explanation short, contextual, and dismissible.
+- [x] Add a short first-move guide explaining placement and confirmation; dismiss it manually or by confirming a move, and remember that choice in this browser.
 
 ### 5. Give players a reason to return
 
-- [ ] Present keepsakes with their story: where they came from and what the player contributed.
-- [ ] Highlight new chapter outcomes from adventures a player previously left.
+- [x] Present keepsakes with their chapter, story context, and the player's recorded contribution from that chapter. Older recaps fall back to origin context.
+- [x] Highlight unread chapter endings in recent visits, prioritize those visits, and remember which endings were opened. Read markers are local to this browser.
 - [ ] Add optional account recovery/upgrade so anonymous heroes can survive switching devices.
 - [ ] Explore cosmetic hero choices while preserving equal starting power.
 
@@ -48,6 +48,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [ ] Support private friend tables alongside public drop-in play.
 - [ ] Add lightweight reactions and clearer teammate intentions without requiring chat.
 - [ ] Build a small report-review workflow and basic operational metrics.
+- [ ] Add community story pitches, a curator queue, revision feedback and reviewed publication. See [community story workflow](docs/community-stories.md). First extract an adventure registry and prove a second authored adventure; submissions are future work, not part of this MVP pass.
 
 ## Before a public pilot
 

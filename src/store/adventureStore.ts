@@ -15,6 +15,7 @@ interface SavedPlayer {
   activeCode: string | null;
   receipts: Record<string, { xp: number; keepsakes: string[] }>;
   muted: string[];
+  seenOutcomes?: Record<string, number>;
 }
 function readSaved(): SavedPlayer {
   try {
@@ -59,6 +60,8 @@ interface AdventureState {
   proposing: boolean;
   error: string | null;
   mutedUserIds: string[];
+  seenOutcomes: Record<string, number>;
+  markRecapSeen: (recap: VisitRecap) => void;
   initialize: () => Promise<void>;
   refreshRooms: () => Promise<void>;
   playNow: () => Promise<void>;
@@ -97,7 +100,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.activeCode = null;
       saved.receipts = {};
       saved.muted = [];
-      set({ recaps: [], recap: null, mutedUserIds: [] });
+      saved.seenOutcomes = {};
+      set({ recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {} });
     }
     saved.userId = user.id;
     saved.character = character;
@@ -177,6 +181,15 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
     loading: false, proposing: false, error: null, mutedUserIds: saved.muted,
+    seenOutcomes: saved.seenOutcomes || {},
+    markRecapSeen: recap => {
+      const key = `${recap.code}:${recap.characterId}`;
+      const previous = saved.seenOutcomes?.[key] ?? 0;
+      if (previous >= recap.outcomes.length) return;
+      saved.seenOutcomes = { ...saved.seenOutcomes, [key]: recap.outcomes.length };
+      save();
+      set({ seenOutcomes: saved.seenOutcomes });
+    },
     initialize: () => {
       if (initializePromise) return initializePromise;
       initializePromise = (async () => {

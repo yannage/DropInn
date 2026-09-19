@@ -149,6 +149,7 @@ export interface VisitRecap {
   keepsakes: string[];
   highlights: string[];
   outcomes: ChapterOutcome[];
+  chapterHighlights?: Record<number, string[]>;
 }
 export interface ActionDescription {
   label: string;

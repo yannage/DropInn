@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from '../character';
-import { createAdventure, reduceAdventure } from './engine';
+import { createAdventure, reduceAdventure, getVisitRecap } from './engine';
 import { CHAPTERS } from './content';
 import { developScene, getScene } from './scene';
 
@@ -29,6 +29,9 @@ describe('developing scenes', () => {
     const duplicate = reduceAdventure(result, command, 1002);
     expect(duplicate.events).toEqual(result.events);
     expect(duplicate.players.alice.xp).toBe(result.players.alice.xp);
+    const recap = getVisitRecap(result, 'alice');
+    expect(recap.chapterHighlights?.[0]).toContain('A silver ward fragment lies among the claw marks.');
+    expect(getVisitRecap(result, 'someone-else').chapterHighlights).toEqual({});
   });
 
   it('keeps failed attempts from claiming a completed rescue', () => {

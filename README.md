@@ -20,8 +20,10 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 - **Contribute:** drag Fight, Influence, Investigate, or Assist coins onto cards on the felt table. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.
 - **Feel the consequence:** successful interactions change scene cards and open new approaches. Your result shows the roll, what changed, and an opening for your next move.
 - **Improvise:** one Spotlight per chapter can propose cover, distraction, a discovery, or a rescue. The server validates the proposal; the player confirms it before spending anything.
+- **Borrow a spark:** tap an authored Spotlight suggestion for a supported attempt without typing or an AI connection. Edited ideas go through normal interpretation, and every attempt still requires confirmation and a roll.
 - **Keep moving:** simultaneous 30-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
 - **Leave freely:** retain contributions and rewards. Returning visitors can inspect their chapter outcomes.
+- **Return to your story:** unread chapter endings are highlighted in recent visits; keepsakes show their origin and your recorded chapter contribution. Read markers and dismissed guidance are remembered in this browser.
 
 Briar Glen has three bounded chapters: missing livestock, the riverside hunt, and the chapel. Every chapter has success, mixed, and setback closure. The room parks when no humans remain. Companions cannot advance an unattended story.
 

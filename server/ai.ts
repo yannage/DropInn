@@ -2,6 +2,7 @@ import type { AdventureRoom, CreativeProposal } from '../src/lib/dropinn/types';
 import { fallbackProposal, getCatchUp, validateProposal } from '../src/lib/dropinn/engine';
 import { CHAPTERS } from '../src/lib/dropinn/content';
 import { getScene } from '../src/lib/dropinn/scene';
+import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
 
 export type ServerEnv = Record<string, string | undefined>;
 export interface AIOptions { env?: ServerEnv; fetch?: typeof fetch; timeoutMs?: number }
@@ -81,6 +82,12 @@ export async function interpretSpotlight(room: AdventureRoom, ideaInput: unknown
   const chapter = getScene(room);
   const target = chapter?.targets.find((candidate) => candidate.id === targetId);
   if (!target) throw new Error('Choose something in this scene.');
+  const suggested = spotlightSuggestions(room).find(item => item.targetId === targetId && item.idea === idea);
+  if (suggested) {
+    const proposal: CreativeProposal = { id: crypto.randomUUID(), turn: room.turn, targetId, effect: suggested.effect,
+      label: suggested.label, description: suggested.description, idea, supported: true, source: 'authored' };
+    if (validateProposal(room, proposal)) return proposal;
+  }
   const fallback = fallbackProposal(room, idea, targetId);
   const unavailable: CreativeProposal = { ...fallback, label: 'Try a standard action for now',
     description: `Creative interpretation is unavailable right now. Use a highlighted standard action on ${target.name}; your Spotlight token is still available.` };

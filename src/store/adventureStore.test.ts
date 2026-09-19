@@ -39,6 +39,25 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('persists read endings without hiding outcomes that arrive later', async () => {
+    const { store, room } = await setup();
+    const { getVisitRecap } = await import('../lib/dropinn/engine');
+    room.outcomes.push({ chapter: 0, result: 'success', text: 'The herd reaches shelter.', at: 2000 });
+    const recap = getVisitRecap(room, store.getState().userId);
+    const key = `${recap.code}:${recap.characterId}`;
+    expect(store.getState().seenOutcomes[key]).toBeUndefined();
+    store.getState().markRecapSeen(recap);
+    expect(store.getState().seenOutcomes[key]).toBe(1);
+    vi.resetModules();
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    expect(restored.getState().seenOutcomes[key]).toBe(1);
+    room.outcomes.push({ chapter: 1, result: 'mixed', text: 'The party crosses.', at: 3000 });
+    expect(room.outcomes.length - restored.getState().seenOutcomes[key]).toBe(1);
+    restored.getState().markRecapSeen({ ...recap, outcomes: room.outcomes });
+    restored.getState().markRecapSeen(recap);
+    expect(restored.getState().seenOutcomes[key]).toBe(2);
+  });
+
   it('applies a cumulative participation reward once across repeated snapshots and reloads', async () => {
     const { store, room, hero } = await setup();
     room.revision++;

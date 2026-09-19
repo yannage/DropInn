@@ -3,6 +3,7 @@ import { createCharacterProfile } from '../src/lib/character';
 import type { AdventureRoom, PlayerAction } from '../src/lib/dropinn/types';
 import { CHAPTERS } from '../src/lib/dropinn/content';
 import { createDropinnHandler } from './dropinn';
+import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
 
 function harness(options: Parameters<typeof createDropinnHandler>[0] = {}) {
   let time = 1000;
@@ -25,6 +26,25 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('signs an authored suggestion and spends Spotlight only once on confirmation', async () => {
+    const { call, hero } = harness();
+    const room = (await call('play', { character: hero })).room as AdventureRoom;
+    const idea = spotlightSuggestions(room)[0];
+    const preview = await call('propose', { roomCode: room.code, idea: idea.idea, targetId: idea.targetId });
+    expect(preview.status).toBe(200);
+    expect(preview.proposal.supported).toBe(true);
+    const before = (await call('read', { roomCode: room.code })).room as AdventureRoom;
+    expect(before.players.player_one.spotlightChapters).toEqual([]);
+    const command = { id: crypto.randomUUID(), type: 'act', expectedTurn: room.turn,
+      action: { token: 'spotlight', targetId: idea.targetId, proposal: preview.proposal } };
+    const result = await call('command', { roomCode: room.code, command });
+    expect(result.status).toBe(200);
+    expect(result.room.players.player_one.spotlightChapters).toEqual([0]);
+    const retried = await call('command', { roomCode: room.code, command });
+    expect(retried.room.players.player_one.actions).toBe(1);
+    expect(retried.room.players.player_one.xp).toBe(result.room.players.player_one.xp);
+  });
+
   it('opens a playable adventure immediately and discovers only public summaries', async () => {
     const { call, hero } = harness();
     const created = await call('play', { character: hero });

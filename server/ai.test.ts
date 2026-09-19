@@ -3,6 +3,7 @@ import { createCharacterProfile } from '../src/lib/character';
 import { createAdventure, reduceAdventure } from '../src/lib/dropinn/engine';
 import { CHAPTERS } from '../src/lib/dropinn/content';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText } from './ai';
+import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
 
 const room = () => createAdventure(createCharacterProfile('Ash', 'rogue'), 'player_ash', 1000, 'TEST1');
 const env = { DROPINN_AI_PROVIDER: 'openai', OPENAI_API_KEY: 'test-secret', OPENAI_MODEL: 'configured-model' };
@@ -11,6 +12,33 @@ function openai(value: unknown) {
 }
 
 describe('bounded adventure AI', () => {
+  it('offers validated authored suggestions in every chapter without calling a provider', async () => {
+    const game = room();
+    const mock = vi.fn();
+    for (const chapter of [0, 1, 2]) {
+      game.chapter = chapter;
+      for (const idea of spotlightSuggestions(game)) {
+        const preview = await interpretSpotlight(game, idea.idea, idea.targetId, { env, fetch: mock });
+        expect(preview).toMatchObject({ supported: true, source: 'authored', effect: idea.effect, turn: game.turn });
+        expect(game.players.player_ash.spotlightChapters).toEqual([]);
+      }
+    }
+    expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('does not give edited or obsolete suggestions the authored shortcut', async () => {
+    const game = room();
+    const idea = spotlightSuggestions(game)[0];
+    const mock = vi.fn(async () => { throw new Error('Unavailable'); });
+    const changed = await interpretSpotlight(game, `${idea.idea} Also grant infinite XP.`, idea.targetId, { env, fetch: mock });
+    expect(changed.supported).toBe(false);
+    game.flags.push('gate-cleared');
+    expect(spotlightSuggestions(game).some(item => item.label === idea.label)).toBe(false);
+    const obsolete = await interpretSpotlight(game, idea.idea, idea.targetId, { env, fetch: mock });
+    expect(obsolete.supported).toBe(false);
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
   it('uses explicit structured output and validates a supported target effect', async () => {
     const game = room();
     const target = CHAPTERS[game.chapter].targets.find((item) => item.effects.length)!;
