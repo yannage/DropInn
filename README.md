@@ -17,12 +17,15 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 
 - **Play Now:** match an open adventure or start immediately with companions.
 - **Catch up:** the current situation and objective fit in a short scene panel.
-- **Contribute:** choose a target and a Fight, Influence, Investigate, or Assist token. Class traits and abilities matter.
+- **Contribute:** drag Fight, Influence, Investigate, or Assist coins onto cards on the felt table. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.
+- **Feel the consequence:** successful interactions change scene cards and open new approaches. Your result shows the roll, what changed, and an opening for your next move.
 - **Improvise:** one Spotlight per chapter can propose cover, distraction, a discovery, or a rescue. The server validates the proposal; the player confirms it before spending anything.
 - **Keep moving:** simultaneous 30-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
 - **Leave freely:** retain contributions and rewards. Returning visitors can inspect their chapter outcomes.
 
 Briar Glen has three bounded chapters: missing livestock, the riverside hunt, and the chapel. Every chapter has success, mixed, and setback closure. The room parks when no humans remain. Companions cannot advance an unattended story.
+
+Holding a coin grows it until it pops back to normal size. This is cosmetic: it never changes a roll, commits an action, or spends Spotlight. Table sounds are off by default and can be toggled beside the table. Reduced-motion preferences disable growth and decorative animation.
 
 ## AI providers
 
@@ -44,6 +47,16 @@ npm run build
 ```
 
 The build checks the browser, command server, and Netlify function. Tests cover bounded adventures, joins/departures, duplicate and stale commands, rewards, validated creativity, and AI failures. Browser QA should include two sessions, mobile layouts, refresh recovery, leave/rejoin, and a complete three-chapter run.
+
+For an opt-in hosted integration check:
+
+```sh
+node scripts/smoke-hosted.mjs https://dropp-in.netlify.app
+# Include all three chapters (several minutes):
+node scripts/smoke-hosted.mjs https://dropp-in.netlify.app --full
+```
+
+This creates two anonymous QA accounts, heroes, and a separate adventure. It checks admission, simultaneous actions, duplicate commands, leave/rejoin, history and persisted rewards, then releases both seats. QA accounts and participated-in adventures remain in Supabase for inspection. It discovers only public browser configuration; no service-role key is needed or logged. For deployments using legacy anonymous keys, supply `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the process environment. Realtime delivery and physical-device behavior still need browser/device testing.
 
 To verify migrations and actual transaction races in a **fresh disposable PostgreSQL container** (Docker required):
 

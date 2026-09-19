@@ -84,6 +84,26 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     characterId: get().character?.id,
   });
   const fail = (error: unknown) => set({ error: error instanceof Error ? error.message : 'Something went wrong. Please retry.' });
+  // Browser storage can outlive an anonymous auth session. Resolve ownership
+  // before admission instead of submitting a hero from a previous account.
+  const ensureHostedHero = async () => {
+    if (localPlay) return;
+    const user = await ensureAnonymousUser();
+    if (!user) throw new Error('Online adventures are not configured yet.');
+    const characters = await listSupabaseCharacters(user.id);
+    const character = characters.find(hero => hero.id === saved.character.id) || characters[0]
+      || await upsertSupabaseCharacter(user.id, createCharacterProfile('Wren', 'wizard'));
+    if (saved.userId !== user.id) {
+      saved.activeCode = null;
+      saved.receipts = {};
+      saved.muted = [];
+      set({ recaps: [], recap: null, mutedUserIds: [] });
+    }
+    saved.userId = user.id;
+    saved.character = character;
+    set({ userId: user.id, character });
+    save();
+  };
   const busy = async (run: () => Promise<void>) => {
     if (get().loading) return;
     set({ loading: true, error: null });
@@ -141,6 +161,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     }
   };
   const enter = async (operation: 'play' | 'join', code?: string, variationId?: string) => {
+    await ensureHostedHero();
     const epoch = ++viewEpoch;
     proposalSequence++;
     const response = await request({ operation, roomCode: code, variationId });
@@ -160,17 +181,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       if (initializePromise) return initializePromise;
       initializePromise = (async () => {
         try {
-          if (!localPlay) {
-            const user = await ensureAnonymousUser();
-            if (!user) throw new Error('Online adventures are not configured yet.');
-            const characters = await listSupabaseCharacters(user.id);
-            const character = characters.find(hero => hero.id === saved.character.id) || characters[0]
-              || await upsertSupabaseCharacter(user.id, createCharacterProfile('Wren', 'wizard'));
-            saved.userId = user.id;
-            saved.character = character;
-            set({ userId: user.id, character });
-            save();
-          }
+          await ensureHostedHero();
           if (saved.activeCode) {
             try {
               const response = await request({ operation: 'read', roomCode: saved.activeCode });
@@ -196,6 +207,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     },
     playNow: () => busy(() => enter('play')),
     prepareAdventure: () => busy(async () => {
+      await ensureHostedHero();
       const response = await request({ operation: 'prepare' });
       await enter('play', undefined, response.variationId);
     }),

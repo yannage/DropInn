@@ -50,6 +50,9 @@ import type {
   VisitRecap,
 } from '../../lib/dropinn/types';
 import { SceneArt } from './SceneArt';
+import { ActionTable } from './ActionTable';
+import { getScene, spotlightExample } from '../../lib/dropinn/scene';
+import { playTableSound } from './tableSound';
 
 const classes: CharacterClassKey[] = ['wizard', 'fighter', 'rogue', 'cleric'];
 const roleCopy: Record<CharacterClassKey, string> = {
@@ -831,7 +834,7 @@ function Adventure({ room }: { room: AdventureRoom }) {
     const id = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(id);
   }, []);
-  const chapter = CHAPTERS[Math.min(room.chapter, CHAPTERS.length - 1)];
+  const chapter = getScene(room);
   const seat = room.seats.find(
     (item) => item.actorId === userId && item.kind === 'human',
   );
@@ -876,6 +879,12 @@ function Adventure({ room }: { room: AdventureRoom }) {
     (event) => event.turn === latestResolvedTurn,
   );
   const latestOutcome = room.outcomes[room.outcomes.length - 1];
+  const myLastMove = [...room.events].reverse().find(event => event.actorId === userId && event.roll !== undefined && event.chapter === room.chapter);
+  const heardResult = useRef(myLastMove?.id);
+  useEffect(() => {
+    if (myLastMove && heardResult.current !== myLastMove.id) playTableSound('result');
+    heardResult.current = myLastMove?.id;
+  }, [myLastMove?.id]);
   return (
     <main className="di-adventure di-shell">
       <div className="di-room-topline">
@@ -977,9 +986,7 @@ function Adventure({ room }: { room: AdventureRoom }) {
               className={`di-narrative-intro ${showNarrative ? 'di-expanded' : ''}`}
             >
               <span className="di-eyebrow">
-                {room.chapterRound > 1
-                  ? 'How this chapter began'
-                  : 'The scene before you'}
+                The scene now
               </span>
               <p>
                 {room.variation?.atmosphere && room.chapter === 0
@@ -1171,6 +1178,7 @@ function Adventure({ room }: { room: AdventureRoom }) {
                       {event.effect && (
                         <p className="di-event-effect">{event.effect}</p>
                       )}
+                      {event.change && <p className="di-event-change"><strong>{event.change.title}.</strong> {event.change.text}</p>}
                     </div>
                   </div>
                 ))
@@ -1290,10 +1298,14 @@ function Adventure({ room }: { room: AdventureRoom }) {
               ) : room.phase === 'reveal' ? (
                 <div className="di-waiting">
                   <Dices size={36} />
-                  <h3>See what you set in motion.</h3>
+                  <h3>{myLastMove?.turn === room.turn ? myLastMove.change?.title ?? (myLastMove.success ? 'Your move made a difference.' : 'A complication opens the next step.') : 'See what you set in motion.'}</h3>
+                  {myLastMove?.turn === room.turn && <>
+                    <p>{myLastMove.change?.text ?? myLastMove.text}</p>
+                    <p className="di-result-effect">Rolled {myLastMove.roll} + {myLastMove.modifier ?? 0} · {myLastMove.effect}</p>
+                    {myLastMove.change && <p>{myLastMove.change.next}</p>}
+                  </>}
                   <p>
-                    The next turn begins automatically. The latest results are
-                    in the story below.
+                    Your next move opens automatically in {seconds}s.
                   </p>
                   <a
                     href="#di-result-anchor"
@@ -1351,6 +1363,17 @@ function Adventure({ room }: { room: AdventureRoom }) {
               )}
             </section>
           )}
+            {myLastMove && room.phase !== 'reveal' && <section className="di-personal-result" key={myLastMove.id} aria-label="Your last move" aria-live="polite">
+            <div className={`di-result-die ${myLastMove.success ? 'di-result-success' : ''}`} aria-label={`Rolled ${myLastMove.roll} plus ${myLastMove.modifier ?? 0}`}>
+              <Dices size={18} /><strong>{myLastMove.roll}</strong><small>+{myLastMove.modifier ?? 0}</small>
+            </div>
+            <div><span className="di-eyebrow">Your last move · Turn {myLastMove.turn}</span>
+              <h3>{myLastMove.change?.title ?? (myLastMove.success ? 'You moved the story forward.' : 'A complication. An opening.')}</h3>
+              <p>{myLastMove.change?.text ?? myLastMove.text}</p>
+              <p className="di-result-effect">{myLastMove.effect}</p>
+              {myLastMove.change && <p className="di-next-opening"><ArrowRight size={13} /> {myLastMove.change.next}</p>}
+            </div>
+          </section>}
           <Chat room={room} />
           {participant && participant.actions > 0 && (
             <div className="di-visit-progress">
@@ -1393,7 +1416,7 @@ function ActionChoices({
     clearProposal,
     loading,
   } = useAdventureStore();
-  const chapter = CHAPTERS[Math.min(room.chapter, CHAPTERS.length - 1)];
+  const chapter = getScene(room);
   const [targetId, setTargetId] = useState(chapter.targets[0]?.id ?? '');
   const [token, setToken] = useState<TokenKind>('investigate');
   const [showSpotlight, setShowSpotlight] = useState(false);
@@ -1424,50 +1447,13 @@ function ActionChoices({
   }, [room.chapter, targetId]);
   return (
     <div className="di-action-choices">
-      <label className="di-choice-label" htmlFor="scene-target">
-        <span>01</span> Choose your focus
-      </label>
-      <select
-        id="scene-target"
-        value={target.id}
-        onChange={(event) => {
-          setTargetId(event.target.value);
-          clearProposal();
-        }}
-      >
-        {chapter.targets.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.name}
-          </option>
-        ))}
-      </select>
-      <p className="di-target-description">{target.description}</p>
-      <div className="di-choice-label">
-        <span>02</span> Pick your approach
-      </div>
-      <div className="di-coins" role="group" aria-label="Action tokens">
-        {tokens.map((item) => {
-          const enabled = available.includes(item.kind);
-          return (
-            <button
-              className={`di-coin-button di-coin-${item.kind} ${effectiveToken === item.kind && !showSpotlight ? 'di-selected' : ''}`}
-              disabled={!enabled}
-              key={item.kind}
-              aria-pressed={effectiveToken === item.kind && !showSpotlight}
-              aria-label={`${item.label}: ${item.hint}${!enabled ? ', unavailable for this target' : ''}`}
-              onClick={() => {
-                setToken(item.kind);
-                setShowSpotlight(false);
-              }}
-            >
-              <span className="di-coin">
-                <item.icon size={23} strokeWidth={1.6} />
-              </span>
-              <strong>{item.label}</strong>
-            </button>
-          );
-        })}
-      </div>
+      <ActionTable targets={chapter.targets} token={effectiveToken} targetId={target.id}
+        downed={downed} disabled={loading} turn={room.turn}
+        active={!showSpotlight} preview={description?.description ?? ''}
+        onConfirm={() => void commitAction({ token: effectiveToken, targetId: target.id })}
+        onChoose={(nextToken, nextTarget) => {
+          setToken(nextToken); setTargetId(nextTarget); setShowSpotlight(false); clearProposal();
+        }} />
       {!showSpotlight && description && (
         <div className="di-action-preview">
           <div>
@@ -1478,25 +1464,13 @@ function ActionChoices({
             </span>
             <h3>{description.label}</h3>
             <p>{description.description}</p>
+            <p className="di-selected-scene-detail">{target.description}</p>
           </div>
           <div className="di-check-label">
             <Dices size={14} /> Check total {description.dc}+ succeeds. Failure
             still moves the story.
           </div>
-          <button
-            className="di-button di-primary di-full"
-            disabled={loading}
-            onClick={() =>
-              void commitAction({ token: effectiveToken, targetId: target.id })
-            }
-          >
-            {loading ? (
-              <LoaderCircle className="di-spin" size={17} />
-            ) : (
-              <Check size={17} />
-            )}
-            Commit your move
-          </button>
+          <p className="di-fine">Place your coin, then confirm on its scene card.</p>
         </div>
       )}
       <button
@@ -1543,7 +1517,7 @@ function ActionChoices({
             }}
             maxLength={280}
             rows={3}
-            placeholder={`“What if I used ${target.name.toLowerCase()} to distract them?”`}
+            placeholder={spotlightExample(room)}
           />
           <p className="di-fine">
             Use something in the scene. We’ll show your attempt before you spend

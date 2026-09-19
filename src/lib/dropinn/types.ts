@@ -8,7 +8,9 @@ export interface SceneTarget {
   description: string;
   tokens: TokenKind[];
   effects: CreativeEffect[];
+  changed?: boolean;
 }
+export interface SceneChange { title: string; text: string; next: string }
 export interface ChapterDefinition {
   id: string;
   title: string;
@@ -73,6 +75,7 @@ export interface StoryEvent {
   modifier?: number;
   success?: boolean;
   effect?: string;
+  change?: SceneChange;
 }
 export interface ChapterOutcome {
   chapter: number;

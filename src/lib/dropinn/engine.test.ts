@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from '../character';
 import type { CharacterClassKey } from '../character';
 import { CHAPTERS } from './content';
+import { getScene } from './scene';
 import { createAdventure, describeAction, fallbackProposal, getCatchUp, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from './engine';
 import type { AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, PlayerAction } from './types';
 
@@ -66,7 +67,7 @@ describe('drop-in adventure creation and discovery', () => {
     expect(getCatchUp(room)).toContain('weakening Gloamfang');
     room.seats[0].hp = 0;
     expect(getCatchUp(room)).toContain('can still help with Assist');
-    expect(getCatchUp(room)).toContain(CHAPTERS[2].objective);
+    expect(getCatchUp(room)).toContain(getScene(room).objective);
   });
 
   it('uses a completed chapter outcome and the next objective during the transition', () => {

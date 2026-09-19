@@ -4,10 +4,55 @@
 
 The default V2 app includes live discovery, Play Now, saved heroes, four-seat companion support, safe joining/leaving, timed simultaneous turns, contextual tokens, three authored Briar Glen chapters, signed Spotlight proposals, contribution recaps and durable reward handling. Optional AI adapters, chat, mute/report controls and the server-authoritative Supabase persistence path are in the repository. The prior prototype remains at `/?legacy=1`.
 
+## Prioritized task list
+
+### 1. Finish hosted reliability
+
+- [x] Confirm fresh accounts can save a hero and enter an adventure on the live site.
+- [x] Run all three hosted chapters with two independent accounts and verify concurrent actions, duplicate commands, history, and rewards reloaded from Supabase. Browser transport/reconnect and physical-phone playtests remain separate checks.
+- [x] Add a deployment smoke check for authentication, hero permissions, required tables/functions, and room creation (`scripts/smoke-hosted.mjs`).
+- [x] Preserve specific server errors and refresh hero ownership before admission; recover from failed startup or changed anonymous accounts without clearing saved data.
+
+### 2. Make each turn change the scene
+
+- [x] Update target descriptions and available actions when Mara is freed, the boat moves, or the ward is repaired.
+- [x] Replace completed interactions with a new opportunity so repeated rounds feel like a developing situation.
+- [x] Show a compact personal consequence after each action: what changed, who benefited, and what is possible next.
+- [x] Add restrained dice, token, and consequence animation, plus optional sound with mute and reduced-motion support.
+- [x] Add a felt table with draggable action coins, compatible-target feedback, tap/keyboard alternatives, and cosmetic hold-to-grow/reset interaction.
+
+### 3. Prove creative play with a real provider
+
+- [ ] Configure and evaluate hosted Spotlight interpretation with feasible, impossible, ambiguous, and adversarial ideas.
+- [ ] Verify preview accuracy, bounded effects, five-second fallback, and token preservation on failure.
+- [ ] Add optional suggested Spotlight twists for players who prefer tapping to typing. Chapter-specific typed examples are now included.
+
+### 4. Test the five-minute visit on phones
+
+- [ ] Playtest with tabletop newcomers and experienced players; time app opening to first meaningful action.
+- [ ] Check one-handed controls, small screens, keyboard focus, and the on-screen keyboard during Spotlight/chat.
+  - Automated browser checks passed at 390px for touch drag, mouse drag, invalid drops, keyboard selection, long-hold reset, horizontal overflow and reduced-motion behavior. Physical-phone and on-screen-keyboard checks remain.
+- [ ] Tune turn and result-reveal pacing using observed waiting time and missed turns.
+- [ ] Make the first-turn explanation short, contextual, and dismissible.
+
+### 5. Give players a reason to return
+
+- [ ] Present keepsakes with their story: where they came from and what the player contributed.
+- [ ] Highlight new chapter outcomes from adventures a player previously left.
+- [ ] Add optional account recovery/upgrade so anonymous heroes can survive switching devices.
+- [ ] Explore cosmetic hero choices while preserving equal starting power.
+
+### 6. Expand the experience after the pilot
+
+- [ ] Add a second authored adventure with a distinct situation, such as a runaway airship or a tavern mystery.
+- [ ] Support private friend tables alongside public drop-in play.
+- [ ] Add lightweight reactions and clearer teammate intentions without requiring chat.
+- [ ] Build a small report-review workflow and basic operational metrics.
+
 ## Before a public pilot
 
-- Deploy the migrations and Netlify function to the intended hosted environment; configure anonymous Supabase authentication, Realtime, and server-only credentials. Hosted deployment has not been completed.
-- Confirm the actual hosted authentication, multi-session updates, reconnect behavior and reward persistence. Local service behavior is not evidence that production is configured.
+- The site and server are deployed to Netlify. Fresh anonymous authentication, hero creation, admission, and simultaneous turns now pass on the hosted service. The new table/scene UX in this working tree still needs deployment.
+- A hosted API run completed all three chapters with two fresh anonymous accounts, simultaneous actions, duplicate-command checks, and persisted XP/keepsakes. Continue browser testing for Realtime delivery and network reconnect behavior; API polling alone does not verify those transports.
 - Evaluate real model responses and latency through `scripts/evaluate-ai.mjs`; choose a hosted model for the pilot. The OpenAI/Ollama adapters and authored fallbacks are implemented, but actual provider quality has not been established.
 - Establish a person/process to review `adventure_reports` and mark reviewed rows. Mute is local to a player; reporting alone does not notify a moderator.
 - Run friend-group sessions with novices and experienced players, including five-minute visits, mixed parties and mid-chapter arrivals. Human playtesting has not been completed.

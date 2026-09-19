@@ -1054,7 +1054,7 @@ html.dropinn-v2 #root {
 }
 .di-adventure-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) 420px;
   gap: 28px;
   align-items: start;
 }
@@ -2956,3 +2956,61 @@ html.dropinn-v2 #root {
     scroll-behavior: auto !important;
   }
 }
+
+/* A pocket-sized felt table: pointer gestures stay on coins; cards scroll normally. */
+.di-table-toolbar {display:flex;align-items:center;justify-content:space-between;margin:0 0 8px;color:#c9cba8;font-size:10px}
+.di-table-toolbar>span{display:flex;align-items:center;gap:7px;letter-spacing:.035em}
+.di-table-toolbar .di-icon-button{width:30px;height:30px}
+.di-felt-table{position:relative;padding:21px 12px 15px;border:6px solid #654c36;border-radius:36px;background:radial-gradient(ellipse at 45% 20%,#3b6855,#203f36 74%);box-shadow:inset 0 0 0 2px #bc99644d,inset 0 5px 22px #0007,0 4px 0 #362a20,0 12px 25px #0003}
+.di-felt-table:before{content:'';position:absolute;inset:8px;border:1px dashed #c2c98d33;border-radius:24px;pointer-events:none}
+.di-table-engraving{display:block;text-align:center;font-size:7px;letter-spacing:.16em;color:#c7cda077;margin-bottom:12px}
+.di-target-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.di-target-card{position:relative;text-align:left;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:104px;padding:11px 10px 13px;border:1px solid #d1c69536;border-radius:10px;background:linear-gradient(145deg,#172e27e6,#112620e6);color:#eee3c2;box-shadow:0 3px 7px #0003;transition:transform .18s,border-color .18s,box-shadow .18s}
+.di-target-card strong{font-family:'EB Garamond',serif;font-size:17px;font-weight:500;line-height:1.12}
+.di-target-status{display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.075em;font-size:7px;color:#a6c6aa}
+.di-target-card-copy{font-size:10px;line-height:1.4;color:#bac7b6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.di-target-selected{border-color:#e6c471;background:linear-gradient(145deg,#3b4f37,#1c3228);box-shadow:0 0 0 1px #e6c47133,0 3px 7px #0003}
+.di-target-check{position:absolute;right:6px;bottom:5px;color:#e6c471}
+.di-token-landed{animation:di-token-lands .3s ease-out}
+.di-action-preview .di-selected-scene-detail{font-size:11px;color:#a9beb0;border-top:1px solid #a9beb025;padding-top:9px;margin-top:9px}
+.di-waiting .di-result-effect{color:#e1c782}
+@keyframes di-token-lands{0%{transform:scale(.97)}60%{transform:scale(1.025)}100%{transform:scale(1)}}
+.di-target-welcomes{border-color:#c2d79b;box-shadow:0 0 12px #bdd88730}
+.di-target-over{transform:translateY(-4px) rotate(-1deg);border-color:#f0d68c;box-shadow:0 0 0 2px #f0d68c,0 6px 12px #0004}
+.di-target-refuses{border-color:#b97266;background:#4f302b}
+.di-drag-active .di-target-card:not(.di-target-welcomes){opacity:.55}
+.di-table-hand{margin:22px 0 10px!important;gap:5px!important}
+.di-table-hand .di-coin-button{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;padding:8px 0;min-height:86px}
+.di-table-hand .di-coin-button:active{cursor:grabbing}
+.di-coin-held{z-index:2}
+.di-table-hand .di-coin{will-change:transform}
+.di-table-hint{min-height:30px;text-align:center;font-size:11px;line-height:1.5;color:#c3cfb7;margin:0!important}
+.di-hold-hint{display:block;font-size:10px;color:#8fa899;text-align:center;margin:3px 0 15px}
+.di-floating-token{position:fixed;transform:translate(-50%,-50%) rotate(-12deg);pointer-events:none;z-index:9999;filter:drop-shadow(0 13px 9px #0008)}
+.di-floating-token .di-coin{width:62px;height:62px;background:radial-gradient(circle at 30% 25%,#e6d6a0,#b78f58);color:#443526;border-color:#88673d}
+.di-personal-result{display:flex;gap:14px;padding:18px;margin:15px 0;background:linear-gradient(135deg,#2b3b2e,#172c26);border:1px solid #d9c28255;border-radius:14px;animation:di-result-arrives .4s ease-out}
+.di-personal-result h3{font-family:'EB Garamond',serif;font-size:23px;line-height:1.1;margin:6px 0 8px;color:#f2e5c4}
+.di-personal-result p{font-size:12px;line-height:1.55;color:#ced7c7;margin:7px 0}
+.di-personal-result .di-result-effect{font-size:11px;color:#e1c782}
+.di-result-die{flex-shrink:0;width:50px;height:65px;border:1px solid #a19175;border-radius:12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;background:#2c342c;box-shadow:inset 0 0 0 3px #c5b18320;animation:di-die-settles .5s ease-out;color:#d6c4a1}
+.di-result-die strong{font-size:23px}.di-result-die small{width:100%;text-align:center;margin-top:-8px}.di-result-success{color:#eedea1;border-color:#e3c777;background:#48533b}
+.di-next-opening{display:flex;align-items:flex-start;gap:6px}.di-next-opening svg{flex-shrink:0;margin-top:3px}
+.di-story-event .di-event-change{margin-top:7px;padding-top:7px;border-top:1px solid #bacf9325;color:#d5dabb;font-size:12px}
+@keyframes di-result-arrives{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes di-die-settles{0%{transform:rotate(-12deg) scale(.8)}60%{transform:rotate(5deg) scale(1.05)}100%{transform:rotate(0) scale(1)}}
+@media(max-width:700px){.di-personal-result{order:3;margin:12px 0}.di-felt-table{padding:17px 10px 12px;border-width:5px;border-radius:28px}.di-target-card{min-height:98px;padding:9px 9px 12px}.di-target-card strong{font-size:16px}.di-table-toolbar{font-size:11px}.di-table-engraving{font-size:6px;letter-spacing:.13em}.di-table-hand .di-coin{width:49px;height:49px}.di-table-hand .di-coin-button strong{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.di-token-table *,.di-personal-result,.di-result-die{animation:none!important;transition:none!important}.di-target-over{transform:none}}
+
+/* A placed coin stays attached to its target until the player confirms. */
+.di-table-spot{min-width:0;align-self:start;border-radius:12px}
+.di-table-spot>.di-target-card{width:100%}
+.di-spot-placed{background:#253e30;box-shadow:0 0 0 2px #e6c471,0 8px 20px #0005}
+.di-spot-placed>.di-target-card{border-radius:10px 10px 0 0;box-shadow:none;border-color:transparent;border-bottom:1px solid #e6c47144}
+.di-placed-move{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px 9px;text-align:center}
+.di-placed-coin{padding:0;border:0;background:none;touch-action:none;cursor:grab;user-select:none}
+.di-placed-coin:active{cursor:grabbing}
+.di-placed-coin .di-coin{width:48px;height:48px;box-shadow:0 5px 8px #0006}
+.di-placed-move>strong{font-size:12px;color:#f2e2b8}
+.di-placement-pending{font-size:9px;color:#e6c471}
+.di-placed-move>p{font-size:10px!important;line-height:1.4;color:#cbd5c3;margin:2px 0 5px!important}
+.di-placed-move .di-confirm-placement{width:100%;min-height:44px;padding:9px 4px;gap:4px;font-size:11px;white-space:normal}

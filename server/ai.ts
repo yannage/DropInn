@@ -1,6 +1,7 @@
 import type { AdventureRoom, CreativeProposal } from '../src/lib/dropinn/types';
 import { fallbackProposal, getCatchUp, validateProposal } from '../src/lib/dropinn/engine';
 import { CHAPTERS } from '../src/lib/dropinn/content';
+import { getScene } from '../src/lib/dropinn/scene';
 
 export type ServerEnv = Record<string, string | undefined>;
 export interface AIOptions { env?: ServerEnv; fetch?: typeof fetch; timeoutMs?: number }
@@ -77,7 +78,7 @@ async function generate(schema: Record<string, unknown>, name: string, instructi
 
 export async function interpretSpotlight(room: AdventureRoom, ideaInput: unknown, targetId: string, options: AIOptions = {}): Promise<CreativeProposal> {
   const idea = validatePlayerText(ideaInput);
-  const chapter = CHAPTERS[room.chapter];
+  const chapter = getScene(room);
   const target = chapter?.targets.find((candidate) => candidate.id === targetId);
   if (!target) throw new Error('Choose something in this scene.');
   const fallback = fallbackProposal(room, idea, targetId);

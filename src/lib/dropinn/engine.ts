@@ -1,6 +1,7 @@
 import { CHARACTER_CLASS_PRESETS } from '../character';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { CHAPTERS } from './content';
+import { getScene, developScene } from './scene';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
 const ROUND_MS = 30_000;
@@ -9,7 +10,7 @@ const MAX_ROUNDS = 10;
 const CLASS_TRAIT: Record<CharacterClassKey, keyof TraitSet> = { wizard: 'INT', fighter: 'ATH', rogue: 'ING', cleric: 'CHA' };
 const COMPANIONS: Array<[string, CharacterClassKey]> = [['Bran', 'fighter'], ['Pip', 'rogue'], ['Lumen', 'cleric'], ['Vesper', 'wizard']];
 const hash = (value: string) => { let n = 2166136261; for (const c of value) n = Math.imul(n ^ c.charCodeAt(0), 16777619); return n >>> 0; };
-const chapterOf = (room: AdventureRoom) => CHAPTERS[room.chapter];
+const chapterOf = (room: AdventureRoom) => getScene(room);
 const humans = (room: AdventureRoom) => room.seats.filter(s => s.kind === 'human' && !s.leaving);
 const progressShare = (room: AdventureRoom) => 1 / Math.max(1, room.seats.filter(s => s.kind === 'human').length);
 const pointsLabel = (points: number) => Number(points.toFixed(2)).toString();
@@ -158,17 +159,16 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
       applyEffect(room, action.proposal.effect, now, 2, share);
       effect += ` ${action.proposal.effect === 'cover' ? 'Cover blocks the next attack' : action.proposal.effect === 'distract' ? 'A distraction opens the next round' : action.proposal.effect === 'reveal' ? 'New information advances the objective' : 'Someone is brought to safety'}.`;
     }
-    if (room.chapter === 0 && (action.targetId === 'mara' || action.targetId === 'gate') && action.token !== 'fight') flag(room, 'mara-helped');
-    if (room.chapter === 2 && action.targetId === 'ward') flag(room, 'ward-repaired');
     if (room.chapter === 2 && action.targetId === 'gloamfang' && action.token === 'fight') flag(room, 'guardian-confronted');
   } else { room.progress += share; room.danger += share; }
   effect = `+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}`;
   const text = action.token === 'spotlight' ? `${seat.character.name} tries: ${action.proposal!.label}. ${success ? 'It works!' : 'It proves difficult, but reveals the next step.'}` : `${seat.character.name} ${success ? 'succeeds' : 'finds a complication'}: ${description.label.toLowerCase()} at ${target.name}.`;
-  event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, roll, modifier, success, effect });
+  const change = success ? developScene(room, action) : undefined;
+  event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, roll, modifier, success, effect, ...(change ? { change } : {}) });
   const player = room.players[seat.actorId];
   player.actions += 1; player.xp += success ? 5 : 3;
   if (action.token === 'spotlight') player.spotlightChapters.push(room.chapter);
-  player.highlights.push(`${text} ${effect}`);
+  player.highlights.push(`${text} ${effect}${change ? ` ${change.text}` : ''}`);
   player.highlights = player.highlights.slice(-8);
   seat.missedTurns = 0;
 }
