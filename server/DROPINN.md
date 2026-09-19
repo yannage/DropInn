@@ -4,6 +4,8 @@ Local development uses the same server handler as production, with an isolated i
 
 For hosted multiplayer:
 
+The repository pins Node 22 for builds and includes an explicit server WebSocket transport for Supabase initialization. If Netlify has an existing `AWS_LAMBDA_JS_RUNTIME` override, set it to `nodejs22.x` in Netlify's environment settings and redeploy. This runtime override must be configured in Netlify, not `netlify.toml`.
+
 1. Enable anonymous sign-ins in Supabase Auth, or use an authenticated account.
 2. Apply the existing migrations in order, including `supabase/migrations/202609190001_dropinn_v2.sql` to your Supabase project. Back up live data before your deployment procedure. V2 uses separate tables and retains legacy rooms.
 3. Set browser variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Set server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in Netlify. Never give either server signing secret or service-role key a `VITE_` prefix.

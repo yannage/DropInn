@@ -138,6 +138,30 @@ describe('adventure service local command contract', () => {
     expect((await response.json()).backend).toBe('supabase');
   });
 
+  it('serves hosted discovery without a native WebSocket global', async () => {
+    vi.stubGlobal('WebSocket', undefined);
+    const requested: string[] = [];
+    const mock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+      requested.push(url.pathname);
+      if (url.pathname === '/auth/v1/user') return Response.json({ id: '11111111-1111-4111-8111-111111111111' });
+      if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/adventure_rooms') return Response.json([]);
+      throw new Error(`Unexpected test request: ${url.pathname}`);
+    }) as unknown as typeof fetch;
+    try {
+      const handler = createDropinnHandler({ local: false, env: {
+        SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-server-key',
+      }, fetch: mock });
+      const response = await handler(new Request('http://localhost/api/dropinn', {
+        method: 'POST', headers: { Authorization: 'Bearer test-session' }, body: JSON.stringify({ operation: 'list' }),
+      }));
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ backend: 'supabase', rooms: [] });
+      expect(requested).toEqual(['/auth/v1/user', '/rest/v1/rpc/dropinn_rate_limit', '/rest/v1/adventure_rooms']);
+    } finally { vi.unstubAllGlobals(); }
+  });
+
   it('authenticates the whole creative proposal before committing it', async () => {
     const target = CHAPTERS[0].targets.find((item) => item.effects.length)!;
     const mock = vi.fn(async () => new Response(JSON.stringify({ output: [{ content: [{ type: 'output_text', text: JSON.stringify({ targetId: target.id,

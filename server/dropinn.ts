@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, type CharacterClassKey, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
@@ -69,7 +70,14 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
 
   function client(): SupabaseClient {
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) throw new RequestError('The adventure service needs its Supabase server configuration.', 503);
-    supabase ??= createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false }, global: options.fetch ? { fetch: options.fetch } : undefined });
+    supabase ??= createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      // Supabase initializes Realtime even though this handler only uses HTTP.
+      // Explicit transport also supports hosts without a global WebSocket.
+      // ws uses Node event types; Supabase's transport interface uses DOM events.
+      realtime: { transport: WebSocket as unknown as typeof globalThis.WebSocket },
+      global: options.fetch ? { fetch: options.fetch } : undefined,
+    });
     return supabase;
   }
   function key(): Promise<CryptoKey> {
