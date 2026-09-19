@@ -16,12 +16,14 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 ## The loop
 
 - **Play Now:** match an open adventure or start immediately with companions.
+- **Bring friends:** start a private friend table from the lobby. It is excluded from public discovery and Play Now. Share the full invitation link; new members cannot enter using its short code alone. Anyone holding the link can join and members may reshare it. Past members can return from their recap when a seat is available.
 - **Catch up:** the current situation and objective fit in a short scene panel.
 - **Contribute:** drag Fight, Influence, Investigate, or Assist coins onto cards on the felt table. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.
 - **Feel the consequence:** successful interactions change scene cards and open new approaches. Your result shows the roll, what changed, and an opening for your next move.
 - **Improvise:** one Spotlight per chapter can propose cover, distraction, a discovery, or a rescue. The server validates the proposal; the player confirms it before spending anything.
 - **Borrow a spark:** tap an authored Spotlight suggestion for a supported attempt without typing or an AI connection. Edited ideas go through normal interpretation, and every attempt still requires confirmation and a roll.
 - **Keep moving:** simultaneous 30-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
+- **Play together:** see teammates' committed approaches and targets. Send a quick Cheers, Thanks, or Clever reaction; bubbles expire, respect mute, and never change game mechanics. Reactions have a four-second server cooldown and do not block submitting your move.
 - **Leave freely:** retain contributions and rewards. Returning visitors can inspect their chapter outcomes.
 - **Return to your story:** unread chapter endings are highlighted in recent visits; keepsakes show their origin and your recorded chapter contribution. Read markers and dismissed guidance are remembered in this browser.
 
@@ -40,6 +42,8 @@ Generation has a five-second deadline. Authored narration and supported standard
 The production app uses Supabase anonymous authentication and a Netlify function. Apply the existing Supabase migrations and the new `202609190001_dropinn_v2.sql` migration before enabling v2. Configure the public Supabase URL/anon key and server-only service credentials in Netlify. See [server setup](server/DROPINN.md) for the full deployment contract.
 
 V2 uses separate tables and preserves legacy rooms and characters. Room mutations are committed with revision checks; rewards and durable events are part of that transaction. Clients subscribe to updates and request deadline processing; presence writes do not replace the game snapshot.
+
+Friend-table visibility and invitation keys are stored in the existing member-readable room snapshot, so this change needs no additional migration. New private rooms get a random invitation key; the shared URL carries it in a fragment rather than its query string. The server validates it before first admission. Direct room reads remain restricted to members by the existing API checks and Supabase policies. Friend-table links do not currently expire or support revocation. Deploy the updated client and function together, then verify private discovery exclusion and invitation admission on the hosted service.
 
 ## Verification
 

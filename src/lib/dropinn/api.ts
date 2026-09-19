@@ -17,6 +17,8 @@ export interface AdventureResponse {
   error?: string;
 }
 export interface AdventureRequest {
+  visibility?: 'public' | 'private';
+  inviteKey?: string;
   operation: 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
   roomCode?: string;
   command?: AdventureCommand;

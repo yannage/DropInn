@@ -2,6 +2,8 @@ import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
 export type CreativeEffect = 'cover' | 'distract' | 'reveal' | 'rescue';
+export type ReactionKind = 'cheer' | 'thanks' | 'clever';
+export interface TableReaction { id: string; userId: string; kind: ReactionKind; at: number }
 export interface SceneTarget {
   id: string;
   name: string;
@@ -84,6 +86,8 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  visibility?: 'public' | 'private';
+  inviteKey?: string;
   version: 2;
   id: string;
   code: string;
@@ -109,6 +113,7 @@ export interface AdventureRoom {
   outcomes: ChapterOutcome[];
   appliedCommands: string[];
   variation?: { title: string; atmosphere: string };
+  reactions?: TableReaction[];
 }
 export interface RoomSummary {
   code: string;
@@ -125,13 +130,15 @@ export interface RoomSummary {
   updatedAt: number;
 }
 export interface AdventureCommand {
+  inviteKey?: string;
   id: string;
-  type: 'join' | 'leave' | 'tick' | 'act';
+  type: 'join' | 'leave' | 'tick' | 'act' | 'react';
   userId: string;
   expectedTurn?: number;
   expectedRevision?: number;
   character?: CharacterProfile;
   action?: PlayerAction;
+  reaction?: ReactionKind;
 }
 export interface ChatMessage {
   id: string;

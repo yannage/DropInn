@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { createCharacterProfile, CHARACTER_CLASS_PRESETS, sanitizeCharacterName, type CharacterProfile, type CharacterClassKey } from '../lib/character';
 import { adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
-import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap } from '../lib/dropinn/types';
+import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap, ReactionKind } from '../lib/dropinn/types';
 import { getVisitRecap } from '../lib/dropinn/engine';
 import { ensureAnonymousUser } from '../lib/supabase/client';
 import { listSupabaseCharacters, upsertSupabaseCharacter, updateSupabaseHeroIdentity } from '../lib/supabase/characters';
 import { getLevelForXp } from '../lib/progression';
+import { parseInvitation } from '../lib/dropinn/invites';
 
 const namespace = new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'default';
 const storageKey = `dropinn-v2-player-${namespace}`;
@@ -58,6 +59,8 @@ interface AdventureState {
   narration: { text: string; catchUp: string; turn: number } | null;
   loading: boolean;
   proposing: boolean;
+  reacting: boolean;
+  sendReaction: (reaction: ReactionKind) => Promise<void>;
   error: string | null;
   mutedUserIds: string[];
   seenOutcomes: Record<string, number>;
@@ -65,8 +68,9 @@ interface AdventureState {
   initialize: () => Promise<void>;
   refreshRooms: () => Promise<void>;
   playNow: () => Promise<void>;
+  startFriendTable: () => Promise<void>;
   prepareAdventure: () => Promise<void>;
-  joinRoom: (code: string) => Promise<void>;
+  joinRoom: (code: string, inviteKey?: string) => Promise<void>;
   syncRoom: () => Promise<void>;
   commitAction: (action: PlayerAction) => Promise<void>;
   leaveRoom: () => Promise<void>;
@@ -164,11 +168,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       }).catch(() => { /* Authored result is already visible. */ });
     }
   };
-  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string) => {
+  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string) => {
     await ensureHostedHero();
     const epoch = ++viewEpoch;
     proposalSequence++;
-    const response = await request({ operation, roomCode: code, variationId });
+    const response = await request({ operation, roomCode: code, variationId, visibility, inviteKey });
     if (!response.room) throw new Error('This adventure could not be opened.');
     unsubscribe?.();
     set({ room: null, messages: [], recap: null, proposal: null, narration: null });
@@ -180,7 +184,18 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
   return {
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
-    loading: false, proposing: false, error: null, mutedUserIds: saved.muted,
+    loading: false, proposing: false, reacting: false, error: null, mutedUserIds: saved.muted,
+    sendReaction: async reaction => {
+      const room = get().room;
+      if (!room || get().reacting) return;
+      const epoch = viewEpoch;
+      set({ reacting: true });
+      try {
+        await accept(await request({ operation: 'command', roomCode: room.code,
+          command: { id: crypto.randomUUID(), type: 'react', userId: get().userId, reaction } }), epoch);
+      } catch (error) { if (epoch === viewEpoch) fail(error); }
+      finally { set({ reacting: false }); }
+    },
     seenOutcomes: saved.seenOutcomes || {},
     markRecapSeen: recap => {
       const key = `${recap.code}:${recap.characterId}`;
@@ -219,12 +234,16 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       finally { listInFlight = false; }
     },
     playNow: () => busy(() => enter('play')),
+    startFriendTable: () => busy(() => enter('play', undefined, undefined, 'private')),
     prepareAdventure: () => busy(async () => {
       await ensureHostedHero();
       const response = await request({ operation: 'prepare' });
       await enter('play', undefined, response.variationId);
     }),
-    joinRoom: code => busy(() => enter('join', code.trim().toUpperCase())),
+    joinRoom: (input, inviteKey) => busy(() => {
+      const invitation = parseInvitation(input);
+      return enter('join', invitation.code, undefined, undefined, inviteKey ?? invitation.inviteKey);
+    }),
     syncRoom: async () => {
       const code = get().room?.code;
       if (!code || syncInFlight || get().loading) return;

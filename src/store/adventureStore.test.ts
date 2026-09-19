@@ -39,6 +39,23 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('does not block a real move while a reaction request is pending', async () => {
+    const { store, room } = await setup();
+    let finishReaction!: (value: unknown) => void;
+    mocks.request.mockImplementation(async payload => {
+      if (payload.command?.type === 'react') return new Promise(resolve => { finishReaction = resolve; });
+      return { backend: 'local', room };
+    });
+    const reacting = store.getState().sendReaction('cheer');
+    expect(store.getState().reacting).toBe(true);
+    expect(store.getState().loading).toBe(false);
+    await store.getState().commitAction({ token: 'assist', targetId: 'mara' });
+    expect(mocks.request).toHaveBeenCalledWith(expect.objectContaining({ command: expect.objectContaining({ type: 'act' }) }));
+    finishReaction({ backend: 'local', room });
+    await reacting;
+    expect(store.getState().reacting).toBe(false);
+  });
+
   it('persists read endings without hiding outcomes that arrive later', async () => {
     const { store, room } = await setup();
     const { getVisitRecap } = await import('../lib/dropinn/engine');

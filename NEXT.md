@@ -24,6 +24,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 ### 3. Prove creative play with a real provider
 
 - [ ] Configure and evaluate hosted Spotlight interpretation with feasible, impossible, ambiguous, and adversarial ideas.
+  - Local `qwen3.5:4b` evaluated on 2026-09-19: seven cases all returned fallbacks near the five-second deadline; no generated proposals could be scored. See [evaluation notes](docs/ai-evaluation.md). Hosted evaluation remains outstanding.
 - [ ] Verify preview accuracy, bounded effects, five-second fallback, and token preservation on failure.
 - [x] Add tappable, chapter-specific Spotlight suggestions. Authored suggestions work without inference, get signed server previews, and spend a token only on confirmation; changed/obsolete suggestions do not bypass interpretation.
 
@@ -45,8 +46,8 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 ### 6. Expand the experience after the pilot
 
 - [ ] Add a second authored adventure with a distinct situation, such as a runaway airship or a tavern mystery.
-- [ ] Support private friend tables alongside public drop-in play.
-- [ ] Add lightweight reactions and clearer teammate intentions without requiring chat.
+- [x] Support private friend tables alongside public drop-in play: hidden from discovery/matching, full invitation required for new members, saved-member return, and stale-seat recovery. Anyone with a shared full link can join; existing members may reshare it. Browser and local service checks pass; verify hosted behavior after deployment.
+- [x] Add Cheers/Thanks/Clever reactions with short-lived animated bubbles, mute support, and a server-enforced cooldown. Show each teammate's committed token and target without requiring chat. Reactions never affect rewards, deadlines, or actions.
 - [ ] Build a small report-review workflow and basic operational metrics.
 - [ ] Add community story pitches, a curator queue, revision feedback and reviewed publication. See [community story workflow](docs/community-stories.md). First extract an adventure registry and prove a second authored adventure; submissions are future work, not part of this MVP pass.
 

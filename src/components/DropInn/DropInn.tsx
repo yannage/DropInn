@@ -54,6 +54,8 @@ import { ActionTable } from './ActionTable';
 import { getScene, spotlightExample } from '../../lib/dropinn/scene';
 import { playTableSound } from './tableSound';
 import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
+import { TableReactions } from './TableReactions';
+import { invitationUrl } from '../../lib/dropinn/invites';
 
 const classes: CharacterClassKey[] = ['wizard', 'fighter', 'rogue', 'cleric'];
 const roleCopy: Record<CharacterClassKey, string> = {
@@ -200,6 +202,9 @@ function Modal({
 
 function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
   const markRecapSeen = useAdventureStore(state => state.markRecapSeen);
+  const joinRoom = useAdventureStore(state => state.joinRoom);
+  const loading = useAdventureStore(state => state.loading);
+  const [returnError, setReturnError] = useState<string | null>(null);
   useEffect(() => { markRecapSeen(recap); }, [recap.code, recap.characterId, recap.outcomes.length, markRecapSeen]);
   return (
     <Modal title="Your adventure recap" onClose={onClose}>
@@ -264,6 +269,14 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
         Your progress is saved. Check your recent visits for the chapter’s
         outcome.
       </p>
+      {recap.outcomes.length < CHAPTERS.length && <button className="di-button di-secondary di-full" disabled={loading}
+        onClick={async () => {
+          setReturnError(null);
+          await joinRoom(recap.code);
+          if (useAdventureStore.getState().room?.code === recap.code) onClose();
+          else setReturnError(useAdventureStore.getState().error ?? 'This table could not be reopened.');
+        }}>{loading ? 'Finding your seat…' : 'Return to this table'} <Users size={16} /></button>}
+      {returnError && <p role="alert" className="di-fine">{returnError}</p>}
       <button className="di-button di-primary di-full" onClick={onClose}>
         Back to the inn <ArrowRight size={17} />
       </button>
@@ -300,9 +313,11 @@ export function DropInn() {
     const code = new URLSearchParams(window.location.search).get('room');
     if (code) {
       const url = new URL(window.location.href);
+      const inviteKey = new URLSearchParams(url.hash.slice(1)).get('invite') ?? undefined;
       url.searchParams.delete('room');
+      url.hash = '';
       window.history.replaceState({}, '', url.toString());
-      if (room?.code !== code.toUpperCase()) void joinRoom(code);
+      if (room?.code !== code.toUpperCase()) void joinRoom(code, inviteKey);
     }
   }, [ready, room?.code, joinRoom]);
   useEffect(() => {
@@ -445,6 +460,7 @@ function Lobby() {
     rooms,
     loading,
     playNow,
+    startFriendTable,
     joinRoom,
     prepareAdventure,
     setHero,
@@ -731,6 +747,15 @@ function Lobby() {
             </section>
           )}
           <section className="di-join-card">
+            <div className="di-friend-table-start">
+              <span className="di-eyebrow">Just your people</span>
+              <h3>Save a table for friends.</h3>
+              <p>Start with companions and invite up to three friends. Your table stays out of public discovery.</p>
+              <button type="button" className="di-button di-secondary di-full" disabled={loading} onClick={() => void startFriendTable()}>
+                <Users size={17} /> Start a friend table
+              </button>
+              <small>Anyone you share the full invitation with can join.</small>
+            </div>
             <span className="di-eyebrow">Friends saved you a seat?</span>
             <h3>Follow them in.</h3>
             <form
@@ -740,15 +765,15 @@ function Lobby() {
               }}
             >
               <label className="di-sr-only" htmlFor="room-code">
-                Adventure code
+                Adventure code or invitation link
               </label>
               <input
                 id="room-code"
                 value={code}
-                onChange={(event) => setCode(event.target.value.toUpperCase())}
-                placeholder="Adventure code"
-                maxLength={12}
-                autoCapitalize="characters"
+                onChange={(event) => setCode(event.target.value)}
+                placeholder="Code or invitation link"
+                maxLength={2048}
+                autoCapitalize="none"
                 autoComplete="off"
               />
               <button
@@ -868,15 +893,13 @@ function Adventure({ room }: { room: AdventureRoom }) {
     ),
   );
   const copyInvite = async () => {
-    const url = new URL(window.location.href);
-    url.search = '';
-    url.searchParams.set('room', room.code);
+    const url = invitationUrl(room, window.location.origin);
     try {
-      await navigator.clipboard.writeText(url.toString());
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2500);
     } catch {
-      setInviteText(url.toString());
+      setInviteText(url);
     }
   };
   const humanSeats = room.seats.filter(
@@ -918,6 +941,7 @@ function Adventure({ room }: { room: AdventureRoom }) {
           <span>{copied ? 'Invite copied' : `Invite · ${room.code}`}</span>
         </button>
       </div>
+      {room.visibility === 'private' && <p className="di-private-table-note"><Users size={14} /> Friend table · Only invited players and returning members can join. Share the full invitation link.</p>}
       {inviteText && (
         <div className="di-invite-fallback">
           <label htmlFor="invite-link">Copy your invitation link</label>
@@ -1100,7 +1124,11 @@ function Adventure({ room }: { room: AdventureRoom }) {
                         'Leaving this turn'
                       ) : room.commits[member.actorId] ? (
                         <>
-                          <Check size={10} /> Ready
+                          <span className="di-committed-intent"><Check size={12} />
+                            <span><b>{tokens.find(token => token.kind === room.commits[member.actorId].token)?.label ?? 'Spotlight'} committed</b>
+                              <small>{chapter.targets.find(target => target.id === room.commits[member.actorId].targetId)?.name ?? 'The scene'}</small>
+                            </span>
+                          </span>
                         </>
                       ) : member.kind === 'companion' ? (
                         roleCopy[member.character.classKey].split('.')[0]
@@ -1388,7 +1416,8 @@ function Adventure({ room }: { room: AdventureRoom }) {
               {myLastMove.change && <p className="di-next-opening"><ArrowRight size={13} /> {myLastMove.change.next}</p>}
             </div>
           </section>}
-          <Chat room={room} />
+            {room.status !== 'completed' && <TableReactions room={room} />}
+            <Chat room={room} />
           {participant && participant.actions > 0 && (
             <div className="di-visit-progress">
               <Sparkles size={17} />

@@ -10,6 +10,7 @@ interface RequestBody {
   sessionId?: string; roomCode?: string; characterId?: string; character?: CharacterProfile;
   command?: AdventureCommand; idea?: string; targetId?: string; text?: string;
   reportedUserId?: string; reason?: string; variationId?: string;
+  visibility?: 'public' | 'private'; inviteKey?: string;
 }
 interface Prepared { owner: string; variation: AdventureVariation; expires: number }
 interface LocalState {
@@ -148,8 +149,9 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
     return data.snapshot as AdventureRoom;
   }
   async function list(): Promise<AdventureRoom[]> {
-    if (local) return Promise.all([...state.rooms.values()].filter((room) => room.status !== 'completed').map((room) => reconcilePresence(structuredClone(room))));
-    const { data, error } = await client().from('adventure_rooms').select('snapshot').neq('status', 'completed').order('updated_at', { ascending: false }).limit(50);
+    if (local) return Promise.all([...state.rooms.values()].filter((room) => room.status !== 'completed' && room.visibility !== 'private').map((room) => reconcilePresence(structuredClone(room))));
+    const { data, error } = await client().from('adventure_rooms').select('snapshot').neq('status', 'completed')
+      .or('snapshot->>visibility.is.null,snapshot->>visibility.eq.public').order('updated_at', { ascending: false }).limit(50);
     if (error) throw new RequestError('Adventures could not be loaded.', 503);
     return Promise.all(data.map((row) => reconcilePresence(row.snapshot as AdventureRoom)));
   }
@@ -275,15 +277,23 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
         return reply({ variationId, variation });
       }
       if (body.operation === 'play' || body.operation === 'join') {
+        if (body.visibility !== undefined && !['public', 'private'].includes(body.visibility)) throw new RequestError('Choose a public or friend table.');
         await rateLimit(userId, 'join', 20);
         const character = await characterFor(body, userId);
-        const command = { id: crypto.randomUUID(), type: 'join' as const, userId, character };
+        const command = { id: crypto.randomUUID(), type: 'join' as const, userId, character, inviteKey: typeof body.inviteKey === 'string' ? body.inviteKey : undefined };
         if (body.operation === 'join') {
-          const room = await mutate(codeFrom(body.roomCode), command);
+          const code = codeFrom(body.roomCode);
+          const current = await load(code);
+          if (current.visibility === 'private' && !current.players[userId]
+            && (!current.inviteKey || current.inviteKey !== command.inviteKey)) throw new RequestError('Use the invitation link to join this friend table.', 409);
+          // Private rooms are not scanned by public discovery. Reclaim stale
+          // seats for an authorized visitor before checking admission.
+          await reconcilePresence(current);
+          const room = await mutate(code, command);
           await heartbeat(room.code, userId);
           return reply({ room, messages: await messagesFor(room.code) });
         }
-        if (!body.variationId) {
+        if (!body.variationId && body.visibility !== 'private') {
           const candidates = (await list()).sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active') || b.updatedAt - a.updatedAt);
           for (const candidate of candidates) {
             if (summarizeRoom(candidate).openSeats === 0 && !candidate.players[userId]) continue;
@@ -311,6 +321,10 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
         }
         for (let attempt = 0; attempt < 8; attempt++) {
           const room = createAdventure(character, userId, now());
+          if (body.visibility === 'private') {
+            room.visibility = 'private';
+            room.inviteKey = crypto.randomUUID().replace(/-/g, '');
+          }
           if (variation) room.variation = variation;
           if (await save(room, -1, command.id, userId) === 'applied') return reply({ room, messages: [] });
         }
@@ -327,9 +341,9 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       if (body.operation === 'command') {
         const input = body.command;
-        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick'].includes(input.type)) throw new RequestError('That action is not supported.');
+        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react'].includes(input.type)) throw new RequestError('That action is not supported.');
         const command: AdventureCommand = { id: input.id, type: input.type, userId,
-          expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action };
+          expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action, reaction: input.reaction };
         room = await mutate(code, command);
         return reply({ room, messages: await messagesFor(code) });
       }

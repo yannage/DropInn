@@ -96,6 +96,24 @@ describe('drop-in adventure creation and discovery', () => {
 });
 
 describe('simultaneous turns and recovery', () => {
+  it('keeps reactions cosmetic, deduplicated, bounded, and limited to seated humans', () => {
+    const room = twoPlayers();
+    const input: AdventureCommand = { id: 'cheer-once', type: 'react', userId: 'alice', reaction: 'cheer' };
+    const result = reduceAdventure(room, input, room.updatedAt + 1);
+    expect(result.reactions).toHaveLength(1);
+    for (const key of ['turn', 'deadline', 'phase', 'progress', 'danger', 'players', 'commits', 'events'] as const) expect(result[key]).toEqual(room[key]);
+    expect(reduceAdventure(result, input, result.updatedAt + 1)).toBe(result);
+    expect(() => command(result, 'react', 'alice', { reaction: 'thanks' })).toThrow('moment');
+    expect(() => command(result, 'react', 'stranger', { reaction: 'cheer' })).toThrow('seat');
+    expect(() => command(result, 'react', 'bob', { reaction: 'bad' as never })).toThrow('reaction');
+    const later = command(result, 'react', 'alice', { reaction: 'clever' }, result.updatedAt + 11000);
+    expect(later.reactions).toHaveLength(1);
+    expect(later.reactions?.[0].kind).toBe('clever');
+    const committed = act(later);
+    expect(committed.commits.alice).toBeDefined();
+    expect(committed.phase).toBe('choosing');
+  });
+
   it('resolves early after all humans commit and waits six seconds before opening a new turn', () => {
     let room = twoPlayers();
     const turn = room.turn;

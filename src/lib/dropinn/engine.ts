@@ -271,7 +271,13 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
     throw new Error('This adventure is complete. Start another story.');
   }
   const room: AdventureRoom = JSON.parse(JSON.stringify(original));
-  if (command.type === 'act') {
+  if (command.type === 'react') {
+    if (!room.seats.some(seat => seat.kind === 'human' && seat.actorId === command.userId && !seat.leaving)) throw new Error('Take a seat before reacting.');
+    if (!command.reaction || !['cheer', 'thanks', 'clever'].includes(command.reaction)) throw new Error('Choose a table reaction.');
+    const recent = (room.reactions ?? []).filter(reaction => now - reaction.at < 10_000);
+    if (recent.some(reaction => reaction.userId === command.userId && now - reaction.at < 4_000)) throw new Error('Give your last reaction a moment.');
+    room.reactions = [...recent, { id: command.id, userId: command.userId, kind: command.reaction, at: now }].slice(-12);
+  } else if (command.type === 'act') {
     if (command.expectedTurn === undefined) throw new Error('An action must identify its turn.');
     if (room.status !== 'active' || room.phase !== 'choosing' || now >= room.deadline) throw new Error('This turn has ended. Choose an action for the next scene.');
     if (room.commits[command.userId]) throw new Error('Your action is already committed for this turn.');
@@ -280,6 +286,8 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
     room.commits[command.userId] = command.action;
     if (humans(room).every(s => room.commits[s.actorId])) resolveRound(room, now);
   } else if (command.type === 'join') {
+    if (room.visibility === 'private' && !room.players[command.userId]
+      && (!room.inviteKey || command.inviteKey !== room.inviteKey)) throw new Error('Use the invitation link to join this friend table.');
     const existingSeat = room.seats.find(s => s.actorId === command.userId && s.kind === 'human');
     if (existingSeat) { if (!existingSeat.leaving) return original; existingSeat.leaving = false; }
     else {

@@ -26,6 +26,66 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('reclaims disconnected seats when an invited visitor returns to a full private table', async () => {
+    const { call, hero, advance } = harness();
+    const room = (await call('play', { character: hero, visibility: 'private' })).room as AdventureRoom;
+    for (const id of ['friend_a', 'friend_b', 'friend_c']) {
+      expect((await call('join', { character: hero, roomCode: room.code, inviteKey: room.inviteKey }, id)).status).toBe(200);
+    }
+    await call('command', commit(room));
+    advance(6000);
+    const full = (await call('read', { roomCode: room.code })).room as AdventureRoom;
+    expect(full.seats.filter(seat => seat.kind === 'human')).toHaveLength(4);
+    advance(66000);
+    const joined = await call('join', { character: hero, roomCode: room.code, inviteKey: room.inviteKey }, 'friend_d');
+    expect(joined.status).toBe(200);
+    expect(joined.room.players.friend_d.seatId).not.toBeNull();
+    expect(joined.room.seats.filter((seat: { kind: string }) => seat.kind === 'human')).toHaveLength(1);
+  });
+
+  it('keeps friend tables out of discovery and matchmaking and requires invitations for new members', async () => {
+    const { call, hero, advance } = harness();
+    const created = await call('play', { character: hero, visibility: 'private' });
+    expect(created.status).toBe(200);
+    const room = created.room as AdventureRoom;
+    expect(room.visibility).toBe('private');
+    expect(room.inviteKey).toMatch(/^[a-f0-9]{32}$/);
+    expect((await call('list', {}, 'outsider')).rooms).toEqual([]);
+    expect((await call('read', { roomCode: room.code }, 'outsider')).status).toBe(403);
+    const publicPlay = await call('play', { character: { ...hero, id: crypto.randomUUID() } }, 'outsider');
+    expect(publicPlay.room.code).not.toBe(room.code);
+    for (const inviteKey of [undefined, 'wrong-key']) {
+      const denied = await call('join', { roomCode: room.code, character: hero, inviteKey }, 'player_friend');
+      expect(denied.status).toBe(409);
+    }
+    const joined = await call('join', { roomCode: room.code, character: hero, inviteKey: room.inviteKey }, 'player_friend');
+    expect(joined.status).toBe(200);
+    expect(joined.room.pendingJoins).toContain('player_friend');
+    await call('command', commit(room));
+    advance(6000);
+    expect((await call('read', { roomCode: room.code }, 'player_friend')).room.players.player_friend.seatId).not.toBeNull();
+    await call('command', { roomCode: room.code, command: { id: crypto.randomUUID(), type: 'leave' } }, 'player_friend');
+    const returning = await call('join', { roomCode: room.code, character: hero }, 'player_friend');
+    expect(returning.status).toBe(200);
+    expect((await call('history', {}, 'player_friend')).recaps.some((visit: { code: string }) => visit.code === room.code)).toBe(true);
+    const listing = (await call('list', {}, 'player_friend')).rooms;
+    expect(listing.some((summary: { code: string }) => summary.code === room.code)).toBe(false);
+    expect(JSON.stringify(listing)).not.toContain(room.inviteKey);
+  });
+
+  it('shares reactions through the authoritative command path without awarding progress', async () => {
+    const { call, hero } = harness();
+    const room = (await call('play', { character: hero })).room as AdventureRoom;
+    const command = { id: crypto.randomUUID(), type: 'react', reaction: 'thanks', userId: 'forged_user' };
+    const result = await call('command', { roomCode: room.code, command });
+    expect(result.status).toBe(200);
+    expect(result.room.reactions[0].userId).toBe('player_one');
+    expect(result.room.players.player_one.xp).toBe(0);
+    expect(result.room.deadline).toBe(room.deadline);
+    expect((await call('command', { roomCode: room.code, command })).room.reactions).toHaveLength(1);
+    expect((await call('command', { roomCode: room.code, command: { ...command, id: crypto.randomUUID() } })).status).toBe(409);
+  });
+
   it('signs an authored suggestion and spends Spotlight only once on confirmation', async () => {
     const { call, hero } = harness();
     const room = (await call('play', { character: hero })).room as AdventureRoom;
