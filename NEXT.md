@@ -23,6 +23,8 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [x] Add restrained dice, token, and consequence animation, plus optional sound with mute and reduced-motion support.
 - [x] Add a felt table with draggable action coins, compatible-target feedback, tap/keyboard alternatives, and cosmetic hold-to-grow/reset interaction.
 
+- [x] Add bounded teamwork: different committed human tokens at the same target grant each paired roll +1, capped at one. Show teammate approaches on target cards, preview current insight/distraction/teamwork support, and explain applied bonuses in results. Engine and two-player mobile browser checks pass; tune balance with real parties.
+
 ### 3. Prove creative play with a real provider
 
 - [ ] Configure and evaluate hosted Spotlight interpretation with feasible, impossible, ambiguous, and adversarial ideas.
@@ -52,6 +54,12 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [x] Add Cheers/Thanks/Clever reactions with short-lived animated bubbles, mute support, and a server-enforced cooldown. Show each teammate's committed token and target without requiring chat. Reactions never affect rewards, deadlines, or actions.
 - [ ] Build a small report-review workflow and basic operational metrics.
 - [ ] Add community story pitches, a curator queue, revision feedback and reviewed publication. See [community story workflow](docs/community-stories.md). First extract an adventure registry and prove a second authored adventure; submissions are future work, not part of this MVP pass.
+
+## Further design iterations
+
+- **Gameplay:** build an adventure registry and a second authored story with a different core problem; explore a visible chapter choice whose consequences carry into the next scene. Playtest whether teamwork creates interesting cooperation or makes piling onto one target too dominant before adding more bonuses.
+- **Visual polish:** make long placed-token previews more compact on narrow screens; give chapter transitions a brief illustrated payoff that never blocks joining or leaving. Keep reduced-motion and keyboard alternatives.
+- **Functionality:** prioritize optional account recovery, hosted reconnect/provider checks, and a practical report-review workflow. These remain more valuable for public launch than additional generated story volume.
 
 ## Before a public pilot
 

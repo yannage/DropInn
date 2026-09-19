@@ -53,6 +53,7 @@ import type {
 } from '../../lib/dropinn/types';
 import { SceneArt } from './SceneArt';
 import { ActionTable } from './ActionTable';
+import { rollSupport, supportText } from '../../lib/dropinn/teamwork';
 import { getScene, spotlightExample } from '../../lib/dropinn/scene';
 import { playTableSound } from './tableSound';
 import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
@@ -1516,6 +1517,8 @@ function ActionChoices({
   const description = effectiveToken
     ? describeAction(character.classKey, effectiveToken, target.id, room)
     : null;
+  const support = rollSupport(room, userId, { token: showSpotlight ? 'spotlight' : effectiveToken, targetId: target.id });
+  const bonusCopy = support.total ? `Roll support: ${supportText(support)}.` : '';
   const relevantProposal =
     proposal?.turn === room.turn && proposal.targetId === target.id
       ? proposal
@@ -1536,9 +1539,13 @@ function ActionChoices({
           <p>Drag a coin onto a scene card—or tap both. Read the effect, then press <b>Confirm move</b> beneath your coin. Bigger coins don’t change your odds.</p></div>
         <button type="button" className="di-icon-button" aria-label="Dismiss first-move guide" onClick={dismissGuide}><X size={16} /></button>
       </aside>}
-      <ActionTable targets={chapter.targets} token={effectiveToken} targetId={target.id}
+      <div className={`di-party-support ${support.total ? 'di-party-support-active' : ''}`} aria-live="polite">
+        <Sparkles size={17} /><div><strong>{support.total ? bonusCopy : 'A little teamwork goes a long way'}</strong>
+        <p>Different tokens on the same target give both players +1 to their rolls. Confirmed human moves count; the teamwork bonus never stacks.</p></div>
+      </div>
+      <ActionTable room={room} userId={userId} targets={chapter.targets} token={effectiveToken} targetId={target.id}
         downed={downed} disabled={loading} turn={room.turn}
-        active={!showSpotlight} preview={description?.description ?? ''}
+        active={!showSpotlight} preview={`${description?.description ?? ''} ${bonusCopy}`.trim()}
         onConfirm={() => { dismissGuide(); void commitAction({ token: effectiveToken, targetId: target.id }); }}
         onChoose={(nextToken, nextTarget) => {
           setToken(nextToken); setTargetId(nextTarget); setShowSpotlight(false); clearProposal();

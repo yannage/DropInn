@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { Heart, MessageCircle, Search, Swords, Check, Sparkles, Volume2, VolumeX } from 'lucide-react';
-import type { SceneTarget, TokenKind } from '../../lib/dropinn/types';
+import type { AdventureRoom, SceneTarget, TokenKind } from '../../lib/dropinn/types';
+import { teammatesAt } from '../../lib/dropinn/teamwork';
 import { playTableSound, tableSoundEnabled, setTableSound } from './tableSound';
 
 const coins = [
@@ -11,7 +12,8 @@ const coins = [
 ];
 type Gesture = { pointer: number; token: TokenKind; x: number; y: number; at: number; dragging: boolean; popped: boolean };
 
-export function ActionTable({ targets, token, targetId, downed, disabled, turn, onChoose, onConfirm, preview, active }: {
+export function ActionTable({ targets, token, targetId, downed, disabled, turn, onChoose, onConfirm, preview, active, room, userId }: {
+  room: AdventureRoom; userId: string;
   targets: SceneTarget[]; token: TokenKind; targetId: string; downed: boolean; disabled: boolean; turn: number;
   onChoose: (token: TokenKind, targetId: string) => void;
   onConfirm: () => void; preview: string; active: boolean;
@@ -101,8 +103,10 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
       <div className="di-target-grid">
         {targets.map(target => {
           const compatible = canPlace(held ?? token, target);
+          const teammates = teammatesAt(room, userId, target.id);
+          const pairing = compatible && teammates.some(mate => mate.token !== (held ?? token));
           const placed = active && landed === target.id && targetId === target.id && placedCoin;
-          return <div key={target.id} data-table-target={target.id} className={`di-table-spot ${placed ? 'di-spot-placed' : ''}`}>
+          return <div key={target.id} data-table-target={target.id} className={`di-table-spot ${placed ? 'di-spot-placed' : ''} ${pairing ? 'di-teamwork-ready' : ''}`}>
           <button type="button"
             disabled={disabled} aria-pressed={targetId === target.id} aria-label={`${target.name}${target.changed ? ', changed by the party' : ''}`}
             className={`di-target-card ${targetId === target.id ? 'di-target-selected' : ''} ${held && compatible ? 'di-target-welcomes' : ''} ${over === target.id ? compatible ? 'di-target-over' : 'di-target-refuses' : ''} ${landed === target.id ? 'di-token-landed' : ''}`}
@@ -112,6 +116,12 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
             <span className="di-target-card-copy">{target.description}</span>
             {targetId === target.id && <Check className="di-target-check" size={14} />}
           </button>
+          {teammates.length > 0 && <div className="di-target-teammates" aria-label={`Committed moves at ${target.name}`}>
+            {teammates.map(mate => { const coin = coins.find(item => item.kind === mate.token); const Icon = coin?.Icon ?? Sparkles;
+              return <span key={mate.userId}><Icon size={13} /><b>{mate.name}</b> {coin?.label ?? 'Spotlight'}</span>;
+            })}
+            <small>{pairing ? '+1 teamwork with this token' : 'Try a different token here for +1 teamwork'}</small>
+          </div>}
           {placed && <div className="di-placed-move" aria-label="Move awaiting confirmation">
             <button type="button" className={`di-coin-button di-placed-coin di-coin-${token}`} disabled={disabled}
               aria-label={`Move placed ${placedCoin.label} token`}

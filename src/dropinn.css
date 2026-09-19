@@ -3050,3 +3050,17 @@ html.dropinn-v2 #root {
 .di-connection p { margin:5px 0 0; font-size:13px; line-height:1.5; }
 .di-connection button { flex-shrink:0; min-height:44px; }
 @media (max-width:600px) { .di-connection { margin:12px; flex-direction:column; align-items:stretch; } }
+
+.di-party-support { display:flex; gap:10px; padding:12px 14px; border:1px solid #79bca133; border-radius:12px; background:#152724; color:#b6c8bf; margin-bottom:12px; }
+.di-party-support > svg { flex-shrink:0; margin-top:2px; }
+.di-party-support strong { font-size:13px; }
+.di-party-support p { font-size:12px; line-height:1.55; margin:5px 0 0; }
+.di-party-support-active { border-color:#79bca199; color:#c7f2d9; }
+.di-target-teammates { padding:9px 10px; display:flex; flex-direction:column; gap:6px; background:#0e2722; border:1px solid #79bca144; border-radius:0 0 10px 10px; }
+.di-target-teammates span { display:flex; gap:5px; align-items:center; font-size:11px; color:#c6dfd0; overflow-wrap:anywhere; }
+.di-target-teammates svg { flex-shrink:0; }
+.di-target-teammates small { font-size:10px; line-height:1.5; color:#a4baa9; }
+.di-teamwork-ready .di-target-teammates { border-color:#b4d99399; animation:di-teamwork-arrive .35s ease-out; }
+.di-teamwork-ready .di-target-teammates small { color:#d3e9ad; }
+@keyframes di-teamwork-arrive { from { opacity:.4; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) { .di-teamwork-ready .di-target-teammates { animation:none; } }

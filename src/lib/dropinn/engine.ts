@@ -1,6 +1,7 @@
 import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { CHAPTERS } from './content';
+import { rollSupport, supportText } from './teamwork';
 import { getScene, developScene } from './scene';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
@@ -138,7 +139,8 @@ function validateAction(room: AdventureRoom, userId: string, action: PlayerActio
 function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now: number, frozenBonus: number, startingDanger: number, share: number) {
   const description = describeAction(seat.character.classKey, action.token, action.targetId, { ...room, danger: startingDanger });
   const roll = 1 + hash(`${room.id}:${room.turn}:${seat.actorId}:${action.token}:${action.targetId}`) % 20;
-  const modifier = seat.character.traits[description.trait] + frozenBonus;
+  const support = rollSupport(room, seat.actorId, action);
+  const modifier = seat.character.traits[description.trait] + frozenBonus + support.teamwork;
   const success = roll + modifier >= description.dc;
   const target = chapterOf(room).targets.find(t => t.id === action.targetId)!;
   const previousProgress = room.progress;
@@ -161,7 +163,7 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
     }
     if (room.chapter === 2 && action.targetId === 'gloamfang' && action.token === 'fight') flag(room, 'guardian-confronted');
   } else { room.progress += share; room.danger += share; }
-  effect = `+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}`;
+  effect = `+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}${support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
   const text = action.token === 'spotlight' ? `${seat.character.name} tries: ${action.proposal!.label}. ${success ? 'It works!' : 'It proves difficult, but reveals the next step.'}` : `${seat.character.name} ${success ? 'succeeds' : 'finds a complication'}: ${description.label.toLowerCase()} at ${target.name}.`;
   const change = success ? developScene(room, action) : undefined;
   event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, roll, modifier, success, effect, ...(change ? { change } : {}) });
