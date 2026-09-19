@@ -57,6 +57,19 @@ export const CHARACTER_CLASS_PRESETS: Record<CharacterClassKey, CharacterClassPr
 
 export const getCharacterLabel = (classKey: CharacterClassKey) => CHARACTER_CLASS_PRESETS[classKey].label;
 
+export const HERO_COLORS = [
+  { name: 'Amethyst', value: '#A78BFA' },
+  { name: 'Jade', value: '#6EE7B7' },
+  { name: 'Gold', value: '#FCD34D' },
+  { name: 'Ember', value: '#F87171' },
+  { name: 'Sky', value: '#7DD3FC' },
+  { name: 'Rose', value: '#F9A8D4' },
+] as const;
+
+export function heroAccent(value: unknown, classKey: CharacterClassKey): string {
+  return HERO_COLORS.find(color => color.value === value)?.value ?? CHARACTER_CLASS_PRESETS[classKey].accent;
+}
+
 export const getCharacterInitial = (name: string) => name.trim().charAt(0).toUpperCase() || '?';
 
 export const sanitizeCharacterName = (name: string) => name.trim().slice(0, 18);

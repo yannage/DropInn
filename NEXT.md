@@ -41,7 +41,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [x] Present keepsakes with their chapter, story context, and the player's recorded contribution from that chapter. Older recaps fall back to origin context.
 - [x] Highlight unread chapter endings in recent visits, prioritize those visits, and remember which endings were opened. Read markers are local to this browser.
 - [ ] Add optional account recovery/upgrade so anonymous heroes can survive switching devices.
-- [ ] Explore cosmetic hero choices while preserving equal starting power.
+- [x] Add six saved hero colors with a live preview and matching lobby/table badges. Server validation preserves the chosen color while normalizing starting power; appearance changes preserve earned rewards. Mobile browser persistence and admission checks pass.
 
 ### 6. Expand the experience after the pilot
 

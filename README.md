@@ -16,6 +16,7 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 ## The loop
 
 - **Play Now:** match an open adventure or start immediately with companions.
+- **Make it yours:** choose from six hero colors with a live preview. Your saved color follows your badge into the shared table without changing starting power or earned rewards.
 - **Bring friends:** start a private friend table from the lobby. It is excluded from public discovery and Play Now. Share the full invitation link; new members cannot enter using its short code alone. Anyone holding the link can join and members may reshare it. Past members can return from their recap when a seat is available.
 - **Catch up:** the current situation and objective fit in a short scene panel.
 - **Contribute:** drag Fight, Influence, Investigate, or Assist coins onto cards on the felt table. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.

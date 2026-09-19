@@ -26,6 +26,15 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('carries a validated hero color through server admission without accepting inflated stats', async () => {
+    const { call, hero } = harness();
+    const response = await call('play', { character: { ...hero, accent: '#7DD3FC', hp: 999, traits: { INT: 999, ATH: 999, CHA: 999, ING: 999 } } });
+    expect(response.status).toBe(200);
+    expect(response.room.seats[0].character.accent).toBe('#7DD3FC');
+    expect(response.room.seats[0].character.traits.ING).toBe(4);
+    expect(response.room.seats[0].hp).toBe(11);
+  });
+
   it('reclaims disconnected seats when an invited visitor returns to a full private table', async () => {
     const { call, hero, advance } = harness();
     const room = (await call('play', { character: hero, visibility: 'private' })).room as AdventureRoom;

@@ -1,4 +1,4 @@
-import { CHARACTER_CLASS_PRESETS } from '../character';
+import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { CHAPTERS } from './content';
 import { getScene, developScene } from './scene';
@@ -23,7 +23,7 @@ const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | '
 function normalizedCharacter(character: CharacterProfile): CharacterProfile {
   const preset = CHARACTER_CLASS_PRESETS[character.classKey];
   if (!preset || !character.id || !character.name?.trim()) throw new Error('Choose a hero before joining.');
-  return { ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: preset.accent, spotlightTokens: 1, inventory: [...character.inventory] };
+  return { ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: heroAccent(character.accent, character.classKey), spotlightTokens: 1, inventory: [...character.inventory] };
 }
 
 function companion(index: number, usedClasses: Set<CharacterClassKey>): Seat {

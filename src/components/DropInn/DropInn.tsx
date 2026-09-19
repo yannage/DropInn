@@ -40,6 +40,8 @@ import { CHAPTERS } from '../../lib/dropinn/content';
 import { describeAction, getCatchUp } from '../../lib/dropinn/engine';
 import {
   CHARACTER_CLASS_PRESETS,
+  HERO_COLORS,
+  heroAccent,
   type CharacterClassKey,
   type CharacterProfile,
 } from '../../lib/character';
@@ -107,13 +109,15 @@ function HeroMark({
   hero,
   small = false,
 }: {
-  hero: Pick<CharacterProfile, 'classKey' | 'name'>;
+  hero: Pick<CharacterProfile, 'classKey' | 'name' | 'accent'>;
   small?: boolean;
 }) {
   const Icon = classIcons[hero.classKey];
+  const accent = heroAccent(hero.accent, hero.classKey);
   return (
     <span
       className={`di-hero-mark ${small ? 'di-small' : ''} di-class-${hero.classKey}`}
+      style={{ color: accent, borderColor: `${accent}80`, background: `radial-gradient(circle at 30% 20%, ${accent}44, ${accent}12)` }}
       aria-hidden="true"
     >
       <Icon strokeWidth={1.45} />
@@ -473,6 +477,7 @@ function Lobby() {
     character?.classKey ?? 'wizard',
   );
   const [editingHero, setEditingHero] = useState(false);
+  const [accent, setAccent] = useState(character?.accent ?? HERO_COLORS[0].value);
   const [preparing, setPreparing] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
@@ -484,12 +489,13 @@ function Lobby() {
     if (character) {
       setName(character.name);
       setHeroClass(character.classKey);
+      setAccent(heroAccent(character.accent, character.classKey));
     }
-  }, [character?.name, character?.classKey]);
+  }, [character?.name, character?.classKey, character?.accent]);
   const saveHero = async (event: FormEvent) => {
     event.preventDefault();
-    await setHero(name.trim() || 'Wren', heroClass);
-    setEditingHero(false);
+    await setHero(name.trim() || 'Wren', heroClass, accent);
+    if (!useAdventureStore.getState().error) setEditingHero(false);
   };
   const newTelling = async () => {
     setPreparing(true);
@@ -736,6 +742,14 @@ function Lobby() {
                   <p className="di-fine">
                     {roleCopy[heroClass]} All heroes start with equal power.
                   </p>
+                  <fieldset className="di-hero-colors">
+                    <legend>Your hero’s color</legend>
+                    <div className="di-color-preview"><HeroMark hero={{ name, classKey: heroClass, accent }} /><span>{name.trim() || 'Wren'}<small>{HERO_COLORS.find(color => color.value === accent)?.name ?? 'Amethyst'} · cosmetic only</small></span></div>
+                    <div role="group" aria-label="Hero colors">{HERO_COLORS.map(color => <button type="button" key={color.value}
+                      aria-label={`${color.name} hero color`} aria-pressed={accent === color.value} onClick={() => setAccent(color.value)}
+                      style={{ color: color.value }}><span style={{ background: color.value }}>{accent === color.value && <Check size={16} />}</span><small>{color.name}</small></button>)}</div>
+                    <p className="di-fine">Your color follows you to the table. It never changes abilities or rewards.</p>
+                  </fieldset>
                   <button
                     className="di-button di-secondary di-full"
                     disabled={loading}

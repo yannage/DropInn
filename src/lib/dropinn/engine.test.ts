@@ -27,6 +27,16 @@ function proposal(room: AdventureRoom, effect: CreativeEffect, targetId?: string
 }
 
 describe('drop-in adventure creation and discovery', () => {
+  it('preserves supported cosmetic colors while normalizing power and rejecting arbitrary styles', () => {
+    const colored = { ...hero('Rose mage'), accent: '#F9A8D4', hp: 999, traits: { INT: 999, ATH: 999, CHA: 999, ING: 999 } };
+    const room = createAdventure(colored, 'alice', 1000, 'COLORS');
+    expect(room.seats[0].character.accent).toBe('#F9A8D4');
+    expect(room.seats[0].hp).toBe(10);
+    expect(room.seats[0].character.traits.INT).toBe(3);
+    const invalid = createAdventure({ ...colored, accent: 'url(https://example.com)' }, 'alice', 1000, 'COLOR2');
+    expect(invalid.seats[0].character.accent).toBe('#A78BFA');
+  });
+
   it('starts immediately with one human and three distinct rule-driven companions', () => {
     const room = initial();
     expect(room.seats).toHaveLength(4);

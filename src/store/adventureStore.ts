@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createCharacterProfile, CHARACTER_CLASS_PRESETS, sanitizeCharacterName, type CharacterProfile, type CharacterClassKey } from '../lib/character';
+import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCharacterName, type CharacterProfile, type CharacterClassKey } from '../lib/character';
 import { adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
 import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap, ReactionKind } from '../lib/dropinn/types';
 import { getVisitRecap } from '../lib/dropinn/engine';
@@ -79,7 +79,7 @@ interface AdventureState {
   sendChat: (text: string) => Promise<boolean>;
   report: (userId: string, reason: string) => Promise<boolean>;
   toggleMute: (userId: string) => void;
-  setHero: (name: string, classKey: CharacterClassKey) => Promise<void>;
+  setHero: (name: string, classKey: CharacterClassKey, accent?: string) => Promise<void>;
   dismissRecap: () => void;
   clearError: () => void;
 }
@@ -311,11 +311,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       const muted = get().mutedUserIds.includes(userId) ? get().mutedUserIds.filter(id => id !== userId) : [...get().mutedUserIds, userId];
       saved.muted = muted; save(); set({ mutedUserIds: muted });
     },
-    setHero: (name, classKey) => busy(async () => {
+    setHero: (name, classKey, accent) => busy(async () => {
       if (get().room) throw new Error('Change your hero between visits.');
       const current = get().character!;
       const preset = CHARACTER_CLASS_PRESETS[classKey];
-      let character = { ...current, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: preset.accent };
+      let character = { ...current, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey) };
       if (!localPlay) character = await updateSupabaseHeroIdentity(get().userId, character);
       saved.character = character; save(); set({ character });
     }),

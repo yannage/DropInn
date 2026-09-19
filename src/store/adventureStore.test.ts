@@ -39,6 +39,19 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('saves cosmetic color across reload without changing earned rewards', async () => {
+    const { store, hero } = await setup();
+    await store.getState().leaveRoom();
+    await store.getState().setHero('Sky Wren', 'wizard', '#7DD3FC');
+    expect(store.getState().character?.accent).toBe('#7DD3FC');
+    expect(store.getState().character?.xp).toBe(hero.xp);
+    expect(store.getState().character?.inventory).toEqual(hero.inventory);
+    vi.resetModules();
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    expect(restored.getState().character?.accent).toBe('#7DD3FC');
+    expect(restored.getState().character?.name).toBe('Sky Wren');
+  });
+
   it('does not block a real move while a reaction request is pending', async () => {
     const { store, room } = await setup();
     let finishReaction!: (value: unknown) => void;
