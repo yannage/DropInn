@@ -182,7 +182,11 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
     if (local) return localCharacter(body.character);
     if (!body.characterId) throw new RequestError('Choose a saved hero first.');
     const { data, error } = await client().from('characters').select('*').eq('id', body.characterId).eq('user_id', userId).maybeSingle();
-    if (error || !data) throw new RequestError('That hero is not available to your account.', 403);
+    if (error) {
+      if (error.code === '42501') throw new RequestError('The adventure server cannot read saved heroes. Apply the server character access migration in Supabase.', 503);
+      throw new RequestError('Your saved hero could not be loaded. Please retry shortly.', 503);
+    }
+    if (!data) throw new RequestError('That hero is not available to your account.', 403);
     return characterFromRow(data);
   }
   async function heartbeat(code: string, userId: string) {

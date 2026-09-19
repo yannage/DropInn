@@ -20,6 +20,14 @@ const other = '22222222-2222-4222-8222-222222222222';
 const hero = '33333333-3333-4333-8333-333333333333';
 sql(`INSERT INTO auth.users VALUES ('${user}'),('${other}');
 INSERT INTO characters(id,user_id,name,class_key,level,xp,hp,max_hp) VALUES ('${hero}','${user}','Wren','wizard',3,240,10,10);`);
+// Service-role RLS bypass is insufficient without a table-level SELECT grant.
+sql(`SET ROLE service_role;
+DO $$ BEGIN
+IF NOT EXISTS (SELECT 1 FROM public.characters WHERE id='${hero}' AND user_id='${user}') THEN
+  RAISE EXCEPTION 'Server cannot load the owned hero';
+END IF;
+END $$;
+RESET ROLE;`);
 const snapshot = {
   version: 2, id: '44444444-4444-4444-8444-444444444444', code: 'QA1234', revision: 0, status: 'active',
   players: { [user]: { userId: user, character: { id: hero }, joinedAt: Date.now(), leftAt: null, xp: 0, keepsakes: [] } }, events: [],

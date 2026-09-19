@@ -162,6 +162,34 @@ describe('adventure service local command contract', () => {
     } finally { vi.unstubAllGlobals(); }
   });
 
+  it.each([
+    { queryStatus: 403, result: { code: '42501', message: 'permission denied for table characters' }, status: 503, message: 'Apply the server character access migration' },
+    { queryStatus: 200, result: null, status: 403, message: 'That hero is not available to your account.' },
+  ])('distinguishes hero lookup errors from missing ownership ($queryStatus)', async ({ queryStatus, result, status, message }) => {
+    const userId = '11111111-1111-4111-8111-111111111111';
+    const heroId = '22222222-2222-4222-8222-222222222222';
+    const mock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+      if (url.pathname === '/auth/v1/user') return Response.json({ id: userId });
+      if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/characters') {
+        expect(url.searchParams.get('id')).toBe(`eq.${heroId}`);
+        expect(url.searchParams.get('user_id')).toBe(`eq.${userId}`);
+        return Response.json(result, { status: queryStatus });
+      }
+      throw new Error(`Unexpected test request: ${url.pathname}`);
+    }) as unknown as typeof fetch;
+    const handler = createDropinnHandler({ local: false, env: {
+      SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-server-key',
+    }, fetch: mock });
+    const response = await handler(new Request('http://localhost/api/dropinn', {
+      method: 'POST', headers: { Authorization: 'Bearer test-session' },
+      body: JSON.stringify({ operation: 'play', characterId: heroId, sessionId: 'forged-owner' }),
+    }));
+    expect(response.status).toBe(status);
+    expect((await response.json()).error).toContain(message);
+  });
+
   it('authenticates the whole creative proposal before committing it', async () => {
     const target = CHAPTERS[0].targets.find((item) => item.effects.length)!;
     const mock = vi.fn(async () => new Response(JSON.stringify({ output: [{ content: [{ type: 'output_text', text: JSON.stringify({ targetId: target.id,
