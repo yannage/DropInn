@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCharacterName, type CharacterProfile, type CharacterClassKey } from '../lib/character';
-import { adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
+import { AdventureRequestError, adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
 import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap, ReactionKind } from '../lib/dropinn/types';
 import { getVisitRecap } from '../lib/dropinn/engine';
 import { ensureAnonymousUser } from '../lib/supabase/client';
@@ -62,6 +62,9 @@ interface AdventureState {
   reacting: boolean;
   sendReaction: (reaction: ReactionKind) => Promise<void>;
   error: string | null;
+  syncError: string | null;
+  syncing: boolean;
+  restoringCode: string | null;
   mutedUserIds: string[];
   seenOutcomes: Record<string, number>;
   markRecapSeen: (recap: VisitRecap) => void;
@@ -105,7 +108,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.receipts = {};
       saved.muted = [];
       saved.seenOutcomes = {};
-      set({ recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {} });
+      set({ recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
     }
     saved.userId = user.id;
     saved.character = character;
@@ -156,7 +159,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     if (!room || (current?.code === room.code && current.revision > room.revision)) return;
     const changedTurn = current?.turn !== room.turn;
     if (changedTurn) proposalSequence++;
-    set({ room, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
+    set({ room, syncError: null, restoringCode: null, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
     const participant = room.players[get().userId];
     if (participant) await collectReceipts([getVisitRecap(room, get().userId)]);
     if (room.phase === 'reveal' && narrationKey !== `${room.code}:${room.turn}`) {
@@ -184,7 +187,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
   return {
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
-    loading: false, proposing: false, reacting: false, error: null, mutedUserIds: saved.muted,
+    loading: false, proposing: false, reacting: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
     sendReaction: async reaction => {
       const room = get().room;
       if (!room || get().reacting) return;
@@ -210,14 +213,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       initializePromise = (async () => {
         try {
           await ensureHostedHero();
-          if (saved.activeCode) {
-            try {
-              const response = await request({ operation: 'read', roomCode: saved.activeCode });
-              await accept(response, viewEpoch);
-              if (response.room) unsubscribe = subscribeAdventure(response.room.code, () => { void get().syncRoom(); });
-            } catch { saved.activeCode = null; save(); }
-          }
-          await get().refreshRooms();
+          if (saved.activeCode) await get().syncRoom();
+          if (!get().restoringCode) await get().refreshRooms();
         } catch (error) { fail(error); }
         finally { set({ ready: true }); }
       })();
@@ -245,13 +242,30 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       return enter('join', invitation.code, undefined, undefined, inviteKey ?? invitation.inviteKey);
     }),
     syncRoom: async () => {
-      const code = get().room?.code;
+      const code = get().room?.code || get().restoringCode;
       if (!code || syncInFlight || get().loading) return;
       const epoch = viewEpoch;
       syncInFlight = true;
-      try { await accept(await request({ operation: 'read', roomCode: code }), epoch); }
-      catch (error) { fail(error); }
-      finally { syncInFlight = false; }
+      set({ syncing: true });
+      try {
+        const restoring = !get().room;
+        await accept(await request({ operation: 'read', roomCode: code }), epoch);
+        if (epoch === viewEpoch && restoring && get().room?.code === code) {
+          unsubscribe?.();
+          unsubscribe = subscribeAdventure(code, () => { void get().syncRoom(); });
+        }
+      } catch (error) {
+        if (epoch !== viewEpoch) return;
+        if (error instanceof AdventureRequestError && [403, 404].includes(error.status)) {
+          saved.activeCode = null; save();
+          unsubscribe?.(); unsubscribe = null;
+          viewEpoch++;
+          set({ room: null, restoringCode: null, syncError: null });
+          fail(error);
+        } else {
+          set({ syncError: 'Updates interrupted. Reconnecting to your table...' });
+        }
+      } finally { syncInFlight = false; set({ syncing: false }); }
     },
     commitAction: action => busy(async () => {
       const room = get().room;
@@ -274,7 +288,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       proposalSequence++;
       unsubscribe?.(); unsubscribe = null;
       saved.activeCode = null; save();
-      set({ room: null, messages: [], proposal: null, narration: null, recap });
+      set({ room: null, restoringCode: null, syncError: null, messages: [], proposal: null, narration: null, recap });
       await get().refreshRooms();
     }),
     propose: async (idea, targetId) => {

@@ -299,6 +299,9 @@ export function DropInn() {
     joinRoom,
     error,
     clearError,
+    syncError,
+    syncing,
+    restoringCode,
     backend,
     recap,
     dismissRecap,
@@ -327,18 +330,26 @@ export function DropInn() {
   useEffect(() => {
     if (!ready) return;
     const poll = () => {
-      if (!document.hidden) void (room ? syncRoom() : refreshRooms());
+      if (!document.hidden && navigator.onLine) void (room || restoringCode ? syncRoom() : refreshRooms());
     };
-    const interval = window.setInterval(poll, room ? 1000 : 8000);
+    const interval = window.setInterval(poll, room || restoringCode ? 1000 : 8000);
     const onVisibility = () => {
       if (!document.hidden) poll();
     };
     document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('online', poll);
+    const onOffline = () => {
+      if (room || restoringCode) useAdventureStore.setState({ syncError: 'You are offline. Reconnecting when your connection returns...' });
+    };
+    window.addEventListener('offline', onOffline);
+    if (!navigator.onLine) onOffline();
     return () => {
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('online', poll);
+      window.removeEventListener('offline', onOffline);
     };
-  }, [ready, Boolean(room), syncRoom, refreshRooms]);
+  }, [ready, Boolean(room), restoringCode, syncRoom, refreshRooms]);
 
   return (
     <div className="di-app">
@@ -372,6 +383,12 @@ export function DropInn() {
           )}
         </nav>
       </header>
+      {syncError && (
+        <div className="di-connection" role="status">
+          <div><strong>{syncError}</strong><p>The table may keep moving. We will check your latest turn before you continue.</p></div>
+          <button className="di-secondary" disabled={syncing} onClick={() => void syncRoom()}>{syncing ? 'Checking...' : 'Retry now'}</button>
+        </div>
+      )}
       {error && (
         <div className="di-error" role="alert">
           <span>{error}</span>
@@ -391,6 +408,8 @@ export function DropInn() {
           <p>Opening the inn…</p>
           <LoaderCircle className="di-spin" />
         </main>
+      ) : restoringCode && !room ? (
+        <main className="di-loading"><Dices size={40} /><h1>Your chair is still bookmarked.</h1><p>Reconnecting to table {restoringCode}. Your saved hero stays here.</p></main>
       ) : room ? (
         <Adventure key={room.id} room={room} />
       ) : (

@@ -33,6 +33,10 @@ export interface AdventureRequest {
   variationId?: string;
 }
 
+export class AdventureRequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
+
 export async function adventureRequest(payload: AdventureRequest): Promise<AdventureResponse> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (!localPlay) {
@@ -50,7 +54,7 @@ export async function adventureRequest(payload: AdventureRequest): Promise<Adven
     let result: AdventureResponse;
     try { result = JSON.parse(text); }
     catch { throw new Error('The adventure server is unavailable. Start the development server or check deployment setup.'); }
-    if (!response.ok || result.error) throw new Error(result.error || 'Unable to reach the adventure. Please retry.');
+    if (!response.ok || result.error) throw new AdventureRequestError(result.error || 'Unable to reach the adventure. Please retry.', response.status);
     return result;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw new Error('Connection took too long. Your action can be safely retried.');

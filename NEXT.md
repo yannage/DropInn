@@ -13,6 +13,8 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [x] Add a deployment smoke check for authentication, hero permissions, required tables/functions, and room creation (`scripts/smoke-hosted.mjs`).
 - [x] Preserve specific server errors and refresh hero ownership before admission; recover from failed startup or changed anonymous accounts without clearing saved data.
 
+- [x] Preserve the saved table through temporary read failures, show connection/retry feedback, refresh on network return, and clear recovered background errors separately from action errors. Mobile browser API interruption/reload/recovery verified locally; hosted Realtime and physical network checks remain.
+
 ### 2. Make each turn change the scene
 
 - [x] Update target descriptions and available actions when Mara is freed, the boat moves, or the ward is repaired.

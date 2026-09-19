@@ -25,6 +25,7 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 - **Borrow a spark:** tap an authored Spotlight suggestion for a supported attempt without typing or an AI connection. Edited ideas go through normal interpretation, and every attempt still requires confirmation and a roll.
 - **Keep moving:** simultaneous 30-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
 - **Play together:** see teammates' committed approaches and targets. Send a quick Cheers, Thanks, or Clever reaction; bubbles expire, respect mute, and never change game mechanics. Reactions have a four-second server cooldown and do not block submitting your move.
+- **Reconnect:** temporary connection failures keep your saved table bookmarked, show a retry indicator, and automatically fetch the latest turn when connectivity returns. Confirmed missing/inaccessible tables return you to the inn.
 - **Leave freely:** retain contributions and rewards. Returning visitors can inspect their chapter outcomes.
 - **Return to your story:** unread chapter endings are highlighted in recent visits; keepsakes show their origin and your recorded chapter contribution. Read markers and dismissed guidance are remembered in this browser.
 

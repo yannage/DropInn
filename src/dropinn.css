@@ -3045,3 +3045,8 @@ html.dropinn-v2 #root {
 .di-hero-colors{border:0;padding:0;margin:15px 0}.di-hero-colors legend{font-size:12px;color:#d5d7bb;margin-bottom:12px}.di-hero-colors>div[role=group]{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .di-hero-colors button{display:flex;align-items:center;flex-direction:column;gap:6px;padding:9px 4px;background:#172b26;border:1px solid #aabd9b33;border-radius:10px;min-height:64px}.di-hero-colors button[aria-pressed=true]{border-color:currentColor;background:#304033}.di-hero-colors button>span{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;color:#15221d}.di-hero-colors button small{font-size:10px}
 .di-color-preview{display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:12px;background:#0d201b;border-radius:12px}.di-color-preview>span:last-child{font-family:'EB Garamond',serif;font-size:23px;color:#e7dbb8}.di-color-preview small{display:block;font-family:Inter,sans-serif;font-size:10px;color:#a4b9a6;margin-top:4px}
+
+.di-connection { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:12px auto; padding:16px; max-width:1120px; border:1px solid #bca66b66; border-radius:14px; background:#302a1d; color:#f2deae; }
+.di-connection p { margin:5px 0 0; font-size:13px; line-height:1.5; }
+.di-connection button { flex-shrink:0; min-height:44px; }
+@media (max-width:600px) { .di-connection { margin:12px; flex-direction:column; align-items:stretch; } }

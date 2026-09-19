@@ -4,6 +4,7 @@ import type { AdventureRoom } from '../lib/dropinn/types';
 
 const mocks = vi.hoisted(() => ({ request: vi.fn(), unsubscribe: vi.fn() }));
 vi.mock('../lib/dropinn/api', () => ({
+  AdventureRequestError: class extends Error { constructor(message: string, public status: number) { super(message); } },
   localPlay: true,
   adventureRequest: mocks.request,
   subscribeAdventure: () => mocks.unsubscribe,
@@ -39,6 +40,66 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('keeps the saved table during a failed reload and restores it on retry', async () => {
+    const { room } = await setup();
+    vi.resetModules();
+    mocks.request.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    await restored.getState().initialize();
+    expect(restored.getState().restoringCode).toBe(room.code);
+    expect(restored.getState().syncError).toContain('Reconnecting');
+    expect(JSON.parse(storage.get('dropinn-v2-player-storetest')!).activeCode).toBe(room.code);
+    mocks.request.mockResolvedValue({ backend: 'local', room });
+    await restored.getState().syncRoom();
+    expect(restored.getState().room?.code).toBe(room.code);
+    expect(restored.getState().restoringCode).toBeNull();
+    expect(restored.getState().syncError).toBeNull();
+  });
+
+  it('clears background connection errors without erasing an action error', async () => {
+    const { store, room } = await setup();
+    store.setState({ error: 'Choose a supported target.' });
+    mocks.request.mockRejectedValue(new TypeError('Failed to fetch'));
+    await store.getState().syncRoom();
+    expect(store.getState().room?.code).toBe(room.code);
+    expect(store.getState().syncError).not.toBeNull();
+    mocks.request.mockResolvedValue({ backend: 'local', room });
+    await store.getState().syncRoom();
+    expect(store.getState().syncError).toBeNull();
+    expect(store.getState().error).toBe('Choose a supported target.');
+  });
+
+  it('stops restoring a table the server confirms is gone', async () => {
+    await setup();
+    vi.resetModules();
+    const { AdventureRequestError } = await import('../lib/dropinn/api');
+    mocks.request.mockImplementation(async payload => {
+      if (payload.operation === 'read') throw new AdventureRequestError('That adventure could not be found.', 404);
+      return { backend: 'local', rooms: [], recaps: [] };
+    });
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    await restored.getState().initialize();
+    expect(restored.getState().restoringCode).toBeNull();
+    expect(restored.getState().syncError).toBeNull();
+    expect(restored.getState().error).toContain('could not be found');
+    expect(JSON.parse(storage.get('dropinn-v2-player-storetest')!).activeCode).toBeNull();
+  });
+
+  it('ignores a failed background read from a table already left', async () => {
+    const { store, room } = await setup();
+    let rejectRead!: (error: Error) => void;
+    mocks.request.mockImplementation(async payload => {
+      if (payload.operation === 'read') return new Promise((_resolve, reject) => { rejectRead = reject; });
+      return { backend: 'local', room, rooms: [], recaps: [] };
+    });
+    const reading = store.getState().syncRoom();
+    await store.getState().leaveRoom();
+    rejectRead(new Error('Network lost'));
+    await reading;
+    expect(store.getState().syncError).toBeNull();
+    expect(store.getState().error).toBeNull();
+  });
+
   it('saves cosmetic color across reload without changing earned rewards', async () => {
     const { store, hero } = await setup();
     await store.getState().leaveRoom();
