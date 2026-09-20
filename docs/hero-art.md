@@ -19,7 +19,7 @@ No builder code or save migration is necessary. The renderer supports the same s
 ## Alignment and color
 
 - Canvas: 256 × 256; all parts are front-facing.
-- Body: approximately x 50–205, y 82–220. Feet end at y 241.
+- Torso: approximately x 50–205, y 82–208. Gesturing hands extend to x 22–238; boots end near y 244.
 - Hat brim: y 85–100, centered at x 128. Hat tips stay above the eyes and inside the canvas.
 - Eyes: centers near (98, 132) and (157, 132).
 - Nose: center near (128, 148). Mouth: approximately x 105–152, y 163–186.
@@ -29,7 +29,7 @@ A tintable body uses **two files**: `art.maskSrc` is an opaque silhouette on tra
 
 Art must read at both a 256px preview and a small table avatar. Use strong silhouettes, chunky outlines, simple expressions, and generous gaps. Face thumbnails crop to the face area; wardrobe thumbnails show the upper part of the shared canvas. Check all three bodies when replacing a hat.
 
-The current native drawings use flat fills, true black stepped pencil-like contours, lopsided silhouettes, mismatched eyes, tiny boots, and crooked hats to match the primitive MS Paint reference set. Body details and masks share the exact same silhouette. The full canvas and IDs remain unchanged. Keep the face/hat layers independent; do not flatten a hero into one raster sprite or introduce shading when replacing parts.
+The current native drawings use flat fills, heavy near-black outlines, hand-shaped uneven curves, lopsided silhouettes, mitten hands, bent legs, oversized boots, and crooked hats. Bean waves, Round splays its feet with lowered hands, and Squish shrugs with one hand on its hip. Four eye expressions (curious, startled, unimpressed, side-eye) and four nose choices (round, crooked, snout, none) give distinct combinations. Body tint masks include the limbs; the outline layer masks overlapping limb roots behind the torso. The full canvas and existing IDs remain unchanged. Keep the face/hat layers independent; do not flatten a hero into one raster sprite or introduce shading when replacing parts.
 
 ## Catalog and saves
 

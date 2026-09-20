@@ -1,44 +1,48 @@
 {
-  "style": "Primitive MS Paint native layer redraw",
+  "style": "Expressive primitive native hero layers",
   "method": "Native SVG path editing; no raster generation for modular hero layers",
   "canvas": "256×256, original face and hat anchors, paired identical body silhouette masks",
-  "review": "Viewed 24 body/hat combinations (three bodies times seven hats plus bare head), all face choices, and 48px/64px avatars. All 22 sources decoded at 256×256 in browser. Builder save/reload with body, face, color and hat changes passed; Cancel and 320px layout passed. Mobile lobby portrait spacing checked.",
+  "review": "Reviewed three distinct body gestures with all seven hats and bare heads, four eye choices, four nose choices, and small avatars. All 24 sources decoded at 256×256. Side-eye and snout save/reload, color and hat persistence, Cancel, and 320px layout passed in browser. 131 tests and production build passed.",
   "assets": [
     {
       "file": "public/heroes/body-bean-fill.svg",
-      "sha256": "8862205b9fa4f71c14d7409eab4e001e49148d53fbd2993c31e15686b456f390"
+      "sha256": "9e5aae255569b18ade7bec4c922cfad88fb705e428b8d6d98139df9ccff95ca7"
     },
     {
       "file": "public/heroes/body-bean.svg",
-      "sha256": "6c56b716fcf22935047485a7bff0617e71564f74f756731c4e077bf415fef97d"
+      "sha256": "36763f5ab686da2cb99c4d2bbb525913d5ae5f7435dcc0c3038857201d5b8f43"
     },
     {
       "file": "public/heroes/body-round-fill.svg",
-      "sha256": "094b750033681f59fdb8d0d5326c1298752ac2d80ebbd8700e43b3b3f25b5a5f"
+      "sha256": "3146f51645893ab603cd8960bf9402f385cf3d1217dc6297a309408a0963c7f6"
     },
     {
       "file": "public/heroes/body-round.svg",
-      "sha256": "708ca638a75aa5a120fd148dbaaa17b73d7d9bbeaac43647a18e7531610fd408"
+      "sha256": "5ffcf6f2623938e04b53ef6e82e93ae3dba6638b1e50f6dd417cd5db6ac91971"
     },
     {
       "file": "public/heroes/body-squish-fill.svg",
-      "sha256": "3145982c69b06d47d68198e072664ad7fdbbd85393f916f0f326d1d1dda7c93b"
+      "sha256": "2b552ab2da36770ce39725df6ea1807693d2bb816f05bb26a3db4d430e8e2e84"
     },
     {
       "file": "public/heroes/body-squish.svg",
-      "sha256": "e913f6a46b16a30ff1e88ae92120bdd34c58d737506da2b24bbca3800606dc1b"
+      "sha256": "08a9cd5cfdb9fdf4b92c407c948fa40c02e576e86adeb00670a52a37bc697672"
     },
     {
       "file": "public/heroes/eyes-dots.svg",
-      "sha256": "a5987c78740baab4beea03b6f159161a17eac478f62d23ded2a5bd88812e4444"
+      "sha256": "a9976fc11c224c85372a6850787280140f8544e1ae75c5fbce4e6cd629bc796a"
+    },
+    {
+      "file": "public/heroes/eyes-side-eye.svg",
+      "sha256": "5786645ab3d0c7c2f94b4d5b181e571d1e7f70a612ca63a3287b1ea309c8bc57"
     },
     {
       "file": "public/heroes/eyes-sleepy.svg",
-      "sha256": "18bdf4ac22b4a8b39fe4d1fbd27d602048c5a90780ee088794c6c0931201059c"
+      "sha256": "81690c7b4b75a4fe882e044927a9cb67610f5a6859de58d476a100c8d0232f9f"
     },
     {
       "file": "public/heroes/eyes-wide.svg",
-      "sha256": "67fc010183b7e9534fc14fdf0ea749b3a97212344e5eb92d092e221558d9ae87"
+      "sha256": "7e42e1d9478bc6236209d916531d36f8decc31a8f4386ff247c43a12d50e6fd0"
     },
     {
       "file": "public/heroes/hat-cleric.svg",
@@ -82,15 +86,19 @@
     },
     {
       "file": "public/heroes/nose-button.svg",
-      "sha256": "ef16d715d9552a52cf89bb43ee0b4d14e7ae7ce1fa4db39066a7daa9eb45b332"
+      "sha256": "6f661c856148570aabf809d158e9870cc68bcdfaa5f0f560ccacf048ae5e80d0"
     },
     {
       "file": "public/heroes/nose-none.svg",
       "sha256": "6683d975bc261e94c9ebc0e5d66ebaa4989c0fd3a2835117cb6934dd2b827796"
     },
     {
+      "file": "public/heroes/nose-snout.svg",
+      "sha256": "9fbbe998f0e667ff9264c80c623d1fdadcfdfe4d5d0ca3775cadb1b1f73b5edd"
+    },
+    {
       "file": "public/heroes/nose-triangle.svg",
-      "sha256": "e8332744541a0226bcd7dc29005e121ece63cefb123abfe20492a8486d1e6ba7"
+      "sha256": "03a9b6c35ec8efc5cc8f11ce13a4203c87cd0c3f21082704b35843d00a0d2447"
     }
   ]
 }

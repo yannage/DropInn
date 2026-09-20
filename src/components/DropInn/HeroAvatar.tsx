@@ -24,7 +24,7 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
   const parts = (Object.keys(appearance) as (keyof HeroAppearance)[]).map(key => HERO_PARTS[key].find(part => part.id === appearance[key])!);
   const hat = HERO_HATS.find(hat => hat.id === equipment.hat);
   if (hat) parts.push(hat);
-  return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '72 107 112 86' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${hero.name || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
+  return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${hero.name || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
     {parts.map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={heroAccent(hero.accent, hero.classKey)} maskId={`${id}-${index}`} />)}
   </svg>;
 }

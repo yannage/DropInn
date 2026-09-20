@@ -12,8 +12,8 @@ const part = (category: string, id: string, label: string, tint = false): HeroPa
 });
 export const HERO_PARTS = {
   body: [part('body', 'bean', 'Bean', true), part('body', 'round', 'Round', true), part('body', 'squish', 'Squish', true)],
-  eyes: [part('eyes', 'dots', 'Dot eyes'), part('eyes', 'wide', 'Wide eyes'), part('eyes', 'sleepy', 'Sleepy eyes')],
-  nose: [part('nose', 'button', 'Button nose'), part('nose', 'triangle', 'Triangle nose'), part('nose', 'none', 'No nose')],
+  eyes: [part('eyes', 'dots', 'Curious eyes'), part('eyes', 'wide', 'Startled eyes'), part('eyes', 'sleepy', 'Unimpressed eyes'), part('eyes', 'side-eye', 'Side-eye')],
+  nose: [part('nose', 'button', 'Round nose'), part('nose', 'triangle', 'Crooked nose'), part('nose', 'snout', 'Little snout'), part('nose', 'none', 'No nose')],
   mouth: [part('mouth', 'smile', 'Smile'), part('mouth', 'flat', 'Straight face'), part('mouth', 'toothy', 'Toothy grin')],
 } satisfies Record<keyof HeroAppearance, HeroPart[]>;
 export const HERO_HATS: HeroHat[] = [

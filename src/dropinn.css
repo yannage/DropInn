@@ -3166,6 +3166,7 @@ html.dropinn-v2 #root {
 .di-builder-colors button > span { width: 29px; height: 29px; border: 2px solid var(--di-border); border-radius: 45% 52% 46% 51%; display: grid; place-items: center; color: var(--di-muted); }
 .di-builder-colors button small { font-size: 12px; }
 .di-part-picker > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.di-part-picker > div:has(> button:nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .di-part-picker button { position: relative; border: 1px solid var(--di-border); border-radius: 8px; overflow: hidden; padding: 0; background: var(--di-panel); color: var(--di-muted); }
 .di-part-picker button .di-avatar { height: 78px; padding: 2px; overflow: hidden; }
 .di-part-picker button span { display: block; padding: 6px 2px; font-size: 12px; border-top: 1px solid var(--di-border); background: var(--di-panel); }
