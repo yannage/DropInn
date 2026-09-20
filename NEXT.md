@@ -4,6 +4,19 @@
 
 The default V2 app includes live discovery, Play Now, saved heroes, four-seat companion support, safe joining/leaving, timed simultaneous turns, contextual tokens, three authored Briar Glen chapters, signed Spotlight proposals, contribution recaps and durable reward handling. Optional AI adapters, chat, mute/report controls and the server-authoritative Supabase persistence path are in the repository. The prior prototype remains at `/?legacy=1`.
 
+The current scene-stage pass adds a fixed action dock, illustrated scene interactions, optional-reading drawers, announced combat intent, guaranteed Protect, timed release and persisted uncertain-move recovery. All three chapters use the new components and 17 new illustrations. Local tests, build and browser checks passed; see [scene playtest evidence](docs/scene-playtest.md) for the backend, scenarios and limitations. Hosted and human evidence remain separate.
+
+## Scene-stage acceptance and rollout
+
+- [x] Run the production build and two-browser local integration checks for this version, recording the base revision and actual backend.
+- [x] At 390×844 and 320×568, reach scene targets and the threatened hero without document scrolling; verify 44px interaction targets, keyboard paths, drawer focus/return and reduced motion. Small effective viewports reflow; physical-device text scaling remains below.
+- [x] Verify normal, missed and assisted release, cancellation, 1200ms automatic release, turn expiry, reviewed Spotlight confirmation and unchanged timing/command ID after response loss plus reload/retry. Browser and deterministic controller tests cover complementary cases.
+- [x] Verify concurrent local results/developed artwork and reducer protection/reward invariants: multiple Protect actions and party cover use the strongest value, and downed Protect earns contribution/chapter rewards. Human comprehension remains below.
+- [x] Verify late joins, departing threatened seats, old snapshots, parked/resumed rooms and later rewards in focused tests; private pending admission also passed browser integration. Existing JSON persistence needs no schema migration for these additions.
+- [ ] Check physical-device text scaling, screen readers, one-handed use and on-screen keyboards with the new stage.
+- [ ] Deploy through a separately authorized rollout, then run hosted API, independent-browser Realtime/reconnect and physical-phone checks. Prior hosted results apply to the older deployment.
+- [ ] Observe newcomers and experienced players: time the first meaningful action, count scrolling, ask what changed without opening the journal, and tune the 30-second turn/six-second reveal/650–950ms release window from observations.
+
 ## Prioritized task list
 
 ### 1. Finish hosted reliability
@@ -21,7 +34,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 - [x] Replace completed interactions with a new opportunity so repeated rounds feel like a developing situation.
 - [x] Show a compact personal consequence after each action: what changed, who benefited, and what is possible next.
 - [x] Add restrained dice, token, and consequence animation, plus optional sound with mute and reduced-motion support.
-- [x] Add a felt table with draggable action coins, compatible-target feedback, tap/keyboard alternatives, and cosmetic hold-to-grow/reset interaction.
+- [x] Add draggable action coins, compatible-target feedback and tap/keyboard alternatives. The scene-stage pass replaces the earlier cosmetic hold-to-grow/reset gesture with a separate timed commitment control.
 
 - [x] Add bounded teamwork: different committed human tokens at the same target grant each paired roll +1, capped at one. Show teammate approaches on target cards, preview current insight/distraction/teamwork support, and explain applied bonuses in results. Engine and two-player mobile browser checks pass; tune balance with real parties.
 
@@ -36,9 +49,9 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 
 - [ ] Playtest with tabletop newcomers and experienced players; time app opening to first meaningful action.
 - [ ] Check one-handed controls, small screens, keyboard focus, and the on-screen keyboard during Spotlight/chat.
-  - Automated browser checks passed at 390px for touch drag, mouse drag, invalid drops, keyboard selection, long-hold reset, horizontal overflow and reduced-motion behavior. Physical-phone and on-screen-keyboard checks remain.
+  - New stage checks passed at 390×844 and 320×568 for real pointer dragging, invalid drops, keyboard selection/timing, overflow and drawer focus. Physical-phone and on-screen-keyboard checks remain; see [current evidence](docs/scene-playtest.md).
 - [ ] Tune turn and result-reveal pacing using observed waiting time and missed turns.
-- [x] Add a short first-move guide explaining placement and confirmation; dismiss it manually or by confirming a move, and remember that choice in this browser.
+- [x] Introduce the action loop with a short first-move guide. The current stage uses one situation sentence, compatible target highlights and a fixed dock hint; extended catch-up lives in Story.
 
 ### 5. Give players a reason to return
 
@@ -58,7 +71,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 ## Further design iterations
 
 - **Gameplay:** build an adventure registry and a second authored story with a different core problem; explore a visible chapter choice whose consequences carry into the next scene. Playtest whether teamwork creates interesting cooperation or makes piling onto one target too dominant before adding more bonuses.
-- **Visual polish:** make long placed-token previews more compact on narrow screens; give chapter transitions a brief illustrated payoff that never blocks joining or leaving. Keep reduced-motion and keyboard alternatives.
+- **Visual polish:** validate the new stage's composition and developed-state art on narrow screens; give chapter transitions a brief illustrated payoff that never blocks joining or leaving. Keep reduced-motion and keyboard alternatives.
 - **Functionality:** prioritize optional account recovery, hosted reconnect/provider checks, and a practical report-review workflow. These remain more valuable for public launch than additional generated story volume.
 
 ## Before a public pilot
@@ -73,7 +86,7 @@ The default V2 app includes live discovery, Play Now, saved heroes, four-seat co
 
 Aim for a first meaningful action within a minute, several visible contributions during a five-minute visit, understandable personal consequences, and voluntary return visits. Measure chapter pacing across different party sizes and distinguish fast participation from waiting.
 
-`scripts/pilot-metrics.sql` is a read-only aggregate starting point for hosted data. Its first-action metric runs from **seat arrival to resolved action**, not page launch or commit time; visit duration includes time spent reading or waiting. Return frequency refers to the same anonymous identity. These are behavioral proxies and do not establish subjective satisfaction or the reason someone left. Use conversations with players alongside the data.
+`scripts/pilot-metrics.sql` is a read-only aggregate starting point for hosted data. Its first-action metric runs from **seat arrival to resolved contribution**, including Protect and legacy rolled actions, not page launch or commit time; visit duration includes time spent reading or waiting. Return frequency refers to the same anonymous identity. These are behavioral proxies and do not establish subjective satisfaction or the reason someone left. Use conversations with players alongside the data.
 
 ## Development reminders
 

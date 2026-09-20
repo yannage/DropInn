@@ -41,7 +41,31 @@ export interface CreativeProposal {
 export interface PlayerAction {
   token: TokenKind;
   targetId: string;
+  /** Omitted on older clients: targets the scene. Hero targets are Help/Protect. */
+  targetKind?: 'scene' | 'hero';
+  /** Hold duration, validated by the server; never a client-selected roll bonus. */
+  releaseMs?: number;
   proposal?: CreativeProposal;
+}
+export interface EnemyIntent {
+  turn: number;
+  sourceId: string;
+  targetActorId: string;
+  baseDamage: number;
+}
+/** Presentation reads numeric outcomes, never guesses effects from story prose. */
+export interface ActionResult {
+  targetKind?: 'scene' | 'hero';
+  targetId?: string;
+  token?: TokenKind;
+  executionBonus?: number;
+  progress?: number;
+  danger?: number;
+  protection?: number;
+  healing?: number;
+  damage?: number;
+  hp?: number;
+  changed?: boolean;
 }
 export interface Seat {
   id: string;
@@ -78,6 +102,9 @@ export interface StoryEvent {
   success?: boolean;
   effect?: string;
   change?: SceneChange;
+  /** Real player contribution, including guaranteed actions without a die roll. */
+  contribution?: boolean;
+  result?: ActionResult;
 }
 export interface ChapterOutcome {
   chapter: number;
@@ -109,6 +136,8 @@ export interface AdventureRoom {
   players: Record<string, Participant>;
   pendingJoins: string[];
   commits: Record<string, PlayerAction>;
+  /** Absent on older snapshots until the next choosing boundary. */
+  enemyIntent?: EnemyIntent;
   events: StoryEvent[];
   outcomes: ChapterOutcome[];
   appliedCommands: string[];

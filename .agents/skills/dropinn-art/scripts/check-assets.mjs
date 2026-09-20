@@ -12,7 +12,7 @@ for (const asset of inventory.assets) {
   try {
     if (seen.has(asset.id)) throw new Error('Duplicate asset ID');
     seen.add(asset.id);
-    for (const path of [asset.file, asset.reference, asset.promptFile]) {
+    for (const path of [asset.file, asset.reference, asset.promptFile, asset.runtimeFile].filter(Boolean)) {
       const full = resolve(root, path);
       const rel = relative(root, full);
       if (rel.startsWith('..') || isAbsolute(rel)) throw new Error('Asset paths must stay in this repository');
@@ -27,6 +27,12 @@ for (const asset of inventory.assets) {
     if (asset.alpha && ![4, 6].includes(png[25])) throw new Error('Expected an explicit alpha channel');
     const hash = createHash('sha256').update(png).digest('hex');
     if (hash !== asset.sha256) throw new Error('File changed; inspect it and refresh the recorded SHA-256');
+    if (asset.runtimeFile) {
+      const runtime = await readFile(resolve(root, asset.runtimeFile));
+      if (runtime.toString('ascii', 0, 4) !== 'RIFF' || runtime.toString('ascii', 8, 12) !== 'WEBP') throw new Error('Expected a WebP runtime derivative');
+      if (createHash('sha256').update(runtime).digest('hex') !== asset.runtimeSha256) throw new Error('Runtime derivative changed; verify it against the source');
+      if (!asset.runtimeEncoding) throw new Error('Record runtime encoding provenance');
+    }
     if (!asset.generator || !asset.review) throw new Error('Record generation source and review status');
     console.log(`OK ${asset.id}: ${width}x${height}, ${Math.round(png.length / 1024)} KiB, ${asset.review}`);
   } catch (error) {

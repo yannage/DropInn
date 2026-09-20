@@ -3,7 +3,7 @@ import { createCharacterProfile } from '../character';
 import type { CharacterClassKey } from '../character';
 import { CHAPTERS } from './content';
 import { getScene } from './scene';
-import { createAdventure, describeAction, fallbackProposal, getCatchUp, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from './engine';
+import { createAdventure, describeAction, fallbackProposal, getCatchUp, getVisitRecap, reduceAdventure, releaseBonus, summarizeRoom, validateProposal } from './engine';
 import type { AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, PlayerAction } from './types';
 
 const hero = (name = 'Hero', key: CharacterClassKey = 'wizard') => ({ ...createCharacterProfile(name, key), id: name });
@@ -25,6 +25,165 @@ function proposal(room: AdventureRoom, effect: CreativeEffect, targetId?: string
   const target = targetId ?? CHAPTERS[room.chapter].targets.find(t => t.effects.includes(effect))!.id;
   return { id: `idea-${room.turn}`, turn: room.turn, targetId: target, effect, label: 'An inventive plan', description: 'Use the scene to help the party.', idea: 'I use the scene to help my friends.', supported: true, source: 'authored' };
 }
+
+function combatRoom(size = 2) {
+  let room = initial();
+  for (const id of ['bob', 'cara', 'dan'].slice(0, size - 1)) room = command(room, 'join', id, { character: hero(id, 'fighter') });
+  room = act(room);
+  room.chapter = 1; room.progress = 0; room.danger = 8;
+  return next(room);
+}
+
+describe('announced threats, protection and timed release', () => {
+  it.each([[undefined, 0], [0, 0], [649, 0], [650, 1], [800, 1], [950, 1], [951, 0], [1200, 0]] as const)('grants the bounded release bonus at %s milliseconds', (releaseMs, expected) => {
+    expect(releaseBonus(releaseMs)).toBe(expected);
+    const source = initial();
+    const ordinary = act(source, { token: 'investigate', targetId: 'tracks' });
+    const timed = act(source, { token: 'investigate', targetId: 'tracks', releaseMs });
+    const first = ordinary.events.find(event => event.kind === 'action' && event.roll)!;
+    const second = timed.events.find(event => event.kind === 'action' && event.roll)!;
+    expect(second.roll).toBe(first.roll);
+    expect(second.modifier).toBe(first.modifier! + expected);
+    expect(second.result).toMatchObject({ targetKind: 'scene', targetId: 'tracks', token: 'investigate', executionBonus: expected });
+    expect(second.contribution).toBe(true);
+  });
+
+  it.each([-1, 1201, 650.5, NaN, Infinity, '800'])('rejects malformed release timing %s without spending a token', releaseMs => {
+    const room = initial();
+    expect(() => act(room, { token: 'assist', targetId: 'mara', releaseMs: releaseMs as number })).toThrow('Release timing');
+    expect(room.players.alice.actions).toBe(0);
+    expect(room.commits).toEqual({});
+  });
+
+  it('announces a human victim, source, and frozen damage at a choosing boundary', () => {
+    let room = combatRoom();
+    const intent = room.enemyIntent!;
+    expect(intent).toMatchObject({ turn: room.turn, sourceId: 'pack', baseDamage: 5 });
+    expect(room.seats.find(seat => seat.actorId === intent.targetActorId)?.kind).toBe('human');
+    room = command(room, 'join', 'cara', { character: hero('Cara') });
+    room = act(room, { token: 'investigate', targetId: 'pack', releaseMs: 800 });
+    expect(room.enemyIntent).toEqual(intent);
+    room.danger = 20; // Resolution may change danger; the announced strike cannot grow.
+    room = act(room, { token: 'assist', targetId: intent.targetActorId, targetKind: 'hero' }, 'bob');
+    const strike = room.events.find(event => event.turn === intent.turn && event.result?.damage !== undefined)!;
+    expect(strike.result!.damage! + strike.result!.protection!).toBe(intent.baseDamage);
+    expect(room.enemyIntent).toEqual(intent);
+    room = next(room);
+    expect(room.enemyIntent?.turn).toBe(intent.turn + 1);
+    expect(room.players.cara.seatId).not.toBeNull();
+  });
+
+  it('guarantees Protect with no roll, no progress, and three contribution XP', () => {
+    const source = combatRoom();
+    const before = source.players.alice.xp;
+    const targetId = source.enemyIntent!.targetActorId;
+    let room = act(source, { token: 'assist', targetId, targetKind: 'hero', releaseMs: 800 });
+    room = command(room, 'tick', 'alice', {}, room.deadline);
+    const protection = room.events.find(event => event.turn === source.turn && event.actorId === 'alice' && event.kind === 'action')!;
+    expect(protection).toMatchObject({ success: true, contribution: true, result: { targetKind: 'hero', targetId, token: 'assist', executionBonus: 1, protection: 3, progress: 0 } });
+    expect(protection.roll).toBeUndefined();
+    expect(room.progress).toBe(0);
+    expect(room.players.alice.xp).toBe(before + 3);
+    expect(getVisitRecap(room, 'alice').chapterHighlights?.[1]?.[0]).toContain('protects');
+  });
+
+  it('uses the strongest Protect and cover, independent of submission order', () => {
+    const source = combatRoom(4);
+    const targetId = source.enemyIntent!.targetActorId;
+    source.seats[0].character.traits.INT = 100;
+    const moves: AdventureCommand[] = [
+      { id: 'cover', type: 'act', userId: 'alice', expectedTurn: source.turn, action: { token: 'fight', targetId: 'pack' } },
+      ...['bob', 'cara', 'dan'].map((userId, index): AdventureCommand => ({ id: userId, type: 'act', userId, expectedTurn: source.turn,
+        action: { token: 'assist', targetKind: 'hero', targetId, releaseMs: index === 1 ? 800 : 0 } })),
+    ];
+    const forward = moves.reduce((room, move) => reduceAdventure(room, move, source.updatedAt + 1), source);
+    const reverse = [...moves].reverse().reduce((room, move) => reduceAdventure(room, move, source.updatedAt + 1), source);
+    expect(forward.events).toEqual(reverse.events);
+    expect(forward.players).toEqual(reverse.players);
+    const strike = forward.events.find(event => event.turn === source.turn && event.result?.damage !== undefined)!;
+    expect(strike.result).toMatchObject({ targetId, damage: 2, protection: 3 });
+    expect(forward.progress).toBe(0.75);
+  });
+
+  it('retains the announced victim through departure without redirecting the strike', () => {
+    let room = combatRoom();
+    const { targetActorId, baseDamage } = room.enemyIntent!;
+    const other = targetActorId === 'alice' ? 'bob' : 'alice';
+    room = command(room, 'leave', targetActorId);
+    expect(room.seats.find(seat => seat.actorId === targetActorId)?.leaving).toBe(true);
+    room = act(room, { token: 'assist', targetId: targetActorId, targetKind: 'hero' }, other);
+    const strike = room.events.find(event => event.turn === room.turn && event.result?.damage !== undefined)!;
+    expect(strike.result).toMatchObject({ targetId: targetActorId, damage: baseDamage - 2 });
+    expect(room.players[targetActorId].seatId).toBeNull();
+    expect(room.seats.some(seat => seat.actorId === targetActorId)).toBe(false);
+  });
+
+  it('parks an empty uncommitted room without preserving a departed seat or generating progress', () => {
+    let room = combatRoom();
+    const intended = room.enemyIntent!.targetActorId;
+    room = command(room, 'leave', intended);
+    room = command(room, 'leave', intended === 'alice' ? 'bob' : 'alice');
+    expect(room.status).toBe('parked');
+    expect(room.seats.every(seat => seat.kind === 'companion')).toBe(true);
+    expect(room.progress).toBe(0);
+    expect(room.enemyIntent).toBeUndefined();
+    expect(command(room, 'tick', 'alice', {}, room.deadline + 100000)).toBe(room);
+    room = command(room, 'join', 'alice', {}, room.deadline + 100000);
+    expect(room.enemyIntent).toMatchObject({ turn: room.turn, targetActorId: 'alice' });
+    expect(room.status).toBe('active');
+  });
+
+  it('lets a downed hero Protect and receive chapter rewards without a fabricated die', () => {
+    let room = combatRoom();
+    room.seats.find(seat => seat.actorId === 'alice')!.hp = 0;
+    room.enemyIntent!.targetActorId = 'bob';
+    room.chapterRound = 10;
+    room.progress = 13;
+    const xp = room.players.alice.xp;
+    room = act(room, { token: 'assist', targetId: 'bob', targetKind: 'hero', releaseMs: 650 });
+    room = act(room, { token: 'assist', targetId: 'bob', targetKind: 'hero' }, 'bob');
+    expect(room.players.alice.xp).toBe(xp + 3 + 10);
+    expect(room.players.alice.keepsakes).toContain(CHAPTERS[1].keepsake);
+    expect(room.outcomes[0].result).toBe('mixed');
+    expect(room.events.find(event => event.turn === room.turn && event.actorId === 'alice' && event.kind === 'action')!.roll).toBeUndefined();
+  });
+
+  it('rejects false Protect targets and incompatible tokens', () => {
+    const room = combatRoom();
+    const targetId = room.enemyIntent!.targetActorId;
+    expect(() => act(room, { token: 'fight', targetId, targetKind: 'hero' })).toThrow('Place Help');
+    expect(() => act(room, { token: 'assist', targetId: 'missing', targetKind: 'hero' })).toThrow('Place Help');
+    expect(() => act(room, { token: 'assist', targetId, targetKind: 'unknown' as never })).toThrow('Choose a scene target');
+    expect(() => act(initial(), { token: 'assist', targetId: 'alice', targetKind: 'hero' })).toThrow('Place Help');
+  });
+
+  it('finishes old snapshots and actions before announcing intent at the next boundary', () => {
+    let room = combatRoom();
+    delete room.enemyIntent;
+    expect(() => act(room, { token: 'assist', targetId: 'alice', targetKind: 'hero' })).toThrow('Place Help');
+    room = act(room, { token: 'investigate', targetId: 'pack' });
+    expect(room.enemyIntent).toBeUndefined();
+    room = act(room, { token: 'assist', targetId: 'pack' }, 'bob');
+    expect(room.enemyIntent).toBeUndefined();
+    expect(room.events.filter(event => event.turn === room.turn && event.contribution).every(event => event.result?.executionBonus === 0)).toBe(true);
+    expect(next(room).enemyIntent?.turn).toBe(room.turn + 1);
+  });
+
+  it('deduplicates a timed Protect and rejects its stale or expired replay', () => {
+    const source = combatRoom();
+    const move: AdventureCommand = { id: 'timed-protect-retry', type: 'act', userId: 'alice', expectedTurn: source.turn,
+      action: { token: 'assist', targetId: source.enemyIntent!.targetActorId, targetKind: 'hero', releaseMs: 800 } };
+    const locked = reduceAdventure(source, move, source.updatedAt + 1);
+    expect(locked.commits.alice.releaseMs).toBe(800);
+    expect(reduceAdventure(locked, move, locked.updatedAt + 1)).toBe(locked);
+    expect(() => reduceAdventure(source, move, source.deadline)).toThrow('ended');
+    const resolved = command(locked, 'tick', 'alice', {}, locked.deadline);
+    const nextRoom = next(resolved);
+    expect(() => reduceAdventure(nextRoom, { ...move, id: 'stale-timed-protect' }, nextRoom.updatedAt + 1)).toThrow('ended');
+    expect(reduceAdventure(nextRoom, move, nextRoom.updatedAt + 1)).toBe(nextRoom);
+    expect(nextRoom.players.alice.xp).toBe(resolved.players.alice.xp);
+  });
+});
 
 describe('drop-in adventure creation and discovery', () => {
   it('preserves supported cosmetic colors while normalizing power and rejecting arbitrary styles', () => {
@@ -76,7 +235,7 @@ describe('drop-in adventure creation and discovery', () => {
     room.chapter = 2; room.flags.push('ward-repaired');
     expect(getCatchUp(room)).toContain('weakening Gloamfang');
     room.seats[0].hp = 0;
-    expect(getCatchUp(room)).toContain('can still help with Assist');
+    expect(getCatchUp(room)).toContain('can still use Help');
     expect(getCatchUp(room)).toContain(getScene(room).objective);
   });
 

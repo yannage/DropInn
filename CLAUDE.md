@@ -7,8 +7,10 @@ DropInn’s default experience is V2: discover a live table, join with a ready h
 | Area | Source |
 | --- | --- |
 | Default entry and legacy switch | `src/App.tsx` |
-| Discovery, play, token actions, chat and recaps | `src/components/DropInn/DropInn.tsx` |
-| Authored responsive scene artwork | `src/components/DropInn/SceneArt.tsx`, `src/dropinn.css` |
+| Discovery, hero builder, chat and recaps | `src/components/DropInn/DropInn.tsx` |
+| Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |
+| Timed commitment gesture and accessible alternatives | `src/components/DropInn/TimedRelease.tsx` |
+| Authored scene backgrounds, targets and developed states | `src/components/DropInn/SceneStageArt.tsx`, `TargetArtwork.tsx` |
 | Client session, sync, proposals and reward receipts | `src/store/adventureStore.ts` |
 | Shared types, authored chapters and pure reducer | `src/lib/dropinn/` |
 | Authenticated command service and persistence | `server/dropinn.ts` |
@@ -23,10 +25,16 @@ React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Lega
 - The server validates identity, character ownership, actions and room revisions. Browsers send commands, not authoritative room snapshots. Presence updates are separate from gameplay writes.
 - A room has four seats, including labeled rules-based companions. New humans replace companions at a turn boundary. Character identity is pinned for the adventure.
 - Turns allow 30 seconds, resolve early when all active humans commit, and show results for six seconds. There is no host-only start or unanimous Continue requirement.
+- Normal adventure play uses a viewport stage: four illustrated scene targets, visible heroes/threat, a fixed token hand and commitment control. Put extended prose, odds, chat, party details and invitations in drawers. Target 390×844 and 320×568 without document scrolling; allow accessible reflow at enlarged text sizes. Preserve tap and keyboard alternatives to dragging.
+- Assist remains the wire token `assist`, displayed as **Help**. In combat, Help on the announced victim (`targetKind: 'hero'`) is Protect: guaranteed 2 protection, or 3 with a good release; no objective progress and 3 contribution XP. Strongest Protect and existing party cover win rather than stack. Existing absent-player defense remains separate. Downed heroes can Protect.
+- Enemy intent freezes source, intended actor and base damage at the choosing boundary. Prefer upright humans, then upright companions. Retain a departing threatened seat through resolution without redirecting its strike; an empty uncommitted room releases seats and parks. Old snapshots without intent finish the current turn under their existing targeting rule; the next choosing boundary announces intent.
+- Release input is an optional whole number from 0–1200 ms. Inclusive 650–950 ms grants +1 to the server-computed modifier, or the extra Protect point. Missing/missed timing gives the ordinary move. Assisted release has the same cap; Roll now skips timing. Timing is client input, not proof of human dexterity or an anti-cheat mechanism. The server deadline still applies, including signed Spotlight confirmation.
+- Structured `StoryEvent.result` fields drive progress, target-change, protection, healing and damage visuals. `contribution: true` marks real actions including Protect without inventing a roll. Reward/recap/metrics readers also recognize old events with a roll. Room snapshots and event entries are already JSON; these optional fields require no SQL migration.
 - Missing input abstains in social scenes and defends in combat. Two missed turns release the seat. Empty rooms finish committed work and park; companions do not generate unattended progress.
 - Current turn identifiers reject stale actions. Same-turn submissions may use older revisions; the server retries transaction conflicts against fresh state. Command receipts and reward deltas are idempotent.
+- Uncertain moves persist their complete action, release timing and command ID with the local saved table. Freeze edits until retry or synchronization settles the command. Reload must not manufacture a new timing attempt or duplicate rewards.
 - Each hero has one Spotlight attempt per chapter. Leaving and returning preserves its use, HP and contributions. Validated previews are signed and bound to the user, room, target and turn.
-- Class presets determine starting power regardless of saved XP. Downed heroes can Assist. Progress and danger contributions scale with human count; every chapter closes by ten rounds.
+- Class presets determine starting power regardless of saved XP. Downed heroes can Help. Progress and danger contributions scale with human count; every chapter closes by ten rounds.
 - Authored mechanics own outcomes. Optional AI can prepare cosmetic variations, interpret supported scene interactions, and narrate resolved events. It cannot grant arbitrary rewards or revise a resolved turn.
 
 ## Development and deployment
@@ -37,4 +45,4 @@ React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Lega
 
 Hosted multiplayer requires Supabase Auth, migrations, browser Supabase configuration, and server-only credentials in the Netlify function. Never place service-role, signing, or model API secrets in `VITE_*` variables. See [service setup](server/DROPINN.md) and [Supabase setup](SUPABASE_SETUP.md).
 
-Hosted rollout, actual model evaluation, and friend-group playtesting remain unfinished. Keep these distinct from the implemented local experience. [NEXT.md](NEXT.md) records those follow-ups; [DESIGN.md](DESIGN.md) describes the product behavior.
+The new scene-stage mechanics still need a separately authorized hosted rollout. Earlier hosted API checks do not verify this working-tree version, browser Realtime, or physical-phone play. Actual model evaluation and friend-group playtesting remain follow-ups. [NEXT.md](NEXT.md) records verification boundaries; [DESIGN.md](DESIGN.md) describes the product behavior.

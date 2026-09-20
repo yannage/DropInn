@@ -114,13 +114,62 @@ describe('adventure service local command contract', () => {
     const before = (await call('read', { roomCode: room.code })).room as AdventureRoom;
     expect(before.players.player_one.spotlightChapters).toEqual([]);
     const command = { id: crypto.randomUUID(), type: 'act', expectedTurn: room.turn,
-      action: { token: 'spotlight', targetId: idea.targetId, proposal: preview.proposal } };
+      action: { token: 'spotlight', targetId: idea.targetId, proposal: preview.proposal, releaseMs: 800 } };
     const result = await call('command', { roomCode: room.code, command });
     expect(result.status).toBe(200);
     expect(result.room.players.player_one.spotlightChapters).toEqual([0]);
+    expect(result.room.events.find((event: { actorId?: string; result?: { executionBonus: number } }) => event.actorId === 'player_one' && event.result)?.result.executionBonus).toBe(1);
     const retried = await call('command', { roomCode: room.code, command });
     expect(retried.room.players.player_one.actions).toBe(1);
     expect(retried.room.players.player_one.xp).toBe(result.room.players.player_one.xp);
+  });
+
+  it('validates release duration at the service boundary and ignores forged roll fields', async () => {
+    const { call, hero } = harness();
+    const room = (await call('play', { character: hero })).room as AdventureRoom;
+    for (const releaseMs of [-1, 1201, 700.5, '800']) {
+      const invalid = commit(room);
+      invalid.command.action = { ...invalid.command.action, releaseMs: releaseMs as number };
+      const result = await call('command', invalid);
+      expect(result.status).toBe(409);
+      expect(result.error).toContain('Release timing');
+    }
+    const valid = commit(room);
+    Object.assign(valid.command.action, { releaseMs: 700, modifier: 999, roll: 20, executionBonus: 900 });
+    const result = await call('command', valid);
+    expect(result.status).toBe(200);
+    const event = result.room.events.find((entry: { contribution?: boolean }) => entry.contribution);
+    expect(event.result.executionBonus).toBe(1);
+    expect(event.modifier).toBeLessThan(20);
+    expect(event.roll).toBeGreaterThanOrEqual(1);
+    expect(event.roll).toBeLessThanOrEqual(20);
+  });
+
+  it('persists announced intent and guaranteed protection results with idempotent rewards', async () => {
+    const { call, hero, advance } = harness();
+    let room = (await call('play', { character: hero })).room as AdventureRoom;
+    for (let round = 0; room.chapter === 0 && round < 10; round++) {
+      const response = await call('command', commit(room));
+      expect(response.status).toBe(200);
+      advance(6000);
+      room = (await call('read', { roomCode: room.code })).room;
+    }
+    expect(room.chapter).toBe(1);
+    expect(room.enemyIntent).toMatchObject({ sourceId: 'pack', targetActorId: 'player_one', turn: room.turn });
+    const xp = room.players.player_one.xp;
+    const progress = room.progress;
+    const command = { id: crypto.randomUUID(), type: 'act', expectedTurn: room.turn,
+      action: { token: 'assist', targetKind: 'hero', targetId: 'player_one', releaseMs: 850 } };
+    const result = await call('command', { roomCode: room.code, command });
+    expect(result.status).toBe(200);
+    expect(result.room.progress).toBe(progress);
+    expect(result.room.players.player_one.xp).toBe(xp + 3);
+    const event = result.room.events.find((entry: { turn: number; contribution?: boolean }) => entry.turn === room.turn && entry.contribution);
+    expect(event.roll).toBeUndefined();
+    expect(event.result).toMatchObject({ protection: 3, executionBonus: 1, targetKind: 'hero', targetId: 'player_one' });
+    const retry = await call('command', { roomCode: room.code, command });
+    expect(retry.room.players.player_one.xp).toBe(xp + 3);
+    expect(retry.room.events).toEqual(result.room.events);
   });
 
   it('opens a playable adventure immediately and discovers only public summaries', async () => {

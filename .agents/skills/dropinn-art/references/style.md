@@ -16,6 +16,8 @@ UI palette: paper #fff4d6, panel #fffaf0, ink #26322c, readable secondary ink #5
 
 The superseded batch's prompts remain in [homemade-adventure-prompts.json](homemade-adventure-prompts.json) for provenance only. Standalone target art displays at 72–96px with 14px descriptions; also inspect 48–64px thumbnails. All three chapter landscapes are local PNGs. Chapter headers show their complete 3:2 composition; lobby banners and thumbnails crop responsively. Keepsake art uses existing reward strings without changing save IDs. Changed encounters keep the text-only fallback until an accurate changed-state illustration exists.
 
+The interactive adventure stage now uses three separate empty environment plates, ten accurate developed-state cutouts, and four enemy wind-up/reaction poses. See [scene-stage-art.md](scene-stage-art.md) for the mapping and [scene-stage-prompts.json](scene-stage-prompts.json) for the exact prompts. All ten current scene developments have matching art. Future changed IDs without matching art still fall back to text rather than showing a contradictory initial state. Environment plates have landmarks near the upper quarter and empty foreground; do not bake actionable characters, boats, wards, bells or fences into these images.
+
 Avoid glossy 3D, smooth vector-perfect contours, tiny RPG shading, detailed textures, photorealism, baked-in text, watermarks, and a face on every object. A gate or footprint should have no face unless requested. Preserve clear space around the full silhouette. Standalone objects can have a centered square composition; modular hero layers cannot be independently centered or trimmed.
 
 ## Reusable prompt recipe

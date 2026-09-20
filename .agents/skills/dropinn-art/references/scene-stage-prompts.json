@@ -1,0 +1,177 @@
+{
+  "generator": "Codex built-in image_gen",
+  "created": "2026-09-20",
+  "purpose": "Play-inside-the-scene UX: separate environment plates, all authored developments, enemy wind-up and reaction poses",
+  "assets": [
+    {
+      "id": "stage-village",
+      "file": "public/art/stage-village.png",
+      "purpose": "Empty environment plate behind independent interactive targets",
+      "canvas": "1536×1024 landscape, opaque; center safe for portrait crop",
+      "intent": "new generation",
+      "reference": null,
+      "prompt": "Use case: stylized-concept. Asset type: DropInn interactive adventure stage background. Create one wide 1536x1024 full-bleed primitive old Windows MS Paint mouse-drawn village landscape. Pale cream sky and two lopsided moss-green hills behind tiny crooked cream cottages only in the upper quarter; lower 75 percent is an empty flat pale moss/cream grassy clearing with minimal contour. User interfaces will place four large interactive NPC/object cutouts in front, so do not draw any foreground objects: no gate, people, sheep, footprints, wards, tokens, or signs. Keep the center 45 percent also useful when portrait-cropped, with background buildings at distant top edge. Style: lovingly awkward low-skill mouse doodle, chunky true-black jagged stair-step outlines, clumsy uneven shapes, flat bucket fills, restrained moss green, cream, dusty teal, brown; flat fills with no gradients, no shading, no texture, no elegant anatomy or smooth vector contours. No text, UI, border, watermark, atmospheric effects, or extra subjects. Broad simple shapes, lots of negative space, legible at phone size.",
+      "generatedSource": "exec-6b700d85-87e7-473b-8098-132bd3768c9c.png"
+    },
+    {
+      "id": "stage-river",
+      "file": "public/art/stage-river.png",
+      "purpose": "Empty environment plate behind independent interactive targets",
+      "canvas": "1536×1024 landscape, opaque; center safe for portrait crop",
+      "intent": "new generation",
+      "reference": null,
+      "prompt": "Use case: stylized-concept. Asset type: DropInn interactive adventure stage background. One wide 1536x1024 full-bleed environment, deliberately low-skill old Windows MS Paint mouse doodle. Chunky true-black jagged stair-step outlines, clumsy lopsided shapes, flat restrained bucket fills in cream, moss green, dusty teal and brown. No gradients, shading, texture, elegant contours, text, UI, border or watermark. This is a background only; four large characters or objects will be placed separately on the empty lower 70 percent. Center 45 percent must work for portrait crop. Keep environmental landmarks in distant upper quarter. Subject: a gently winding broad dusty teal river crosses in the distance near the top, a very small far-bank silhouette of sparse crooked trees, pale cream sky. A broad pale cream sandy clearing forms the entire lower 70 percent, absolutely empty foreground. No boats, reeds, wolves, ferrymen, rope, tokens, footprints or foreground props. Simple terrain, quiet generous negative space.",
+      "generatedSource": "exec-0fa2766c-61dc-4f71-9479-603d8da1c3b5.png"
+    },
+    {
+      "id": "stage-chapel",
+      "file": "public/art/stage-chapel.png",
+      "purpose": "Empty environment plate behind independent interactive targets",
+      "canvas": "1536×1024 landscape, opaque; center safe for portrait crop",
+      "intent": "new generation",
+      "reference": null,
+      "prompt": "Use case: stylized-concept. Asset type: DropInn interactive adventure stage background. One wide 1536x1024 full-bleed environment, deliberately low-skill old Windows MS Paint mouse doodle. Chunky true-black jagged stair-step outlines, clumsy lopsided shapes, flat restrained bucket fills in cream, moss green, dusty teal and brown. No gradients, shading, texture, elegant contours, text, UI, border or watermark. This is a background only; four large characters or objects will be placed separately on the empty lower 70 percent. Center 45 percent must work for portrait crop. Keep environmental landmarks in distant upper quarter. Subject: an old crooked cream stone chapel wall with a simple dark teal arched window, receding upper corners and a large patch of cream daylight through a distant doorway centered near the top. Lower 70 percent is empty pale cream worn stone floor represented as one flat bucket-fill with at most two crooked seam lines. No altar, bell, rope, ward stones, wolves, animals, people or foreground objects. Spare environment, quiet generous negative space.",
+      "generatedSource": "exec-1887772c-a391-437f-b70f-d7847815e8ff.png"
+    },
+    {
+      "id": "mara-safe",
+      "file": "public/art/mara-safe.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/mara.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: Mara is rescued and now stands upright safely, holding her crooked shepherd staff in one hand and pointing clearly toward the right with her other hand. Keep orange unruly hair, teal scarf, green coat, cream tunic, large brown boots and deadpan mismatched eyes. Slightly relieved expression, no gate.",
+      "generatedSource": "exec-e172cdc9-cfa9-446e-9360-ab7a9ab9cc77.png"
+    },
+    {
+      "id": "gate-sheltered",
+      "file": "public/art/gate-sheltered.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/gate.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The formerly broken pen gate is repaired and braced: the snapped horizontal timber is now joined with one very visible diagonal support board and gold rope tied around both joints. Keep crooked brown wooden posts, simple grey nails, tiny grass feet and white wool snag, but no broken/dangling board. No animals.",
+      "generatedSource": "exec-b0172a02-31a6-4cb2-acaf-bdbec2a7d030.png"
+    },
+    {
+      "id": "tracks-fragment",
+      "file": "public/art/tracks-fragment.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/tracks.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: A large single silver-grey jagged ward fragment with a simple mustard crescent marking is now visible on the mud among the claw marks. Make the silver fragment the broad dominant central shape while retaining only two clear footprints around it and the little moss grass. No hands, no tools.",
+      "generatedSource": "exec-f782e51b-f181-4b50-9893-a2cc6abcdb82.png"
+    },
+    {
+      "id": "herd-gathered",
+      "file": "public/art/herd-gathered.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/sheep.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The sheep is calm now: remove the blue tear, give it a mildly relieved goofy expression, and add one broad torn coral ribbon visibly tied below its gold bell. Show two sheep gathered close together using this same simple sheep design, one large and one slightly smaller, both calm. No fence or other props.",
+      "generatedSource": "exec-55e8cc23-96c1-4a6f-9d5e-059e54c1a86d.png"
+    },
+    {
+      "id": "boat-afloat",
+      "file": "public/art/boat-afloat.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/stranded-boat.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The same boat is afloat: replace ALL brown mud beneath the keel with a small flat dusty teal patch of river water and two broad cream ripple strokes. Tilt the boat very slightly as if bobbing. Keep the same brown hull, single wooden oar and gold rope. No mud, shore, people, other boats or scenery.",
+      "generatedSource": "exec-c51c576f-7a93-440b-bf42-14289d38c770.png"
+    },
+    {
+      "id": "reeds-path",
+      "file": "public/art/reeds-path.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/tall-reeds.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The reeds now part to reveal a concealed path. Split the existing broad cattail reeds into two small leaning clumps at left and right with a clear pale sandy opening sweeping between them. Retain simple mustard-brown cattail heads, moss stems and a little dusty teal water at edges. Broad simple shapes. The gap through the center is the main visual idea.",
+      "generatedSource": "exec-f9ed23a0-d39c-4da6-b04c-591e7e43e265.png"
+    },
+    {
+      "id": "ferryman-warning",
+      "file": "public/art/ferryman-warning.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/ferryman.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The same ferryman is now explaining a warning, with one small hand pointing upward and his mouth opened in a small uneasy oval, holding his crooked paddle with his other hand. Keep the oversize bent mustard hat, teal coat, long goofy nose, grey forked moustache, mismatched eyes, brown boots and squat proportions. No lettering, speech bubbles or additional props.",
+      "generatedSource": "exec-83dbab51-462e-42fe-a698-9523d65d0836.png"
+    },
+    {
+      "id": "ward-restored",
+      "file": "public/art/ward-restored.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/broken-ward.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The ward's two separated pieces have been joined into ONE standing stone with a thin obvious seam, and the golden crescent marking is now complete across the seam. Add three chunky short mustard light rays around the top to show restored light, no gradient glow. Retain the same dusty teal stone color, irregular top and tiny grass at its feet. No separated broken piece.",
+      "generatedSource": "exec-353b2967-1d3b-4811-8f31-ca12b3004f99.png"
+    },
+    {
+      "id": "bell-ringing",
+      "file": "public/art/bell-ringing.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/chapel-bell.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The same gold bell is now swinging strongly to the left inside the same brown timber frame. Its clapper leans oppositely to make the movement clear. Add two simple chunky mustard motion curves outside the bell's sides, no written sound effects. Keep the rope taut, timber posts, black outline and sparse grass.",
+      "generatedSource": "exec-a8dada71-cfb5-492a-b62e-259ddf9a6d60.png"
+    },
+    {
+      "id": "captives-free",
+      "file": "public/art/captives-free.png",
+      "purpose": "Persistent authored target development",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/captive-livestock.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The captive sheep now escape: remove the wooden crossbar completely and show the same two sheep walking out freely, little legs visible with one lifted hoof each. Keep cream lopsided wool, small peach faces, coral ears, mismatched eyes and a gold bell on the larger one. Calm relieved expressions. No fence, no gate, no scenery.",
+      "generatedSource": "exec-8808e8b2-cf56-4f70-aea3-20ce38c3f379.png"
+    },
+    {
+      "id": "shadow-pack-windup",
+      "file": "public/art/shadow-pack-windup.png",
+      "purpose": "Turn intent/resolution enemy pose",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/shadow-pack.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The same two goofy teal wolf creatures crouch in a comically exaggerated attack wind-up, front bodies lowered and bottoms raised, both looking toward the lower left, ears back and one tiny front paw extended. Preserve their size ratio, mismatched huge cream eyes, coral ears, gold collar rings and the one goofy tooth. Threat readable but comic and friendly enough for the same game. No added weapons, no effect marks, no ground patch.",
+      "generatedSource": "exec-278d5189-24fe-48d4-8f10-15d37be43a14.png"
+    },
+    {
+      "id": "shadow-pack-reaction",
+      "file": "public/art/shadow-pack-reaction.png",
+      "purpose": "Turn intent/resolution enemy pose",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/shadow-pack.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: The same two goofy teal wolf creatures recoil together in comic surprise, both leaning backward, one front paw up and ears flopped, eyes wide and mouths in tiny surprised O shapes. Preserve their size ratio, teal color, large cream mismatched eyes, coral ears, gold collar rings and one goofy tooth. No injury, no blood, no hit sparks, no ground patch.",
+      "generatedSource": "exec-d8538bd1-09a7-4eeb-921f-b9600e80035e.png"
+    },
+    {
+      "id": "gloamfang-windup",
+      "file": "public/art/gloamfang-windup.png",
+      "purpose": "Turn intent/resolution enemy pose",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/gloamfang.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: Gloamfang now crouches in a comically exaggerated attack wind-up: front body low, rounded hindquarters raised, tail curled high, one tiny paw forward and eyes focused toward lower left. Preserve this ONE large lopsided teal cat-wolf, coral inner ears, mismatched cream eyes, one tiny tooth and cracked gold ward medallion on moss collar. No other creatures, added weapons, effect marks or ground patch.",
+      "generatedSource": "exec-6159bf7b-441a-48a8-901b-a559cda77433.png"
+    },
+    {
+      "id": "gloamfang-reaction",
+      "file": "public/art/gloamfang-reaction.png",
+      "purpose": "Turn intent/resolution enemy pose",
+      "canvas": "Square alpha-transparent cutout",
+      "intent": "edit reference to changed story state/pose",
+      "reference": "public/art/gloamfang.png",
+      "prompt": "Use case: precise-object-edit. Create one developed-state variant of the supplied DropInn cutout, actual alpha-transparent background. Preserve the reference's primitive old Windows MS Paint mouse-drawn style, true-black chunky stair-stepped outlines, flat restrained bucket fills, clumsy asymmetry, silhouette recognizability and subject identity. Square composition with at least 8 percent clear margin, full unclipped object. No text, UI, extra characters, glossy lighting, gradients, texture, intricate detail or smooth vector contours. Change only the story state described: Gloamfang recoils in comic surprise: body tilted backward with front paws raised, floppy ears, tail flicked, eyes wide and little mouth open. Preserve this ONE large rounded lopsided teal cat-wolf, coral inner ears, mismatched cream eyes, tiny tooth and cracked gold ward medallion on moss collar. No pain injury, no blood, no added effect marks, no other creatures or ground patch.",
+      "generatedSource": "exec-ee455e96-25b9-428d-bb43-6b560c9940df.png"
+    }
+  ]
+}

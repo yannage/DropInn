@@ -7,12 +7,24 @@ The unit of value is a satisfying short visit. New roleplayers and experienced t
 ## The current experience
 
 1. The lobby shows live adventures, open seats, companions and chapter progress. Play Now finds a table or starts one, using an immediately available hero.
-2. A two-sentence catch-up explains the situation and current objective. A joining player receives a seat at the next safe turn boundary.
-3. Each player selects a scene target and contextual Fight, Influence, Investigate or Assist token. The preview explains the check and effect. Optional Spotlight offers a short custom idea to review before commitment.
-4. Humans choose simultaneously within 30 seconds; the round resolves early when everyone commits. Individual rolls and consequences remain visible for six seconds before the next turn.
+2. One situation sentence and four illustrated targets introduce the scene. A joining player can inspect it while their seat opens at the next safe turn boundary; the Story drawer holds the full catch-up.
+3. Place Fight, Influence, Investigate or Help on a scene object with drag, tap or keyboard. Combat also offers Help on the visibly threatened hero to Protect. A single preview above the fixed bottom control shows the intended action and primary effect; exact odds and explanations open on demand.
+4. Hold the die and release it in the bright zone for a small execution bonus, or use Roll now/assisted release. Humans choose simultaneously within 30 seconds; the round resolves early when everyone commits. The stage shows the server's die, affected objects/heroes and one short consequence during a six-second reveal.
 5. Players can leave, keep earned progress, and read their contribution recap. History later shows chapter outcomes and rewards earned after their departure.
 
-Scene artwork, targets, party status and tactile tokens share one compact, mobile-first layout. Chat is optional. Public cooperation includes local mute controls, reporting and server validation; report review is an operational responsibility, not an automated moderation promise.
+The core loop is **spot an opportunity or threat → place a token → time the release → see what changed**. Artwork is the primary play surface; developed objects remain visible in their accurate state. Normal play fits a phone viewport, with the timer/chapter/Leave bar above and the token hand/action dock below. Marketing chrome stays outside an adventure. Story, chat, party, invitations and Spotlight use named drawers instead of stacking prose beneath the scene. Drawers can scroll; enlarged text can reflow rather than clip controls. Reduced motion preserves clear outcomes and all results remain available in the journal.
+
+Public cooperation includes local mute controls, reporting and server validation; report review is an operational responsibility, not an automated moderation promise.
+
+## Tactical choice and execution
+
+At each combat choosing boundary the server announces the enemy source, intended hero and base damage. The victim is an upright human when available, otherwise an upright companion. A departing victim stays through that turn's resolution; the attack never silently switches to a teammate. Progress, interruption, insight, danger reduction and healing retain their authored effects. Objectives remain the victory condition; there is no new enemy health bar or grid.
+
+Help retains the existing `assist` identity and class support on scene targets. Placing it on the announced victim chooses **Protect**: guaranteed 2 protection, or 3 with a good release, and no objective progress. Multiple Protect moves use only the strongest value; existing party cover combines by taking the stronger value. Missing-input defense remains separate. Protect is a real contribution, awards 3 XP and qualifies for ordinary chapter rewards without a fabricated die roll. Downed heroes can still Protect.
+
+The commitment control runs for 1.2 seconds. Inclusive release at 650–950 ms adds 1 to the server's roll modifier, or 1 protection for Protect. Other valid timing and Roll now keep the ordinary move. Assisted release grants the same maximum bonus. The selected action freezes during a hold; pointer cancellation submits nothing, and the round deadline cannot be extended. Signed Spotlight keeps preview-before-spending and uses the same release control for confirmation. These pacing constants are starting values for human playtesting.
+
+The server accepts only an optional integer duration from 0–1200 ms and computes the bonus itself. Client timing is an input, not evidence of human dexterity; no anti-cheat claim is made. Uncertain delivery preserves the action and its command ID/timing across browser reload and retries.
 
 ## Chapters and consequences
 
@@ -24,7 +36,7 @@ Scene artwork, targets, party status and tactile tokens share one compact, mobil
 
 Every chapter closes within ten rounds with success, mixed success or a setback. Failed checks add danger while revealing a way forward; essential story facts do not depend on retrying a check. Chapter outcomes affect the next chapter’s starting conditions. Helping Mara provides a later advantage and epilogue acknowledgment; repairing the ward can restore the guardian instead of driving it away.
 
-Fighters protect and interrupt, rogues create openings, wizards reveal magical advantages, and clerics heal or revive. Class-appropriate traits drive checks. Downed heroes retain Assist. Successful creative effects are limited to cover, distraction, revelation and rescue using existing scene targets.
+Fighters protect and interrupt, rogues create openings, wizards reveal magical advantages, and clerics heal or revive. Class-appropriate traits drive checks. Downed heroes retain Help. Successful creative effects are limited to cover, distraction, revelation and rescue using existing scene targets.
 
 ## Drop-in rules
 
@@ -33,6 +45,7 @@ Fighters protect and interrupt, rogues create openings, wizards reveal magical a
 - Missing turns do not invent dialogue, spend Spotlight or make a major choice. Repeated inactivity releases the seat.
 - Heroes retain XP and keepsakes, but saved progression does not raise starting combat power. The hero used in an adventure stays pinned across rejoining.
 - Objective and danger contributions scale with human count. Additional humans create more individual contributions without reducing chapters to a couple of rounds.
+- Old snapshots lacking intent finish their current turn under the old targeting rule and announce intent at the next choosing boundary. Omitted target kind means scene; omitted timing gives no bonus. Structured result/contribution fields extend existing room/event JSON and require no schema migration. Readers retain support for old rolled-action events.
 
 ## AI and boundaries
 

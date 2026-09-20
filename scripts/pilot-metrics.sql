@@ -3,7 +3,8 @@
 -- No schema, player records, or game state are changed by this script.
 --
 -- Limits:
--- * First action means seat arrival -> resolved rolled action, NOT page launch,
+-- * First action means seat arrival -> resolved contribution (including Protect
+--   and older rolled actions), NOT page launch,
 --   clicking Play Now, waiting for admission, or the moment an action is committed.
 -- * Visits begin at arrival events and end at departure or adventure completion.
 --   Unfinished visits are excluded from duration; elapsed time includes waiting.
@@ -16,7 +17,7 @@ with event_rows as (
   select room_code, event_id, entry->>'kind' as kind,
          entry->>'actorId' as user_id,
          (entry->>'at')::bigint as at_ms,
-         entry->>'roll' is not null as is_rolled_action
+         (entry->>'contribution' = 'true' or entry->>'roll' is not null) as is_contribution
   from public.adventure_events
 ), arrivals as (
   select room_code, user_id, at_ms as arrived_at_ms,
@@ -54,7 +55,7 @@ with event_rows as (
     select min(e.at_ms) as first_action_ms, count(*) as action_count
     from event_rows e
     where e.room_code = v.room_code and e.user_id = v.user_id
-      and e.kind = 'action' and e.is_rolled_action
+      and e.kind = 'action' and e.is_contribution
       and e.at_ms >= v.arrived_at_ms
       and (v.ended_at_ms is null or e.at_ms <= v.ended_at_ms)
       and (v.next_arrival_ms is null or e.at_ms < v.next_arrival_ms)

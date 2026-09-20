@@ -220,6 +220,65 @@ describe('adventure client recovery', () => {
     expect(ids[0]).toBe(ids[1]);
   });
 
+  it('restores the exact timed action and command ID after a network failure and reload', async () => {
+    const { store, room } = await setup();
+    const commands: Array<{ id: string; action: unknown }> = [];
+    mocks.request.mockImplementation(async payload => {
+      if (payload.operation === 'command') {
+        commands.push(structuredClone(payload.command));
+        if (commands.length === 1) throw new TypeError('Network disconnected');
+      }
+      return { backend: 'local', room, rooms: [], recaps: [] };
+    });
+    const action = { token: 'assist' as const, targetKind: 'hero' as const, targetId: 'friend', releaseMs: 812 };
+    await store.getState().commitAction(action);
+    expect(store.getState().pendingMove).toEqual({ turn: room.turn, action });
+    vi.resetModules();
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    expect(restored.getState().pendingMove).toEqual({ turn: room.turn, action });
+    await restored.getState().initialize();
+    await restored.getState().commitAction(restored.getState().pendingMove!.action);
+    expect(commands).toHaveLength(2);
+    expect(commands[1]).toEqual(commands[0]);
+    expect(restored.getState().pendingMove).toBeNull();
+    expect(JSON.parse(storage.get('dropinn-v2-player-storetest')!).pendingAction).toBeNull();
+  });
+
+  it('freezes an uncertain move until a confirmed rejection permits a different action', async () => {
+    const { store, room } = await setup();
+    mocks.request.mockRejectedValue(new TypeError('Network lost'));
+    const original = { token: 'assist' as const, targetId: 'mara', releaseMs: 750 };
+    await store.getState().commitAction(original);
+    const callCount = mocks.request.mock.calls.length;
+    await store.getState().commitAction({ ...original, releaseMs: 800 });
+    expect(store.getState().error).toContain('previous move is still being checked');
+    expect(mocks.request.mock.calls).toHaveLength(callCount);
+    expect(store.getState().pendingMove?.action).toEqual(original);
+    const { AdventureRequestError } = await import('../lib/dropinn/api');
+    mocks.request.mockRejectedValue(new AdventureRequestError('That target changed.', 409));
+    await store.getState().commitAction(original);
+    expect(store.getState().pendingMove).toBeNull();
+    mocks.request.mockResolvedValue({ backend: 'local', room });
+    await store.getState().commitAction({ ...original, targetId: 'gate' });
+    expect(store.getState().error).toBeNull();
+  });
+
+  it.each(['commit', 'receipt', 'next-turn'] as const)('clears uncertainty when a synchronized %s proves the move is settled', async proof => {
+    const { store, room } = await setup();
+    mocks.request.mockRejectedValue(new Error('No response'));
+    const action = { token: 'assist' as const, targetId: 'mara', releaseMs: 800 };
+    await store.getState().commitAction(action);
+    const pending = JSON.parse(storage.get('dropinn-v2-player-storetest')!).pendingAction;
+    room.revision++;
+    if (proof === 'commit') room.commits[store.getState().userId] = action;
+    if (proof === 'receipt') room.appliedCommands.push(pending.commandId);
+    if (proof === 'next-turn') room.turn++;
+    mocks.request.mockResolvedValue({ backend: 'local', room });
+    await store.getState().syncRoom();
+    expect(store.getState().pendingMove).toBeNull();
+    expect(JSON.parse(storage.get('dropinn-v2-player-storetest')!).pendingAction).toBeNull();
+  });
+
   it('does not reopen a room when an older read completes after leaving', async () => {
     const { store, room } = await setup();
     let resolveRead!: (response: { backend: string; room: AdventureRoom }) => void;

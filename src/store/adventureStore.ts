@@ -12,6 +12,12 @@ import { getErrorMessage } from '../lib/errors';
 
 const namespace = new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'default';
 const storageKey = `dropinn-v2-player-${namespace}`;
+interface PendingAction {
+  roomCode: string;
+  turn: number;
+  commandId: string;
+  action: PlayerAction;
+}
 interface SavedPlayer {
   userId: string;
   character: CharacterProfile;
@@ -19,11 +25,21 @@ interface SavedPlayer {
   receipts: Record<string, { xp: number; keepsakes: string[] }>;
   muted: string[];
   seenOutcomes?: Record<string, number>;
+  pendingAction?: PendingAction | null;
 }
 function readSaved(): SavedPlayer {
   try {
     const value = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if (value?.character?.id && value?.userId) return { receipts: {}, muted: [], activeCode: null, ...value, character: normalizeHero(value.character) };
+    if (value?.character?.id && value?.userId) {
+      const pending = value.pendingAction;
+      const action = pending?.action;
+      const validPending = pending?.roomCode === value.activeCode && typeof pending?.commandId === 'string'
+        && Number.isInteger(pending?.turn) && typeof action?.targetId === 'string'
+        && ['fight', 'influence', 'investigate', 'assist', 'spotlight'].includes(action?.token)
+        && (action.targetKind === undefined || ['scene', 'hero'].includes(action.targetKind))
+        && (action.releaseMs === undefined || (Number.isInteger(action.releaseMs) && action.releaseMs >= 0 && action.releaseMs <= 1200));
+      return { receipts: {}, muted: [], activeCode: null, ...value, character: normalizeHero(value.character), pendingAction: validPending ? pending : null };
+    }
   } catch { /* A damaged browser cache should never prevent joining. */ }
   // Retain an existing local hero when migrating from the original prototype.
   let previous: CharacterProfile | undefined;
@@ -43,7 +59,6 @@ let unsubscribe: (() => void) | null = null;
 let viewEpoch = 0;
 let narrationKey = '';
 let proposalSequence = 0;
-let pendingAction: { key: string; commandId: string } | null = null;
 const mergeMessages = (current: ChatMessage[], incoming: ChatMessage[]) => [...new Map([...current, ...incoming].map(message => [message.id, message])).values()]
   .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)).slice(-60);
 
@@ -58,6 +73,7 @@ interface AdventureState {
   recaps: VisitRecap[];
   recap: VisitRecap | null;
   proposal: CreativeProposal | null;
+  pendingMove: { turn: number; action: PlayerAction } | null;
   narration: { text: string; catchUp: string; turn: number } | null;
   loading: boolean;
   proposing: boolean;
@@ -96,6 +112,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     characterId: get().character?.id,
   });
   const fail = (error: unknown) => set({ error: getErrorMessage(error, 'Something went wrong. Please retry.') });
+  const setPendingAction = (pending: PendingAction | null) => {
+    saved.pendingAction = pending;
+    save();
+    set({ pendingMove: pending ? { turn: pending.turn, action: pending.action } : null });
+  };
   // Browser storage can outlive an anonymous auth session. Resolve ownership
   // before admission instead of submitting a hero from a previous account.
   const ensureHostedHero = async () => {
@@ -110,6 +131,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.receipts = {};
       saved.muted = [];
       saved.seenOutcomes = {};
+      setPendingAction(null);
       set({ recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
     }
     saved.userId = user.id;
@@ -160,6 +182,10 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     const current = get().room;
     if (!room || (current?.code === room.code && current.revision > room.revision)) return;
     const changedTurn = current?.turn !== room.turn;
+    const pending = saved.pendingAction;
+    if (pending && (pending.roomCode !== room.code || pending.turn !== room.turn || room.phase !== 'choosing'
+      || room.status !== 'active' || room.commits[get().userId] || room.appliedCommands.includes(pending.commandId)
+      || room.players[get().userId]?.leftAt !== null)) setPendingAction(null);
     if (changedTurn) proposalSequence++;
     set({ room, syncError: null, restoringCode: null, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
     const participant = room.players[get().userId];
@@ -189,6 +215,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
   return {
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
+    pendingMove: saved.pendingAction?.roomCode === saved.activeCode ? { turn: saved.pendingAction.turn, action: saved.pendingAction.action } : null,
     loading: false, proposing: false, reacting: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
     sendReaction: async reaction => {
       const room = get().room;
@@ -259,6 +286,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       } catch (error) {
         if (epoch !== viewEpoch) return;
         if (error instanceof AdventureRequestError && [403, 404].includes(error.status)) {
+          setPendingAction(null);
           saved.activeCode = null; save();
           unsubscribe?.(); unsubscribe = null;
           viewEpoch++;
@@ -272,12 +300,26 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     commitAction: action => busy(async () => {
       const room = get().room;
       if (!room) return;
-      const key = `${room.code}:${room.turn}:${JSON.stringify(action)}`;
-      if (pendingAction?.key !== key) pendingAction = { key, commandId: crypto.randomUUID() };
-      await accept(await request({ operation: 'command', roomCode: room.code, command: {
-        id: pendingAction.commandId, type: 'act', userId: get().userId, expectedTurn: room.turn, expectedRevision: room.revision, action,
-      } }), viewEpoch);
-      pendingAction = null;
+      let pending = saved.pendingAction;
+      if (pending && (pending.roomCode !== room.code || pending.turn !== room.turn)) { setPendingAction(null); pending = null; }
+      if (pending && JSON.stringify(pending.action) !== JSON.stringify(action)) throw new Error('Your previous move is still being checked. Retry that move before choosing another.');
+      if (!pending) {
+        pending = { roomCode: room.code, turn: room.turn, commandId: crypto.randomUUID(), action: structuredClone(action) };
+        setPendingAction(pending);
+      }
+      const epoch = viewEpoch;
+      try {
+        await accept(await request({ operation: 'command', roomCode: pending.roomCode, command: {
+          id: pending.commandId, type: 'act', userId: get().userId, expectedTurn: pending.turn, expectedRevision: room.revision, action: pending.action,
+        } }), epoch);
+      } catch (error) {
+        // A definite rejection is safe to edit. Network/5xx/rate-limit failures
+        // retain the complete command, including release timing, across reload.
+        if (error instanceof AdventureRequestError && [400, 401, 403, 404, 409, 422].includes(error.status)
+          && saved.pendingAction?.commandId === pending.commandId) setPendingAction(null);
+        throw error;
+      }
+      if (saved.pendingAction?.commandId === pending.commandId) setPendingAction(null);
       set({ proposal: null });
     }),
     leaveRoom: () => busy(async () => {
@@ -289,6 +331,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       viewEpoch += 1;
       proposalSequence++;
       unsubscribe?.(); unsubscribe = null;
+      setPendingAction(null);
       saved.activeCode = null; save();
       set({ room: null, restoringCode: null, syncError: null, messages: [], proposal: null, narration: null, recap });
       await get().refreshRooms();

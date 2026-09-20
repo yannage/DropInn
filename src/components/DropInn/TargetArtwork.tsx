@@ -17,12 +17,37 @@ const targetArt = new Map<string, string>([
   ['captives', '/art/captive-livestock.png'],
 ]);
 
-export function TargetArtwork({ target }: { target: Pick<SceneTarget, 'id' | 'changed'> }) {
-  const src = targetArt.get(target.id);
+const developedArt = new Map<string, string>([
+  ['mara', '/art/mara-safe.webp'],
+  ['gate', '/art/gate-sheltered.webp'],
+  ['tracks', '/art/tracks-fragment.webp'],
+  ['herd', '/art/herd-gathered.webp'],
+  ['boat', '/art/boat-afloat.webp'],
+  ['reeds', '/art/reeds-path.webp'],
+  ['ferryman', '/art/ferryman-warning.webp'],
+  ['ward', '/art/ward-restored.webp'],
+  ['bell', '/art/bell-ringing.webp'],
+  ['captives', '/art/captives-free.webp'],
+]);
+
+export type TargetPose = 'idle' | 'windup' | 'reaction';
+
+const enemyArt = new Map<string, string>([
+  ['pack', 'shadow-pack'],
+  ['gloamfang', 'gloamfang'],
+]);
+
+export function TargetArtwork({ target, pose = 'idle' }: {
+  target: Pick<SceneTarget, 'id' | 'changed'>;
+  pose?: TargetPose;
+}) {
+  const enemy = enemyArt.get(target.id);
+  const src = target.changed ? developedArt.get(target.id)
+    : enemy && pose !== 'idle' ? `/art/${enemy}-${pose}.webp` : targetArt.get(target.id);
   const [failedSource, setFailedSource] = useState<string>();
-  // Initial artwork may contradict a developed scene (e.g. a repaired gate).
-  if (target.changed || !src || failedSource === src) return null;
-  return <span className="di-target-art" aria-hidden="true">
+  // Never replace a developed object with its contradictory initial illustration.
+  if (!src || failedSource === src) return null;
+  return <span className="di-target-art" data-pose={pose} aria-hidden="true">
     <img src={src} alt="" width={96} height={96} draggable={false}
       onError={() => setFailedSource(src)} />
   </span>;
