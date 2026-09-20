@@ -1,4 +1,4 @@
-import { CHAPTERS } from './content';
+import { adventureFor, chaptersFor } from './registry';
 import type { AdventureRoom, PlayerAction, SceneChange, SceneTarget } from './types';
 
 const developments: Record<string, { flag: string; name: string; description: string; tokens: SceneTarget['tokens']; change: SceneChange }> = {
@@ -16,7 +16,30 @@ const developments: Record<string, { flag: string; name: string; description: st
 
 /** One shared scene projection for browser, rules, and model context. */
 export function getScene(room: AdventureRoom) {
-  const chapter = CHAPTERS[room.chapter];
+  const chapter = chaptersFor(room)[room.chapter];
+  if (!chapter) throw new Error('This chapter is unavailable.');
+  if (adventureFor(room).id !== 'briar-glen') {
+    const branch = chapter.branch;
+    const chosen = branch?.options.find(option => option.id === room.storyBranch);
+    const routeArt: Record<string, string> = room.storyBranch === 'recipe' ? { 'tomorrow-return-recipe': 'story-cylinder-blank' }
+      : room.storyBranch === 'memory' ? { 'tomorrow-return-memory': 'story-spool-empty' }
+      : room.storyBranch === 'vent' ? { 'teacup-return-valve': 'story-sail-torn' }
+      : room.storyBranch === 'lifeboat' ? { 'teacup-return-valve': 'story-sail' }
+      : room.storyBranch === 'wall' ? { 'orchard-return-wall': 'story-wall-open' }
+      : room.storyBranch === 'spillway' ? { 'orchard-return-wall': 'story-sluice' } : {};
+    return { ...chapter,
+      intro: room.storyBranch ? `${chapter.catchUp} ${chosen?.consequence ?? branch?.fallbackText}` : chapter.intro,
+      targets: chapter.targets.map(target => {
+        const developed = room.flags.includes(`developed:${target.id}`);
+        // Choosing targets remain preparation until the party resolves its route.
+        const option = branch?.options.find(item => item.targetId === target.id);
+        if (option && !room.storyBranch) return { ...target, description: `${option.consequence} Place Help here to choose this route. Other tokens prepare the scene without voting.`, changed: false };
+        const description = option && room.storyBranch ? `${chosen?.consequence ?? branch?.fallbackText} Help sustain this route; the choice cannot be changed.` : undefined;
+        const projected = developed && target.development ? { ...target, ...target.development, changed: true } : target;
+        return { ...projected, ...(description ? { description } : {}), ...(routeArt[target.id] ? { artKey: routeArt[target.id], changed: true } : {}) };
+      }),
+    };
+  }
   const targets = chapter.targets.map(target => {
     const update = developments[target.id];
     return update && room.flags.includes(update.flag)
@@ -41,6 +64,15 @@ export function getScene(room: AdventureRoom) {
 }
 
 export function developScene(room: AdventureRoom, action: PlayerAction): SceneChange | undefined {
+  if (adventureFor(room).id !== 'briar-glen') {
+    const target = getScene(room).targets.find(item => item.id === action.targetId);
+    const key = `developed:${action.targetId}`;
+    if (!target?.development || room.flags.includes(key)) return;
+    if (getScene(room).branch?.options.some(option => option.targetId === target.id) && !room.storyBranch) return;
+    room.flags.push(key);
+    const branchTarget = getScene(room).branch?.options.some(option => option.targetId === target.id);
+    return { title: `${target.name} is ready`, text: branchTarget ? target.description : target.development.description, next: 'Use what changed to help the party.' };
+  }
   const update = developments[action.targetId];
   if (!update || room.flags.includes(update.flag)) return;
   // Creative outcomes follow the reviewed effect: a distraction alone does
@@ -58,6 +90,7 @@ export function developScene(room: AdventureRoom, action: PlayerAction): SceneCh
 }
 
 export function spotlightExample(room: AdventureRoom) {
+  if (adventureFor(room).id !== 'briar-glen') return `I use ${getScene(room).targets[0].name.toLowerCase()} to help the party move forward.`;
   return [
     'I brace the broken gate with my staff so Mara can crawl free.',
     'I rock the boat against the mud while the others pull its rope.',

@@ -62,3 +62,11 @@ Human acceptance is separate from automation: ask newcomers and experienced play
 ## Private invitations
 
 Verify private tables are absent from discovery/matching, code-only joins fail for new members, full invitations work, previous members can return, and stale seats are reclaimed at the correct boundary. Do not expose full invitation URLs in screenshots or reports.
+
+## Selectable stories and irreversible routes
+
+Run `npm run test:adventures -- http://127.0.0.1:5198` with Vite running. This isolates the real local command handler, disables external calls and controls the shared clock. Its Vite SSR loader uses a separate dependency cache so it cannot invalidate the preview server's optimized modules. Use `STORY_ID` to focus one story during debugging; unset it for the complete report.
+
+For Teacup, Tomorrow and Orchard, create a private table, admit a second browser, complete all three chapters and reconnect in chapter two. At 390×844 and 320×568 verify four loaded scene cutouts, 44px targets, no document overflow, route preview before committing Help and the retained journal ending. Verify both routes, tied/no-input fallbacks, downed/departing voters, duplicate receipts and solo companion completion in `adventures.test.ts`. Matchmaking must never mix adventure IDs or versions; old snapshots retain Briar Glen.
+
+Human review: ask both players what each route sacrifices before they commit; ask late arrivals what was spent afterward. Confirm Tomorrow spends only a breakfast routine, Teacup never restores the sacrificed sail/ship, and Orchard's fallback is a small spillway. A passed automated completion does not establish narrative comprehension or pacing quality.

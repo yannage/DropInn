@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:scene": "node scripts/playtest-scene.mjs",
+    "test:adventures": "node scripts/playtest-adventures.mjs",
+    "stories:build": "node scripts/build-story-data.mjs",
     "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs"
   },
   "dependencies": {

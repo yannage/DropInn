@@ -1,0 +1,7 @@
+{
+  "name": "story-kettle",
+  "prompt": "DropInn game single transparent cutout asset. Subject: One squat brass kettle engine with a large red side valve handle, little chimney and stubby feet. No steam or light so it fits idle and ready states. Style reference: the attached sheep's deliberately primitive old Windows MS Paint mouse drawing, true black jagged stair-stepped outlines, clumsy lopsided shapes, broad flat bucket fills cream dusty teal mustard moss brown coral. No shading, gradients, glossy lighting, textures or polished vectors. No text, UI or watermark. Square 1024x1024; actual transparent alpha background, entire object with at least12% clear margin, readable at48px. One object only.",
+  "generator": "built-in imagegen",
+  "source": "public/art/story-kettle.png",
+  "provenance": "Retained original PNG; prompt recovered from visible generation history after computer shutdown."
+}

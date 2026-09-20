@@ -28,6 +28,8 @@ The server accepts only an optional integer duration from 0–1200 ms and comput
 
 ## Chapters and consequences
 
+New and revised adventures use [the storytelling and pacing baseline](docs/storytelling-guide.md), adapting Dan Harmon's Story Circle to observable player actions and three drop-in chapters. It is the master authoring reference for story beats, foreshadowed costs, changed endings and review. The Teacup, Tomorrow and Orchard stories are selectable alongside Briar Glen, with distinct chapters, art, route choices, endings and keepsakes. [Runtime scope and verification](docs/playable-adventures.md) distinguish implemented mechanics from optional design extensions.
+
 | Chapter | Immediate goal | Possible contributions |
 | --- | --- | --- |
 | The missing livestock | Help Mara and find the missing herd’s trail | Calm animals, free Mara, inspect tracks, clear the gate |

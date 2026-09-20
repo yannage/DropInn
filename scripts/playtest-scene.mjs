@@ -144,7 +144,7 @@ async function layout(page, label) {
   }
 }
 try {
-  ssr = await createServer({ configFile: false, server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
+  ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-scene-tests', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'error' });
   const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
   ({ getScene } = await ssr.ssrLoadModule('/src/lib/dropinn/scene.ts'));
   handler = createDropinnHandler({ local: true, env: {}, now: clock, fetch: async () => { externalCalls++; throw new Error('External calls disabled for QA'); } });

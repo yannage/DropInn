@@ -4,6 +4,8 @@ DropInn’s default experience is V2: discover a live table, join with a ready h
 
 ## Code map
 
+All adventure authoring follows [the storytelling and pacing baseline](docs/storytelling-guide.md). Start new stories from [the packet template](docs/stories/TEMPLATE.md). Briar Glen and the three Story Circle adventures are selectable through the versioned registry; see [runtime scope and verification](docs/playable-adventures.md).
+
 | Area | Source |
 | --- | --- |
 | Default entry and legacy switch | `src/App.tsx` |
@@ -13,6 +15,8 @@ DropInn’s default experience is V2: discover a live table, join with a ready h
 | Authored scene backgrounds, targets and developed states | `src/components/DropInn/SceneStageArt.tsx`, `TargetArtwork.tsx` |
 | Client session, sync, proposals and reward receipts | `src/store/adventureStore.ts` |
 | Shared types, authored chapters and pure reducer | `src/lib/dropinn/` |
+| Adventure identity, versions and authored definitions | `src/lib/dropinn/registry.ts`, `adventures.ts` |
+| Rebuild reviewed story packets into static definitions | `npm run stories:build` (`scripts/build-story-data.mjs`) |
 | Authenticated command service and persistence | `server/dropinn.ts` |
 | Optional OpenAI/Ollama adapters | `server/ai.ts` |
 | Hosted function and development adapter | `netlify/functions/dropinn.ts`, `vite.config.ts` |
@@ -24,6 +28,8 @@ React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Lega
 
 - The server validates identity, character ownership, actions and room revisions. Browsers send commands, not authoritative room snapshots. Presence updates are separate from gameplay writes.
 - A room has four seats, including labeled rules-based companions. New humans replace companions at a turn boundary. Character identity is pinned for the adventure.
+- Adventure ID/version are pinned too. Missing identity means legacy Briar Glen v1; unavailable versions fail explicitly. Match only the same adventure/version. Keep released versions addressable when revising definitions.
+- Chapter 3's first turn resolves branch-directed human Help votes together. Unique most votes wins; ties/no votes use the displayed authored fallback. Companions cannot vote. Committed votes survive departure, timing never changes preference, and the chosen cost cannot be reversed by later actions.
 - Turns allow 30 seconds, resolve early when all active humans commit, and show results for six seconds. There is no host-only start or unanimous Continue requirement.
 - Normal adventure play uses a viewport stage: four illustrated scene targets, visible heroes/threat, a fixed token hand and commitment control. Put extended prose, odds, chat, party details and invitations in drawers. Target 390×844 and 320×568 without document scrolling; allow accessible reflow at enlarged text sizes. Preserve tap and keyboard alternatives to dragging.
 - Assist remains the wire token `assist`, displayed as **Help**. In combat, Help on the announced victim (`targetKind: 'hero'`) is Protect: guaranteed 2 protection, or 3 with a good release; no objective progress and 3 contribution XP. Strongest Protect and existing party cover win rather than stack. Existing absent-player defense remains separate. Downed heroes can Protect.

@@ -36,7 +36,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
-import { CHAPTERS } from '../../lib/dropinn/content';
+import { ADVENTURES, chaptersFor } from '../../lib/dropinn/registry';
 import {
   CHARACTER_CLASS_PRESETS,
   heroAccent,
@@ -160,6 +160,7 @@ function Modal({
 }
 
 function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
+  const CHAPTERS = chaptersFor(recap);
   const markRecapSeen = useAdventureStore(state => state.markRecapSeen);
   const joinRoom = useAdventureStore(state => state.joinRoom);
   const loading = useAdventureStore(state => state.loading);
@@ -211,7 +212,7 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
               <div><strong>{item}</strong>
                 {hat && <div className="di-hat-reward"><HeroHatPreview hat={hat} /><span>Hat unlocked: {hat.label}<small>Ready to wear in your hero builder between visits.</small></span></div>}
                 <small>{chapter >= 0 ? `Chapter ${chapter + 1} · ${CHAPTERS[chapter].title}` : recap.title}</small>
-                <p>{['A little bell to remember the villagers and the missing herd.', 'A river reed to remember the crossing to the chapel.', 'A moonstone to remember the guardian and Briar Glen’s fate.'][chapter] ?? 'A memento of the adventure you helped tell.'}</p>
+                <p>{!recap.adventureId || recap.adventureId === 'briar-glen' ? ['A little bell to remember the villagers and the missing herd.', 'A river reed to remember the crossing to the chapel.', 'A moonstone to remember the guardian and Briar Glen’s fate.'][chapter] ?? 'A memento of the adventure you helped tell.' : 'A memento of the chapter you helped shape.'}</p>
                 {memory?.length ? <p className="di-keepsake-contribution"><b>Your part:</b> {memory.at(-1)}</p> : <p className="di-fine">Earned through your contributions to this chapter.</p>}
               </div>
             </article>;
@@ -449,6 +450,7 @@ function Lobby() {
   const [code, setCode] = useState('');
   const [editingHero, setEditingHero] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [adventureId, setAdventureId] = useState('briar-glen');
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
   const recentVisits = [...recaps].sort((a, b) => Number(unseen(b) > 0) - Number(unseen(a) > 0));
@@ -483,7 +485,7 @@ function Lobby() {
           <button
             className="di-button di-primary di-play"
             disabled={loading}
-            onClick={() => void playNow()}
+            onClick={() => void playNow(adventureId)}
           >
             {loading ? (
               <LoaderCircle className="di-spin" size={20} />
@@ -512,6 +514,16 @@ function Lobby() {
         </div>
       </section>
 
+      <section className="di-story-library" aria-label="Choose an adventure">
+        <h2>Choose your next story</h2>
+        <div>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
+          <SceneArt scene={adventure.chapters[0].art} />
+          <h3>{adventure.title}</h3><p>{adventure.pitch}</p>
+          <button className="di-button di-secondary" aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>Select story</button>
+          <button className="di-button di-primary" disabled={loading} onClick={() => void playNow(adventure.id)} aria-label={`Play ${adventure.title}`}>Play this story</button>
+          <button className="di-text-button" disabled={loading} onClick={() => void startFriendTable(adventure.id)} aria-label={`Start a friend table for ${adventure.title}`}>Start with friends</button>
+        </article>)}</div>
+      </section>
       <div className="di-lobby-grid">
         <div className="di-lobby-main">
           <div className="di-section-heading">
@@ -566,7 +578,7 @@ function Lobby() {
                 <button
                   className="di-button di-secondary"
                   disabled={loading}
-                  onClick={() => void playNow()}
+                  onClick={() => void playNow('briar-glen')}
                 >
                   {liveRooms.length ? 'Find me a seat' : 'Start the adventure'}
                   <ArrowRight size={16} />
@@ -669,7 +681,7 @@ function Lobby() {
               <span className="di-eyebrow">Just your people</span>
               <h3>Save a table for friends.</h3>
               <p>Start with companions and invite up to three friends. Your table stays out of public discovery.</p>
-              <button type="button" className="di-button di-secondary di-full" disabled={loading} onClick={() => void startFriendTable()}>
+              <button type="button" className="di-button di-secondary di-full" disabled={loading} onClick={() => void startFriendTable(adventureId)}>
                 <Users size={17} /> Start a friend table
               </button>
               <small>Anyone you share the full invitation with can join.</small>
@@ -726,7 +738,8 @@ function RoomCard({
   disabled: boolean;
   onJoin: () => void;
 }) {
-  const chapter = CHAPTERS[Math.min(summary.chapter, CHAPTERS.length - 1)];
+  const chapters = chaptersFor(summary);
+  const chapter = chapters[Math.min(summary.chapter, chapters.length - 1)];
   return (
     <article className="di-live-room">
       <div className="di-live-room-art">

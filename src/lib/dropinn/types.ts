@@ -11,6 +11,8 @@ export interface SceneTarget {
   tokens: TokenKind[];
   effects: CreativeEffect[];
   changed?: boolean;
+  artKey?: string;
+  development?: { name: string; description: string; artKey?: string; tokens?: TokenKind[] };
 }
 export interface SceneChange { title: string; text: string; next: string }
 export interface ChapterDefinition {
@@ -20,7 +22,11 @@ export interface ChapterDefinition {
   intro: string;
   objective: string;
   threat: string;
-  art: 'village' | 'river' | 'chapel';
+  art: string;
+  firstTarget?: string;
+  enemySource?: string;
+  catchUp?: string;
+  branch?: { prompt: string; fallback: string; options: { id: string; targetId: string; label: string; consequence: string }[]; fallbackText: string };
   targets: SceneTarget[];
   progressGoal: number;
   combat: boolean;
@@ -113,6 +119,9 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  adventureId?: string;
+  adventureVersion?: number;
+  storyBranch?: string;
   visibility?: 'public' | 'private';
   inviteKey?: string;
   version: 2;
@@ -145,6 +154,8 @@ export interface AdventureRoom {
   reactions?: TableReaction[];
 }
 export interface RoomSummary {
+  adventureId?: string;
+  adventureVersion?: number;
   code: string;
   title: string;
   status: AdventureRoom['status'];
@@ -177,6 +188,8 @@ export interface ChatMessage {
   at: number;
 }
 export interface VisitRecap {
+  adventureId?: string;
+  adventureVersion?: number;
   code: string;
   characterId: string;
   title: string;

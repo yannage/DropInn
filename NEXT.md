@@ -62,7 +62,9 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 
 ### 6. Expand the experience after the pilot
 
-- [ ] Add a second authored adventure with a distinct situation, such as a runaway airship or a tavern mystery.
+- [x] Establish [the storytelling and pacing baseline](docs/storytelling-guide.md), a reusable packet template and three complete adventure design drafts: airship rescue, time-loop inn mystery and migrating orchard. Future authoring references the baseline through AGENTS.md.
+- [x] Implement a versioned adventure registry and all three story packets as selectable adventures. Branch-directed Help, persistent costs and route endings are implemented. See [runtime scope and verification](docs/playable-adventures.md).
+- [ ] Human-playtest the new stories before extending them with the optional Teacup setup bonus, Tomorrow symbol bonus or Orchard shared watering can. These extensions remain design proposals; ordinary scene developments carry the playable baseline.
 - [x] Support private friend tables alongside public drop-in play: hidden from discovery/matching, full invitation required for new members, saved-member return, and stale-seat recovery. Anyone with a shared full link can join; existing members may reshare it. Browser and local service checks pass; verify hosted behavior after deployment.
 - [x] Add Cheers/Thanks/Clever reactions with short-lived animated bubbles, mute support, and a server-enforced cooldown. Show each teammate's committed token and target without requiring chat. Reactions never affect rewards, deadlines, or actions.
 - [ ] Build a small report-review workflow and basic operational metrics.

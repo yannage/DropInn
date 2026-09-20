@@ -4,9 +4,11 @@ import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterClassKey, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
+import { adventureFor } from '../src/lib/dropinn/registry';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText, type AIOptions, type AdventureVariation, type ServerEnv } from './ai';
 
 interface RequestBody {
+  adventureId?: string;
   operation: 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
   sessionId?: string; roomCode?: string; characterId?: string; character?: CharacterProfile;
   command?: AdventureCommand; idea?: string; targetId?: string; text?: string;
@@ -280,6 +282,10 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
         return reply({ variationId, variation });
       }
       if (body.operation === 'play' || body.operation === 'join') {
+        let selected;
+        try { selected = adventureFor({ adventureId: body.operation === 'play' ? body.adventureId : undefined }); }
+        catch { throw new RequestError('Choose an available adventure.'); }
+        if (body.variationId && selected.id !== 'briar-glen') throw new RequestError('Prepared tellings are available for Briar Glen only.');
         if (body.visibility !== undefined && !['public', 'private'].includes(body.visibility)) throw new RequestError('Choose a public or friend table.');
         await rateLimit(userId, 'join', 20);
         const character = await characterFor(body, userId);
@@ -297,7 +303,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
           return reply({ room, messages: await messagesFor(room.code) });
         }
         if (!body.variationId && body.visibility !== 'private') {
-          const candidates = (await list()).sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active') || b.updatedAt - a.updatedAt);
+          const candidates = (await list()).filter(room => adventureFor(room).id === selected.id && adventureFor(room).version === selected.version).sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active') || b.updatedAt - a.updatedAt);
           for (const candidate of candidates) {
             if (summarizeRoom(candidate).openSeats === 0 && !candidate.players[userId]) continue;
             try {
@@ -323,7 +329,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
           if (!variation) throw new RequestError('That prepared telling expired. Prepare it again.', 409);
         }
         for (let attempt = 0; attempt < 8; attempt++) {
-          const room = createAdventure(character, userId, now());
+          const room = createAdventure(character, userId, now(), undefined, selected.id);
           if (body.visibility === 'private') {
             room.visibility = 'private';
             room.inviteKey = crypto.randomUUID().replace(/-/g, '');

@@ -1,4 +1,5 @@
 import { getScene } from './scene';
+import { adventureFor } from './registry';
 import type { AdventureRoom, CreativeEffect } from './types';
 
 interface SuggestedIdea { label: string; idea: string; targetId: string; effect: CreativeEffect; description: string; until?: string }
@@ -20,6 +21,7 @@ const ideas: SuggestedIdea[][] = [
 /** Authored attempts still require server validation, a signed preview and a roll. */
 export function spotlightSuggestions(room: AdventureRoom) {
   const targets = getScene(room).targets;
+  if (adventureFor(room).id !== 'briar-glen') return targets.slice(0, 2).map(target => ({ label: `Help with ${target.name}`, targetId: target.id, effect: 'reveal' as const, idea: `I study ${target.name.toLowerCase()} and show the party a way forward.`, description: `Study ${target.name.toLowerCase()}. On success, gain extra progress and next-turn insight. This does not cast a route vote.` }));
   return ideas[room.chapter].filter(idea => (!idea.until || !room.flags.includes(idea.until))
     && targets.some(target => target.id === idea.targetId && target.effects.includes(idea.effect)));
 }

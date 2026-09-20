@@ -4,6 +4,39 @@ import type { AdventureRoom, PlayerAction } from '../src/lib/dropinn/types';
 import { CHAPTERS } from '../src/lib/dropinn/content';
 import { createDropinnHandler } from './dropinn';
 import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
+import { ADVENTURES } from '../src/lib/dropinn/registry';
+
+describe('adventure selection contract', () => {
+  it('isolates matchmaking by story and preserves identity through read and history', async () => {
+    const { call, hero } = harness();
+    const codes = new Set<string>();
+    for (const definition of ADVENTURES) {
+      const opened = await call('play', { character: hero, adventureId: definition.id });
+      expect(opened.status).toBe(200);
+      expect(opened.room).toMatchObject({ adventureId: definition.id, adventureVersion: 1, title: definition.title });
+      codes.add(opened.room.code);
+      const matched = await call('play', { character: hero, adventureId: definition.id }, 'player_two');
+      expect(matched.room.code).toBe(opened.room.code);
+      const read = await call('read', { roomCode: opened.room.code });
+      expect(read.room.adventureId).toBe(definition.id);
+    }
+    expect(codes.size).toBe(4);
+    const history = await call('history');
+    expect(new Set(history.recaps.map((recap: { adventureId: string }) => recap.adventureId)).size).toBe(4);
+    const invalid = await call('play', { character: hero, adventureId: 'made-up' });
+    expect(invalid.status).toBe(400);
+  });
+  it.each(ADVENTURES.slice(1))('signs authored Spotlight for $id without an inference call', async definition => {
+    const { call, hero } = harness({ fetch: vi.fn(() => { throw new Error('No external inference'); }) });
+    const { room } = await call('play', { character: hero, adventureId: definition.id, visibility: 'private' });
+    const idea = spotlightSuggestions(room)[0];
+    const { proposal, status } = await call('propose', { roomCode: room.code, targetId: idea.targetId, idea: idea.idea });
+    expect(status).toBe(200);
+    expect(proposal.supported).toBe(true);
+    const commit = await call('command', { roomCode: room.code, command: { id: 'signed-new-story', type: 'act', expectedTurn: room.turn, action: { token: 'spotlight', targetId: idea.targetId, proposal, releaseMs: 800 } } });
+    expect(commit.status).toBe(200);
+  });
+});
 
 function harness(options: Parameters<typeof createDropinnHandler>[0] = {}) {
   let time = 1000;

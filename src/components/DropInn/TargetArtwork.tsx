@@ -38,11 +38,11 @@ const enemyArt = new Map<string, string>([
 ]);
 
 export function TargetArtwork({ target, pose = 'idle' }: {
-  target: Pick<SceneTarget, 'id' | 'changed'>;
+  target: Pick<SceneTarget, 'id' | 'changed' | 'artKey'>;
   pose?: TargetPose;
 }) {
   const enemy = enemyArt.get(target.id);
-  const src = target.changed ? developedArt.get(target.id)
+  const src = target.artKey ? `/art/${target.artKey}${target.artKey === 'gate' ? '.png' : '.webp'}` : target.changed ? developedArt.get(target.id)
     : enemy && pose !== 'idle' ? `/art/${enemy}-${pose}.webp` : targetArt.get(target.id);
   const [failedSource, setFailedSource] = useState<string>();
   // Never replace a developed object with its contradictory initial illustration.

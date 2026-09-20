@@ -8,10 +8,10 @@ const scenes = {
 
 /** Local illustrations share a crop-safe composition across banners and cards. */
 export function SceneArt({ scene = 'village', className = '' }: {
-  scene?: 'village' | 'river' | 'chapel';
+  scene?: string;
   className?: string;
 }) {
-  const art = scenes[scene];
+  const art = scenes[scene as keyof typeof scenes] ?? { src: `/art/stage-${scene}.webp`, description: 'An illustrated adventure setting.' };
   const [failedSource, setFailedSource] = useState<string>();
   if (failedSource === art.src) {
     return <div className={`di-scene-art di-scene-fallback ${className}`} aria-hidden="true" />;

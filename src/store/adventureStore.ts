@@ -88,8 +88,8 @@ interface AdventureState {
   markRecapSeen: (recap: VisitRecap) => void;
   initialize: () => Promise<void>;
   refreshRooms: () => Promise<void>;
-  playNow: () => Promise<void>;
-  startFriendTable: () => Promise<void>;
+  playNow: (adventureId?: string) => Promise<void>;
+  startFriendTable: (adventureId?: string) => Promise<void>;
   prepareAdventure: () => Promise<void>;
   joinRoom: (code: string, inviteKey?: string) => Promise<void>;
   syncRoom: () => Promise<void>;
@@ -199,11 +199,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       }).catch(() => { /* Authored result is already visible. */ });
     }
   };
-  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string) => {
+  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string, adventureId?: string) => {
     await ensureHostedHero();
     const epoch = ++viewEpoch;
     proposalSequence++;
-    const response = await request({ operation, roomCode: code, variationId, visibility, inviteKey });
+    const response = await request({ operation, roomCode: code, variationId, visibility, inviteKey, adventureId });
     if (!response.room) throw new Error('This adventure could not be opened.');
     unsubscribe?.();
     set({ room: null, messages: [], recap: null, proposal: null, narration: null });
@@ -259,8 +259,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       } catch (error) { fail(error); }
       finally { listInFlight = false; }
     },
-    playNow: () => busy(() => enter('play')),
-    startFriendTable: () => busy(() => enter('play', undefined, undefined, 'private')),
+    playNow: (adventureId) => busy(() => enter('play', undefined, undefined, undefined, undefined, adventureId)),
+    startFriendTable: (adventureId) => busy(() => enter('play', undefined, undefined, 'private', undefined, adventureId)),
     prepareAdventure: () => busy(async () => {
       await ensureHostedHero();
       const response = await request({ operation: 'prepare' });

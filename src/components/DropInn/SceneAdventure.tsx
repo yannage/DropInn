@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { ArrowLeft, BookOpen, Check, Clock3, Copy, Dices, Flame, Heart, Info, MessageCircle, Shield, Sparkles, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
-import { CHAPTERS } from '../../lib/dropinn/content';
+import { chaptersFor, adventureFor } from '../../lib/dropinn/registry';
 import { describeAction, getCatchUp } from '../../lib/dropinn/engine';
 import { getScene, spotlightExample } from '../../lib/dropinn/scene';
 import { rollSupport, supportText, teammatesAt } from '../../lib/dropinn/teamwork';
@@ -25,7 +25,7 @@ const TOKENS: { kind: IllustratedToken; label: string }[] = [
 const objectives = ['Help Mara. Find the missing herd.', 'Cross before the shadow pack strikes.', 'Free the herd. Restore the ward.'];
 const verbs: Record<string, string> = { mara: 'Help Mara', tracks: 'Follow the tracks', gate: 'Clear the gate', herd: 'Calm the herd', pack: 'Face the pack', reeds: 'Find a hidden path', boat: 'Free the boat', ferryman: 'Ask the ferryman', gloamfang: 'Face Gloamfang', ward: 'Restore the ward', bell: 'Ring the bell', captives: 'Free the captives' };
 const effects: Record<IllustratedToken, string> = { fight: 'Progress · block 2', influence: 'Progress · ease danger', investigate: 'Progress · next-turn insight', assist: 'Progress · class support' };
-type Drawer = 'story' | 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | null;
+type Drawer = 'story' | 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | 'choice' | null;
 
 export function SceneDrawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -70,6 +70,9 @@ function resultLine(event: StoryEvent) {
 export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: ReactNode }) {
   const { userId, loading, leaveRoom, joinRoom, commitAction, pendingMove, propose, proposal, proposing, clearProposal, messages, narration } = useAdventureStore();
   const scene = getScene(room);
+  const CHAPTERS = chaptersFor(room);
+  const branchOpen = !!scene.branch && !room.storyBranch;
+  const closing = room.storyBranch ? adventureFor(room).closing?.[room.storyBranch] : undefined;
   const self = room.seats.find(seat => seat.actorId === userId && seat.kind === 'human');
   const participant = room.players[userId];
   const intent = room.enemyIntent?.turn === room.turn ? room.enemyIntent : undefined;
@@ -95,7 +98,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 100); return () => window.clearInterval(timer); }, []);
   useEffect(() => {
     setSelection(null); setHolding(false); setDrag(null); gesture.current = null;
-    setIdea(''); setSpotlightTarget(scene.targets[0]?.id ?? ''); clearProposal(); setDrawer(current => current === 'spotlight' ? null : current);
+    setIdea(''); setSpotlightTarget(scene.targets[0]?.id ?? ''); clearProposal(); setDrawer(current => current === 'spotlight' || current === 'choice' ? null : current);
     setHint('Place a token on something in the scene.');
   }, [room.turn, clearProposal]);
   useEffect(() => { if (drawer === 'chat') setSeenMessages(messages.length); }, [drawer, messages.length]);
@@ -142,6 +145,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     if (locked) { if (!canAct) setDrawer(type === 'hero' ? 'party' : 'story'); return; }
     if (!canPlace(kind, id, type)) { setHint(type === 'hero' ? 'Use Help to protect the threatened hero.' : 'Try a highlighted object, or choose another token.'); return; }
     setToken(kind); setSelection({ token: kind, targetId: id, targetKind: type }); clearProposal();
+    if (branchOpen && kind === 'assist' && type === 'scene' && scene.branch?.options.some(option => option.targetId === id)) setDrawer('choice');
     setHint('Hold the die, then release in the bright zone.'); playTableSound('place');
   };
   const hit = (x: number, y: number) => {
@@ -178,9 +182,10 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     if (!selection || !canAct) return;
     void commitAction({ ...selection, ...(releaseMs === undefined ? {} : { releaseMs }) });
   };
-  const compactLabel = protect ? `Protect ${victim?.character.name ?? 'your ally'}` : selection?.token === 'spotlight' ? selection.proposal?.label : target ? target.changed ? target.name : verbs[target.id] ?? target.name : 'Your move';
+  const branchOption = branchOpen && selection?.token === 'assist' ? scene.branch?.options.find(option => option.targetId === selection.targetId && selection.targetKind !== 'hero') : undefined;
+  const compactLabel = branchOption ? branchOption.label : protect ? `Protect ${victim?.character.name ?? 'your ally'}` : selection?.token === 'spotlight' ? selection.proposal?.label : target ? target.changed ? target.name : verbs[target.id] ?? target.name : 'Your move';
   const helpEffect = self ? { fighter: 'Progress · cover', rogue: 'Progress · next-turn opening', wizard: 'Progress · next-turn insight', cleric: 'Progress · heal up to 4' }[self.character.classKey] : effects.assist;
-  const compactEffect = protect ? 'Block 2 · great release blocks 3' : selection?.token === 'spotlight' ? `On success: ${selection.proposal?.effect}` : selection ? `${selection.token === 'assist' ? helpEffect : selection.token === 'fight' && !scene.combat ? 'Progress · clear the way' : effects[selection.token as IllustratedToken]}${support?.total ? ` · +${support.total}` : ''}` : hint;
+  const compactEffect = branchOption ? 'Your route vote counts even if the roll misses.' : protect ? 'Block 2 · great release blocks 3' : selection?.token === 'spotlight' ? `On success: ${selection.proposal?.effect}` : selection ? `${selection.token === 'assist' ? helpEffect : selection.token === 'fight' && !scene.combat ? 'Progress · clear the way' : effects[selection.token as IllustratedToken]}${support?.total ? ` · +${support.total}` : ''}` : branchOpen ? 'Place Help on a route to review its cost.' : hint;
   const openSpotlight = () => { if (holding || pending || !canAct || downed || spent) return; setDrawer('spotlight'); setSpotlightTarget(target?.id ?? scene.targets[0].id); setIdea(''); clearProposal(); };
   const closeDrawer = () => { setDrawer(null); if (drawer === 'spotlight') { clearProposal(); setIdea(''); } };
   const chooseSpotlight = () => {
@@ -196,9 +201,9 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       </div>
       <span className={`di-stage-clock ${seconds <= 8 && room.phase === 'choosing' ? 'urgent' : ''}`} role="timer" aria-label={room.status !== 'active' ? 'Table paused' : `${Math.ceil(seconds)} seconds ${room.phase === 'reveal' ? 'until next turn' : 'to choose'}`}><Clock3 size={16} />{room.status === 'active' ? Math.ceil(seconds) : '—'}</span>
     </header>
-    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : objectives[room.chapter]}</strong><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
-    <div className={`di-scene-stage di-stage-${scene.art} ${room.phase === 'reveal' ? 'is-resolving' : ''}`} ref={stage}>
-      <SceneStageArt chapter={room.chapter} />
+    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : adventureFor(room).id === 'briar-glen' ? objectives[room.chapter] : scene.objective}</strong><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
+    <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''}`} ref={stage}>
+      <SceneStageArt chapter={room.chapter} art={scene.art} />
       {threatPath && <svg className="di-threat-link" aria-hidden="true" viewBox={`0 0 ${threatPath.width} ${threatPath.height}`}><defs><marker id="stage-threat-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b44e35" /></marker></defs><path d={threatPath.path} fill="none" stroke="#b44e35" strokeWidth="2.5" strokeDasharray="5 6" markerEnd="url(#stage-threat-arrow)" /></svg>}
       <div className="di-stage-party" aria-label="Heroes at the table">
         {room.seats.map(member => {
@@ -228,7 +233,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
           return <button type="button" key={item.id} data-scene-target={item.id} data-target-kind="scene" className={`di-scene-object object-${index} ${can && canAct ? 'is-compatible' : ''} ${selected ? 'is-selected' : ''} ${drag?.over === item.id ? 'is-over' : ''} ${item.changed ? 'is-developed' : ''} ${source ? 'is-enemy' : ''} ${room.phase === 'reveal' && event ? 'has-result' : ''}`}
             aria-label={`${item.name}${item.changed ? ', changed' : ''}${can && canAct ? `, place ${TOKENS.find(item => item.kind === token)?.label}` : ''}`} aria-pressed={selected} onClick={() => choose(token, item.id)}>
             <TargetArtwork target={item} pose={source ? room.phase === 'reveal' ? 'reaction' : 'windup' : 'idle'} />
-            <span className="di-object-label">{item.name}{item.changed && <Check size={12} />}</span>
+            <span className="di-object-label">{!selection && room.chapterRound === 1 && item.id === scene.firstTarget && <span aria-label="Suggested first target">✦ </span>}{item.name}{item.changed && <Check size={12} />}</span>
             {selected && <span className="di-object-coin">{selection.token === 'spotlight' ? <Sparkles /> : <TokenArtwork token={selection.token} />}</span>}
             <span className="di-object-teammates">{teammates.map(mate => <span key={mate.userId} title={mate.name}>{mate.token === 'spotlight' ? <Sparkles size={12} /> : <TokenArtwork token={mate.token as IllustratedToken} />}</span>)}</span>
             {room.phase === 'reveal' && event && <span className="di-object-result" key={event.id}>{event.success ? <Check size={18} /> : '!'}</span>}
@@ -241,7 +246,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       {joining && <div className="di-stage-notice" role="status"><Users size={20} />Joining next turn. Explore the scene.</div>}
       {!self && !joining && room.status !== 'completed' && <div className="di-stage-notice"><button disabled={loading} onClick={() => void joinRoom(room.code)}>Rejoin the adventure</button></div>}
       {committed && room.phase === 'choosing' && <div className="di-stage-notice" role="status"><Check size={18} />Move ready · {room.seats.filter(member => member.kind === 'human' && room.commits[member.actorId]).length}/{room.seats.filter(member => member.kind === 'human' && !member.leaving).length}</div>}
-      {room.status === 'completed' && <div className="di-stage-finale"><Sparkles size={30} /><h2>A story worth telling.</h2><p>{participant?.actions ?? 0} contributions · +{participant?.xp ?? 0} XP</p><button onClick={() => void leaveRoom()} disabled={loading}>Collect your recap</button></div>}
+      {room.status === 'completed' && <div className="di-stage-finale"><Sparkles size={30} /><h2>A story worth telling.</h2>{closing && <><TargetArtwork target={{ id: "closing", artKey: closing.artKey }} /><strong>{closing.caption}</strong></>}<p>{participant?.actions ?? 0} contributions · +{participant?.xp ?? 0} XP</p><button onClick={() => void leaveRoom()} disabled={loading}>Collect your recap</button></div>}
     </div>
     <section className="di-scene-dock" aria-label="Your move">
       <div className="di-scene-hand" role="group" aria-label="Action tokens">
@@ -263,7 +268,8 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       <button aria-label={sound ? 'Mute table sounds' : 'Enable table sounds'} onClick={() => { setSound(!sound); setTableSound(!sound); }}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}<span>Sound</span></button>
     </nav>
     {drag && <div className="di-scene-drag" style={{ left: drag.x, top: drag.y } as CSSProperties}><TokenArtwork token={drag.kind} /></div>}
-    {drawer && <SceneDrawer title={{ story: 'Story & journal', party: 'Your party', chat: 'Table chat', invite: 'Invite a friend', details: 'Your action', spotlight: 'A Spotlight idea' }[drawer]} onClose={closeDrawer}>
+    {drawer && <SceneDrawer title={{ story: 'Story & journal', party: 'Your party', chat: 'Table chat', invite: 'Invite a friend', details: 'Your action', spotlight: 'A Spotlight idea', choice: 'Choose your route' }[drawer]} onClose={() => { if (drawer === 'choice') setSelection(null); closeDrawer(); }}>
+      {drawer === 'choice' && scene.branch && <><h3>{branchOption?.label}</h3><p>{branchOption?.consequence}</p><p>Everyone chooses this turn. Most Help votes wins; timing and die results do not change your vote. Other actions contribute without voting.</p><p>{scene.branch.fallbackText}</p><button className="di-scene-primary" disabled={!canAct || !branchOption} onClick={() => setDrawer(null)}>Ready this route</button></>}
       {drawer === 'story' && <><h3>{scene.title}</h3><p>{getCatchUp(room)}</p><p>{scene.intro}</p>{narration?.turn === room.turn && <p>{narration.text}</p>}{room.outcomes.map(outcome => <article key={outcome.chapter}><h3>{CHAPTERS[outcome.chapter].title}</h3><p>{outcome.text}</p></article>)}<h3>What happened</h3><div className="di-scene-journal">{[...room.events].reverse().map(event => <article key={event.id}><small>Turn {event.turn}{event.actorId === userId ? ' · Your move' : ''}</small><p>{event.text}</p>{event.effect && <p>{event.effect}</p>}{event.change && <p>{event.change.text}</p>}</article>)}</div></>}
       {drawer === 'party' && <>{room.seats.map(member => <article className="di-scene-party-detail" key={member.id}><HeroAvatar hero={member.character} /><div><h3>{member.character.name}{member.actorId === userId ? ' · you' : ''}</h3><p>{member.kind === 'companion' ? 'Rules-based companion' : CHARACTER_CLASS_PRESETS[member.character.classKey].label} · {member.hp}/{member.character.maxHp} HP</p><p>{member.hp === 0 ? 'Downed · Help is still available' : member.leaving ? 'Leaving at the boundary' : room.commits[member.actorId] ? 'Move committed' : 'Choosing a move'}</p></div></article>)}<TableReactions room={room} /></>}
       {drawer === 'chat' && chat}

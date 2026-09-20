@@ -34,6 +34,12 @@
 .di-stage-guard{top:25px;background:#aed7ed}
 .di-stage-damage{position:absolute;left:50%;top:20px;transform:translateX(-50%);background:#fff1d2;border:2px solid #863526;border-radius:6px;color:#a72f20;font-size:20px;font-weight:900;padding:2px 6px;animation:di-damage-pop .6s both;z-index:7}
 .di-stage-damage{display:flex;align-items:center;gap:4px;white-space:nowrap}.di-stage-healing{color:#276940}
+.di-stage-finale>.di-target-art{height:70px;width:100px;flex:0 1 70px;min-height:32px;background:none;padding:0}.di-stage-finale>.di-target-art img{width:100%;height:100%;object-fit:contain}.di-stage-finale>strong{font-size:13px;line-height:1.3}.di-stage-finale>p{margin:0}
+@media(max-height:620px){.di-theater .di-stage-finale{inset:0 3%;gap:4px;padding:8px}.di-theater .di-stage-finale h2{font-size:22px}.di-stage-finale>svg{display:none}.di-stage-finale>.di-target-art{height:42px;flex-basis:42px}.di-stage-finale>strong{font-size:11px}}
+.di-story-library{margin:24px auto;max-width:1200px}.di-story-library>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.di-story-library article{padding:14px;border:2px solid #52605255;background:#fffaf0;border-radius:15px;display:flex;flex-direction:column;gap:9px}.di-story-library article.is-selected{border-color:#315d49}.di-story-library img{width:100%;height:145px;object-fit:cover;border-radius:8px}.di-story-library h3,.di-story-library p{margin:0}.di-story-library button{min-height:44px}.di-story-library p{flex:1}
+.di-stage-combat .di-stage-targets{top:110px}
+@media(max-width:420px){.di-stage-combat .di-stage-targets{top:97px}}
+@media(max-height:620px) and (max-width:759px){.di-stage-combat .di-stage-targets{top:78px}}
 .di-stage-threat{position:absolute;top:79px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:7px;background:#fff4d6ed;border:1px solid #ab5335;border-radius:16px;padding:3px 10px;white-space:nowrap;font-size:11px;max-width:98%}
 .di-stage-threat>span:last-child{display:flex;align-items:center;gap:3px;color:#a23421;font-weight:800}
 .di-threat-arrow{color:#a23421;font-size:18px;line-height:16px}

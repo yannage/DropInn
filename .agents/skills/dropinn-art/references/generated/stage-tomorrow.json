@@ -1,0 +1,7 @@
+{
+  "name": "stage-tomorrow",
+  "prompt": "DropInn game single landscape background asset. Subject: Wide empty crooked cozy fantasy inn interior, distant blank wall and small window across upper quarter, broad pale wooden tabletop/floor foreground 75% empty. No clock, food, cutlery, characters or actionable objects. Style reference: the attached sheep's deliberately primitive old Windows MS Paint mouse drawing, true black jagged stair-stepped outlines, clumsy lopsided shapes, broad flat bucket fills cream dusty teal mustard moss brown coral. No shading, gradients, glossy lighting, textures or polished vectors. No text, UI or watermark. 1536x1024 landscape with portrait-friendly center crop; no separate UI or inset frames.",
+  "generator": "built-in imagegen",
+  "source": "public/art/stage-tomorrow.png",
+  "provenance": "Retained original PNG; prompt recovered from visible generation history after computer shutdown."
+}

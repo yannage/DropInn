@@ -1,7 +1,7 @@
 import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import { normalizeHero } from '../cosmetics';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
-import { CHAPTERS } from './content';
+import { adventureFor, chaptersFor } from './registry';
 import { rollSupport, supportText } from './teamwork';
 import { getScene, developScene } from './scene';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
@@ -55,7 +55,7 @@ function announceEnemyIntent(room: AdventureRoom) {
   const uprightHumans = available.filter(seat => seat.kind === 'human');
   const targets = uprightHumans.length ? uprightHumans : available;
   const target = targets[hash(`${room.id}:${room.turn}:threat`) % targets.length];
-  if (target) room.enemyIntent = { turn: room.turn, sourceId: room.chapter === 1 ? 'pack' : 'gloamfang',
+  if (target) room.enemyIntent = { turn: room.turn, sourceId: chapterOf(room).enemySource ?? (room.chapter === 1 ? 'pack' : 'gloamfang'),
     targetActorId: target.actorId, baseDamage: 3 + Math.floor(room.danger / 4) };
 }
 
@@ -78,16 +78,17 @@ function releasePlayer(room: AdventureRoom, seat: Seat, now: number, inactive = 
   event(room, now, { kind: 'departure', actorId: seat.actorId, actorName: seat.character.name, text: inactive ? `${seat.character.name} steps away after two missed turns. Their progress is saved.` : `${seat.character.name} heads out. Their contribution stays with the party.` });
 }
 
-export function createAdventure(character: CharacterProfile, userId: string, now: number, code?: string): AdventureRoom {
+export function createAdventure(character: CharacterProfile, userId: string, now: number, code?: string, adventureId?: string): AdventureRoom {
+  const adventure = adventureFor({ adventureId });
   const hero = normalizedCharacter(character);
   const roomCode = (code ?? Math.random().toString(36).slice(2, 8)).toUpperCase();
-  const room: AdventureRoom = { version: 2, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: 'Briar Glen: The Broken Bell',
+  const room: AdventureRoom = { version: 2, adventureId: adventure.id, adventureVersion: adventure.version, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: adventure.title,
     status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);
-  event(room, now, { kind: 'chapter', text: CHAPTERS[0].intro });
+  event(room, now, { kind: 'chapter', text: adventure.chapters[0].intro });
   return room;
 }
 
@@ -228,12 +229,13 @@ function finishChapter(room: AdventureRoom, now: number) {
   const definition = chapterOf(room);
   const result = room.progress >= definition.progressGoal ? 'success' : room.progress >= definition.progressGoal * 0.5 ? 'mixed' : 'setback';
   let text = definition.endings[result];
-  if (room.chapter === 2 && result === 'success') text = hasFlag(room, 'ward-repaired') ? 'The repaired ward answers the bell. Gloamfang’s shadow falls away, and the guardian bows as the captives return to Briar Glen.' : 'You drive Gloamfang from the chapel and lead the captives home. The villagers hang a new bell, grateful for the brave strangers who answered it.';
+  if (adventureFor(room).id === 'briar-glen' && room.chapter === 2 && result === 'success') text = hasFlag(room, 'ward-repaired') ? 'The repaired ward answers the bell. Gloamfang’s shadow falls away, and the guardian bows as the captives return to Briar Glen.' : 'You drive Gloamfang from the chapel and lead the captives home. The villagers hang a new bell, grateful for the brave strangers who answered it.';
+  if (definition.branch && room.storyBranch) text += ` ${adventureFor(room).branchEndings?.[room.storyBranch] ?? ''}`;
   if (room.chapter === 2 && hasFlag(room, 'mara-helped')) text += ' Mara welcomes you back with the copper bell you helped her save.';
   room.outcomes.push({ chapter: room.chapter, result, text, at: now });
   flag(room, `outcome:${room.chapter}:${result}`);
   // Necessary story facts arrive even when a chapter goes badly.
-  flag(room, room.chapter === 0 ? 'river-lead' : room.chapter === 1 ? 'guardian-truth' : 'village-future');
+  flag(room, adventureFor(room).id === 'briar-glen' ? room.chapter === 0 ? 'river-lead' : room.chapter === 1 ? 'guardian-truth' : 'village-future' : `story:${definition.id}:complete`);
   const contributors = new Set(room.events.filter(e => e.chapter === room.chapter && e.kind === 'action' && e.actorId && (e.contribution || e.roll !== undefined)).map(e => e.actorId));
   for (const player of Object.values(room.players)) if (contributors.has(player.userId)) {
     player.xp += result === 'success' ? 15 : 10;
@@ -242,11 +244,19 @@ function finishChapter(room: AdventureRoom, now: number) {
     player.highlights = player.highlights.slice(-8);
   }
   event(room, now, { kind: 'chapter', text });
-  if (room.chapter === CHAPTERS.length - 1) room.status = 'completed';
+  if (room.chapter === chaptersFor(room).length - 1) room.status = 'completed';
 }
 
 function resolveRound(room: AdventureRoom, now: number) {
   if (room.phase !== 'choosing' || room.status === 'completed') return;
+  const branch = chapterOf(room).branch;
+  if (branch && !room.storyBranch) {
+    const votes = branch.options.map(option => ({ option, count: Object.values(room.commits).filter(action => action.token === 'assist' && action.targetKind !== 'hero' && action.targetId === option.targetId).length }));
+    const highest = Math.max(0, ...votes.map(vote => vote.count));
+    const winners = votes.filter(vote => vote.count === highest && highest > 0);
+    room.storyBranch = winners.length === 1 ? winners[0].option.id : branch.fallback;
+    event(room, now, { kind: 'consequence', text: winners.length === 1 ? `The party chooses: ${winners[0].option.label}. ${winners[0].option.consequence}` : branch.fallbackText });
+  }
   const submitted = Object.keys(room.commits).length;
   const frozenBonus = Number(hasFlag(room, `insight:${room.turn}`)) + Number(hasFlag(room, `opening:${room.turn}`));
   const startingDanger = room.danger;
@@ -295,7 +305,7 @@ function resolveRound(room: AdventureRoom, now: number) {
   }
   if (room.progress >= chapterOf(room).progressGoal || room.chapterRound >= MAX_ROUNDS) finishChapter(room, now);
   room.phase = 'reveal'; room.revealUntil = now + REVEAL_MS; room.commits = {};
-  if (room.outcomes.length < CHAPTERS.length && !humans(room).length && !room.pendingJoins.length) room.status = 'parked';
+  if (room.outcomes.length < chaptersFor(room).length && !humans(room).length && !room.pendingJoins.length) room.status = 'parked';
   fillCompanions(room);
 }
 
@@ -393,7 +403,7 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
 
 export function summarizeRoom(room: AdventureRoom): RoomSummary {
   const definition = chapterOf(room);
-  return { code: room.code, title: room.variation?.title ?? room.title, status: room.status, chapter: room.chapter, chapterTitle: definition.title,
+  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, status: room.status, chapter: room.chapter, chapterTitle: definition.title,
     predicament: room.status === 'completed' ? room.outcomes[room.outcomes.length - 1]?.text ?? definition.objective : definition.objective,
     humans: humans(room).length, companions: room.seats.filter(s => s.kind === 'companion').length,
     openSeats: room.status === 'completed' ? 0 : Math.max(0, 4 - humans(room).length - room.pendingJoins.length), progress: room.progress, progressGoal: definition.progressGoal, updatedAt: room.updatedAt };
@@ -403,8 +413,9 @@ export function getCatchUp(room: AdventureRoom): string {
   const firstSentence = (text: string) => text.split(/[.!?](?:\s|$)/)[0];
   const outcome = room.outcomes.find(o => o.chapter === room.chapter);
   if (room.status === 'completed') return `${firstSentence(outcome?.text ?? 'The adventure is complete')}. Your contributions are saved in the chapter journal.`;
-  if (outcome && CHAPTERS[room.chapter + 1]) return `${firstSentence(outcome.text)}. Next: ${CHAPTERS[room.chapter + 1].objective}`;
+  if (outcome && chaptersFor(room)[room.chapter + 1]) return `${firstSentence(outcome.text)}. Next: ${chaptersFor(room)[room.chapter + 1].objective}`;
   const definition = chapterOf(room);
+  if (adventureFor(room).id !== 'briar-glen') return `${definition.intro} ${definition.objective}`;
   const latestAttempt = [...room.events].reverse().find(e => e.chapter === room.chapter && e.kind === 'action' && e.roll !== undefined);
   let state = firstSentence(definition.intro);
   if (latestAttempt) state = latestAttempt.success === false
@@ -425,5 +436,5 @@ export function getVisitRecap(room: AdventureRoom, userId: string): VisitRecap {
     highlights.push(moment.change?.text ?? moment.text);
     chapterHighlights[moment.chapter] = highlights.slice(-2);
   }
-  return { code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights };
+  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights };
 }
