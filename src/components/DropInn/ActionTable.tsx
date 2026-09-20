@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Search, Swords, Check, Sparkles, Volume2, VolumeX
 import type { AdventureRoom, SceneTarget, TokenKind } from '../../lib/dropinn/types';
 import { teammatesAt } from '../../lib/dropinn/teamwork';
 import { playTableSound, tableSoundEnabled, setTableSound } from './tableSound';
+import { TargetArtwork } from './TargetArtwork';
 
 const coins = [
   { kind: 'fight' as const, label: 'Fight', Icon: Swords },
@@ -32,7 +33,10 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canPlace = (kind: TokenKind, target: SceneTarget) => (!downed || kind === 'assist') && target.tokens.includes(kind);
   const reset = () => { cancelAnimationFrame(frame.current); gesture.current = null; setHeld(null); setFloating(null); setOver(null); setScale(1); };
-  useEffect(() => { reset(); setLanded(''); }, [turn]);
+  useEffect(() => {
+    reset(); setLanded('');
+    setMessage('Drag a coin onto a card. Or tap a coin, then a card.');
+  }, [turn]);
   useEffect(() => { if (disabled) reset(); }, [disabled]);
   useEffect(() => () => { cancelAnimationFrame(frame.current); gesture.current = null; }, []);
   const choose = (kind: TokenKind, id: string) => {
@@ -92,14 +96,37 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
   const movingCoin = coins.find(c => c.kind === held);
   const placedCoin = coins.find(c => c.kind === token);
   return <div className="di-token-table" ref={board}>
-    <div className="di-table-toolbar"><span><Sparkles size={13} /> Make a little magic</span>
+    <div className="di-table-toolbar"><span><Sparkles size={17} /> Your little adventure board</span>
       <button className="di-icon-button" type="button" aria-label={sound ? 'Mute table sounds' : 'Enable table sounds'} aria-pressed={sound}
         onClick={() => { setTableSound(!sound); setSound(!sound); if (!sound) playTableSound('place'); }}>
         {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
       </button>
     </div>
+    <ol className="di-move-steps" aria-label="How to make a move">
+      <li><span aria-hidden="true">1</span>Choose a token</li>
+      <li><span aria-hidden="true">2</span>Choose a card</li>
+      <li><span aria-hidden="true">3</span>Confirm your move</li>
+    </ol>
+    <div className="di-coins di-table-hand" role="group" aria-label="Action tokens">
+      {coins.map(({kind, label, Icon}) => {
+        const enabled = !disabled && targets.some(target => canPlace(kind, target));
+        return <button type="button" key={kind} disabled={!enabled} aria-label={`${label} token`} aria-pressed={token === kind}
+          className={`di-coin-button di-coin-${kind} ${token === kind ? 'di-selected' : ''} ${held === kind ? 'di-coin-held' : ''}`}
+          onPointerDown={e => start(e, kind)} onPointerMove={move} onPointerUp={end}
+          onPointerCancel={() => { suppressClick.current = true; reset(); setMessage('Your token is back in your hand.'); }}
+          onLostPointerCapture={() => { if (gesture.current) reset(); }}
+          onClick={() => {
+            if (suppressClick.current) { suppressClick.current = false; return; }
+            const target = targets.find(t => t.id === targetId && canPlace(kind, t)) ?? targets.find(t => canPlace(kind, t));
+            if (target) choose(kind, target.id);
+          }}>
+          <span className="di-coin" style={{ transform: held === kind ? `scale(${scale})` : undefined, opacity: (held === kind && floating) || (active && landed === targetId && token === kind) ? .25 : 1 }}><Icon size={23} strokeWidth={1.6} /></span>
+          <strong>{label}</strong>
+        </button>;
+      })}
+    </div>
     <div className={`di-felt-table ${floating ? 'di-drag-active' : ''}`} role="group" aria-label="Adventure table targets">
-      <span className="di-table-engraving" aria-hidden="true">DROPINN · THE NEXT MOVE IS YOURS</span>
+      <span className="di-table-engraving" aria-hidden="true">Big ideas. Little cardboard heroes.</span>
       <div className="di-target-grid">
         {targets.map(target => {
           const compatible = canPlace(held ?? token, target);
@@ -112,7 +139,7 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
             className={`di-target-card ${targetId === target.id ? 'di-target-selected' : ''} ${held && compatible ? 'di-target-welcomes' : ''} ${over === target.id ? compatible ? 'di-target-over' : 'di-target-refuses' : ''} ${landed === target.id ? 'di-token-landed' : ''}`}
             onClick={() => { const kind = canPlace(token, target) ? token : target.tokens.find(t => t !== 'spotlight' && (!downed || t === 'assist')); if (kind) choose(kind, target.id); }}>
             <span className="di-target-status">{target.changed ? <><Sparkles size={11} /> A new opening</> : 'In the scene'}</span>
-            <strong>{target.name}</strong>
+            <span className="di-target-heading"><TargetArtwork target={target} /><strong>{target.name}</strong></span>
             <span className="di-target-card-copy">{target.description}</span>
             {targetId === target.id && <Check className="di-target-check" size={14} />}
           </button>
@@ -139,24 +166,6 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
           </div>;
         })}
       </div>
-    </div>
-    <div className="di-coins di-table-hand" role="group" aria-label="Action tokens">
-      {coins.map(({kind, label, Icon}) => {
-        const enabled = !disabled && targets.some(target => canPlace(kind, target));
-        return <button type="button" key={kind} disabled={!enabled} aria-label={`${label} token`} aria-pressed={token === kind}
-          className={`di-coin-button di-coin-${kind} ${token === kind ? 'di-selected' : ''} ${held === kind ? 'di-coin-held' : ''}`}
-          onPointerDown={e => start(e, kind)} onPointerMove={move} onPointerUp={end}
-          onPointerCancel={() => { suppressClick.current = true; reset(); setMessage('Your token is back in your hand.'); }}
-          onLostPointerCapture={() => { if (gesture.current) reset(); }}
-          onClick={() => {
-            if (suppressClick.current) { suppressClick.current = false; return; }
-            const target = targets.find(t => t.id === targetId && canPlace(kind, t)) ?? targets.find(t => canPlace(kind, t));
-            if (target) choose(kind, target.id);
-          }}>
-          <span className="di-coin" style={{ transform: held === kind ? `scale(${scale})` : undefined, opacity: (held === kind && floating) || (active && landed === targetId && token === kind) ? .25 : 1 }}><Icon size={23} strokeWidth={1.6} /></span>
-          <strong>{label}</strong>
-        </button>;
-      })}
     </div>
     <p className="di-table-hint" role="status" aria-live="polite">{message}</p>
     <span className="di-hold-hint">Psst… hold a coin for a little surprise.</span>

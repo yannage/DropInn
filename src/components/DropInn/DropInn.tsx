@@ -51,6 +51,7 @@ import type {
   VisitRecap,
 } from '../../lib/dropinn/types';
 import { SceneArt } from './SceneArt';
+import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { ActionTable } from './ActionTable';
 import { rollSupport, supportText } from '../../lib/dropinn/teamwork';
 import { getScene, spotlightExample } from '../../lib/dropinn/scene';
@@ -247,7 +248,7 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
             const memory = recap.chapterHighlights?.[chapter];
             const hat = hatForKeepsake(item);
             return <article className="di-keepsake-story" key={item}>
-              <Star size={22} />
+              <KeepsakeArtwork name={item} />
               <div><strong>{item}</strong>
                 {hat && <div className="di-hat-reward"><HeroHatPreview hat={hat} /><span>Hat unlocked: {hat.label}<small>Ready to wear in your hero builder between visits.</small></span></div>}
                 <small>{chapter >= 0 ? `Chapter ${chapter + 1} · ${CHAPTERS[chapter].title}` : recap.title}</small>

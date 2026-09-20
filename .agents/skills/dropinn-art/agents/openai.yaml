@@ -1,0 +1,6 @@
+interface:
+  display_name: "MS painter"
+  short_description: "Make and integrate DropInn's whimsical MS Paint art"
+  default_prompt: "Use $dropinn-art to make and integrate whimsical artwork matching the DropInn sheep references."
+policy:
+  allow_implicit_invocation: true

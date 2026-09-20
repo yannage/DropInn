@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",

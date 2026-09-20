@@ -1,0 +1,118 @@
+{
+  "style": "Homemade adventure — colorful MS painter",
+  "date": "2026-09-20",
+  "assets": [
+    {
+      "id": "village",
+      "file": "public/art/scene-village.png",
+      "purpose": "Village welcome, chapter landscape and table listing",
+      "prompt": "Create a production game landscape illustration for DropInn, a fantasy tabletop game lovingly drawn by kids using an old MS Paint mouse tool. WIDE LANDSCAPE 1536x1024. Subject: the welcoming crooked little village inn of Briar Glen, big butter-yellow windows, lopsided coral-red roof, leaf-green round trees, funny uneven fence and winding sandy footpath, tiny lavender mountains and a pale blue dusk sky with a wonky crescent moon. Broad simple shapes, very chunky near-black uneven slightly jagged outlines, childlike awkward perspective, cheerful flat marker fill colors, minimal shading. Match the spirit of the DropInn sheep reference: amateur, expressive, lovingly imperfect, bold silhouette; NOT polished vector art, not painterly textured watercolor, not glossy, not photorealistic, no intricate details. Palette warm cream, coral, golden yellow, sky blue, lavender, leaf green, ink. The inn is the main subject in the center-right; keep left third quieter open sky and green hill for separate HTML copy. Keep important subjects in the central 65% so wide banner and square thumbnail crops work. Full-bleed opaque landscape, no text, no letters, no logo, no UI, no watermark. No faces on the building. Friendly all-ages adventure, charming handmade board-game illustration.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-37045774-188a-48b7-84ab-08cfd9719963.png"
+    },
+    {
+      "id": "gloamfang",
+      "file": "public/art/gloamfang.png",
+      "purpose": "Gloamfang encounter",
+      "prompt": "Create one isolated transparent PNG cutout for DropInn, a fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE 1024x1024, genuine alpha transparency, no background or checkerboard. Subject GLOAMFANG: a goofy corrupted guardian, a squat coiled lavender-purple dragon-wolf creature, huge uneven fluffy head, mismatched round yellow eyes, one bent ear and one crooked small horn, two silly cream fangs, oversized front paws, curled tail, three simple dark violet shadow wisps, a broken golden ward charm at its neck. It is trying very hard to look scary but is endearingly awkward. Clear readable whole silhouette centered with at least 10% transparent margin, no cropped paws or tail. Chunky wobbly near-black uneven jagged MS Paint mouse-drawn outlines, broad flat marker colors and minimal shading, charmingly amateur and lopsided like the saved DropInn sheep. Color palette lavender, deep purple, golden yellow, cream, coral nose. Small simple forms must read at 72px. Not polished vector, not 3D, not photorealistic, not watercolor, no detailed fur, no horror or gore, no text, no UI, no logo. One creature only. Complete opaque colored creature with transparent space outside.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-908a7b77-6864-4163-97e1-2da3fdaae749.png"
+    },
+    {
+      "id": "river",
+      "file": "public/art/scene-river.png",
+      "purpose": "River chapter landscape and table listing",
+      "prompt": "Production wide landscape illustration for DropInn, a fantasy tabletop game lovingly drawn by kids using old MS Paint. 1536x1024 full-bleed opaque landscape. Match the crooked inn illustration: chunky near-black uneven slightly jagged outlines, broad simple marker-filled shapes, amusing awkward perspective, bright sky blue, leaf green, lavender, cream, butter yellow and coral. Minimal shading, no complex textures, not polished vector, not 3D, not photorealistic, no watercolor. Composition must work in a wide banner AND center thumbnail crop: major landmark in central 65%, quieter space at left, important building wholly visible. No text, no letters, no logo, no UI, no watermarks, no faces on objects. A winding blue river with huge uneven reeds, a little crooked timber footbridge at center, round green riverbanks, lavender hills and a wonky crescent moon in pale blue dusk. A tiny faraway chapel on a hill near the right side. Cheerful yet mysterious, adventurous kids' homemade board-game setting. No creatures, people, or stranded boats; scenery should remain accurate as the encounter develops.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-7d719b74-2fec-4fb8-bb32-97b77d236716.png"
+    },
+    {
+      "id": "chapel",
+      "file": "public/art/scene-chapel.png",
+      "purpose": "Chapel chapter landscape and featured adventure",
+      "prompt": "Production wide landscape illustration for DropInn, a fantasy tabletop game lovingly drawn by kids using old MS Paint. 1536x1024 full-bleed opaque landscape. Match the crooked inn illustration: chunky near-black uneven slightly jagged outlines, broad simple marker-filled shapes, amusing awkward perspective, bright sky blue, leaf green, lavender, cream, butter yellow and coral. Minimal shading, no complex textures, not polished vector, not 3D, not photorealistic, no watercolor. Composition must work in a wide banner AND center thumbnail crop: major landmark in central 65%, quieter space at left, important building wholly visible. No text, no letters, no logo, no UI, no watermarks, no faces on objects. A wonky old stone chapel at center with a leaning bell tower, coral tiled roof, warm butter-yellow windows, squat off-kilter arched door, a round lavender moon, and funny green bushes. Three neutral little standing stones flank a sandy path. Lavender hills and bright teal trees. Mysterious but friendly, still a kids' adventure. No monsters, captives, battles or repaired/broken ward magic; the landscape stays accurate throughout the encounter.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-61bca059-1373-433f-8331-38343fb0aba2.png"
+    },
+    {
+      "id": "pack",
+      "file": "public/art/shadow-pack.png",
+      "purpose": "Shadow pack encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. Three squat goofy dark lavender wolf-like shadow creatures huddled as one small group, big mismatched yellow eyes, oversized paws, two uneven silly teeth each, one floppy ear. One peers over another's head. Small violet wisps surround them. Clear combined silhouette, distinct but very simple faces, a little threatening yet endearing, no gore. Fewer lines, only tiny simple fur tufts. They belong to the same world as lavender Gloamfang.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-8654a5d6-71a0-49c3-8d6b-11523efe5c55.png"
+    },
+    {
+      "id": "ferryman",
+      "file": "public/art/ferryman.png",
+      "purpose": "Ferryman encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One full-body friendly old human ferryman with a huge crooked yellow rain hat, comically bushy cream moustache, teal coat, orange patched trousers, tiny brown boots, leaning on an oversized wooden oar. Lopsided nose and skeptical raised eyebrow, hunched but kind, charmingly awkward like the saved Mara shepherd. No landscape or boat; one person and their oar only.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-629e019f-a435-48b1-8826-6a867272c5ab.png"
+    },
+    {
+      "id": "reeds",
+      "file": "public/art/tall-reeds.png",
+      "purpose": "Tall reeds encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One cluster of five tall wobbly green river reeds with three chunky brown cattail tops, bending at funny angles, rooted in a small lavender-gray mud clump with a tiny sky-blue puddle. Broad recognisable leaves, no tiny details, no faces, isolated simple prop.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-d39e81fe-8266-475e-bcbf-82120e77b150.png"
+    },
+    {
+      "id": "boat",
+      "file": "public/art/stranded-boat.png",
+      "purpose": "Stranded boat encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. A little squat coral-painted wooden rowboat tilted and stuck in a small green-brown mud clump, crooked golden plank seat, one wooden oar and a thick loosely tangled rope over its bow. Three-quarter view, simple chunky readable silhouette, no people or water landscape, no faces, funny homemade toy-like proportions.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-f6bf6a6b-29bd-4b56-8cdb-cc359c810e78.png"
+    },
+    {
+      "id": "ward",
+      "file": "public/art/broken-ward.png",
+      "purpose": "Broken ward encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. Three big irregular lavender stone pieces of a broken circular magic ward, separated by clear gaps, with a simple broken butter-yellow sun motif split across them and two small purple magic sparks. Big simple shapes, clearly broken and not repaired, no lettering, runic text, or faces.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-c99ecfae-f56d-476c-8340-246b3236bc82.png"
+    },
+    {
+      "id": "bell",
+      "file": "public/art/chapel-bell.png",
+      "purpose": "Chapel bell encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One big old butter-yellow chapel bell hanging from a short crooked dark wood crossbeam, a thick warm brown rope hanging in a lopsided loop beside it, an oversized visible clapper. Three-quarter simple chunky shape. Neutral still pose, a single dark golden band, no face or lettering, no chapel building.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-57552072-8f1b-438f-9a61-0fbf77a347ed.png"
+    },
+    {
+      "id": "captives",
+      "file": "public/art/captive-livestock.png",
+      "purpose": "Captive livestock encounter",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. A small tight huddle of two cream sheep and one tan goat peeking nervously around a low lavender stone altar. Huge mismatched eyes, silly uneven ears, tiny hooves, one blue worry-drop near a sheep. Sheep match the saved sheep's cloud-like wool silhouette. Cute uneasy faces, no injuries, no cage, no ropes binding animals. Entire huddle silhouette isolated with clear margins.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-8d975693-b079-4b57-8d55-26c8077b8d1c.png"
+    },
+    {
+      "id": "copper-bell",
+      "file": "public/art/keepsake-copper-bell.png",
+      "purpose": "Mara's copper bell recap reward",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One tiny squat copper-orange shepherd bell with a lopsided green ribbon tied at top, oversized visible dark clapper and a simple yellow highlight. A charming adventure keepsake. Tilted slightly, strong silhouette, no face or text, no other subjects.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-9c6ee9b0-992f-4a3b-a820-475982aaa56a.png"
+    },
+    {
+      "id": "silver-reed",
+      "file": "public/art/keepsake-silver-reed.png",
+      "purpose": "Silver river reed recap reward",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One bent silver-blue river reed with three simple pointed leaves and a fat pale silver seed head, tied with a tiny coral ribbon. A charming adventure keepsake, slightly diagonal, broad strong silhouette, one small yellow sparkle, no faces or text.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-c4a4ae3b-aba2-4f6c-a0cd-9a3fba5796f6.png"
+    },
+    {
+      "id": "moonstone",
+      "file": "public/art/keepsake-moonstone.png",
+      "purpose": "Guardian's moonstone recap reward",
+      "prompt": "Production art for DropInn, an all-ages fantasy tabletop game lovingly drawn by kids in old MS Paint. SQUARE cutout, genuine transparent alpha background, no baked checkerboard or paper rectangle. Style: chunky near-black wobbly slightly jagged outlines, broad flat bright marker colors, delightfully lopsided mouse-drawn shapes, minimal shading, like the saved silly DropInn sheep and Mara. Charming amateur drawing, not glossy, not vector-perfect, not watercolor, not realistic, no intricate details. Palette cream, butter yellow, coral, leaf green, sky blue, lavender and warm brown. Center the complete silhouette with generous clear margin; readable at 72px. No text, letters, labels, UI or watermark. Props have no faces. One chunky lopsided lavender-blue moonstone pendant with a broad simple cream crescent inset, looped warm brown cord at top, two butter-yellow sparks. A handmade magical adventure keepsake. Only three large stone facets, uneven black outline, no face or text.",
+      "generator": "Codex built-in image_gen",
+      "sourceFile": "exec-c6e5ed3d-b407-46ec-b257-653bf7105f3c.png"
+    }
+  ]
+}
