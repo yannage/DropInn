@@ -10,7 +10,10 @@ html.dropinn-v2 body {
   overflow: auto;
   height: auto;
   min-width: 0;
-  background: #fff4d6;
+  background-color: #fff4d6;
+  background-image: linear-gradient(#fff4d645, #fff4d645), url('/art/paper-cork.png');
+  background-size: auto, 640px 640px;
+  background-repeat: repeat;
   color: #26322c;
 }
 html.dropinn-v2 #root {
@@ -1609,6 +1612,23 @@ html.dropinn-v2 #root {
   stroke-width: 2.4;
   filter: none;
 }
+/* The drawing supplies the coin edge; selection stays a separate visible ring. */
+.di-app .di-coin.di-coin-illustrated {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.di-coin-illustrated::after { display: none; }
+.di-token-art {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  user-select: none;
+}
+.di-token-art img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.di-token-art-fallback { inset: 0; border: 3px solid #000; border-radius: 46% 53% 47% 50%; background: var(--coin-face); }
 .di-coin-button strong {
   font-size: 12px;
   font-weight: 600;
@@ -3288,6 +3308,11 @@ html.dropinn-v2 #root {
   .di-app .di-adventure-grid { grid-template-columns:minmax(0,1fr) 330px; }
 }
 @media (max-width:680px) {
+  .di-app .di-hero-card { grid-template-columns:minmax(0,1fr); }
+  .di-app .di-profile { grid-template-columns:84px minmax(0,1fr); gap:0 14px; }
+  .di-app .di-profile .di-hero-mark:has(.di-avatar) { width:84px; height:84px; }
+  .di-app .di-profile h2 { overflow-wrap:anywhere; }
+  .di-app .di-profile-stats { flex-direction:row; justify-content:flex-start; flex-wrap:wrap; gap:16px; }
   .di-app .di-brand { font-size:29px; }
   .di-app .di-header { gap:8px; }
   .di-app .di-header nav { gap:7px; }

@@ -1,0 +1,47 @@
+{
+  "generator": "Codex built-in image_gen",
+  "date": "2026-09-20",
+  "resources": [
+    {
+      "id": "token-fight",
+      "purpose": "Fight action token in hand, placed move and dragging",
+      "prompt": "Use case: stylized-concept. Original DropInn action-token artwork. Match the provided sheep's deliberately wonky old Windows MS Paint mouse drawing style: heavy true BLACK jagged stair-stepped outlines, clumsy off-center geometry, flat bucket fills, rough uneven contours. Intentionally amateur and recognizable at 48 pixels. Draw as on a 128-pixel canvas enlarged by nearest neighbor. NOT polished cartoon, NOT vector-perfect, NOT shaded RPG pixel art. No gradients, texture, hatching, glossy lighting, dithering, words, letters, numbers, logos, UI, signature or watermark. One single lopsided round cardboard game token seen straight from above. Thick black uneven outside border, broad solid colored face. A single large central symbol occupies two thirds of the coin. No ornamental rim, no tiny decorations, no perspective or cast shadow. Entire silhouette centered with 8 percent transparent margin. Genuinely transparent background, square image. Style reference image is only for linework and naive simplicity; no sheep or characters on the token. Face color muted coral. Symbol: two clumsy crossed cream swords, chunky black outlines, stubby mustard handles. Very simple swords with visibly unequal blades.",
+      "canvas": "transparent square token",
+      "action": "generate"
+    },
+    {
+      "id": "token-influence",
+      "purpose": "Influence action token in hand, placed move and dragging",
+      "prompt": "Use case: stylized-concept. Original DropInn action-token artwork. Match the provided sheep's deliberately wonky old Windows MS Paint mouse drawing style: heavy true BLACK jagged stair-stepped outlines, clumsy off-center geometry, flat bucket fills, rough uneven contours. Intentionally amateur and recognizable at 48 pixels. Draw as on a 128-pixel canvas enlarged by nearest neighbor. NOT polished cartoon, NOT vector-perfect, NOT shaded RPG pixel art. No gradients, texture, hatching, glossy lighting, dithering, words, letters, numbers, logos, UI, signature or watermark. One single lopsided round cardboard game token seen straight from above. Thick black uneven outside border, broad solid colored face. A single large central symbol occupies two thirds of the coin. No ornamental rim, no tiny decorations, no perspective or cast shadow. Entire silhouette centered with 8 percent transparent margin. Genuinely transparent background, square image. Style reference image is only for linework and naive simplicity; no sheep or characters on the token. Face color dusty teal. Symbol: a huge wonky cream speech bubble with an off-center pointed tail and three unequal black square dots inside. The bubble is recognizably a chat symbol, not a face.",
+      "canvas": "transparent square token",
+      "action": "generate"
+    },
+    {
+      "id": "token-investigate",
+      "purpose": "Investigate action token in hand, placed move and dragging",
+      "prompt": "Use case: stylized-concept. Original DropInn action-token artwork. Match the provided sheep's deliberately wonky old Windows MS Paint mouse drawing style: heavy true BLACK jagged stair-stepped outlines, clumsy off-center geometry, flat bucket fills, rough uneven contours. Intentionally amateur and recognizable at 48 pixels. Draw as on a 128-pixel canvas enlarged by nearest neighbor. NOT polished cartoon, NOT vector-perfect, NOT shaded RPG pixel art. No gradients, texture, hatching, glossy lighting, dithering, words, letters, numbers, logos, UI, signature or watermark. One single lopsided round cardboard game token seen straight from above. Thick black uneven outside border, broad solid colored face. A single large central symbol occupies two thirds of the coin. No ornamental rim, no tiny decorations, no perspective or cast shadow. Entire silhouette centered with 8 percent transparent margin. Genuinely transparent background, square image. Style reference image is only for linework and naive simplicity; no sheep or characters on the token. Face color mustard gold. Symbol: one oversized lopsided magnifying glass with cream lens, very thick black ring and crooked brown handle angled down right. No highlights, no tiny details.",
+      "canvas": "transparent square token",
+      "action": "generate"
+    },
+    {
+      "id": "token-assist",
+      "purpose": "Assist action token in hand, placed move and dragging",
+      "prompt": "Use case: stylized-concept. Original DropInn action-token artwork. Match the provided sheep's deliberately wonky old Windows MS Paint mouse drawing style: heavy true BLACK jagged stair-stepped outlines, clumsy off-center geometry, flat bucket fills, rough uneven contours. Intentionally amateur and recognizable at 48 pixels. Draw as on a 128-pixel canvas enlarged by nearest neighbor. NOT polished cartoon, NOT vector-perfect, NOT shaded RPG pixel art. No gradients, texture, hatching, glossy lighting, dithering, words, letters, numbers, logos, UI, signature or watermark. One single lopsided round cardboard game token seen straight from above. Thick black uneven outside border, broad solid colored face. A single large central symbol occupies two thirds of the coin. No ornamental rim, no tiny decorations, no perspective or cast shadow. Entire silhouette centered with 8 percent transparent margin. Genuinely transparent background, square image. Style reference image is only for linework and naive simplicity; no sheep or characters on the token. Face color moss green. Symbol: one large cream heart with very uneven lobes, a crooked point and chunky black outline. No extra details, no hands.",
+      "canvas": "transparent square token",
+      "action": "generate"
+    },
+    {
+      "id": "paper-cork",
+      "purpose": "Subtle repeating background behind the whole V2 app",
+      "prompt": "Use case: stylized-concept. Create a subtle seamless repeatable square background tile for a whimsical old Windows MS Paint doodle fantasy game, like pale recycled paper with a little cork fiber. Full-bleed opaque square, identical visual weight at edges so it tiles without visible seams. Warm pale cream base around #fff4d6. Sparse tiny irregular stair-stepped bucket-fill flecks in slightly darker oatmeal beige and a few pale straw short bent fibers, very low contrast. Broad quiet empty areas, even distribution across whole canvas. Flat hand-doodled texture, NOT photorealistic cork or scanned paper. No shading, lighting, gradients, vignette, border, sheet edges, stains, tears, creases, objects, characters, words, UI or watermark. This is a restrained supporting background under readable UI, not an illustration or focal point. Unlike character art it must NOT have black outlines. Texture should be barely noticeable at normal viewing size.",
+      "canvas": "opaque square repeating tile",
+      "action": "generate"
+    }
+  ],
+  "heroResources": {
+    "action": "redraw existing native SVG layers",
+    "canvas": "full 256×256 with matching masks",
+    "parts": "3 bodies, 3 eyes, 3 noses, 3 mouths, 7 hats; stable catalog IDs",
+    "style": "Black stepped contours, flat fills, mismatched eyes and clumsy asymmetric silhouettes"
+  }
+}

@@ -29,6 +29,8 @@ A tintable body uses **two files**: `art.maskSrc` is an opaque silhouette on tra
 
 Art must read at both a 256px preview and a small table avatar. Use strong silhouettes, chunky outlines, simple expressions, and generous gaps. Face thumbnails crop to the face area; wardrobe thumbnails show the upper part of the shared canvas. Check all three bodies when replacing a hat.
 
+The current native drawings use flat fills, true black stepped pencil-like contours, lopsided silhouettes, mismatched eyes, tiny boots, and crooked hats to match the primitive MS Paint reference set. Body details and masks share the exact same silhouette. The full canvas and IDs remain unchanged. Keep the face/hat layers independent; do not flatten a hero into one raster sprite or introduce shading when replacing parts.
+
 ## Catalog and saves
 
 `appearance` stores body/eyes/nose/mouth IDs; `equipment.hat` stores a hat ID or explicit `null` for no hat. Missing fields on older heroes receive defaults. Invalid face IDs receive defaults; invalid or unowned hats are unequipped. The existing `accent` is the body color. There are no cosmetic stat modifiers.

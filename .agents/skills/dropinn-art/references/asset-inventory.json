@@ -248,6 +248,76 @@
       "sha256": "f9b50d89f2e449e7a783bc12d88b78e3f38ac99e5f54eecdc380074650aa1704",
       "review": "Reviewed full-size, in desktop and mobile chapter cards/rewards, and at 48px/64px on parchment and dark backgrounds. Browser canvas inspection verified both zero/255 alpha and nonclipped opaque bounds. Selection/check marks, coin placement and confirmation checked in every chapter fixture; mobile move confirmed in a local friend table. Changed targets and simulated image failures retain text-only fallback.",
       "generatedSource": "exec-6cc8fc06-fdaf-4931-aae0-059f49bff5a0.png"
+    },
+    {
+      "id": "token-fight",
+      "purpose": "Fight action token in hand, placed move and dragging",
+      "file": "public/art/token-fight.png",
+      "reference": ".agents/skills/dropinn-art/assets/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/tokens-paper-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "generatedSource": "exec-60aa62e8-2cae-46ee-845b-2a46d88fcbf2.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "632faa26b1d79072ab3d443e23fc45777bc22afeb06e24416f07521d1080cdc7",
+      "review": "Viewed full-size and at 48px/80px; rendered in hand, selected ring, placed move, and floating drag preview. Browser canvas confirmed transparent surrounds and opaque pixels. Desktop drag/drop and mobile tap/confirm passed, along with token load-failure fallback and 320px overflow check. Native buttons retain accessible labels and pointer control."
+    },
+    {
+      "id": "token-influence",
+      "purpose": "Influence action token in hand, placed move and dragging",
+      "file": "public/art/token-influence.png",
+      "reference": ".agents/skills/dropinn-art/assets/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/tokens-paper-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "generatedSource": "exec-2eea177c-d6a5-4f68-8464-f45b25a23bca.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "1f06d77218abf6eb664e5e090e7fdcf42181b8dabf662a616dde376bebefb19c",
+      "review": "Viewed full-size and at 48px/80px; rendered in hand, selected ring, placed move, and floating drag preview. Browser canvas confirmed transparent surrounds and opaque pixels. Desktop drag/drop and mobile tap/confirm passed, along with token load-failure fallback and 320px overflow check. Native buttons retain accessible labels and pointer control."
+    },
+    {
+      "id": "token-investigate",
+      "purpose": "Investigate action token in hand, placed move and dragging",
+      "file": "public/art/token-investigate.png",
+      "reference": ".agents/skills/dropinn-art/assets/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/tokens-paper-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "generatedSource": "exec-8fdd9d3d-dff2-49ff-b868-e29b67dc0552.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "6e04da6928a75ed3486323940ac232973b27342befea9fcce3b05e3a15aefb17",
+      "review": "Viewed full-size and at 48px/80px; rendered in hand, selected ring, placed move, and floating drag preview. Browser canvas confirmed transparent surrounds and opaque pixels. Desktop drag/drop and mobile tap/confirm passed, along with token load-failure fallback and 320px overflow check. Native buttons retain accessible labels and pointer control."
+    },
+    {
+      "id": "token-assist",
+      "purpose": "Assist action token in hand, placed move and dragging",
+      "file": "public/art/token-assist.png",
+      "reference": ".agents/skills/dropinn-art/assets/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/tokens-paper-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "generatedSource": "exec-78668eb0-5c41-45eb-98ac-f2f54aff1459.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "c71a57047b5f81f8d6ba1c26a3dbe632950842faa00ba7a059e2177027723e04",
+      "review": "Viewed full-size and at 48px/80px; rendered in hand, selected ring, placed move, and floating drag preview. Browser canvas confirmed transparent surrounds and opaque pixels. Desktop drag/drop and mobile tap/confirm passed, along with token load-failure fallback and 320px overflow check. Native buttons retain accessible labels and pointer control."
+    },
+    {
+      "id": "paper-cork",
+      "purpose": "Subtle repeating background behind the whole V2 app",
+      "file": "public/art/paper-cork.png",
+      "reference": "public/art/paper-cork.png",
+      "promptFile": ".agents/skills/dropinn-art/references/tokens-paper-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "generatedSource": "exec-a1e31086-2d2f-421a-bc03-ae4a43a50daa.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": false,
+      "sha256": "2afbdb7177aa0c5df0d6d300113077d2397d607d7de1cc66efec8b12fc9549c4",
+      "review": "Viewed full-size and repeated at 640px under a cream wash in desktop and mobile lobby, builder surroundings and action-table fixture. Flecks remain low contrast; opaque cards preserve readable text. Background image failure naturally retains cream background color."
     }
   ]
 }

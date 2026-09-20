@@ -14,13 +14,14 @@ describe('encounter artwork', () => {
     const html = renderToStaticMarkup(<ActionTable room={room} userId="artist" targets={targets}
       token="assist" targetId="mara" downed={false} disabled={false} turn={room.turn}
       onChoose={() => {}} onConfirm={() => {}} preview="Help Mara" active />);
-    expect(html.match(/<img /g)).toHaveLength(4);
+    expect(html.match(/class="di-target-art"/g)).toHaveLength(4);
+    expect(html.match(/src="\/art\/token-/g)).toHaveLength(4);
     for (const target of targets) {
       expect(html).toContain(`aria-label="${target.name}"`);
       expect(html).toContain(`<strong>${target.name}</strong>`);
     }
-    expect(html.match(/alt=""/g)).toHaveLength(4);
-    expect(html.match(/draggable="false"/g)).toHaveLength(4);
+    expect(html.match(/alt=""/g)).toHaveLength(8);
+    expect(html.match(/draggable="false"/g)).toHaveLength(8);
   });
 
   it('removes stale illustrations when gameplay develops each first-chapter target', () => {

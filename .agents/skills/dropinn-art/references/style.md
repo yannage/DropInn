@@ -30,3 +30,11 @@ Background: [actual alpha transparency / full-bleed scene].
 Constraints: no text, UI, watermark, glossy light, detailed texture, or extra subjects. [Preserve invariants for an edit.]
 
 The earlier concepts needed prompting, inspection, and one sheep simplification edit, not manual brush touch-up. The agent can perform that same loop. Do not promise every generation is usable on its first attempt or that independent hero layers align automatically.
+
+## Tokens, heroes, and supporting paper
+
+Action tokens use four generated cutouts: coral crossed swords, teal speech bubble, gold magnifying glass, and green heart. Use `TokenArtwork` for the hand, placed coin, and floating drag preview. Labels, selected outlines and existing button gestures stay in HTML; the image never receives pointer events. Load failures retain an icon and the accessible button label.
+
+Customizable heroes retain native SVG layers, redrawn with true black stepped contours and flat fills. All 22 files, including the three matching body masks, preserve the 256×256 canvas and saved IDs. This keeps future supplied parts replaceable and body colors functional.
+
+The user explicitly requested subtle background texture. `public/art/paper-cork.png` is the exception to the no-texture rule for foreground art: pale paper with sparse low-contrast blocky flecks, repeated behind the app at 640px and softened by a cream wash. Keep cards and controls opaque and readable. No black outlines, realistic lighting or conspicuous stains in the background. Generation prompts and the resource list are in [tokens-paper-prompts.json](tokens-paper-prompts.json).

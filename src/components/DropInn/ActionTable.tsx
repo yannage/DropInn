@@ -4,6 +4,7 @@ import type { AdventureRoom, SceneTarget, TokenKind } from '../../lib/dropinn/ty
 import { teammatesAt } from '../../lib/dropinn/teamwork';
 import { playTableSound, tableSoundEnabled, setTableSound } from './tableSound';
 import { TargetArtwork } from './TargetArtwork';
+import { TokenArtwork } from './TokenArtwork';
 
 const coins = [
   { kind: 'fight' as const, label: 'Fight', Icon: Swords },
@@ -108,7 +109,7 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
       <li><span aria-hidden="true">3</span>Confirm your move</li>
     </ol>
     <div className="di-coins di-table-hand" role="group" aria-label="Action tokens">
-      {coins.map(({kind, label, Icon}) => {
+      {coins.map(({kind, label}) => {
         const enabled = !disabled && targets.some(target => canPlace(kind, target));
         return <button type="button" key={kind} disabled={!enabled} aria-label={`${label} token`} aria-pressed={token === kind}
           className={`di-coin-button di-coin-${kind} ${token === kind ? 'di-selected' : ''} ${held === kind ? 'di-coin-held' : ''}`}
@@ -120,7 +121,7 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
             const target = targets.find(t => t.id === targetId && canPlace(kind, t)) ?? targets.find(t => canPlace(kind, t));
             if (target) choose(kind, target.id);
           }}>
-          <span className="di-coin" style={{ transform: held === kind ? `scale(${scale})` : undefined, opacity: (held === kind && floating) || (active && landed === targetId && token === kind) ? .25 : 1 }}><Icon size={23} strokeWidth={1.6} /></span>
+          <span className="di-coin di-coin-illustrated" style={{ transform: held === kind ? `scale(${scale})` : undefined, opacity: (held === kind && floating) || (active && landed === targetId && token === kind) ? .25 : 1 }}><TokenArtwork token={kind} /></span>
           <strong>{label}</strong>
         </button>;
       })}
@@ -154,7 +155,7 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
               aria-label={`Move placed ${placedCoin.label} token`}
               onPointerDown={e => start(e, token)} onPointerMove={move} onPointerUp={end}
               onPointerCancel={reset} onLostPointerCapture={() => { if (gesture.current) reset(); }}>
-              <span className="di-coin" style={held === token ? { opacity: floating ? .25 : 1, transform: `scale(${scale})` } : undefined}><placedCoin.Icon size={24} /></span>
+              <span className="di-coin di-coin-illustrated" style={held === token ? { opacity: floating ? .25 : 1, transform: `scale(${scale})` } : undefined}><TokenArtwork token={placedCoin.kind} /></span>
             </button>
             <strong>{placedCoin.label} placed</strong>
             <span className="di-placement-pending">Not confirmed yet</span>
@@ -169,6 +170,6 @@ export function ActionTable({ targets, token, targetId, downed, disabled, turn, 
     </div>
     <p className="di-table-hint" role="status" aria-live="polite">{message}</p>
     <span className="di-hold-hint">Psst… hold a coin for a little surprise.</span>
-    {floating && movingCoin && <div className={`di-floating-token di-coin-${held}`} style={{ left: floating.x, top: floating.y }} aria-hidden="true"><span className="di-coin"><movingCoin.Icon size={28} /></span></div>}
+    {floating && movingCoin && <div className={`di-floating-token di-coin-${held}`} style={{ left: floating.x, top: floating.y }} aria-hidden="true"><span className="di-coin di-coin-illustrated"><TokenArtwork token={movingCoin.kind} /></span></div>}
   </div>;
 }
