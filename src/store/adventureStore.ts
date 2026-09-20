@@ -8,6 +8,7 @@ import { listSupabaseCharacters, upsertSupabaseCharacter, updateSupabaseHeroIden
 import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
 import { normalizeHero, type HeroCustomization } from '../lib/cosmetics';
+import { getErrorMessage } from '../lib/errors';
 
 const namespace = new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'default';
 const storageKey = `dropinn-v2-player-${namespace}`;
@@ -94,7 +95,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     character: localPlay ? get().character || undefined : undefined,
     characterId: get().character?.id,
   });
-  const fail = (error: unknown) => set({ error: error instanceof Error ? error.message : 'Something went wrong. Please retry.' });
+  const fail = (error: unknown) => set({ error: getErrorMessage(error, 'Something went wrong. Please retry.') });
   // Browser storage can outlive an anonymous auth session. Resolve ownership
   // before admission instead of submitting a hero from a previous account.
   const ensureHostedHero = async () => {

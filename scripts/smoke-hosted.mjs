@@ -53,19 +53,29 @@ try {
     const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await client.auth.signInAnonymously();
     assert.ifError(error);
-    const hero = createCharacterProfile(name, 'wizard');
+    const hero = { ...createCharacterProfile(name, 'wizard'),
+      appearance: { body: 'round', eyes: 'wide', nose: 'none', mouth: 'smile' }, equipment: { hat: 'fighter' } };
     const actor = { client, hero, userId: data.user.id };
     actors.push(actor);
+    const { error: schemaError } = await client.from('characters').select('appearance,equipment').limit(1);
+    assert.ok(!schemaError, `Character builder schema unavailable: ${schemaError?.message}. Apply 202609200001_hero_customization.sql before deploying.`);
     const { error: saveError } = await client.from('characters').insert({ id: hero.id, user_id: actor.userId, name,
       class_key: hero.classKey, level: hero.level, xp: hero.xp, hp: hero.hp, max_hp: hero.maxHp,
-      traits: hero.traits, spotlight_tokens: hero.spotlightTokens, inventory: hero.inventory, accent: hero.accent });
+      traits: hero.traits, spotlight_tokens: hero.spotlightTokens, inventory: hero.inventory, accent: hero.accent,
+      appearance: hero.appearance, equipment: hero.equipment });
     assert.ifError(saveError);
+    const { data: savedHero, error: reloadError } = await client.from('characters').select('appearance,equipment').eq('id', hero.id).single();
+    assert.ifError(reloadError);
+    assert.deepEqual(savedHero.appearance, hero.appearance);
+    assert.deepEqual(savedHero.equipment, hero.equipment);
   }
   await call(actors[0], 'list');
   const prepared = await call(actors[0], 'prepare');
-  room = (await call(actors[0], 'play', { variationId: prepared.variationId })).room;
+  room = (await call(actors[0], 'play', { variationId: prepared.variationId, visibility: 'private' })).room;
   assert.equal(Object.keys(room.players).length, 1, 'QA requires an isolated table');
-  room = (await call(actors[1], 'join', { roomCode: room.code })).room;
+  assert.deepEqual(room.players[actors[0].userId].character.appearance, actors[0].hero.appearance);
+  assert.deepEqual(room.players[actors[0].userId].character.equipment, actors[0].hero.equipment);
+  room = (await call(actors[1], 'join', { roomCode: room.code, inviteKey: room.inviteKey })).room;
   assert.ok(room.pendingJoins.includes(actors[1].userId));
   room = (await call(actors[0], 'command', { roomCode: room.code, command: { id: randomUUID(), type: 'act', expectedTurn: room.turn, action: { token: 'assist', targetId: 'mara' } } })).room;
   await advance();
@@ -116,7 +126,7 @@ try {
     assert.equal(data.xp, actor.hero.xp + recap.xp);
     for (const keepsake of recap.keepsakes) assert.ok(data.inventory.includes(keepsake));
   }
-  console.log(`PASS: admission, concurrent turns, retry, leave/rejoin, refreshed rewards${full ? ', three chapter endings' : ''}.`);
+  console.log(`PASS: character schema, saved cosmetics, admission, concurrent turns, retry, leave/rejoin, refreshed rewards${full ? ', three chapter endings' : ''}.`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Hosted check failed');
   process.exitCode = 1;

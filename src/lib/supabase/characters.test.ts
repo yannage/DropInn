@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createCharacterProfile } from '../character';
-import { listSupabaseCharacters, updateSupabaseHeroIdentity } from './characters';
+import { listSupabaseCharacters, updateSupabaseHeroIdentity, upsertSupabaseCharacter } from './characters';
 
 const mock = vi.hoisted(() => ({ client: { from: vi.fn() } }));
 vi.mock('./client', () => ({ requireSupabaseClient: () => mock.client }));
@@ -13,6 +13,22 @@ const row = { id: hero.id, user_id: 'owner', name: hero.name, class_key: hero.cl
   accent: hero.accent, appearance, equipment: { hat: 'reed' } };
 
 describe('hosted hero customization mapping', () => {
+  it.each(['appearance', 'equipment'])('explains a missing %s column on startup and save', async (column) => {
+    const error = { code: 'PGRST204', details: null, hint: null, message: `Could not find the '${column}' column of 'characters' in the schema cache` };
+    const chain = { upsert: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error }) };
+    mock.client.from.mockReturnValue(chain);
+    await expect(upsertSupabaseCharacter('owner', hero)).rejects.toThrow('Apply 202609200001_hero_customization.sql');
+    await expect(updateSupabaseHeroIdentity('owner', hero)).rejects.toThrow('Apply 202609200001_hero_customization.sql');
+    expect(chain.upsert).toHaveBeenCalledTimes(1);
+    expect(chain.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('retains unrelated database error messages', async () => {
+    const chain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: null, error: { code: '42501', message: 'permission denied for table characters' } }) };
+    mock.client.from.mockReturnValue(chain);
+    await expect(listSupabaseCharacters('owner')).rejects.toThrow('permission denied for table characters');
+  });
+
   it('loads saved appearance and equips hats using stored keepsake ownership', async () => {
     const chain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [row], error: null }) };
     mock.client.from.mockReturnValue(chain);

@@ -6,6 +6,17 @@ import {
 } from '../character';
 import { requireSupabaseClient } from './client';
 import { normalizeHero, type HeroAppearance, type HeroEquipment } from '../cosmetics';
+import { getErrorMessage } from '../errors';
+
+/** PostgREST errors are plain objects, and schema drift needs an actionable diagnosis. */
+function characterError(error: unknown): Error {
+  const message = getErrorMessage(error, 'Your hero could not be saved. Please retry.');
+  const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
+  if ((code === 'PGRST204' || code === '42703') && /\b(appearance|equipment)\b/i.test(message)) {
+    return new Error('The character builder database update is missing. Apply 202609200001_hero_customization.sql in Supabase, then reload. Your existing hero and rewards are unchanged.');
+  }
+  return new Error(message);
+}
 
 interface CharacterRow {
   id: string;
@@ -66,7 +77,7 @@ export const listSupabaseCharacters = async (userId: string) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: true });
 
-  if (error) throw error;
+  if (error) throw characterError(error);
   return ((data ?? []) as CharacterRow[]).map(fromRow);
 };
 
@@ -81,7 +92,7 @@ export const upsertSupabaseCharacter = async (
     .select('*')
     .single();
 
-  if (error) throw error;
+  if (error) throw characterError(error);
   return fromRow(data as CharacterRow);
 };
 
@@ -99,6 +110,6 @@ export const updateSupabaseHeroIdentity = async (userId: string, character: Char
     equipment: normalizeHero(character).equipment,
     updated_at: new Date().toISOString(),
   }).eq('id', character.id).eq('user_id', userId).select('*').single();
-  if (error) throw error;
+  if (error) throw characterError(error);
   return fromRow(data as CharacterRow);
 };

@@ -16,6 +16,17 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
+it('shows plain-object backend errors instead of hiding them behind a generic retry message', async () => {
+  mocks.auth.mockResolvedValue({ id: 'current' });
+  mocks.list.mockRejectedValue({ message: 'The character database update is missing.', code: 'PGRST204' });
+  const { useAdventureStore: store } = await import('./adventureStore');
+  await store.getState().initialize();
+  expect(store.getState().error).toBe('The character database update is missing.');
+  await store.getState().playNow();
+  expect(store.getState().error).toBe('The character database update is missing.');
+  expect(mocks.request).not.toHaveBeenCalled();
+});
+
 it('preserves rewards arriving during an identity save and cosmetics during a reward refresh', async () => {
   const hero = createCharacterProfile('Owned hero', 'rogue');
   mocks.auth.mockResolvedValue({ id: 'current' });
