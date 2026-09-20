@@ -139,3 +139,7 @@ Expected flow:
 - Realtime does not update: confirm tables are in `supabase_realtime`; polling still syncs every 2.5 seconds as a fallback.
 - RLS error: rerun the migration and confirm `auth.uid()` policies exist.
 - `42P17 infinite recursion detected in policy`: run `supabase/migrations/202605110001_fix_recursive_room_policies.sql`. The first policy pass used cross-table `exists` checks that can recurse under RLS.
+
+## Character builder migration
+
+Before deploying the layered character builder, apply `supabase/migrations/202609200001_hero_customization.sql`. Existing heroes receive default appearances in the application; their rewards are preserved. See [hero artwork and deployment notes](docs/hero-art.md).

@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import WebSocket from 'ws';
+import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterClassKey, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
@@ -32,15 +33,17 @@ function codeFrom(value: unknown): string {
 function characterFromRow(row: Record<string, unknown>): CharacterProfile {
   const key = row.class_key as CharacterClassKey;
   const base = createCharacterProfile(String(row.name), key);
-  return { ...base, id: String(row.id), xp: Number(row.xp), level: Number(row.level), accent: heroAccent(row.accent, key),
-    inventory: Array.isArray(row.inventory) ? row.inventory as string[] : [] };
+  return normalizeHero({ ...base, id: String(row.id), xp: Number(row.xp), level: Number(row.level), accent: heroAccent(row.accent, key),
+    appearance: row.appearance as CharacterProfile['appearance'], equipment: row.equipment as CharacterProfile['equipment'],
+    inventory: Array.isArray(row.inventory) ? row.inventory as string[] : [] });
 }
 function localCharacter(value: CharacterProfile | undefined): CharacterProfile {
   if (!value || typeof value.id !== 'string' || value.id.length > 100 || !CHARACTER_CLASS_PRESETS[value.classKey]) throw new RequestError('Choose a hero first.');
   const name = validatePlayerText(value.name, 18);
   const base = createCharacterProfile(name, value.classKey);
-  return { ...base, id: value.id, xp: Math.max(0, Number(value.xp) || 0), level: 3, accent: heroAccent(value.accent, value.classKey),
-    inventory: Array.isArray(value.inventory) ? value.inventory.filter((item) => typeof item === 'string').slice(0, 100) : [] };
+  return normalizeHero({ ...base, id: value.id, xp: Math.max(0, Number(value.xp) || 0), level: 3, accent: heroAccent(value.accent, value.classKey),
+    appearance: value.appearance, equipment: value.equipment,
+    inventory: Array.isArray(value.inventory) ? value.inventory.filter((item) => typeof item === 'string').slice(0, 100) : [] });
 }
 function membership(room: AdventureRoom, userId: string) {
   if (!Object.hasOwn(room.players, userId)) throw new RequestError('Join this adventure to view it.', 403);

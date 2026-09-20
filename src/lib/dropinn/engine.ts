@@ -1,4 +1,5 @@
 import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
+import { normalizeHero } from '../cosmetics';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { CHAPTERS } from './content';
 import { rollSupport, supportText } from './teamwork';
@@ -24,7 +25,7 @@ const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | '
 function normalizedCharacter(character: CharacterProfile): CharacterProfile {
   const preset = CHARACTER_CLASS_PRESETS[character.classKey];
   if (!preset || !character.id || !character.name?.trim()) throw new Error('Choose a hero before joining.');
-  return { ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: heroAccent(character.accent, character.classKey), spotlightTokens: 1, inventory: [...character.inventory] };
+  return normalizeHero({ ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: heroAccent(character.accent, character.classKey), spotlightTokens: 1, inventory: [...character.inventory] });
 }
 
 function companion(index: number, usedClasses: Set<CharacterClassKey>): Seat {

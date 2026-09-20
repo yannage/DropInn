@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#eee1bd"/>
+  <g fill="none" stroke="#7d9580" stroke-width="1" stroke-dasharray="4 3">
+    <path d="M128 0V256 M0 85H256 M0 100H256 M0 132H256 M0 148H256 M0 173H256 M0 220H256 M0 241H256"/>
+    <rect x="50" y="82" width="155" height="138" rx="40"/>
+    <circle cx="98" cy="132" r="16"/><circle cx="157" cy="132" r="16"/>
+    <rect x="105" y="163" width="47" height="23"/>
+  </g>
+  <g fill="#334638" font-family="sans-serif" font-size="8">
+    <text x="5" y="12">ALIGNMENT GUIDE — do not export this layer</text>
+    <text x="5" y="80">hat brim</text><text x="5" y="128">eyes</text>
+    <text x="5" y="146">nose</text><text x="5" y="171">mouth</text>
+    <text x="5" y="217">body ends</text><text x="5" y="239">feet</text>
+  </g>
+</svg>

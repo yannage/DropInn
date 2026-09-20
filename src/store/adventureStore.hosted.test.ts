@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createCharacterProfile } from '../lib/character';
 
-const mocks = vi.hoisted(() => ({ request: vi.fn(), auth: vi.fn(), list: vi.fn(), create: vi.fn() }));
+const mocks = vi.hoisted(() => ({ request: vi.fn(), auth: vi.fn(), list: vi.fn(), create: vi.fn(), identity: vi.fn() }));
 vi.mock('../lib/dropinn/api', () => ({ localPlay: false, adventureRequest: mocks.request, subscribeAdventure: () => () => {} }));
 vi.mock('../lib/supabase/client', () => ({ ensureAnonymousUser: mocks.auth }));
-vi.mock('../lib/supabase/characters', () => ({ listSupabaseCharacters: mocks.list, upsertSupabaseCharacter: mocks.create, updateSupabaseHeroIdentity: vi.fn() }));
+vi.mock('../lib/supabase/characters', () => ({ listSupabaseCharacters: mocks.list, upsertSupabaseCharacter: mocks.create, updateSupabaseHeroIdentity: mocks.identity }));
 
 beforeEach(() => {
   vi.resetModules();
@@ -15,6 +15,37 @@ beforeEach(() => {
   mocks.request.mockResolvedValue({ backend: 'supabase', rooms: [], recaps: [] });
 });
 afterEach(() => vi.unstubAllGlobals());
+
+it('preserves rewards arriving during an identity save and cosmetics during a reward refresh', async () => {
+  const hero = createCharacterProfile('Owned hero', 'rogue');
+  mocks.auth.mockResolvedValue({ id: 'current' });
+  mocks.list.mockResolvedValue([hero]);
+  const { useAdventureStore: store } = await import('./adventureStore');
+  await store.getState().initialize();
+  let finish!: (value: unknown) => void;
+  mocks.identity.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const customization = { appearance: { body: 'squish', eyes: 'sleepy', nose: 'triangle', mouth: 'flat' }, equipment: { hat: 'fighter' } };
+  const writing = store.getState().setHero('Pip', 'rogue', '#7DD3FC', customization);
+  mocks.list.mockResolvedValue([{ ...hero, xp: 300, inventory: ['Mara’s copper bell'] }]);
+  await store.getState().refreshRooms();
+  finish({ ...hero, name: 'Pip', ...customization });
+  await writing;
+  expect(store.getState().character).toMatchObject({ ...customization, name: 'Pip', xp: 300, inventory: ['Mara’s copper bell'] });
+  await store.getState().refreshRooms();
+  expect(store.getState().character).toMatchObject({ ...customization, name: 'Pip', xp: 300 });
+});
+
+it('retains the saved hero when a hosted customization write fails', async () => {
+  const hero = createCharacterProfile('Owned hero', 'rogue');
+  mocks.auth.mockResolvedValue({ id: 'current' });
+  mocks.list.mockResolvedValue([hero]);
+  mocks.identity.mockRejectedValue(new Error('Unable to save. Please retry.'));
+  const { useAdventureStore: store } = await import('./adventureStore');
+  await store.getState().initialize();
+  await store.getState().setHero('Changed', 'fighter');
+  expect(store.getState().character).toEqual(hero);
+  expect(store.getState().error).toContain('Please retry');
+});
 
 it('recovers from failed startup before submitting Play Now', async () => {
   const hero = createCharacterProfile('Owned hero', 'rogue');

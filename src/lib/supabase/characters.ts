@@ -5,6 +5,7 @@ import {
   type TraitSet,
 } from '../character';
 import { requireSupabaseClient } from './client';
+import { normalizeHero, type HeroAppearance, type HeroEquipment } from '../cosmetics';
 
 interface CharacterRow {
   id: string;
@@ -19,9 +20,11 @@ interface CharacterRow {
   spotlight_tokens: number;
   inventory: string[];
   accent: string | null;
+  appearance?: HeroAppearance;
+  equipment?: HeroEquipment;
 }
 
-const fromRow = (row: CharacterRow): CharacterProfile => ({
+const fromRow = (row: CharacterRow): CharacterProfile => normalizeHero({
   id: row.id,
   name: row.name,
   classKey: row.class_key,
@@ -33,6 +36,8 @@ const fromRow = (row: CharacterRow): CharacterProfile => ({
   spotlightTokens: row.spotlight_tokens,
   inventory: row.inventory ?? [],
   accent: row.accent ?? CHARACTER_CLASS_PRESETS[row.class_key].accent,
+  appearance: row.appearance,
+  equipment: row.equipment,
 });
 
 const toRow = (character: CharacterProfile, userId: string) => ({
@@ -48,6 +53,8 @@ const toRow = (character: CharacterProfile, userId: string) => ({
   spotlight_tokens: character.spotlightTokens,
   inventory: character.inventory,
   accent: character.accent,
+  appearance: normalizeHero(character).appearance,
+  equipment: normalizeHero(character).equipment,
   updated_at: new Date().toISOString(),
 });
 
@@ -88,6 +95,8 @@ export const updateSupabaseHeroIdentity = async (userId: string, character: Char
     max_hp: character.maxHp,
     traits: character.traits,
     accent: character.accent,
+    appearance: normalizeHero(character).appearance,
+    equipment: normalizeHero(character).equipment,
     updated_at: new Date().toISOString(),
   }).eq('id', character.id).eq('user_id', userId).select('*').single();
   if (error) throw error;

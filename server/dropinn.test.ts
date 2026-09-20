@@ -26,6 +26,15 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('retains face selections and validates hat ownership on admission', async () => {
+    const { call, hero } = harness();
+    const appearance = { body: 'round', eyes: 'sleepy', nose: 'triangle', mouth: 'flat' };
+    const locked = await call('play', { character: { ...hero, appearance, equipment: { hat: 'moonstone' } } });
+    expect(locked.room.seats[0].character).toMatchObject({ appearance, equipment: { hat: null } });
+    const earned = await call('play', { character: { ...hero, appearance, inventory: ['The guardian’s moonstone'], equipment: { hat: 'moonstone' } } }, 'player_two');
+    expect(earned.room.players.player_two.character).toMatchObject({ appearance, equipment: { hat: 'moonstone' } });
+  });
+
   it('carries a validated hero color through server admission without accepting inflated stats', async () => {
     const { call, hero } = harness();
     const response = await call('play', { character: { ...hero, accent: '#7DD3FC', hp: 999, traits: { INT: 999, ATH: 999, CHA: 999, ING: 999 } } });
@@ -277,6 +286,30 @@ describe('adventure service local command contract', () => {
     }));
     expect(response.status).toBe(status);
     expect((await response.json()).error).toContain(message);
+  });
+
+  it('uses stored hosted cosmetics and ignores forged client selections', async () => {
+    const userId = '11111111-1111-4111-8111-111111111111';
+    const heroId = '22222222-2222-4222-8222-222222222222';
+    const appearance = { body: 'squish', eyes: 'sleepy', nose: 'none', mouth: 'flat' };
+    const mock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+      if (url.pathname === '/auth/v1/user') return Response.json({ id: userId });
+      if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/characters') return Response.json({ id: heroId, user_id: userId, name: 'Moss', class_key: 'rogue', level: 3, xp: 240,
+        accent: '#6EE7B7', appearance, equipment: { hat: 'reed' }, inventory: ['A silver river reed'] });
+      if (url.pathname === '/rest/v1/adventure_rooms') return Response.json([]);
+      if (url.pathname === '/rest/v1/rpc/dropinn_apply_snapshot') return Response.json('applied');
+      throw new Error(`Unexpected test request: ${url.pathname}`);
+    }) as unknown as typeof fetch;
+    const handler = createDropinnHandler({ local: false, env: { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-server-key' }, fetch: mock });
+    const response = await handler(new Request('http://localhost/api/dropinn', {
+      method: 'POST', headers: { Authorization: 'Bearer test-session' }, body: JSON.stringify({ operation: 'play', characterId: heroId,
+        character: { ...createCharacterProfile('Forged', 'fighter'), equipment: { hat: 'moonstone' } } }),
+    }));
+    expect(response.status).toBe(200);
+    const { room } = await response.json();
+    expect(room.players[userId].character).toMatchObject({ appearance, equipment: { hat: 'reed' }, classKey: 'rogue', name: 'Moss' });
   });
 
   it('authenticates the whole creative proposal before committing it', async () => {

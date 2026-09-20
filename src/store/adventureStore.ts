@@ -7,6 +7,7 @@ import { ensureAnonymousUser } from '../lib/supabase/client';
 import { listSupabaseCharacters, upsertSupabaseCharacter, updateSupabaseHeroIdentity } from '../lib/supabase/characters';
 import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
+import { normalizeHero, type HeroCustomization } from '../lib/cosmetics';
 
 const namespace = new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'default';
 const storageKey = `dropinn-v2-player-${namespace}`;
@@ -21,7 +22,7 @@ interface SavedPlayer {
 function readSaved(): SavedPlayer {
   try {
     const value = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if (value?.character?.id && value?.userId) return { receipts: {}, muted: [], activeCode: null, ...value };
+    if (value?.character?.id && value?.userId) return { receipts: {}, muted: [], activeCode: null, ...value, character: normalizeHero(value.character) };
   } catch { /* A damaged browser cache should never prevent joining. */ }
   // Retain an existing local hero when migrating from the original prototype.
   let previous: CharacterProfile | undefined;
@@ -29,7 +30,7 @@ function readSaved(): SavedPlayer {
     const old = JSON.parse(localStorage.getItem(namespace === 'default' ? 'dropinn-player-state' : `dropinn-player-state-${namespace}`) || 'null')?.state;
     previous = old?.characters?.find((hero: CharacterProfile) => hero.id === old.selectedCharacterId);
   } catch { /* Fresh visitor. */ }
-  return { userId: crypto.randomUUID(), character: previous || createCharacterProfile('Wren', 'wizard'), activeCode: null, receipts: {}, muted: [] };
+  return { userId: crypto.randomUUID(), character: normalizeHero(previous || createCharacterProfile('Wren', 'wizard')), activeCode: null, receipts: {}, muted: [] };
 }
 let saved = readSaved();
 const save = () => localStorage.setItem(storageKey, JSON.stringify(saved));
@@ -82,7 +83,7 @@ interface AdventureState {
   sendChat: (text: string) => Promise<boolean>;
   report: (userId: string, reason: string) => Promise<boolean>;
   toggleMute: (userId: string) => void;
-  setHero: (name: string, classKey: CharacterClassKey, accent?: string) => Promise<void>;
+  setHero: (name: string, classKey: CharacterClassKey, accent?: string, customization?: HeroCustomization) => Promise<void>;
   dismissRecap: () => void;
   clearError: () => void;
 }
@@ -325,12 +326,16 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       const muted = get().mutedUserIds.includes(userId) ? get().mutedUserIds.filter(id => id !== userId) : [...get().mutedUserIds, userId];
       saved.muted = muted; save(); set({ mutedUserIds: muted });
     },
-    setHero: (name, classKey, accent) => busy(async () => {
-      if (get().room) throw new Error('Change your hero between visits.');
+    setHero: (name, classKey, accent, customization) => busy(async () => {
+      if (get().room || get().restoringCode) throw new Error('Change your hero between visits.');
       const current = get().character!;
       const preset = CHARACTER_CLASS_PRESETS[classKey];
-      let character = { ...current, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey) };
+      let character: CharacterProfile = normalizeHero({ ...current, ...customization, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey) });
       if (!localPlay) character = await updateSupabaseHeroIdentity(get().userId, character);
+      // Reward responses may arrive while the identity write is in flight.
+      const latest = get().character;
+      if (latest?.id !== current.id) throw new Error('Your hero changed. Reopen the builder and try again.');
+      character = normalizeHero({ ...character, xp: Math.max(character.xp, latest.xp), level: getLevelForXp(Math.max(character.xp, latest.xp)), inventory: [...new Set([...character.inventory, ...latest.inventory])] });
       saved.character = character; save(); set({ character });
     }),
     dismissRecap: () => set({ recap: null }),

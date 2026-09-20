@@ -40,6 +40,44 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('saves every appearance selection and an unequipped hat across reload', async () => {
+    const { store } = await setup();
+    const original = store.getState().character!;
+    await store.getState().leaveRoom();
+    const customization = { appearance: { body: 'round', eyes: 'wide', nose: 'none', mouth: 'toothy' }, equipment: { hat: null } };
+    await store.getState().setHero('Little Pip', original.classKey, '#F9A8D4', customization);
+    expect(store.getState().character).toMatchObject({ ...customization, xp: original.xp, inventory: original.inventory, traits: original.traits });
+    vi.resetModules();
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    expect(restored.getState().character).toMatchObject({ ...customization, name: 'Little Pip' });
+  });
+
+  it('blocks customization during a visit and while restoring a saved table', async () => {
+    const { store } = await setup();
+    const before = store.getState().character;
+    await store.getState().setHero('Changed', 'wizard');
+    expect(store.getState().error).toBe('Change your hero between visits.');
+    expect(store.getState().character).toEqual(before);
+    store.setState({ room: null, restoringCode: 'TEST01' });
+    await store.getState().setHero('Changed', 'wizard');
+    expect(store.getState().character).toEqual(before);
+  });
+
+  it('unlocks chapter hats once through repeated receipts without auto-equipping', async () => {
+    const { store, room } = await setup();
+    const before = store.getState().character!;
+    const { HERO_HATS, ownsHat, normalizeHero } = await import('../lib/cosmetics');
+    store.setState({ character: normalizeHero(before) });
+    room.revision++;
+    room.players[store.getState().userId].keepsakes = ['Mara’s copper bell'];
+    await store.getState().syncRoom();
+    await store.getState().syncRoom();
+    const character = store.getState().character!;
+    expect(character.inventory).toEqual(['Mara’s copper bell']);
+    expect(ownsHat(HERO_HATS.find(hat => hat.id === 'shepherd')!, character.inventory)).toBe(true);
+    expect(character.equipment?.hat).toBe(before.classKey);
+  });
+
   it('keeps the saved table during a failed reload and restores it on retry', async () => {
     const { room } = await setup();
     vi.resetModules();

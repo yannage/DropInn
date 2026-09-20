@@ -1,3 +1,5 @@
+import type { HeroAppearance, HeroEquipment } from './cosmetics';
+
 export type TraitSet = {
   INT: number;
   ATH: number;
@@ -19,6 +21,8 @@ export interface CharacterProfile {
   spotlightTokens: number;
   inventory: string[];
   accent: string;
+  appearance?: HeroAppearance;
+  equipment?: HeroEquipment;
 }
 
 export interface CharacterClassPreset {

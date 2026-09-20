@@ -15,11 +15,21 @@ for (const file of readdirSync('supabase/migrations').filter(file => file.endsWi
 }
 // Applying the v2 migration again must also be safe.
 sql(readFileSync('supabase/migrations/202609190001_dropinn_v2.sql', 'utf8'));
+sql(readFileSync('supabase/migrations/202609200001_hero_customization.sql', 'utf8'));
 const user = '11111111-1111-4111-8111-111111111111';
 const other = '22222222-2222-4222-8222-222222222222';
 const hero = '33333333-3333-4333-8333-333333333333';
 sql(`INSERT INTO auth.users VALUES ('${user}'),('${other}');
 INSERT INTO characters(id,user_id,name,class_key,level,xp,hp,max_hp) VALUES ('${hero}','${user}','Wren','wizard',3,240,10,10);`);
+// Old rows retain NULL cosmetics until edited; rerunning the migration preserves saved parts.
+sql(`DO $$ BEGIN
+IF EXISTS (SELECT 1 FROM characters WHERE id='${hero}' AND (appearance IS NOT NULL OR equipment IS NOT NULL)) THEN
+  RAISE EXCEPTION 'Old hero unexpectedly changed';
+END IF;
+END $$;
+UPDATE characters SET appearance='{"body":"round","eyes":"wide","nose":"none","mouth":"toothy"}'::jsonb,
+  equipment='{"hat":null}'::jsonb WHERE id='${hero}';`);
+sql(readFileSync('supabase/migrations/202609200001_hero_customization.sql', 'utf8'));
 // Service-role RLS bypass is insufficient without a table-level SELECT grant.
 sql(`SET ROLE service_role;
 DO $$ BEGIN
@@ -47,6 +57,8 @@ sql(`DO $$ BEGIN
 IF (SELECT xp FROM characters WHERE id='${hero}') <> 255 THEN RAISE EXCEPTION 'Duplicate XP'; END IF;
 IF (SELECT count(*) FROM adventure_events) <> 1 THEN RAISE EXCEPTION 'Duplicate event'; END IF;
 IF (SELECT cardinality(inventory) FROM characters WHERE id='${hero}') <> 1 THEN RAISE EXCEPTION 'Duplicate keepsake'; END IF;
+IF (SELECT appearance->>'body' FROM characters WHERE id='${hero}') <> 'round' THEN RAISE EXCEPTION 'Appearance lost during rewards'; END IF;
+IF (SELECT equipment FROM characters WHERE id='${hero}') <> '{"hat":null}'::jsonb THEN RAISE EXCEPTION 'Unequipped hat lost'; END IF;
 END $$;`);
 // Two real concurrent transactions compete for the same room revision.
 const contenders = [20, 25].map((xp, i) => {

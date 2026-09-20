@@ -40,7 +40,6 @@ import { CHAPTERS } from '../../lib/dropinn/content';
 import { describeAction, getCatchUp } from '../../lib/dropinn/engine';
 import {
   CHARACTER_CLASS_PRESETS,
-  HERO_COLORS,
   heroAccent,
   type CharacterClassKey,
   type CharacterProfile,
@@ -59,19 +58,15 @@ import { playTableSound } from './tableSound';
 import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
 import { TableReactions } from './TableReactions';
 import { invitationUrl } from '../../lib/dropinn/invites';
+import { HeroAvatar, HeroHatPreview, type AvatarHero } from './HeroAvatar';
+import { HeroCustomizer } from './HeroCustomizer';
+import { hatForKeepsake } from '../../lib/cosmetics';
 
-const classes: CharacterClassKey[] = ['wizard', 'fighter', 'rogue', 'cleric'];
 const roleCopy: Record<CharacterClassKey, string> = {
   wizard: 'Read the magic. Change the odds.',
   fighter: 'Stand your ground. Protect your friends.',
   rogue: 'Find an opening. Make trouble.',
   cleric: 'Lift spirits. Keep hope alive.',
-};
-const classIcons = {
-  wizard: WandSparkles,
-  fighter: Shield,
-  rogue: Compass,
-  cleric: Sparkles,
 };
 const tokens = [
   {
@@ -110,10 +105,9 @@ function HeroMark({
   hero,
   small = false,
 }: {
-  hero: Pick<CharacterProfile, 'classKey' | 'name' | 'accent'>;
+  hero: AvatarHero;
   small?: boolean;
 }) {
-  const Icon = classIcons[hero.classKey];
   const accent = heroAccent(hero.accent, hero.classKey);
   return (
     <span
@@ -121,7 +115,7 @@ function HeroMark({
       style={{ color: accent, borderColor: `${accent}80`, background: `radial-gradient(circle at 30% 20%, ${accent}44, ${accent}12)` }}
       aria-hidden="true"
     >
-      <Icon strokeWidth={1.45} />
+      <HeroAvatar hero={hero} decorative />
     </span>
   );
 }
@@ -251,9 +245,11 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
           {recap.keepsakes.map(item => {
             const chapter = CHAPTERS.findIndex(chapter => chapter.keepsake === item);
             const memory = recap.chapterHighlights?.[chapter];
+            const hat = hatForKeepsake(item);
             return <article className="di-keepsake-story" key={item}>
               <Star size={22} />
               <div><strong>{item}</strong>
+                {hat && <div className="di-hat-reward"><HeroHatPreview hat={hat} /><span>Hat unlocked: {hat.label}<small>Ready to wear in your hero builder between visits.</small></span></div>}
                 <small>{chapter >= 0 ? `Chapter ${chapter + 1} · ${CHAPTERS[chapter].title}` : recap.title}</small>
                 <p>{['A little bell to remember the villagers and the missing herd.', 'A river reed to remember the crossing to the chapel.', 'A moonstone to remember the guardian and Briar Glen’s fate.'][chapter] ?? 'A memento of the adventure you helped tell.'}</p>
                 {memory?.length ? <p className="di-keepsake-contribution"><b>Your part:</b> {memory.at(-1)}</p> : <p className="di-fine">Earned through your contributions to this chapter.</p>}
@@ -487,17 +483,11 @@ function Lobby() {
     startFriendTable,
     joinRoom,
     prepareAdventure,
-    setHero,
     recaps,
     seenOutcomes,
   } = useAdventureStore();
   const [code, setCode] = useState('');
-  const [name, setName] = useState(character?.name ?? '');
-  const [heroClass, setHeroClass] = useState<CharacterClassKey>(
-    character?.classKey ?? 'wizard',
-  );
   const [editingHero, setEditingHero] = useState(false);
-  const [accent, setAccent] = useState(character?.accent ?? HERO_COLORS[0].value);
   const [preparing, setPreparing] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
@@ -505,18 +495,6 @@ function Lobby() {
   const liveRooms = rooms.filter(
     (item) => item.status !== 'completed' && item.openSeats > 0,
   );
-  useEffect(() => {
-    if (character) {
-      setName(character.name);
-      setHeroClass(character.classKey);
-      setAccent(heroAccent(character.accent, character.classKey));
-    }
-  }, [character?.name, character?.classKey, character?.accent]);
-  const saveHero = async (event: FormEvent) => {
-    event.preventDefault();
-    await setHero(name.trim() || 'Wren', heroClass, accent);
-    if (!useAdventureStore.getState().error) setEditingHero(false);
-  };
   const newTelling = async () => {
     setPreparing(true);
     await prepareAdventure();
@@ -723,61 +701,7 @@ function Lobby() {
               >
                 Make this hero yours <ChevronDown size={15} />
               </button>
-              {editingHero && (
-                <form
-                  className="di-hero-editor"
-                  onSubmit={(event) => void saveHero(event)}
-                >
-                  <label htmlFor="hero-name">
-                    Hero name <span>optional</span>
-                  </label>
-                  <input
-                    id="hero-name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    maxLength={18}
-                    placeholder="Wren"
-                  />
-                  <div
-                    className="di-class-options"
-                    role="group"
-                    aria-label="Hero class"
-                  >
-                    {classes.map((key) => {
-                      const Icon = classIcons[key];
-                      return (
-                        <button
-                          type="button"
-                          key={key}
-                          className={heroClass === key ? 'selected' : ''}
-                          aria-pressed={heroClass === key}
-                          onClick={() => setHeroClass(key)}
-                        >
-                          <Icon size={18} />
-                          <span>{CHARACTER_CLASS_PRESETS[key].label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="di-fine">
-                    {roleCopy[heroClass]} All heroes start with equal power.
-                  </p>
-                  <fieldset className="di-hero-colors">
-                    <legend>Your hero’s color</legend>
-                    <div className="di-color-preview"><HeroMark hero={{ name, classKey: heroClass, accent }} /><span>{name.trim() || 'Wren'}<small>{HERO_COLORS.find(color => color.value === accent)?.name ?? 'Amethyst'} · cosmetic only</small></span></div>
-                    <div role="group" aria-label="Hero colors">{HERO_COLORS.map(color => <button type="button" key={color.value}
-                      aria-label={`${color.name} hero color`} aria-pressed={accent === color.value} onClick={() => setAccent(color.value)}
-                      style={{ color: color.value }}><span style={{ background: color.value }}>{accent === color.value && <Check size={16} />}</span><small>{color.name}</small></button>)}</div>
-                    <p className="di-fine">Your color follows you to the table. It never changes abilities or rewards.</p>
-                  </fieldset>
-                  <button
-                    className="di-button di-secondary di-full"
-                    disabled={loading}
-                  >
-                    Save hero <Check size={16} />
-                  </button>
-                </form>
-              )}
+              {editingHero && <HeroCustomizer character={character} onClose={() => setEditingHero(false)} />}
             </section>
           )}
           <section className="di-join-card">
