@@ -1,0 +1,5 @@
+interface:
+  display_name: "DropInn playtest"
+  short_description: "Verify two-player turns, recovery, and hero saves"
+policy:
+  allow_implicit_invocation: true

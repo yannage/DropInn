@@ -1,0 +1,5 @@
+interface:
+  display_name: "DropInn Spotlight evaluation"
+  short_description: "Evaluate creative actions, latency, and fallback"
+policy:
+  allow_implicit_invocation: true

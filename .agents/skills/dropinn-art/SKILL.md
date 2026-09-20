@@ -1,11 +1,13 @@
 ---
 name: dropinn-art
-description: Generate and integrate DropInn's whimsical MS painter raster art, including sheep-style creatures, NPCs, props, and chapter illustrations. Use for MS Paint art requests or matching the saved DropInn concepts; keep existing functional SVG icons and modular hero parts in their native format when appropriate.
+description: Generate and integrate DropInn's whimsical MS painter raster art, or review modular hero SVG layers, tint masks, and catalog compositions. Use for MS Paint characters, props, scenes, and hero-part changes; preserve native functional icons and modular layers.
 ---
 
 # MS painter
 
 Make charmingly imperfect artwork inside the DropInn development task. The visual target is the saved concept sheep, Mara, and gate, generated with Codex image generation. It is not the much cruder local Qwen sprite preset.
+
+For modular hero work, start with [hero-review.md](references/hero-review.md) and the hero art contract; load raster generation references only if that task needs raster artwork.
 
 ## Start with the reference and destination
 
@@ -27,6 +29,7 @@ Make charmingly imperfect artwork inside the DropInn development task. The visua
 
 - Inspect on pale parchment and the dark game UI at 48–64px, not only at full size. Check opaque content, real transparency, clipped edges, and whether the expression/prop is recognizable. A PNG alpha channel alone does not prove correct transparency.
 - Run `npm run art:check` from the repository root for inventory paths, PNG dimensions, alpha-channel support, and recorded file hashes. This is a file check, not a substitute for looking at the artwork.
+- For native hero layers, run `node .agents/skills/dropinn-art/scripts/review-heroes.mjs` and inspect its generated contact sheet as described in [hero-review.md](references/hero-review.md). It checks the separate native manifest without rewriting hashes.
 - After integration, check mobile and desktop layouts, selection/check marks, token placement and confirmation. Artwork must not intercept gestures or hide copy. Preserve a text-only fallback on load failure.
 - Run relevant tests and `npm run build` for code changes. Record what was actually inspected in the inventory's review field; do not mark unviewed assets reviewed.
 - Report the selected files, prompt location, generator, and any remaining limitation. Generation occurs during development; do not add image-model keys or image generation services to the running game.

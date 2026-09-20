@@ -1,0 +1,5 @@
+interface:
+  display_name: "DropInn hosted contract"
+  short_description: "Check Supabase contracts and Netlify releases"
+policy:
+  allow_implicit_invocation: true
