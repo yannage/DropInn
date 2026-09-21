@@ -38,7 +38,7 @@ const verbs: Record<string, string> = { mara: 'Help Mara', tracks: 'Follow the t
 const effects: Record<IllustratedToken, string> = { fight: 'Progress · block 2', influence: 'Progress · ease danger', investigate: 'Progress · next-turn insight', assist: 'Progress · class support' };
 type Drawer = 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | 'choice' | 'round' | null;
 
-export function SceneDrawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function SceneDrawer({ title, onClose, children, presentation = 'sheet' }: { title: string; onClose: () => void; children: ReactNode; presentation?: 'sheet' | 'dialog' }) {
   const ref = useRef<HTMLDivElement>(null);
   const close = useRef(onClose); close.current = onClose;
   useEffect(() => {
@@ -59,8 +59,8 @@ export function SceneDrawer({ title, onClose, children }: { title: string; onClo
     document.addEventListener('keydown', key);
     return () => { document.body.style.overflow = old; document.removeEventListener('keydown', key); previous?.isConnected && previous.focus(); };
   }, []);
-  return <div className="di-scene-shade" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className="di-scene-drawer" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
+  return <div className={`di-scene-shade is-${presentation}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className={`di-scene-drawer is-${presentation}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
       <header><h2>{title}</h2><button onClick={onClose} aria-label={`Close ${title}`}><X size={22} /></button></header>
       <div className="di-scene-drawer-body">{children}</div>
     </div>

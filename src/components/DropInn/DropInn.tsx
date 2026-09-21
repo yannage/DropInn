@@ -941,6 +941,7 @@ function Chat({ room }: { room: AdventureRoom }) {
       {reporting && (
         <SceneDrawer
           title={`Report ${reporting.name}`}
+          presentation="dialog"
           onClose={() => setReporting(null)}
         >
           <p className="di-eyebrow">Keep the table welcoming</p>

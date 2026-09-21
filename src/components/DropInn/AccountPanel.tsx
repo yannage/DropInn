@@ -49,7 +49,7 @@ export function AccountPanel() {
   return <div className="di-account-entry">
     <SaveStatus/>
     <button className="di-button di-secondary di-full" onClick={()=>setOpen(true)}><UserRound size={17}/>{guest?'Save your hero':'Your account & heroes'}</button>
-    {open && <SceneDrawer title="Your hero, wherever you drop in" onClose={()=>setOpen(false)}>
+    {open && <SceneDrawer title="Your hero, wherever you drop in" presentation="dialog" onClose={()=>setOpen(false)}>
       <div className="di-account-panel">
         <SaveStatus/>
         <p>One recoverable hero is free. Your adventures and earned keepsakes stay yours.</p>
