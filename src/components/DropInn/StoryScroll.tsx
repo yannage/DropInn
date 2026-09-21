@@ -8,6 +8,15 @@ import type { AdventureRoom } from '../../lib/dropinn/types';
 import './story-scroll.css';
 
 export type StoryScrollMode = 'collapsed' | 'compact' | 'full';
+// All modes reuse the same source pixels. Only the length of the spindle changes.
+function ScrollRoller() {
+  return <span className="di-scroll-roller" aria-hidden="true">
+    {['40 60 170 130', '210 60 600 130', '810 60 175 130'].map(viewBox =>
+      <svg key={viewBox} viewBox={viewBox} preserveAspectRatio="none" focusable="false">
+        <image href="/art/ui-scroll-full.webp" width="1024" height="1536" />
+      </svg>)}
+  </span>;
+}
 export function StoryScroll({ room, userId, mode, onMode, suspended, locked, seconds, narration }: {
   room: AdventureRoom; userId: string; mode: StoryScrollMode; onMode: (mode: StoryScrollMode) => void;
   suspended: boolean; locked: boolean; seconds: number; narration?: string;
@@ -19,7 +28,6 @@ export function StoryScroll({ room, userId, mode, onMode, suspended, locked, sec
   const visible = mode !== 'collapsed' && !suspended;
   const [bounds,setBounds] = useState({left:8,top:44,width:320,height:180});
   const [seen,setSeen] = useState<string>();
-  const [frameFailed,setFrameFailed] = useState(false);
   const latest = entries.at(-1)?.id;
   const follow = useRef(true), position = useRef(0), changing = useRef(false);
   const previousMode = useRef(mode);
@@ -84,14 +92,15 @@ export function StoryScroll({ room, userId, mode, onMode, suspended, locked, sec
   const jump = () => {follow.current=true;restore();};
   return <>
     <button ref={trigger} className="di-story-cylinder" aria-label="Story" aria-expanded={visible} aria-controls="adventure-story-scroll" disabled={locked || suspended} onClick={() => change(mode==='collapsed'?'compact':'collapsed')}>
-      <img src="/art/ui-scroll-rolled.webp" alt="" aria-hidden="true" draggable={false}/><span>Story</span>{latest!==seen && <i aria-label="Unread story events" />}
+      <ScrollRoller/><span className="di-story-trigger-label">Story</span>{latest!==seen && <i aria-label="Unread story events" />}
     </button>
     {createPortal(<>
       {mode==='full' && visible && <div className="di-story-backdrop" />}
-      <motion.div ref={panel} id="adventure-story-scroll" className={`di-story-scroll is-${mode} ${frameFailed?'is-art-fallback':''}`} role={mode==='full'?'dialog':'region'} aria-modal={mode==='full' && visible ? true : undefined} aria-label="Story & journal" aria-hidden={!visible} tabIndex={-1}
+      <motion.div ref={panel} id="adventure-story-scroll" className={`di-story-scroll is-${mode}`} role={mode==='full'?'dialog':'region'} aria-modal={mode==='full' && visible ? true : undefined} aria-label="Story & journal" aria-hidden={!visible} tabIndex={-1}
         initial={false} animate={{left:bounds.left,top:bounds.top,width:visible?bounds.width:88,height:visible?bounds.height:0,opacity:visible?1:0}}
         transition={{duration:reduced?0:.35,ease:[.22,.8,.25,1]}} style={{pointerEvents:visible?'auto':'none'}} onAnimationComplete={() => {restore();changing.current=false;}}>
-        <img className={`di-story-frame frame-${mode}`} src={mode==='full'?'/art/ui-scroll-full.webp':'/art/ui-scroll-compact.webp'} alt="" aria-hidden="true" draggable={false} onLoad={()=>setFrameFailed(false)} onError={()=>setFrameFailed(true)}/>
+        <ScrollRoller/>
+        <div className="di-scroll-paper">
         <header><h2>Story so far</h2>{mode==='full' && <span className="di-scroll-clock" role="timer"><Clock3 size={14}/>{room.status==='active'?`${seconds}s ${room.phase==='reveal'?'to next turn':'to choose'}`:'Table paused'}</span>}
           <button disabled={locked} aria-label={mode==='full'?'Compact view':'Expand story'} onClick={() => change(mode==='full'?'compact':'full')}>{mode==='full'?<Minimize2 size={18}/>:<Maximize2 size={18}/>}</button>
           <button disabled={locked} aria-label="Roll up" onClick={() => change('collapsed')}><ChevronUp size={20}/></button>
@@ -101,6 +110,8 @@ export function StoryScroll({ room, userId, mode, onMode, suspended, locked, sec
           {narration && <aside><h3>Live narration · temporary</h3><p>{narration}</p></aside>}
         </div>
         {visible && latest!==seen && !follow.current && <button className="di-scroll-new" onClick={jump}>New events ↓</button>}
+        </div>
+        <ScrollRoller/>
       </motion.div>
     </>,document.body)}
   </>;
