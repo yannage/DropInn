@@ -1,0 +1,45 @@
+/* Payoffs are a brief physical landing followed by a quiet, readable ledger.
+   Event timestamps govern animation; no game time or input is held here. */
+.di-turn-resolution.di-turn-resolution{border-radius:15px 10px 16px 11px;border-width:2px 2px 5px;box-shadow:0 2px 0 #fff9de inset,0 7px 0 #182b2426,0 16px 40px #182b243b;background:radial-gradient(ellipse at 50% 0,#fffdf0,#f3e5bc);isolation:isolate}
+.di-turn-resolution.di-turn-resolution[data-fresh=true]{animation:di-payoff-land .34s cubic-bezier(.16,.9,.25,1.14) both}
+.di-turn-resolution .di-resolution-eyebrow{letter-spacing:.12em;color:#47553d}
+.di-turn-resolution .di-duel-score>div{min-width:76px;padding:5px 11px 6px;border:1px solid #749267;border-bottom:4px solid #628052;border-radius:10px 7px 11px 8px;background:#e5edce;box-shadow:0 2px 0 #293b3014}
+.di-turn-resolution .di-duel-score>div.enemy{background:#f6ddc4;border-color:#a7744c;color:#804229;transform:rotate(2deg)}
+.di-turn-resolution .di-duel-score>div:first-child{transform:rotate(-2deg)}
+.di-turn-resolution .di-duel-score strong{font-size:38px;font-weight:900;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.di-turn-resolution .di-duel-score>span{padding:4px;border-radius:50%;font-size:10px;letter-spacing:.05em}
+.di-turn-resolution .di-resolution-total{padding:3px 6px;border-radius:8px;background:#e3eac9;box-shadow:0 3px 0 #aec091}
+.di-turn-resolution .di-resolution-payoff>strong{letter-spacing:-.01em}
+.di-payoff-benefits{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:6px 0 1px;font-size:10px;line-height:1.25}
+.di-payoff-benefits>span{padding:3px 6px;border:1px solid #acbd8455;background:#dfe7b6;color:#30462d;border-radius:5px 7px 5px 6px}
+.di-payoff-benefits b{font-size:13px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.di-payoff-benefits>[data-effect=cost]{background:#f2cfac;color:#774226;border-color:#ba875855}
+.di-payoff-benefits>[data-effect=care]{background:#c9e2d1;color:#2c5749;border-color:#71a69755}
+.di-payoff-benefits>[data-effect=relief]{background:#dce6c6;color:#38572c}
+.di-turn-resolution .di-payoff-benefits{justify-content:center}
+.di-round-recap.di-round-recap>header{align-items:center;padding:5px 2px 7px;border-bottom:1px solid #bbcea532;margin-bottom:4px}
+.di-round-recap.di-round-recap>header>strong{display:flex;align-items:center;gap:6px;font-size:14px;color:#ffe5a5}
+.di-round-recap.di-round-recap>header>strong>svg{color:#d8ce9b;flex-shrink:0}
+.di-round-recap.di-round-recap>header>small{color:#d0dbbd;font-variant-numeric:tabular-nums}
+.di-round-recap .di-round-entries{gap:7px;padding:2px 3px 4px}
+.di-round-recap .di-round-entries article{position:relative;background:#183e334d;border:1px solid #c3d29d45;border-left:3px solid #b6c988;border-radius:8px 5px 9px 6px;box-shadow:0 2px 0 #112d252e;padding:7px 9px}
+.di-round-recap .di-round-entries article>strong{display:flex;align-items:center;flex-wrap:wrap;gap:5px;line-height:1.25;color:#ffe6a4;font-size:12px}
+.di-round-mark{flex-shrink:0;opacity:.85}
+.di-round-role{font-weight:500;font-size:9px;color:#d1ddc1;padding:1px 5px;border:1px solid #afc39b4d;border-radius:7px}
+.di-round-recap .di-round-entries article[data-kind=companion]{border-left-color:#8ac5b5;background:#25604f22}
+.di-round-recap .di-round-entries article[data-kind=inactive]{border-left-color:#a6ad98;background:#ffffff05}
+.di-round-recap .di-round-entries article[data-kind=inactive]>strong{color:#d1d7bf}
+.di-round-recap .di-round-entries article[data-kind=consequence]{background:#dfbc6820;border-left-color:#ebc878}
+.di-round-recap .di-round-effect{font-weight:600;color:#e5efc8}
+.di-round-recap .di-round-math{display:block;font-variant-numeric:tabular-nums;margin-top:5px;color:#c7d5b4;font-size:10px;line-height:1.3}
+.di-round-recap[data-fresh=true] .di-round-entries article{animation:di-contribution-land .32s cubic-bezier(.16,.9,.25,1.1) both;animation-delay:var(--payoff-delay,0ms)}
+.di-scene-drawer .di-round-recap>header>strong{color:#54411e}.di-scene-drawer .di-round-recap>header>small{color:#526349}
+.di-scene-drawer .di-round-recap .di-round-entries article{background:#e7d8af44;border-color:#a7a17c;border-left-color:#758353;box-shadow:0 2px 0 #67562c0e}
+.di-scene-drawer .di-round-recap .di-round-entries article>strong{color:#5d4821}.di-scene-drawer .di-round-recap .di-round-role{color:#536148;border-color:#8a9d7177}
+.di-scene-drawer .di-round-recap .di-round-entries article[data-kind=consequence]{background:#e7cf9244;border-left-color:#aa8b3b}
+.di-scene-drawer .di-round-recap .di-round-effect,.di-scene-drawer .di-round-recap .di-round-math{color:#405b3d}
+@keyframes di-payoff-land{0%{scale:.91;rotate:-2deg;opacity:.5}70%{scale:1.025;rotate:.5deg;opacity:1}100%{scale:1;rotate:0;opacity:1}}
+@keyframes di-contribution-land{0%{translate:0 7px;opacity:.4}72%{translate:0 -1px;opacity:1}100%{translate:0 0;opacity:1}}
+@media(max-width:420px){.di-round-recap.di-round-recap>header>strong{font-size:13px}.di-round-recap.di-round-recap>header>small{font-size:9px}.di-round-recap .di-round-entries article{padding:6px 7px}.di-round-recap .di-round-entries article>strong{font-size:11px}.di-round-recap .di-payoff-benefits{font-size:9px}.di-round-recap .di-payoff-benefits b{font-size:12px}}
+@media(max-height:620px) and (max-width:759px){.di-turn-resolution .di-duel-score>div{padding:3px 8px 4px;min-width:68px}.di-turn-resolution .di-duel-score strong{font-size:28px}.di-turn-resolution .di-payoff-benefits{margin-top:3px}.di-turn-resolution .di-payoff-benefits>span{padding:2px 5px}.di-round-recap.di-round-recap>header{padding:3px 2px 5px}.di-round-recap .di-round-entries article{padding:5px 7px}.di-round-recap .di-round-math{margin-top:3px}}
+@media(prefers-reduced-motion:reduce){.di-turn-resolution.di-turn-resolution,.di-round-recap .di-round-entries article{animation:none!important}.di-turn-resolution .di-duel-score>div{transform:none}}

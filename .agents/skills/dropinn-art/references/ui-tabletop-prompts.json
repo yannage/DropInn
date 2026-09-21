@@ -1,0 +1,34 @@
+{
+  "generator": "Codex built-in image_gen",
+  "created": "2026-09-21",
+  "resources": [
+    {
+      "id": "ui-card-frame-v1",
+      "source": "exec-dca104b3-8295-4823-ab02-de32b8d88b65.png",
+      "purpose": "Reusable nine-slice frame for hand, action choices and journals",
+      "canvas": "Full original canvas, alpha; one asset per call",
+      "prompt": "Use case: stylized-concept. Create ONE production UI asset for DropInn: a blank handmade parchment game-card FRAME, front-on, upright, almost square (4:5 silhouette) centered on an actual transparent alpha background. This is the reusable border for action cards and needs to work at 60 pixels. Chunky true black slightly jagged stair-stepped outlines, primitive old Windows MS Paint mouse doodle, clumsy uneven silhouette, flat bucket fills, cream paper #fff4d6, ochre edge #bd9850, two broad corner folds. One simple slightly off-kilter stitched corner. Large EMPTY uniform pale cream center covers at least 75% of the shape, no icons or symbols in center, no words, no letters. Thin perimeter around the blank center, no ornate flourishes. Thick black outlines only at perimeter. Transparent margin 5% around complete unclipped card. Absolutely no gradients, no grain, no texture, no realistic shadows, no glowing light, no smooth vector elegance, no extra objects. Match a lovingly awkward MS Paint fantasy tabletop game. Asset only, not a screenshot or mockup."
+    },
+    {
+      "id": "ui-spotlight-charm-v1",
+      "source": "exec-1a335135-1100-4e5e-8b2e-e09bb53ae3fc.png",
+      "purpose": "Spotlight charm in action hand and selected coin",
+      "canvas": "Full original canvas, alpha; one asset per call",
+      "prompt": "Use case: stylized-concept. ONE transparent-alpha game UI cutout for DropInn: a lopsided lavender wax coin / charm with a chunky mustard gold five-point sparkle in its middle, with ONE tiny secondary cream sparkle. Simple strong silhouette reads at 28px. Deliberately awkward old Windows MS Paint mouse drawing, true black heavy stair-stepped outline, flat purple and gold bucket fills, extremely simple. Isolated centered full charm fills 80% of square canvas with margin, transparent background. No text, no runes, no face, no gradients, no shadows, no tiny texture, no detailed jewelry, no realistic lighting. One asset only, not a sheet. Must look like a wonky handmade companion to the coral crossed-swords, teal speech, gold magnifying-glass and green heart game tokens."
+    },
+    {
+      "id": "ui-journal-v1",
+      "source": "exec-b13f3029-938f-4e86-bd5c-dcf2ed4dc243.png",
+      "purpose": "Last round journal and recap affordance",
+      "canvas": "Full original canvas, alpha; one asset per call",
+      "prompt": "Use case: stylized-concept. ONE production game UI cutout with real transparent alpha background for DropInn: a small closed moss-green adventure journal with a cream paper edge on right, a thick ochre clasp wrapping across center, and ONE floppy coral bookmark hanging from bottom. Slightly tilted 8 degrees, front cover visible, broad recognizable little book silhouette. Blank cover with absolutely NO lettering or symbols. Old Windows MS Paint mouse drawing, chunky irregular true black stair-stepped contour, flat bucket fills cream/moss/mustard/coral. Lovingly clumsy, lopsided, primitive, no fine details. Full silhouette centered fills80% square with10% clear margin. Must read at32pixels. No extra objects, no background, no gradients, no grain, no crosshatching, no glossy3D or smooth vector aesthetics."
+    },
+    {
+      "id": "ui-dice-cup-v1",
+      "source": "exec-39e17176-74ae-400c-b100-0e535257b55a.png",
+      "purpose": "Dice cup beside action preparation and lobby play",
+      "canvas": "Full original canvas, alpha; one asset per call",
+      "prompt": "Use case: stylized-concept. ONE transparent-alpha isolated game UI cutout for DropInn: a squat crooked dusty teal leather dice cup tipped diagonally, with ONE chunky cream six-sided die just spilling from its mouth. Die shows three big black dots. Tiny mustard band around cup rim. Full unclipped silhouette centered with10% margin, iconic bold simple shape readable at40px. Deliberately primitive Windows MS Paint mouse drawing with true black heavy jagged stair-step contour, flat bucket fills, lopsided geometry, no fine texture, no gradients, no shadows, no realistic shading, no glossy3D, no lettering, no extra dice or props. Match handmade fantasy tabletop UI. One asset only, no sheet."
+    }
+  ]
+}

@@ -1,4 +1,6 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Dice5, Sparkles } from 'lucide-react';
+import './timing-feel.css';
 
 const DURATION_MS = 1200;
 const ASSISTED_RELEASE_MS = 800;
@@ -128,6 +130,10 @@ export function TimedRelease(props: TimedReleaseProps) {
 
   const unavailable = disabled || committed || Date.now() >= deadline;
   const sweet = elapsed >= 650 && elapsed <= 950;
+  const phase = committed ? 'released' : holding ? (sweet ? 'sweet' : elapsed > 950 ? 'late' : 'winding') : 'ready';
+  const holdLabel = committed ? 'Move sent' : holding
+    ? assisted ? 'Finding your moment…' : sweet ? 'Release for +1!' : elapsed > 950 ? 'Release your move' : 'Wind up…'
+    : assisted ? 'Tap to release' : 'Hold & release';
   const begin = () => {
     if (controller.start(assisted)) { setElapsed(0); setFeedback(''); return true; }
     return false;
@@ -139,7 +145,8 @@ export function TimedRelease(props: TimedReleaseProps) {
     setElapsed(0);
   };
 
-  return <div className="di-focus-control" data-holding={holding} data-assisted={assisted}>
+  return <div className="di-focus-control di-timing-feel" data-holding={holding} data-assisted={assisted} data-phase={phase}
+    style={{ '--di-wind': Math.min(elapsed / 650, 1) } as CSSProperties}>
     <button type="button" className="di-focus-hold" disabled={unavailable}
       aria-describedby={statusId} aria-label={assisted ? 'Release with timing assistance' : 'Hold and release the die'}
       onPointerDown={event => {
@@ -153,7 +160,9 @@ export function TimedRelease(props: TimedReleaseProps) {
         controller.release();
       }}
       onPointerCancel={cancel}
+      onLostPointerCapture={event => { if (pointer.current === event.pointerId) cancel(); }}
       onKeyDown={event => {
+        if (event.key === 'Escape' && holding) { event.preventDefault(); event.stopPropagation(); cancel(); return; }
         if (event.key !== ' ' && event.key !== 'Enter') return;
         event.preventDefault();
         if (!event.repeat && keyboard.current === null && begin()) keyboard.current = event.key;
@@ -171,14 +180,16 @@ export function TimedRelease(props: TimedReleaseProps) {
         if (event.detail === 0 && keyboard.current === null && pointer.current === null) controller.start(true);
       }}
     >
-      <span aria-hidden="true">⚄</span> {holding ? (assisted ? 'Releasing…' : 'Release!') : (assisted ? 'Tap to release' : 'Hold & release')}
+      <span className="di-timing-die" aria-hidden="true"><Dice5 size={24} strokeWidth={2.2} /></span>
+      <span className="di-timing-label">{holdLabel}</span>
+      <span className="di-timing-bonus" aria-hidden="true"><Sparkles size={13} /> +1</span>
       <span className="di-focus-meter" aria-hidden="true" data-sweet={sweet}>
         <span className="di-focus-sweet" style={{ left: `${650 / DURATION_MS * 100}%`, width: `${300 / DURATION_MS * 100}%` }} />
         <span className="di-focus-marker" style={{ left: `${elapsed / DURATION_MS * 100}%` }} />
       </span>
     </button>
     <span id={statusId} className="di-focus-status" role="status" aria-live="polite" aria-atomic="true">
-      {feedback || (holding ? (assisted ? 'Timing assisted' : (sweet ? 'Release now for +1' : 'Aim for the marked zone')) : 'Good timing: +1 · missing costs nothing')}
+      {feedback || (holding ? (assisted ? 'Timing assisted' : (sweet ? 'Release now for +1' : elapsed > 950 ? 'Your ordinary move is still ready' : 'Aim for the bright zone')) : 'Good timing: +1 · missing costs nothing')}
     </span>
     <div className="di-focus-options">
       <button type="button" className="di-focus-roll-now" disabled={unavailable || holding} onClick={() => controller.rollNow()}>Roll now</button>

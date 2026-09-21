@@ -1,3 +1,5 @@
+import { TabletopArtwork } from './TabletopArtwork';
+import './tabletop-art.css';
 import {
   useEffect,
   useRef,
@@ -513,7 +515,7 @@ function Lobby() {
             {loading ? (
               <LoaderCircle className="di-spin" size={20} />
             ) : (
-              <Dices size={21} />
+              <TabletopArtwork kind="dice" />
             )}{' '}
             {loading
               ? preparing

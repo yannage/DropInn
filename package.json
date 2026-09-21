@@ -14,6 +14,7 @@
     "test:scene": "node scripts/playtest-scene.mjs",
     "test:adventures": "node scripts/playtest-adventures.mjs",
     "test:accounts": "node scripts/playtest-accounts.mjs",
+    "test:tabletop": "node scripts/playtest-tabletop.mjs",
     "stories:build": "node scripts/build-story-data.mjs",
     "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs"
   },

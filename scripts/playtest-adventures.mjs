@@ -112,6 +112,12 @@ try {
       await a.getByRole('button',{name:'Collect your recap',exact:true}).waitFor();
       const finale = await a.locator('.di-stage-finale').boundingBox();
       assert.ok(finale && finale.y >= 0 && finale.y + finale.height <= 568);
+      const stageBounds = await a.locator('.di-scene-stage').boundingBox();
+      for (const [label, control] of [['Finale heading', a.locator('.di-stage-finale h2')], ['Collect recap button', a.getByRole('button', { name:'Collect your recap', exact:true })]]) {
+        const bounds = await control.boundingBox();
+        assert.ok(bounds && stageBounds && bounds.y >= stageBounds.y - 1 && bounds.y + bounds.height <= stageBounds.y + stageBounds.height + 1,
+          `${label} is clipped by the stage at 320×568: ${JSON.stringify({bounds,stageBounds})}`);
+      }
       await a.screenshot({path:`output/playwright/${definition.id}-finale-320.png`});
       await a.getByRole('button',{name:/^Story/}).click();
       assert.ok(await a.getByText(finished.outcomes[2].text,{exact:true}).count());
