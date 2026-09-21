@@ -21,6 +21,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Adventure identity, versions and authored definitions | `src/lib/dropinn/registry.ts`, `adventures.ts` |
 | Rebuild reviewed story packets into static definitions | `npm run stories:build` (`scripts/build-story-data.mjs`) |
 | Authenticated command service and persistence | `server/dropinn.ts` |
+| Recoverable accounts, guest ownership and validated hero writes | `server/accounts.ts`, `src/components/DropInn/AccountPanel.tsx`, [account rollout and membership roadmap](docs/accounts-and-membership.md) |
 | Optional OpenAI/Ollama adapters | `server/ai.ts` |
 | Hosted function and development adapter | `netlify/functions/dropinn.ts`, `vite.config.ts` |
 | V2 tables and transactional command/reward application | `supabase/migrations/202609190001_dropinn_v2.sql` |

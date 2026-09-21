@@ -54,6 +54,9 @@ import { SceneAdventure, SceneDrawer } from './SceneAdventure';
 import { HeroAvatar, HeroHatPreview, type AvatarHero } from './HeroAvatar';
 import { HeroCustomizer } from './HeroCustomizer';
 import { hatForKeepsake } from '../../lib/cosmetics';
+import { AccountPanel, SaveStatus } from './AccountPanel';
+import { localPlay } from '../../lib/dropinn/api';
+import { getSupabaseClient } from '../../lib/supabase/client';
 
 const roleCopy: Record<CharacterClassKey, string> = {
   wizard: 'Read the magic. Change the odds.',
@@ -228,9 +231,11 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
         </div>
       ))}
       <p className="di-fine">
-        Your progress is saved. Check your recent visits for the chapter’s
+        Check your recent visits for the chapter’s
         outcome.
       </p>
+      <SaveStatus/>
+      {!useAdventureStore.getState().room && (!useAdventureStore.getState().account || useAdventureStore.getState().account?.guest) && <button className="di-button di-secondary di-full" onClick={()=>{onClose();window.dispatchEvent(new Event('dropinn-open-account'));}}>Save your hero</button>}
       {recap.outcomes.length < CHAPTERS.length && <button className="di-button di-secondary di-full" disabled={loading}
         onClick={async () => {
           setReturnError(null);
@@ -269,6 +274,24 @@ export function DropInn() {
   useEffect(() => {
     void initialize();
   }, [initialize]);
+  useEffect(()=>{
+    if(localPlay) return;
+    const client=getSupabaseClient();if(!client)return;
+    let stopped=false;
+    const timers=new Set<ReturnType<typeof setTimeout>>();
+    const {data}=client.auth.onAuthStateChange((event,session)=>{
+      if(event==='INITIAL_SESSION' || event==='TOKEN_REFRESHED') return;
+      // Leave the Supabase auth callback before making further authenticated requests.
+      const refresh=()=>{
+        if(stopped)return;
+        const state=useAdventureStore.getState();
+        if(state.loading) {const timer=setTimeout(()=>{timers.delete(timer);refresh();},100);timers.add(timer);return;}
+        if(session?.user.id!==state.account?.id || session?.user.is_anonymous!==state.account?.guest || event==='USER_UPDATED') void state.refreshAccount();
+      };
+      const timer=setTimeout(()=>{timers.delete(timer);refresh();},0);timers.add(timer);
+    });
+    return ()=>{stopped=true;timers.forEach(clearTimeout);data.subscription.unsubscribe();};
+  },[]);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [room?.id]);
@@ -674,6 +697,7 @@ function Lobby() {
                 Make this hero yours <ChevronDown size={15} />
               </button>
               {editingHero && <HeroCustomizer character={character} onClose={() => setEditingHero(false)} />}
+              <AccountPanel/>
             </section>
           )}
           <section className="di-join-card">

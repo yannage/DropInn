@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createCharacterProfile } from '../lib/character';
 
-const mocks = vi.hoisted(() => ({ request: vi.fn(), auth: vi.fn(), list: vi.fn(), create: vi.fn(), identity: vi.fn() }));
+const mocks = vi.hoisted(() => ({ request: vi.fn(), auth: vi.fn(), list: vi.fn(), create: vi.fn(), identity: vi.fn(), play:vi.fn() }));
 vi.mock('../lib/dropinn/api', () => ({ localPlay: false, adventureRequest: mocks.request, subscribeAdventure: () => () => {} }));
 vi.mock('../lib/supabase/client', () => ({ ensureAnonymousUser: mocks.auth }));
 vi.mock('../lib/supabase/characters', () => ({ listSupabaseCharacters: mocks.list, upsertSupabaseCharacter: mocks.create, updateSupabaseHeroIdentity: mocks.identity }));
@@ -12,7 +12,14 @@ beforeEach(() => {
   const storage = new Map<string, string>();
   vi.stubGlobal('window', { location: { search: '' } });
   vi.stubGlobal('localStorage', { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) });
-  mocks.request.mockResolvedValue({ backend: 'supabase', rooms: [], recaps: [] });
+  mocks.request.mockImplementation(async(body)=>{
+    if(body.operation==='account') {
+      const user=await mocks.auth.mock.results.at(-1)?.value;
+      const heroes=await mocks.list();
+      return {backend:'supabase',account:{id:user.id,guest:false,identities:['email'],heroes:heroes.map((character:unknown)=>({playerId:user.id,character})),selectedCharacterId:heroes[0]?.id,capabilities:{heroSlots:1,payments:false},providers:{email:true,google:true}}};
+    }
+    return await mocks.play(body) ?? {backend:'supabase',rooms:[],recaps:[]};
+  });
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -24,7 +31,7 @@ it('shows plain-object backend errors instead of hiding them behind a generic re
   expect(store.getState().error).toBe('The character database update is missing.');
   await store.getState().playNow();
   expect(store.getState().error).toBe('The character database update is missing.');
-  expect(mocks.request).not.toHaveBeenCalled();
+  expect(mocks.play).not.toHaveBeenCalled();
 });
 
 it('preserves rewards arriving during an identity save and cosmetics during a reward refresh', async () => {
@@ -66,7 +73,7 @@ it('recovers from failed startup before submitting Play Now', async () => {
   await store.getState().initialize();
   expect(store.getState().error).toBe('Network unavailable');
   const { createAdventure } = await import('../lib/dropinn/engine');
-  mocks.request.mockResolvedValue({ backend: 'supabase', room: createAdventure(hero, 'current-account', 1000, 'RETRY1') });
+  mocks.play.mockResolvedValue({ backend: 'supabase', room: createAdventure(hero, 'current-account', 1000, 'RETRY1') });
   await store.getState().playNow();
   expect(mocks.request).toHaveBeenCalledWith(expect.objectContaining({ operation: 'play', sessionId: 'current-account', characterId: hero.id }));
   expect(store.getState().error).toBeNull();
@@ -90,6 +97,6 @@ it('does not submit a cached hero if ownership refresh fails', async () => {
   mocks.list.mockRejectedValue(new Error('Could not load your heroes'));
   const { useAdventureStore: store } = await import('./adventureStore');
   await store.getState().playNow();
-  expect(mocks.request).not.toHaveBeenCalled();
+  expect(mocks.play).not.toHaveBeenCalled();
   expect(store.getState().error).toBe('Could not load your heroes');
 });

@@ -3,14 +3,16 @@ import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCh
 import { AdventureRequestError, adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
 import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap, ReactionKind } from '../lib/dropinn/types';
 import { getVisitRecap } from '../lib/dropinn/engine';
-import { ensureAnonymousUser } from '../lib/supabase/client';
-import { listSupabaseCharacters, upsertSupabaseCharacter, updateSupabaseHeroIdentity } from '../lib/supabase/characters';
+import { ensureAnonymousUser, requireSupabaseClient } from '../lib/supabase/client';
+import { listSupabaseCharacters, updateSupabaseHeroIdentity } from '../lib/supabase/characters';
+import { finishGuestRecovery } from '../lib/supabase/accountAuth';
+import type { AccountSnapshot } from '../lib/dropinn/accounts';
 import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
 import { normalizeHero, type HeroCustomization } from '../lib/cosmetics';
 import { getErrorMessage } from '../lib/errors';
 
-const namespace = new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'default';
+const namespace = (import.meta.env.DEV ? new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) : undefined) || 'default';
 const storageKey = `dropinn-v2-player-${namespace}`;
 interface PendingAction {
   roomCode: string;
@@ -19,6 +21,7 @@ interface PendingAction {
   action: PlayerAction;
 }
 interface SavedPlayer {
+  accountId?: string;
   userId: string;
   character: CharacterProfile;
   activeCode: string | null;
@@ -50,7 +53,14 @@ function readSaved(): SavedPlayer {
   return { userId: crypto.randomUUID(), character: normalizeHero(previous || createCharacterProfile('Wren', 'wizard')), activeCode: null, receipts: {}, muted: [] };
 }
 let saved = readSaved();
-const save = () => localStorage.setItem(storageKey, JSON.stringify(saved));
+let storageError:string|null=null;
+const save = () => {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(saved));
+    if(saved.accountId) localStorage.setItem(`${storageKey}:${saved.accountId}`,JSON.stringify(saved));
+    storageError=null;
+  } catch {storageError='Site storage is unavailable. Keep this tab open and enable storage to save your browser progress.';}
+};
 save();
 let initializePromise: Promise<void> | null = null;
 let syncInFlight = false;
@@ -63,6 +73,12 @@ const mergeMessages = (current: ChatMessage[], incoming: ChatMessage[]) => [...n
   .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)).slice(-60);
 
 interface AdventureState {
+  account: AccountSnapshot | null;
+  saveStatus: 'browser' | 'guest' | 'cloud' | 'saving' | 'failed';
+  saveError: string | null;
+  refreshAccount: () => Promise<void>;
+  selectHero: (characterId:string) => Promise<void>;
+  signOut: () => Promise<void>;
   ready: boolean;
   backend: 'local' | 'supabase';
   userId: string;
@@ -121,22 +137,35 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
   // before admission instead of submitting a hero from a previous account.
   const ensureHostedHero = async () => {
     if (localPlay) return;
-    const user = await ensureAnonymousUser();
-    if (!user) throw new Error('Online adventures are not configured yet.');
-    const characters = await listSupabaseCharacters(user.id);
-    const character = characters.find(hero => hero.id === saved.character.id) || characters[0]
-      || await upsertSupabaseCharacter(user.id, createCharacterProfile('Wren', 'wizard'));
-    if (saved.userId !== user.id) {
+    await ensureAnonymousUser();
+    const response=await adventureRequest({operation:'account'});
+    if(!response.account) throw new Error('Your account could not be loaded. Please retry.');
+    const account=await finishGuestRecovery(response.account);
+    const previousAccount=saved.accountId ?? saved.userId;
+    const changed=previousAccount!==account.id;
+    if(changed) {
+      try {
+        localStorage.setItem(`${storageKey}:${previousAccount}`,JSON.stringify(saved));
+        const cached=JSON.parse(localStorage.getItem(`${storageKey}:${account.id}`) ?? 'null');
+        saved={...saved,activeCode:cached?.activeCode ?? null,receipts:cached?.receipts ?? {},pendingAction:cached?.pendingAction ?? null};
+      } catch {saved={...saved,activeCode:null,receipts:{},pendingAction:null};}
+    }
+    const selected=account.heroes.find(hero=>hero.character.id===account.selectedCharacterId) ?? account.heroes[0];
+    if(!selected) throw new Error('Your hero could not be loaded. Please retry.');
+    const character=selected.character;
+    if (changed || saved.userId!==selected.playerId) {
+      viewEpoch++;unsubscribe?.();unsubscribe=null;
       saved.activeCode = null;
       saved.receipts = {};
       saved.muted = [];
       saved.seenOutcomes = {};
       setPendingAction(null);
-      set({ recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
+      set({ room:null, messages:[], proposal:null, narration:null, recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
     }
-    saved.userId = user.id;
+    saved.accountId=account.id;
+    saved.userId = selected.playerId;
     saved.character = character;
-    set({ userId: user.id, character });
+    set({ userId: selected.playerId, character, account,saveStatus:account.guest?'guest':'cloud',saveError:null });
     save();
   };
   const busy = async (run: () => Promise<void>) => {
@@ -174,7 +203,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
         changed = true;
       }
     }
-    if (changed) save();
+    if (changed) {save();if(storageError)set({saveError:storageError,...(localPlay?{saveStatus:'failed' as const}:{})});}
   };
   const accept = async (response: AdventureResponse, epoch: number) => {
     if (epoch !== viewEpoch) return;
@@ -213,6 +242,25 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     unsubscribe = subscribeAdventure(response.room.code, () => { void get().syncRoom(); });
   };
   return {
+    account:null,saveStatus:storageError?'failed':'browser',saveError:storageError,
+    refreshAccount:async()=>{
+      try {await ensureHostedHero();await get().refreshRooms();}
+      catch(error){set({saveStatus:'failed',saveError:getErrorMessage(error,'Your account could not be loaded. Please retry.')});}
+    },
+    selectHero:id=>busy(async()=>{
+      if(get().room || get().restoringCode || saved.pendingAction) throw new Error('Choose your hero between visits.');
+      await adventureRequest({operation:'hero-select',characterId:id});
+      await ensureHostedHero();await get().refreshRooms();
+    }),
+    signOut:()=>busy(async()=>{
+      if(get().room || get().restoringCode || saved.pendingAction) throw new Error('Leave your table before signing out.');
+      const {error}=await requireSupabaseClient().auth.signOut({scope:'local'});if(error) throw error;
+      viewEpoch++;unsubscribe?.();unsubscribe=null;
+      save();
+      saved={userId:crypto.randomUUID(),character:createCharacterProfile('Wren','wizard'),activeCode:null,receipts:{},muted:[]};
+      set({account:null,character:saved.character,userId:saved.userId,recaps:[],recap:null,saveStatus:'browser'});
+      await ensureHostedHero();await get().refreshRooms();
+    }),
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
     pendingMove: saved.pendingAction?.roomCode === saved.activeCode ? { turn: saved.pendingAction.turn, action: saved.pendingAction.action } : null,
@@ -244,7 +292,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
           await ensureHostedHero();
           if (saved.activeCode) await get().syncRoom();
           if (!get().restoringCode) await get().refreshRooms();
-        } catch (error) { fail(error); }
+        } catch (error) { fail(error);set({saveStatus:'failed',saveError:getErrorMessage(error,'Your hero could not be loaded.')}); }
         finally { set({ ready: true }); }
       })();
       return initializePromise;
@@ -375,12 +423,15 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       const current = get().character!;
       const preset = CHARACTER_CLASS_PRESETS[classKey];
       let character: CharacterProfile = normalizeHero({ ...current, ...customization, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey) });
-      if (!localPlay) character = await updateSupabaseHeroIdentity(get().userId, character);
+      set({saveStatus:'saving',saveError:null});
+      try {if (!localPlay) character = await updateSupabaseHeroIdentity(get().userId, character);}
+      catch(error){set({saveStatus:'failed',saveError:getErrorMessage(error,'Your hero could not be saved. Please retry.')});throw error;}
       // Reward responses may arrive while the identity write is in flight.
       const latest = get().character;
       if (latest?.id !== current.id) throw new Error('Your hero changed. Reopen the builder and try again.');
       character = normalizeHero({ ...character, xp: Math.max(character.xp, latest.xp), level: getLevelForXp(Math.max(character.xp, latest.xp)), inventory: [...new Set([...character.inventory, ...latest.inventory])] });
       saved.character = character; save(); set({ character });
+      set({saveStatus:localPlay?(storageError?'failed':'browser'):get().account?.guest?'guest':'cloud',saveError:storageError});
     }),
     dismissRecap: () => set({ recap: null }),
     clearError: () => set({ error: null }),

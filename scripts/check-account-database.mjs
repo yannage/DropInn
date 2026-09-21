@@ -1,0 +1,43 @@
+import {execFile} from 'node:child_process';
+import assert from 'node:assert/strict';
+
+export async function checkAccountDatabase({sql,args,user,other,hero}) {
+ const starter={id:'88888888-8888-4888-8888-888888888888',name:'Cloud hero',classKey:'wizard',hp:10,maxHp:10,traits:{INT:3,ATH:1,ING:2,CHA:3},accent:'#A78BFA',appearance:{body:'bean',eyes:'dots',nose:'button',mouth:'smile'},equipment:{hat:'wizard'}};
+ const json=value=>`$json$${JSON.stringify(value)}$json$::jsonb`;
+ const parallel=text=>new Promise((resolve,reject)=>{const child=execFile('docker',args,{encoding:'utf8'},(error,stdout,stderr)=>error?reject(new Error(stderr)):resolve(stdout.trim()));child.stdin.end(text);});
+ const denied=text=>{let rejected=false;try{sql(text);}catch{rejected=true;}assert.ok(rejected,`Expected rejection: ${text.slice(0,80)}`);};
+ await Promise.all([parallel(`select dropinn_bootstrap_account('${other}',${json(starter)});`),parallel(`select dropinn_bootstrap_account('${other}',${json({...starter,id:'99999999-9999-4999-8999-999999999999'})});`)]);
+ assert.equal(sql(`select count(*) from characters where user_id='${other}'`),'1','Concurrent bootstrap creates one free hero');
+ const otherHero=sql(`select id from characters where user_id='${other}'`);
+ sql(`insert into player_accounts(account_id) values('${user}') on conflict do nothing;`);
+ const next=JSON.parse(sql(`select snapshot from adventure_rooms where code='QA1234'`));
+ next.revision++;next.players[user].leftAt=Date.now();
+ sql(`select dropinn_apply_account_snapshot('QA1234',${next.revision-1},'account-leave','${user}',${json(next)},'${user}');`);
+ sql(`insert into player_claims(token_hash,player_id,expires_at) values('test-claim','${user}',now()+interval '15 minutes'),('expired-claim','${user}',now()-interval '1 second');`);
+ denied(`select dropinn_redeem_claim('${other}','expired-claim');`);
+ await Promise.all([parallel(`select dropinn_redeem_claim('${other}','test-claim');`),parallel(`select dropinn_redeem_claim('${other}','test-claim');`)]);
+ assert.equal(sql(`select count(*) from characters c join player_ownership o on o.player_id=c.user_id where o.account_id='${other}'`),'2','Recovery preserves both heroes');
+ assert.equal(sql(`select user_id from characters where id='${hero}'`),user,'Historical identity stays stable');
+ denied(`select dropinn_bootstrap_account('${user}',${json(starter)});`);
+ denied(`select dropinn_redeem_claim('${user}','test-claim');`);
+ const readAs=(actor,table)=>sql(`set role authenticated;set request.jwt.claim.sub='${actor}';select count(*) from ${table};`).split('\n').at(-1);
+ assert.equal(readAs(user,'characters'),'0','Old guest credentials lose access');
+ assert.equal(readAs(user,'adventure_rooms'),'0');
+ assert.equal(readAs(other,'characters'),'2');assert.equal(readAs(other,'adventure_rooms'),'1','New account can read historical room / Realtime rows');
+ for(const statement of ["update characters set xp=999999", "update characters set inventory=array['Forged']", "update characters set user_id=auth.uid()", "delete from characters", `select dropinn_redeem_claim('${other}','test-claim')`]) denied(`set role authenticated;set request.jwt.claim.sub='${other}';${statement};`);
+ next.revision++;next.players[user].xp+=10;
+ denied(`select dropinn_apply_account_snapshot('QA1234',${next.revision-1},'revoked-session','${user}',${json(next)},'${user}');`);
+ assert.equal(sql(`select dropinn_apply_account_snapshot('QA1234',${next.revision-1},'late-reward','${user}',${json(next)},'${other}');`),'applied');
+ assert.equal(sql(`select dropinn_apply_account_snapshot('QA1234',${next.revision-1},'late-reward','${user}',${json(next)},'${other}');`),'duplicate');
+ assert.equal(Number(sql(`select xp from characters where id='${hero}'`)),240+next.players[user].xp,'Late rewards remain exactly once');
+ const duplicate=structuredClone(next);duplicate.revision++;duplicate.players[user].leftAt=null;duplicate.players[other]={userId:other,character:{id:otherHero},joinedAt:Date.now(),leftAt:null,xp:0,keepsakes:[]};
+ denied(`select dropinn_apply_account_snapshot('QA1234',${next.revision},'double-seat','${other}',${json(duplicate)},'${other}');`);
+ sql(`select dropinn_select_hero('${other}','${hero}');`);
+ assert.equal(sql(`select selected_character_id from player_accounts where account_id='${other}'`),hero);
+ const beforeXp=sql(`select xp from characters where id='${hero}'`);
+ sql(`select dropinn_save_hero('${other}',${json({...starter,id:hero,name:'Recovered',xp:999999,inventory:['Forged']})},false);`);
+ assert.equal(sql(`select xp from characters where id='${hero}'`),beforeXp);
+ assert.equal(sql(`select 'Forged'=any(inventory) from characters where id='${hero}'`),'f');
+ denied(`select dropinn_save_hero('${other}',${json({...starter,id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'})},true);`);
+ console.log('PASS: accounts, concurrent bootstrap/recovery, expired and repeated claims, two preserved heroes, RLS after recovery, late rewards, revoked credentials, seat exclusion, selection and write denial.');
+}

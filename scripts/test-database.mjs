@@ -1,6 +1,7 @@
 // Run against a disposable Postgres container, never a hosted project.
 import { execFileSync, execFile } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
+import { checkAccountDatabase } from './check-account-database.mjs';
 const container = process.argv[2] || 'dropinn-db-qa';
 if (!/^dropinn-[a-z0-9-]+$/.test(container)) throw new Error('Use a dedicated dropinn-* QA container.');
 const args = ['exec', '-i', container, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-At'];
@@ -21,6 +22,7 @@ const other = '22222222-2222-4222-8222-222222222222';
 const hero = '33333333-3333-4333-8333-333333333333';
 sql(`INSERT INTO auth.users VALUES ('${user}'),('${other}');
 INSERT INTO characters(id,user_id,name,class_key,level,xp,hp,max_hp) VALUES ('${hero}','${user}','Wren','wizard',3,240,10,10);`);
+sql(readFileSync('supabase/migrations/202609210001_accounts.sql','utf8'));
 // Old rows retain NULL cosmetics until edited; rerunning the migration preserves saved parts.
 sql(`DO $$ BEGIN
 IF EXISTS (SELECT 1 FROM characters WHERE id='${hero}' AND (appearance IS NOT NULL OR equipment IS NOT NULL)) THEN
@@ -84,3 +86,4 @@ for (const forbidden of ["UPDATE adventure_rooms SET revision=99", rpc(snapshot,
   if (!denied) throw new Error('Client write was not denied');
 }
 console.log('PASS: migrations, repeat migration, rewards/events idempotency, real concurrent CAS, member reads, and client-write denial.');
+await checkAccountDatabase({sql,args,user,other,hero});

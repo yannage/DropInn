@@ -345,6 +345,7 @@ describe('adventure service local command contract', () => {
       requested.push(url.pathname);
       if (url.pathname === '/auth/v1/user') return Response.json({ id: '11111111-1111-4111-8111-111111111111' });
       if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/player_ownership') return Response.json(url.searchParams.get('select')==='account_id'?{account_id:'11111111-1111-4111-8111-111111111111'}:[{player_id:'11111111-1111-4111-8111-111111111111'}]);
       if (url.pathname === '/rest/v1/adventure_rooms') return Response.json([]);
       throw new Error(`Unexpected test request: ${url.pathname}`);
     }) as unknown as typeof fetch;
@@ -357,7 +358,7 @@ describe('adventure service local command contract', () => {
       }));
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ backend: 'supabase', rooms: [] });
-      expect(requested).toEqual(['/auth/v1/user', '/rest/v1/rpc/dropinn_rate_limit', '/rest/v1/adventure_rooms']);
+      expect(requested).toEqual(['/auth/v1/user', '/rest/v1/rpc/dropinn_rate_limit', '/rest/v1/player_ownership', '/rest/v1/player_ownership', '/rest/v1/adventure_rooms']);
     } finally { vi.unstubAllGlobals(); }
   });
 
@@ -371,9 +372,10 @@ describe('adventure service local command contract', () => {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
       if (url.pathname === '/auth/v1/user') return Response.json({ id: userId });
       if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/player_ownership') return Response.json(url.searchParams.get('select')==='account_id'?{account_id:'11111111-1111-4111-8111-111111111111'}:[{player_id:'11111111-1111-4111-8111-111111111111'}]);
       if (url.pathname === '/rest/v1/characters') {
         expect(url.searchParams.get('id')).toBe(`eq.${heroId}`);
-        expect(url.searchParams.get('user_id')).toBe(`eq.${userId}`);
+        expect(url.searchParams.get('user_id')).toContain(userId);
         return Response.json(result, { status: queryStatus });
       }
       throw new Error(`Unexpected test request: ${url.pathname}`);
@@ -397,10 +399,11 @@ describe('adventure service local command contract', () => {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
       if (url.pathname === '/auth/v1/user') return Response.json({ id: userId });
       if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/player_ownership') return Response.json(url.searchParams.get('select')==='account_id'?{account_id:'11111111-1111-4111-8111-111111111111'}:[{player_id:'11111111-1111-4111-8111-111111111111'}]);
       if (url.pathname === '/rest/v1/characters') return Response.json({ id: heroId, user_id: userId, name: 'Moss', class_key: 'rogue', level: 3, xp: 240,
         accent: '#6EE7B7', appearance, equipment: { hat: 'reed' }, inventory: ['A silver river reed'] });
       if (url.pathname === '/rest/v1/adventure_rooms') return Response.json([]);
-      if (url.pathname === '/rest/v1/rpc/dropinn_apply_snapshot') return Response.json('applied');
+      if (url.pathname === '/rest/v1/rpc/dropinn_apply_account_snapshot') return Response.json('applied');
       throw new Error(`Unexpected test request: ${url.pathname}`);
     }) as unknown as typeof fetch;
     const handler = createDropinnHandler({ local: false, env: { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-server-key' }, fetch: mock });
@@ -411,6 +414,30 @@ describe('adventure service local command contract', () => {
     expect(response.status).toBe(200);
     const { room } = await response.json();
     expect(room.players[userId].character).toMatchObject({ appearance, equipment: { hat: 'reed' }, classKey: 'rogue', name: 'Moss' });
+  });
+
+  it('routes recovered-account commands to its active hero instead of a departed historical hero',async()=>{
+    const account='11111111-1111-4111-8111-111111111111',active='22222222-2222-4222-8222-222222222222';
+    const {call,hero}=harness();
+    const opened=await call('play',{character:hero},account);
+    const joined=await call('join',{roomCode:opened.room.code,character:createCharacterProfile('Moss','rogue')},active);
+    joined.room.players[account].leftAt=999;
+    let writtenActor:string|undefined;
+    const unexpected:string[]=[];
+    const mock=vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
+      const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url);
+      if(url.pathname==='/auth/v1/user')return Response.json({id:account});
+      if(url.pathname==='/rest/v1/rpc/dropinn_rate_limit')return Response.json(true);
+      if(url.pathname==='/rest/v1/player_ownership')return Response.json(url.searchParams.get('select')==='account_id'?{account_id:account}:[{player_id:account},{player_id:active}]);
+      if(url.pathname==='/rest/v1/adventure_rooms')return Response.json({snapshot:joined.room});
+      if(url.pathname==='/rest/v1/adventure_commands')return Response.json(null);
+      if(url.pathname==='/rest/v1/adventure_chat')return Response.json([]);
+      if(url.pathname==='/rest/v1/rpc/dropinn_apply_account_snapshot'){const body=input instanceof Request?await input.clone().json():JSON.parse(init!.body as string);writtenActor=body.p_user_id;return Response.json('applied');}
+      unexpected.push(url.pathname);return Response.json({message:`Unexpected request ${url.pathname}`},{status:400});
+    }) as unknown as typeof fetch;
+    const handler=createDropinnHandler({local:false,now:()=>1000,fetch:mock,env:{SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-key'}});
+    const response=await handler(new Request('http://localhost/api/dropinn',{method:'POST',headers:{Authorization:'Bearer test-session'},body:JSON.stringify({operation:'command',roomCode:joined.room.code,command:{id:'leave-active-hero',type:'leave'}})}));
+    expect(unexpected).toEqual([]);expect(response.status,JSON.stringify(await response.json())).toBe(200);expect(writtenActor).toBe(active);
   });
 
   it('authenticates the whole creative proposal before committing it', async () => {

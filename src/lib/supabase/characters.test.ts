@@ -1,51 +1,24 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createCharacterProfile } from '../character';
-import { listSupabaseCharacters, updateSupabaseHeroIdentity, upsertSupabaseCharacter } from './characters';
-
-const mock = vi.hoisted(() => ({ client: { from: vi.fn() } }));
-vi.mock('./client', () => ({ requireSupabaseClient: () => mock.client }));
-afterEach(() => vi.clearAllMocks());
-
-const hero = createCharacterProfile('Pip', 'wizard');
-const appearance = { body: 'round', eyes: 'wide', nose: 'none', mouth: 'flat' };
-const row = { id: hero.id, user_id: 'owner', name: hero.name, class_key: hero.classKey, hp: hero.hp, max_hp: hero.maxHp,
-  traits: hero.traits, level: hero.level, xp: hero.xp, spotlight_tokens: hero.spotlightTokens, inventory: ['A silver river reed'],
-  accent: hero.accent, appearance, equipment: { hat: 'reed' } };
-
-describe('hosted hero customization mapping', () => {
-  it.each(['appearance', 'equipment'])('explains a missing %s column on startup and save', async (column) => {
-    const error = { code: 'PGRST204', details: null, hint: null, message: `Could not find the '${column}' column of 'characters' in the schema cache` };
-    const chain = { upsert: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error }) };
-    mock.client.from.mockReturnValue(chain);
-    await expect(upsertSupabaseCharacter('owner', hero)).rejects.toThrow('Apply 202609200001_hero_customization.sql');
-    await expect(updateSupabaseHeroIdentity('owner', hero)).rejects.toThrow('Apply 202609200001_hero_customization.sql');
-    expect(chain.upsert).toHaveBeenCalledTimes(1);
-    expect(chain.update).toHaveBeenCalledTimes(1);
-  });
-
-  it('retains unrelated database error messages', async () => {
-    const chain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: null, error: { code: '42501', message: 'permission denied for table characters' } }) };
-    mock.client.from.mockReturnValue(chain);
-    await expect(listSupabaseCharacters('owner')).rejects.toThrow('permission denied for table characters');
-  });
-
-  it('loads saved appearance and equips hats using stored keepsake ownership', async () => {
-    const chain = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [row], error: null }) };
-    mock.client.from.mockReturnValue(chain);
-    const result = await listSupabaseCharacters('owner');
-    expect(result[0]).toMatchObject({ appearance, equipment: { hat: 'reed' }, inventory: row.inventory });
-  });
-
-  it('writes only identity/cosmetics and returns concurrently awarded progress', async () => {
-    const chain = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: { ...row, xp: 320 }, error: null }) };
-    mock.client.from.mockReturnValue(chain);
-    const result = await updateSupabaseHeroIdentity('owner', { ...hero, appearance, equipment: { hat: 'reed' }, inventory: row.inventory });
-    const payload = chain.update.mock.calls[0][0];
-    expect(payload).toMatchObject({ appearance, equipment: { hat: 'reed' } });
-    expect(payload).not.toHaveProperty('xp');
-    expect(payload).not.toHaveProperty('inventory');
-    expect(payload).not.toHaveProperty('level');
-    expect(chain.eq).toHaveBeenCalledWith('user_id', 'owner');
-    expect(result.xp).toBe(320);
-  });
+import {beforeEach,expect,it,vi} from 'vitest';
+import {createCharacterProfile} from '../character';
+import {listSupabaseCharacters,upsertSupabaseCharacter,updateSupabaseHeroIdentity} from './characters';
+const mocks=vi.hoisted(()=>({request:vi.fn()}));
+vi.mock('../dropinn/api',()=>({adventureRequest:mocks.request}));
+beforeEach(()=>{mocks.request.mockReset();});
+it('loads owned heroes through the account service without a client owner filter',async()=>{
+ const hero=createCharacterProfile('Ash','wizard');mocks.request.mockResolvedValue({account:{heroes:[{playerId:'historical',character:hero}]}});
+ expect(await listSupabaseCharacters('account')).toEqual([hero]);expect(mocks.request).toHaveBeenCalledWith({operation:'account'});
+});
+it.each([upsertSupabaseCharacter,updateSupabaseHeroIdentity])('never uploads rewards through a shared builder save',async save=>{
+ const hero={...createCharacterProfile('Ash','wizard'),xp:9999,inventory:['Forged']};mocks.request.mockImplementation(async p=>p.operation==='account'?{account:{heroes:[]}}:{character:{...hero,xp:250,inventory:[]}});
+ const result=await save('forged-owner',hero);const payload=mocks.request.mock.calls.find(call=>call[0].character)![0];
+ expect(payload.character).not.toHaveProperty('xp');expect(payload.character).not.toHaveProperty('inventory');expect(payload).not.toHaveProperty('userId');expect(result.xp).toBe(250);
+});
+it('routes legacy edits of an existing hero to the identity-only save',async()=>{
+ const hero=createCharacterProfile('Ash','wizard');mocks.request.mockImplementation(async p=>p.operation==='account'?{account:{heroes:[{character:hero}]}}:{character:{...hero,name:'Moss',xp:350}});
+ expect((await upsertSupabaseCharacter('owner',{...hero,name:'Moss'})).xp).toBe(350);
+ expect(mocks.request.mock.calls.map(call=>call[0].operation)).toEqual(['account','hero-save']);
+});
+it('preserves actionable migration failures instead of reporting a successful save',async()=>{
+ mocks.request.mockRejectedValue(new Error('Account saving needs the 202609210001_accounts.sql database update.'));
+ await expect(updateSupabaseHeroIdentity('owner',createCharacterProfile('Ash','wizard'))).rejects.toThrow('202609210001_accounts.sql');
 });

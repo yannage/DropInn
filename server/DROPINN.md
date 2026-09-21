@@ -4,6 +4,8 @@ Local development uses the same server handler as production, with an isolated i
 
 For hosted multiplayer:
 
+Recoverable accounts additionally require `202609210001_accounts.sql` and the matching client/server. It preserves historical player IDs but changes character write permissions. Follow [account deployment](../docs/accounts-and-membership.md) for the coordinated rollout, Google linking, email-code templates, SMTP, provider flags, and live verification. Do not enable provider buttons until those providers have passed live checks.
+
 The repository pins Node 22 for builds and includes an explicit server WebSocket transport for Supabase initialization. If Netlify has an existing `AWS_LAMBDA_JS_RUNTIME` override, set it to `nodejs22.x` in Netlify's environment settings and redeploy. This runtime override must be configured in Netlify, not `netlify.toml`.
 
 1. Enable anonymous sign-ins in Supabase Auth, or use an authenticated account.

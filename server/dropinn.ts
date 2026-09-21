@@ -1,4 +1,6 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
+import { AccountError, handleAccount, ownedPlayers } from './accounts';
+import type { AccountOperation } from '../src/lib/dropinn/accounts';
 import WebSocket from 'ws';
 import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterClassKey, type CharacterProfile } from '../src/lib/character';
@@ -9,7 +11,8 @@ import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerTex
 
 interface RequestBody {
   adventureId?: string;
-  operation: 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
+  operation: AccountOperation | 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
+  claimToken?: string;
   sessionId?: string; roomCode?: string; characterId?: string; character?: CharacterProfile;
   command?: AdventureCommand; idea?: string; targetId?: string; text?: string;
   reportedUserId?: string; reason?: string; variationId?: string;
@@ -118,16 +121,16 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       return signed.proposal;
     } catch { throw new RequestError('That creative proposal expired or changed. Preview your idea again.', 409); }
   }
-  async function authenticate(request: Request, body: RequestBody): Promise<string> {
+  async function authenticate(request: Request, body: RequestBody): Promise<User> {
     if (local) {
       if (typeof body.sessionId !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(body.sessionId) || Object.hasOwn(Object.prototype, body.sessionId)) throw new RequestError('A local player session is required.', 401);
-      return body.sessionId;
+      return {id:body.sessionId,is_anonymous:true} as User;
     }
     const token = request.headers.get('authorization')?.match(/^Bearer (.+)$/i)?.[1];
     if (!token) throw new RequestError('Sign in to play.', 401);
     const { data, error } = await client().auth.getUser(token);
     if (error || !data.user) throw new RequestError('Your session expired. Please reconnect.', 401);
-    return data.user.id;
+    return data.user;
   }
   async function rateLimit(userId: string, bucket: string, maximum: number, seconds = 60) {
     if (!local) {
@@ -171,7 +174,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
     if (data && data.user_id !== userId) throw new RequestError('Use a new command identifier.', 409);
     return !!data;
   }
-  async function save(room: AdventureRoom, expectedRevision: number, commandId: string, userId: string): Promise<SaveResult> {
+  async function save(room: AdventureRoom, expectedRevision: number, commandId: string, userId: string, accountId?:string): Promise<SaveResult> {
     if (local) {
       if (state.commands.has(`${room.code}:${commandId}`)) return 'duplicate';
       const previous = state.rooms.get(room.code);
@@ -180,9 +183,9 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       state.commands.set(`${room.code}:${commandId}`, userId);
       return 'applied';
     }
-    const { data, error } = await client().rpc('dropinn_apply_snapshot', { p_code: room.code, p_expected_revision: expectedRevision,
-      p_command_id: commandId, p_user_id: userId, p_snapshot: room });
-    if (error) throw new RequestError('Your action could not be saved. Please retry.', 503);
+    const { data, error } = await client().rpc('dropinn_apply_account_snapshot', { p_code: room.code, p_expected_revision: expectedRevision,
+      p_command_id: commandId, p_user_id: userId, p_snapshot: room,p_account_id:accountId ?? null });
+    if (error) throw new RequestError(error.code==='P0001' ? error.message : 'Your action could not be saved. Please retry.',error.code==='P0001'?409:503);
     return data as SaveResult;
   }
   async function characterFor(body: RequestBody, userId: string): Promise<CharacterProfile> {
@@ -219,7 +222,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
     }
     return room;
   }
-  async function mutate(code: string, command: AdventureCommand): Promise<AdventureRoom> {
+  async function mutate(code: string, command: AdventureCommand, accountId?:string): Promise<AdventureRoom> {
     for (let attempt = 0; attempt < 8; attempt++) {
       const room = await load(code);
       if (command.type !== 'join') membership(room, command.userId);
@@ -232,7 +235,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       try { next = reduceAdventure(room, verified, now()); }
       catch (error) { throw new RequestError(error instanceof Error ? error.message.slice(0, 180) : 'That action is unavailable.', 409); }
       if (next.revision === room.revision) return room;
-      const outcome = await save(next, room.revision, command.id, command.userId);
+      const outcome = await save(next, room.revision, command.id, command.userId,accountId);
       if (outcome === 'applied') return next;
       if (outcome === 'duplicate') return load(code);
     }
@@ -256,18 +259,39 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       let body: RequestBody;
       try { body = JSON.parse(text); } catch { throw new RequestError('Send a valid JSON request.'); }
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new RequestError('Send a valid adventure request.');
-      const userId = await authenticate(request, body);
-      await rateLimit(userId, 'requests', 240);
+      const authUser = await authenticate(request, body);
+      await rateLimit(authUser.id, 'requests', 240);
+      if(['account','hero-save','hero-create','hero-select','claim-prepare','claim-redeem'].includes(body.operation)) {
+        if(local) throw new RequestError('This preview saves heroes in this browser. Account sign-in requires the online game.',409);
+        await rateLimit(authUser.id,'account',30);
+        return reply(await handleAccount(client(),authUser,body,env));
+      }
+      const playerIds=local?[authUser.id]:await ownedPlayers(client(),authUser.id);
+      let userId=playerIds.includes(authUser.id)?authUser.id:playerIds[0];
+      if(!local && body.characterId) {
+        const selected=await client().from('characters').select('user_id').eq('id',body.characterId).in('user_id',playerIds).maybeSingle();
+        if(selected.error) throw new RequestError(selected.error.code==='42501'?'The adventure server cannot read saved heroes. Apply the server character access migration in Supabase.':'Your saved hero could not be loaded. Please retry.',503);
+        if(!selected.data) throw new RequestError('That hero is not available to your account.',403);
+        userId=selected.data.user_id;
+      }
+      if(body.roomCode && body.operation!=='join') {
+        const existing=await load(codeFrom(body.roomCode));
+        // Several recovered heroes can appear in a table's history. Route commands
+        // to the account's current participant, not a previously departed hero.
+        const member=playerIds.find(id=>existing.players[id]?.leftAt===null)
+          ?? (Object.hasOwn(existing.players,userId)?userId:playerIds.find(id=>Object.hasOwn(existing.players,id)));
+        if(member) userId=member;
+      }
       if (body.operation === 'list') return reply({ rooms: (await list()).map(summarizeRoom) });
       if (body.operation === 'history') {
         let rooms: AdventureRoom[];
         if (local) rooms = [...state.rooms.values()].filter((room) => room.players[userId]);
         else {
-          const { data, error } = await client().from('adventure_members').select('room_code').eq('user_id', userId).order('joined_at', { ascending: false }).limit(40);
+          const { data, error } = await client().from('adventure_members').select('room_code').in('user_id', playerIds).order('joined_at', { ascending: false }).limit(40);
           if (error) throw new RequestError('Your adventure history could not be loaded.', 503);
-          rooms = await Promise.all(data.map((row) => load(row.room_code)));
+          rooms = await Promise.all([...new Set(data.map(row=>row.room_code))].map(code=>load(code)));
         }
-        return reply({ recaps: rooms.sort((a, b) => b.updatedAt - a.updatedAt).map((room) => recap(room, userId)) });
+        return reply({ recaps: rooms.sort((a, b) => b.updatedAt - a.updatedAt).flatMap(room=>playerIds.filter(id=>room.players[id]).map(id=>recap(room,id))) });
       }
       if (body.operation === 'prepare') {
         await rateLimit(userId, 'ai', 12);
@@ -298,7 +322,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
           // Private rooms are not scanned by public discovery. Reclaim stale
           // seats for an authorized visitor before checking admission.
           await reconcilePresence(current);
-          const room = await mutate(code, command);
+          const room = await mutate(code, command,authUser.id);
           await heartbeat(room.code, userId);
           return reply({ room, messages: await messagesFor(room.code) });
         }
@@ -307,7 +331,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
           for (const candidate of candidates) {
             if (summarizeRoom(candidate).openSeats === 0 && !candidate.players[userId]) continue;
             try {
-              const room = await mutate(candidate.code, command);
+              const room = await mutate(candidate.code, command,authUser.id);
               await heartbeat(room.code, userId);
               return reply({ room, messages: await messagesFor(room.code) });
             } catch (error) {
@@ -335,7 +359,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
             room.inviteKey = crypto.randomUUID().replace(/-/g, '');
           }
           if (variation) room.variation = variation;
-          if (await save(room, -1, command.id, userId) === 'applied') return reply({ room, messages: [] });
+          if (await save(room, -1, command.id, userId,authUser.id) === 'applied') return reply({ room, messages: [] });
         }
         throw new RequestError('A fresh adventure could not be opened. Please retry.', 503);
       }
@@ -345,7 +369,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       if (body.operation === 'read') {
         await heartbeat(code, userId);
         room = await reconcilePresence(room);
-        room = await mutate(code, { id: crypto.randomUUID(), type: 'tick', userId });
+        room = await mutate(code, { id: crypto.randomUUID(), type: 'tick', userId },authUser.id);
         return reply({ room, messages: await messagesFor(code) });
       }
       if (body.operation === 'command') {
@@ -353,7 +377,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
         if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react'].includes(input.type)) throw new RequestError('That action is not supported.');
         const command: AdventureCommand = { id: input.id, type: input.type, userId,
           expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action, reaction: input.reaction };
-        room = await mutate(code, command);
+        room = await mutate(code, command,authUser.id);
         return reply({ room, messages: await messagesFor(code) });
       }
       if (body.operation === 'propose') {
@@ -401,7 +425,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       throw new RequestError('That operation is not supported.');
     } catch (error) {
-      if (error instanceof RequestError) return reply({ error: error.message }, error.status);
+      if (error instanceof RequestError || error instanceof AccountError) return reply({ error: error.message }, error.status);
       // Validation messages are deliberately readable; infrastructure errors never expose credentials.
       if (error instanceof Error && /^(?:Please |Use between |Choose something)/.test(error.message)) return reply({ error: error.message }, 400);
       return reply({ error: 'The adventure service hit a snag. Please retry.' }, 503);

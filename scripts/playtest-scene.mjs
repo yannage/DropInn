@@ -537,7 +537,7 @@ try {
   assert.ok((await four[1].locator('.di-round-recap').textContent()).includes('Mara'));
   await four[1].keyboard.press('Escape');
   for (const page of four) {
-    await select(page, page === four[0] ? 'investigate' : 'assist', 'mara'); await skip(page);
+    await select(page, page === four[0] ? 'investigate' : 'assist', page === four[0] ? 'tracks' : 'mara'); await skip(page);
     if (page === four[0]) {
       const receipt = (await state(page)).room.commits[(await state(page)).userId];
       await page.getByRole('button', {name:'Back to scene',exact:true}).click();

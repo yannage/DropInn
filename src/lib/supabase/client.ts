@@ -8,7 +8,7 @@ let client: SupabaseClient | null = null;
 const getSessionNamespace = () => {
   if (typeof window === 'undefined') return '';
 
-  const raw = new URLSearchParams(window.location.search).get('session')?.trim();
+  const raw = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('session')?.trim() : undefined;
   return raw ? `-${raw.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24)}` : '';
 };
 
@@ -30,6 +30,7 @@ export const getSupabaseClient = () => {
         autoRefreshToken: true,
         detectSessionInUrl: true,
         persistSession: true,
+        flowType: 'pkce',
         storageKey: `dropinn-auth${getSessionNamespace()}`,
       },
       realtime: {
@@ -65,4 +66,3 @@ export const ensureAnonymousUser = async (): Promise<User | null> => {
 
   return response.data.user;
 };
-
