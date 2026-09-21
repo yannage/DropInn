@@ -2,18 +2,22 @@
 
 This presentation iteration gives DropInn's existing explore → prepare → commit → party payoff loop physical objects and stronger consequences. It keeps the authored adventures, action rules, 30-second choices and six-second results unchanged. The visual intent takes cues from readable card-game hands and staged score reveals; it does not copy another game's assets or introduce its mechanics.
 
+## Card direction revision
+
+The first painted border looked noisy when repeated and stretched across broad panels. The current UI uses clean cream cardstock, a fine warm outline, small color accents and a restrained paper-edge shadow. Illustrated tokens, journal and dice cup carry the hand-painted character; quiet structural frames let them read. The generated frame is retained as a source experiment, but is no longer loaded by the interface. Press/lift feedback remains.
+
 ## Art resources
 
 Four original assets were generated with Codex's built-in `image_gen`, one per call, using DropInn's primitive MS Paint direction. Source PNGs and lossless WebP runtime copies are in `public/art/`:
 
 | Asset | Used for |
 | --- | --- |
-| `ui-card-frame-v1` | Action hand, contextual moves, focused approaches, narrator strip, focus title, chapter markers, Last round, chapter keepsake and lobby Play |
+| `ui-card-frame-v1` | Retained source experiment; superseded by clean native cardstock frames |
 | `ui-spotlight-charm-v1` | Spotlight hand/context controls and placed coin |
 | `ui-journal-v1` | Party recap and Last round affordance |
 | `ui-dice-cup-v1` | Preparing a selected action and entering an adventure |
 
-The frame uses CSS nine-slice borders so its folded corners do not stretch with a wide label or short phone. Labels, arithmetic, focus outlines and input remain HTML. Functional back, close, mute and accessibility controls retain familiar symbols. Failed images keep an icon or a paper/border fallback. Existing authored keepsake images now accompany actual earned chapter rewards; missing keepsake art keeps the named fallback.
+Clean native frames scale without distorting the outline. Labels, arithmetic, focus outlines and input remain HTML. Functional back, close, mute and accessibility controls retain familiar symbols. Failed illustrations keep an icon fallback. Existing authored keepsake images accompany actual earned chapter rewards; missing keepsake art keeps the named fallback.
 
 Exact prompts and source filenames: `.agents/skills/dropinn-art/references/ui-tabletop-prompts.json`. Inventory records hashes, dimensions, review status and runtime provenance. `encode-ui-art.py` preserves every RGBA pixel and original canvas; it performs format conversion only. `review-ui-art.mjs` generates paper/felt thumbnail and nine-slice examples.
 
