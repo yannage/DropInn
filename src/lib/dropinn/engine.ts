@@ -4,6 +4,7 @@ import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character
 import { adventureFor, chaptersFor } from './registry';
 import { rollSupport, supportText } from './teamwork';
 import { getScene, developScene } from './scene';
+import { approachOption, turnInsight } from './approaches';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
 const ROUND_MS = 30_000;
@@ -56,7 +57,8 @@ function announceEnemyIntent(room: AdventureRoom) {
   const targets = uprightHumans.length ? uprightHumans : available;
   const target = targets[hash(`${room.id}:${room.turn}:threat`) % targets.length];
   if (target) room.enemyIntent = { turn: room.turn, sourceId: chapterOf(room).enemySource ?? (room.chapter === 1 ? 'pack' : 'gloamfang'),
-    targetActorId: target.actorId, baseDamage: 3 + Math.floor(room.danger / 4) };
+    targetActorId: target.actorId, baseDamage: 3 + Math.floor(room.danger / 4),
+    ...(room.mechanicsVersion === 1 ? { duelModifier: 2 + room.chapter + Math.floor(room.danger / 6) } : {}) };
 }
 
 function seatPlayer(room: AdventureRoom, player: Participant, now: number) {
@@ -83,7 +85,7 @@ export function createAdventure(character: CharacterProfile, userId: string, now
   const hero = normalizedCharacter(character);
   const roomCode = (code ?? Math.random().toString(36).slice(2, 8)).toUpperCase();
   const room: AdventureRoom = { version: 2, adventureId: adventure.id, adventureVersion: adventure.version, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: adventure.title,
-    status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
+    mechanicsVersion: 1, status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
@@ -147,9 +149,15 @@ function applyEffect(room: AdventureRoom, effect: CreativeEffect, now: number, s
 function validateAction(room: AdventureRoom, userId: string, action: PlayerAction) {
   const seat = room.seats.find(s => s.actorId === userId && s.kind === 'human' && !s.leaving);
   if (!seat) throw new Error('Your seat will open at the next turn.');
+  if (action.approach !== undefined && !approachOption(room, action)) throw new Error('Choose an available approach for this action.');
   if (action.targetKind !== undefined && action.targetKind !== 'scene' && action.targetKind !== 'hero') throw new Error('Choose a scene target or the threatened hero.');
   if (action.releaseMs !== undefined && (!Number.isInteger(action.releaseMs) || action.releaseMs < 0 || action.releaseMs > RELEASE_DURATION_MS)) throw new Error('Release timing must be a whole number from 0 to 1200 milliseconds.');
   if (action.targetKind === 'hero') {
+    if (action.approach === 'mend' && action.token === 'assist') {
+      const ally = room.seats.find(target => target.actorId === action.targetId);
+      if (!ally || ally.leaving || ally.hp >= ally.character.maxHp) throw new Error('Choose a wounded hero at the table to Mend.');
+      return;
+    }
     if (action.token !== 'assist' || !chapterOf(room).combat || room.enemyIntent?.turn !== room.turn
       || room.enemyIntent.targetActorId !== action.targetId || !room.seats.some(target => target.actorId === action.targetId)) {
       throw new Error('Place Help on the hero threatened this turn to Protect.');
@@ -169,6 +177,16 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
   const executionBonus = releaseBonus(action.releaseMs);
   if (action.targetKind === 'hero') {
     const target = room.seats.find(candidate => candidate.actorId === action.targetId)!;
+    if (action.approach === 'mend') {
+      const healing = Math.min(2 + executionBonus, target.character.maxHp - target.hp);
+      target.hp += healing;
+      const text = `${seat.character.name} mends ${target.character.name}: +${healing} HP.`;
+      event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, effect: 'Guaranteed healing. No objective progress.', success: true, contribution: true,
+        result: { targetKind: 'hero', targetId: target.actorId, token: 'assist', approach: 'mend', executionBonus, healing, hp: target.hp, progress: 0 } });
+      const player = room.players[seat.actorId]; player.actions++; player.xp += 3;
+      player.highlights = [...player.highlights, text].slice(-8); seat.missedTurns = 0;
+      return;
+    }
     const protection = 2 + executionBonus;
     const text = `${seat.character.name} protects ${target.character.name}.`;
     const effect = `Blocks up to ${protection} damage from the announced strike. No objective progress.`;
@@ -184,19 +202,32 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
   const description = describeAction(seat.character.classKey, action.token, action.targetId, { ...room, danger: startingDanger });
   const roll = 1 + hash(`${room.id}:${room.turn}:${seat.actorId}:${action.token}:${action.targetId}`) % 20;
   const support = rollSupport(room, seat.actorId, action);
-  const modifier = seat.character.traits[description.trait] + frozenBonus + support.teamwork + executionBonus;
-  const success = roll + modifier >= description.dc;
+  const approach = approachOption(room, action);
+  const modifier = seat.character.traits[description.trait] + frozenBonus + support.teamwork + executionBonus + (approach?.modifier ?? 0);
+  const enemyRoll = 1 + hash(`${room.id}:${room.turn}:${action.targetId}:duel`) % 20;
+  const duel = approach && action.token === 'fight' ? { enemyRoll, enemyModifier: room.enemyIntent!.duelModifier!,
+    enemyTotal: enemyRoll + room.enemyIntent!.duelModifier!, playerTotal: roll + modifier } : undefined;
+  const success = duel ? duel.playerTotal > duel.enemyTotal : roll + modifier >= description.dc;
   const target = chapterOf(room).targets.find(t => t.id === action.targetId)!;
   const previousProgress = room.progress;
   const previousDanger = room.danger;
   let effect = `The situation moves forward; danger increases by ${pointsLabel(share)}.`;
   if (success) {
-    const points = action.token === 'assist' ? 2 : 3;
+    const points = approach?.progress ?? (action.token === 'assist' ? 2 : 3);
     room.progress += points * share;
     effect = '';
-    if (action.token === 'fight') { flag(room, `cover:${room.turn}`); effect += chapterOf(room).combat ? ' The threat is interrupted.' : ' The obstruction gives way.'; }
-    if (action.token === 'influence') { room.danger = Math.max(0, room.danger - share); effect += ' Danger eases.'; }
-    if (action.token === 'investigate') { applyEffect(room, 'reveal', now, 1, share); effect += ' An insight helps the next round.'; }
+    if (action.token === 'fight') {
+      if (!approach) { flag(room, `cover:${room.turn}`); effect += chapterOf(room).combat ? ' The threat is interrupted.' : ' The obstruction gives way.'; }
+      else if (approach.protection) { flag(room, `cover:${room.turn}:3`); effect += ' Your guarded strike blocks 3 from the announced attack.'; }
+    }
+    if (action.token === 'influence') {
+      if (action.approach === 'distract') { flag(room, `opening:${room.turn + 1}`); effect += ' An opening gives the party +1 next turn.'; }
+      else { room.danger = Math.max(0, room.danger - share); effect += ' Danger eases.'; }
+    }
+    if (action.token === 'investigate') {
+      if (action.approach === 'study') { flag(room, `insight:${room.turn + 1}:2`); effect += ' Study gives the party +2 insight next turn.'; }
+      else if (action.approach !== 'trail') { applyEffect(room, 'reveal', now, 1, share); effect += ' An insight helps the next round.'; }
+    }
     if (action.token === 'assist') {
       const ability: Record<CharacterClassKey, CreativeEffect> = { fighter: 'cover', rogue: 'distract', wizard: 'reveal', cleric: 'rescue' };
       const kind = ability[seat.character.classKey];
@@ -208,15 +239,17 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
     }
     if (room.chapter === 2 && action.targetId === 'gloamfang' && action.token === 'fight') flag(room, 'guardian-confronted');
   } else { room.progress += share; room.danger += share; }
-  effect = `+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}${support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
-  const text = action.token === 'spotlight' ? `${seat.character.name} tries: ${action.proposal!.label}. ${success ? 'It works!' : 'It proves difficult, but reveals the next step.'}` : `${seat.character.name} ${success ? 'succeeds' : 'finds a complication'}: ${description.label.toLowerCase()} at ${target.name}.`;
+  effect = `${duel ? `Clash: ${roll} + ${modifier} = ${duel.playerTotal} versus enemy ${enemyRoll} + ${duel.enemyModifier} = ${duel.enemyTotal}. ${success ? 'You win.' : 'The enemy holds; ties favor the enemy.'} ` : ''}+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}${support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
+  const text = action.token === 'spotlight' ? `${seat.character.name} tries: ${action.proposal!.label}. ${success ? 'It works!' : 'It proves difficult, but reveals the next step.'}` : `${seat.character.name} ${success ? 'succeeds' : 'finds a complication'}: ${(approach?.label ?? description.label).toLowerCase()} at ${target.name}.`;
   const change = success ? developScene(room, action) : undefined;
-  const offersCover = success && (action.token === 'fight' || (action.token === 'assist' && ['fighter', 'rogue'].includes(seat.character.classKey))
+  const offersCover = success && ((action.token === 'fight' && !approach) || (action.token === 'assist' && ['fighter', 'rogue'].includes(seat.character.classKey))
     || (action.token === 'spotlight' && ['cover', 'distract'].includes(action.proposal!.effect)));
   event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, roll, modifier, success, effect, contribution: true,
     result: { targetKind: 'scene', targetId: action.targetId, token: action.token, executionBonus,
+      ...(action.approach ? { approach: action.approach } : {}), ...(duel ? { duel } : {}),
+      ...(success && action.approach === 'study' ? { insight: 2 } : {}), ...(success && action.approach === 'distract' ? { opening: 1 } : {}),
       progress: Number((room.progress - previousProgress).toFixed(2)), danger: Number((room.danger - previousDanger).toFixed(2)),
-      protection: offersCover ? 2 : 0, changed: !!change }, ...(change ? { change } : {}) });
+      protection: success && approach?.protection ? approach.protection : offersCover ? 2 : 0, changed: !!change }, ...(change ? { change } : {}) });
   const player = room.players[seat.actorId];
   player.actions += 1; player.xp += success ? 5 : 3;
   if (action.token === 'spotlight') player.spotlightChapters.push(room.chapter);
@@ -258,7 +291,7 @@ function resolveRound(room: AdventureRoom, now: number) {
     event(room, now, { kind: 'consequence', text: winners.length === 1 ? `The party chooses: ${winners[0].option.label}. ${winners[0].option.consequence}` : branch.fallbackText });
   }
   const submitted = Object.keys(room.commits).length;
-  const frozenBonus = Number(hasFlag(room, `insight:${room.turn}`)) + Number(hasFlag(room, `opening:${room.turn}`));
+  const frozenBonus = turnInsight(room) + Number(hasFlag(room, `opening:${room.turn}`));
   const startingDanger = room.danger;
   const share = progressShare(room);
   for (const seat of room.seats.filter(s => s.kind === 'human')) {
@@ -290,7 +323,7 @@ function resolveRound(room: AdventureRoom, now: number) {
       : targets[hash(`${room.id}:${room.turn}:threat`) % targets.length];
     if (target) {
       const defended = hasFlag(room, `defending:${room.turn}:${target.actorId}`) ? 2 : 0;
-      const covered = hasFlag(room, `cover:${room.turn}`) ? 2 : 0;
+      const covered = hasFlag(room, `cover:${room.turn}:3`) ? 3 : hasFlag(room, `cover:${room.turn}`) ? 2 : 0;
       const protectedByHelp = hasFlag(room, `protect:${room.turn}:${target.actorId}:3`) ? 3 : hasFlag(room, `protect:${room.turn}:${target.actorId}:2`) ? 2 : 0;
       const protection = Math.max(covered, protectedByHelp);
       const damage = Math.min(target.hp, Math.max(0, (intent?.baseDamage ?? 3 + Math.floor(room.danger / 4)) - defended - protection));
@@ -378,7 +411,8 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
     if (!player || (player.leftAt !== null && !player.seatId)) return original;
     const seat = room.seats.find(s => s.actorId === command.userId && s.kind === 'human');
     room.pendingJoins = room.pendingJoins.filter(id => id !== command.userId);
-    if (seat && room.phase === 'choosing' && (room.commits[command.userId] || room.enemyIntent?.targetActorId === seat.actorId)) seat.leaving = true;
+    if (seat && room.phase === 'choosing' && (room.commits[command.userId] || room.enemyIntent?.targetActorId === seat.actorId
+      || Object.values(room.commits).some(action => action.targetKind === 'hero' && action.targetId === seat.actorId))) seat.leaving = true;
     else if (seat) releasePlayer(room, seat, now);
     else player.leftAt = now;
     const active = humans(room);

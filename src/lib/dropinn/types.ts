@@ -1,6 +1,7 @@
 import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character';
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
+export type ActionApproach = 'quick' | 'heavy' | 'guarded' | 'soothe' | 'distract' | 'trail' | 'study' | 'mend';
 export type CreativeEffect = 'cover' | 'distract' | 'reveal' | 'rescue';
 export type ReactionKind = 'cheer' | 'thanks' | 'clever';
 export interface TableReaction { id: string; userId: string; kind: ReactionKind; at: number }
@@ -45,6 +46,7 @@ export interface CreativeProposal {
   source: 'authored' | 'openai' | 'ollama';
 }
 export interface PlayerAction {
+  approach?: ActionApproach;
   token: TokenKind;
   targetId: string;
   /** Omitted on older clients: targets the scene. Hero targets are Help/Protect. */
@@ -54,6 +56,8 @@ export interface PlayerAction {
   proposal?: CreativeProposal;
 }
 export interface EnemyIntent {
+  /** Frozen at the choosing boundary; the opposed die is rolled on resolution. */
+  duelModifier?: number;
   turn: number;
   sourceId: string;
   targetActorId: string;
@@ -61,6 +65,10 @@ export interface EnemyIntent {
 }
 /** Presentation reads numeric outcomes, never guesses effects from story prose. */
 export interface ActionResult {
+  approach?: ActionApproach;
+  duel?: { enemyRoll: number; enemyModifier: number; enemyTotal: number; playerTotal: number };
+  insight?: number;
+  opening?: number;
   targetKind?: 'scene' | 'hero';
   targetId?: string;
   token?: TokenKind;
@@ -119,6 +127,8 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  /** New rooms opt into focused actions; old rooms keep their original rules. */
+  mechanicsVersion?: 1;
   adventureId?: string;
   adventureVersion?: number;
   storyBranch?: string;

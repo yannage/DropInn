@@ -6,7 +6,7 @@ The current game has useful foundations: a scene to act on, four action tokens, 
 
 ## Skills worth using
 
-These are community skills whose primary-source instructions were reviewed. They have not been installed. Recommendations concern their workflows, not endorsement of every claim, example, engine version or linked dependency in their repositories. Install individual skills if wanted; DropInn already has specialized art, story and multiplayer guidance.
+These are community skills whose primary-source instructions were reviewed. Game Feel, Game Design Fundamentals and Exploring Game Design Space are now installed in the project's `.agents/skills/` folder, including their supporting references and templates. Audio Design remains a later recommendation. Recommendations concern their workflows, not endorsement of every claim, example, engine version or linked dependency in their repositories. DropInn's specialized art, story and multiplayer guidance still applies.
 
 | Skill and source | Where it helps DropInn | Fit and limits |
 | --- | --- | --- |

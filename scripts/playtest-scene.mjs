@@ -91,6 +91,8 @@ async function readyNext(page) {
   await page.waitForFunction(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room?.phase === 'choosing');
 }
 async function select(page, token, targetId, kind = 'scene') {
+  const back = page.getByRole('button', { name: 'Back to scene', exact: true });
+  if (await back.isVisible() && await back.isEnabled()) await back.click();
   const labels = { fight: 'Fight', influence: 'Influence', investigate: 'Investigate', assist: 'Help' };
   await page.getByRole('button', { name: `${labels[token]} token`, exact: true }).click();
   await page.locator(`[data-scene-target="${targetId}"][data-target-kind="${kind}"]`).click();
@@ -196,6 +198,60 @@ try {
   assert.deepEqual((await state(b)).room.enemyIntent, room.enemyIntent);
   await layout(a, 'river');
 
+  await select(a, 'fight', 'pack');
+  await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
+  assert.equal(await a.evaluate(() => document.activeElement?.getAttribute('aria-pressed')), 'true');
+  await a.keyboard.press('Escape');
+  assert.equal(await a.locator('.di-stage-targets [data-scene-target]').count(), 4);
+  await select(a, 'fight', 'pack');
+  assert.equal(await a.getByRole('group', { name: 'Choose an approach' }).getByRole('button').count(), 3);
+  await layout(a, 'battle-focus');
+  await a.setViewportSize({ width: 1280, height: 800 });
+  const opponentSize = await a.locator('.di-focus-opponent .di-target-art img').boundingBox();
+  assert.ok(opponentSize.width > 180 && opponentSize.height > 180, 'Enemy artwork fills the desktop encounter');
+  await a.screenshot({ path: 'output/playwright/battle-focus-desktop.png', animations: 'disabled' });
+  await a.getByRole('button', { name: /Heavy Blow/ }).click();
+  await skip(a);
+  assert.equal(records.at(-1).command.action.approach, 'heavy');
+  await select(b, 'fight', 'pack');
+  await b.getByRole('button', { name: /Quick Strike/ }).click();
+  await skip(b); await syncAll();
+  const clashed = (await state(a)).room;
+  const duels = clashed.events.filter(event => event.turn === clashed.turn && event.result?.duel);
+  assert.equal(duels.length, 2);
+  assert.equal(duels[0].result.duel.enemyRoll, duels[1].result.duel.enemyRoll);
+  await a.locator('.di-duel-score').waitFor();
+  await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.dataset.beat === 'payoff');
+  await a.screenshot({ path: 'output/playwright/battle-clash-desktop.png', animations: 'disabled' });
+  note('two-player-focused-opposed-dice', { enemyRoll: duels[0].result.duel.enemyRoll, approaches: duels.map(event => event.result.approach) });
+  await readyNext(a); room = (await state(a)).room;
+
+  const wounded = room.seats.find(seat => seat.hp < seat.character.maxHp);
+  assert.ok(wounded, 'The clash leaves a real wound to treat');
+  await select(a, 'assist', wounded.actorId, 'hero');
+  await a.getByRole('button', { name: /^Mend/ }).click();
+  await layout(a, 'mend-focus');
+  await pointerRelease(a, 800);
+  await select(b, 'investigate', 'reeds');
+  await b.getByRole('button', { name: /Study a weakness/ }).click();
+  await skip(b); await syncAll();
+  let focusedRoom = (await state(a)).room;
+  const mend = focusedRoom.events.find(event => event.turn === focusedRoom.turn && event.result?.approach === 'mend');
+  assert.ok(mend.result.healing > 0 && mend.result.healing <= 3);
+  assert.equal(mend.roll, undefined); assert.equal(mend.result.progress, 0);
+  assert.ok(focusedRoom.events.some(event => event.turn === focusedRoom.turn && event.result?.approach === 'study'));
+  await readyNext(a);
+  await select(a, 'influence', 'ferryman');
+  await a.getByRole('button', { name: /^Distract/ }).click();
+  await a.getByRole('button', { name: 'Action details and help' }).click();
+  assert.match(await a.getByRole('dialog', { name: 'Your action' }).textContent(), /opening next turn/);
+  await a.keyboard.press('Escape');
+  await skip(a); await select(b, 'assist', 'boat'); await skip(b); await syncAll();
+  focusedRoom = (await state(a)).room;
+  assert.ok(focusedRoom.events.some(event => event.turn === focusedRoom.turn && event.result?.approach === 'distract'));
+  note('focused-mend-study-and-influence-real-commands');
+  await readyNext(a); room = (await state(a)).room;
+
   // Cancellation from focus and pointer interruption must not spend a move.
   await select(a, 'assist', room.enemyIntent.targetActorId, 'hero');
   const beforeCancel = records.length;
@@ -254,7 +310,8 @@ try {
   // Lose two responses AFTER service commits: initial send + idempotent retry.
   room = (await state(a)).room;
   const contributionBefore = room.players[identities[0].userId].actions;
-  await select(a, 'assist', room.enemyIntent.targetActorId, 'hero');
+  await select(a, 'fight', room.enemyIntent.sourceId);
+  await a.getByRole('button', { name: /Heavy Blow/ }).click();
   faults.loseAResponses = 2;
   const uncertain = await pointerRelease(a, 800);
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
@@ -265,6 +322,7 @@ try {
   await a.waitForFunction(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().ready);
   const cached = await a.evaluate(() => JSON.parse(localStorage.getItem('dropinn-v2-player-sceneqaa')));
   assert.equal(cached.pendingAction.commandId, uncertain.command.id); assert.deepEqual(cached.pendingAction.action, uncertain.command.action);
+  assert.equal(cached.pendingAction.action.approach, 'heavy');
   await a.evaluate(value => { window.__qaOffset = value; }, offset);
   faults.blockAReads = false; await sync(a);
   await a.getByRole('main', { name: 'Adventure table' }).waitFor();
@@ -334,7 +392,7 @@ try {
   const fixture = async events => a.evaluate(async snapshot => {
     const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
     store.setState({ room: snapshot });
-  }, { ...renderBase, events });
+  }, { ...renderBase, mechanicsVersion: undefined, events });
   try {
     await fixture([fixtureEvent('blocked', { result: { targetKind: 'hero', targetId: renderVictim, damage: 0, protection: 3, hp: 7 } })]);
     const threat = a.locator('.di-stage-threat');

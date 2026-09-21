@@ -22,12 +22,16 @@ export function resultBenefits(event: StoryEvent) {
     result.danger ? `${result.danger > 0 ? '+' : '−'}${amount(Math.abs(result.danger))} danger` : '',
     result.protection ? `${amount(result.protection)} protection` : '',
     result.healing ? `+${amount(result.healing)} HP` : '',
+    result.insight ? `+${result.insight} insight next turn` : '',
+    result.opening ? `+${result.opening} opening next turn` : '',
   ].filter(Boolean);
 }
 
 export function resultLine(event: StoryEvent) {
   const result = event.result;
   if (!result) return event.change?.title ?? event.text;
+  if (result.duel) return event.success ? 'You win the clash!' : result.duel.playerTotal === result.duel.enemyTotal ? 'A tie · the enemy holds' : 'The enemy holds · keep pushing';
+  if (result.approach === 'mend' && !result.healing) return 'Already recovered · no healing needed';
   if (result.damage !== undefined) return result.damage ? `−${result.damage} HP` : 'Attack blocked!';
   if (result.targetKind === 'hero' && result.protection) return `Protected · blocks ${result.protection}`;
   if (result.healing) return `Recovered ${result.healing} HP`;

@@ -59,6 +59,25 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('validates focused approaches and preserves them through receipts and reads', async () => {
+    const { call, hero } = harness();
+    const { room } = await call('play', { character: hero, visibility: 'private' });
+    expect(room.mechanicsVersion).toBe(1);
+    const invalid = await call('command', { roomCode: room.code, command: { id: 'invalid-approach', type: 'act', expectedTurn: room.turn,
+      action: { token: 'investigate', targetId: 'tracks', approach: 'heavy' } } });
+    expect(invalid.status).toBe(409);
+    expect(invalid.error).toContain('available approach');
+    const payload = { roomCode: room.code, command: { id: 'focused-study', type: 'act', expectedTurn: room.turn,
+      action: { token: 'investigate', targetId: 'tracks', approach: 'study', releaseMs: 800 } } };
+    const committed = await call('command', payload);
+    expect(committed.status).toBe(200);
+    const event = committed.room.events.find((event: { result?: { approach?: string } }) => event.result?.approach === 'study');
+    expect(event).toBeDefined();
+    const retried = await call('command', payload);
+    const read = await call('read', { roomCode: room.code });
+    expect(retried.room.players.player_one.xp).toBe(committed.room.players.player_one.xp);
+    expect(read.room.events.filter((event: { result?: { approach?: string } }) => event.result?.approach === 'study')).toHaveLength(1);
+  });
   it('retains face selections and validates hat ownership on admission', async () => {
     const { call, hero } = harness();
     const appearance = { body: 'round', eyes: 'sleepy', nose: 'triangle', mouth: 'flat' };
