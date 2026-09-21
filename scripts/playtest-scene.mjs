@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { checkNarrator } from './check-narrator.mjs';
 import { createServer } from 'vite';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -552,6 +553,8 @@ try {
   for (const page of four.slice(1)) assert.equal(await page.locator('.di-round-recap').textContent(), fourText);
   await layout(four[0], 'four-player-recap');
   note('four-player-attribution-late-arrival-reload-and-locked-inspection');
+  const narratorPage=await setup('Narrator',{width:390,height:844});
+  await checkNarrator({page:narratorPage,select,skip,state,sync,readyNext,note});
   assert.equal(externalCalls, 0); assert.deepEqual(errors, []);
   note('no-external-calls-or-browser-errors');
 } catch (error) {

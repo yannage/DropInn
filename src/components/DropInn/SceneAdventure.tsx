@@ -3,6 +3,7 @@ import { useReducedMotion } from 'framer-motion';
 import { latestRound, roundCallouts } from '../../lib/dropinn/roundSummary';
 import { RoundRecap } from './RoundRecap';
 import { InspectionBubble } from './InspectionBubble';
+import { Narrator } from './Narrator';
 import { StoryScroll, type StoryScrollMode } from './StoryScroll';
 import { ArrowLeft, Check, Clock3, Copy, Dices, Flame, Heart, Info, MessageCircle, Shield, Sparkles, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
@@ -245,7 +246,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       </div>
       <span className={`di-stage-clock ${seconds <= 8 && room.phase === 'choosing' ? 'urgent' : ''}`} role="timer" aria-label={room.status !== 'active' ? 'Table paused' : `${Math.ceil(seconds)} seconds ${room.phase === 'reveal' ? 'until next turn' : 'to choose'}`}><small>Turn {room.chapterRound}</small><Clock3 size={16} />{room.status === 'active' ? Math.ceil(seconds) : '—'}</span>
     </header>
-    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : scene.objective}</strong><p className="di-scene-situation">{scene.situation ?? scene.catchUp ?? scene.intro}</p><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
+    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : scene.objective}</strong><Narrator key={room.id} room={room} /><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
     <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''} ${holding ? 'is-charging' : ''} ${focus ? 'is-focused' : ''}`} ref={stage} onClick={event => { if (inspected && !(event.target as HTMLElement).closest('[data-scene-target],button')) dismissInspection(); }}>
       <SceneStageArt chapter={room.chapter} art={scene.art} />
       {focus && focusAction && self ? <FocusedActionStage room={room} action={focusAction} actor={self} modifier={focusModifier} result={room.phase === 'reveal' ? ownResult : undefined} /> : <>
