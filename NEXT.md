@@ -8,6 +8,8 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 
 ## Scene-stage acceptance and rollout
 
+The local [game-feel pass and skill shortlist](docs/game-feel-direction.md) adds a tactile hand, visible support opportunities, staged result arithmetic and chapter reward feedback. It also records the proposed next mechanics prototypes and the local verification limits; hosted rollout and human pacing review remain open.
+
 - [x] Run the production build and two-browser local integration checks for this version, recording the base revision and actual backend.
 - [x] At 390×844 and 320×568, reach scene targets and the threatened hero without document scrolling; verify 44px interaction targets, keyboard paths, drawer focus/return and reduced motion. Small effective viewports reflow; physical-device text scaling remains below.
 - [x] Verify normal, missed and assisted release, cancellation, 1200ms automatic release, turn expiry, reviewed Spotlight confirmation and unchanged timing/command ID after response loss plus reload/retry. Browser and deterministic controller tests cover complementary cases.

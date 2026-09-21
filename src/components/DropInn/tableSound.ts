@@ -6,7 +6,7 @@ export function setTableSound(value: boolean) {
   enabled = value;
   try { localStorage.setItem('dropinn-table-sound', value ? 'on' : 'off'); } catch { /* Optional preference. */ }
 }
-export function playTableSound(kind: 'place' | 'pop' | 'result') {
+export function playTableSound(kind: 'pick' | 'place' | 'pop' | 'roll' | 'bonus' | 'complication' | 'result') {
   if (!enabled || typeof AudioContext === 'undefined') return;
   try {
     audio ??= new AudioContext();
@@ -15,8 +15,10 @@ export function playTableSound(kind: 'place' | 'pop' | 'result') {
     const gain = audio.createGain();
     const at = audio.currentTime;
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(kind === 'pop' ? 430 : kind === 'result' ? 660 : 820, at);
-    oscillator.frequency.exponentialRampToValueAtTime(kind === 'pop' ? 120 : 440, at + .13);
+    const tones = { pick: [520, 680], place: [820, 440], pop: [430, 120], roll: [230, 160], bonus: [660, 880], complication: [330, 220], result: [660, 990] };
+    const [start, end] = tones[kind];
+    oscillator.frequency.setValueAtTime(start, at);
+    oscillator.frequency.exponentialRampToValueAtTime(end, at + .13);
     gain.gain.setValueAtTime(.0001, at);
     gain.gain.exponentialRampToValueAtTime(.045, at + .008);
     gain.gain.exponentialRampToValueAtTime(.0001, at + .17);

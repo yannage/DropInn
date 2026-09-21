@@ -172,11 +172,22 @@ try {
   // Both humans act on one target in the same choosing turn.
   await select(a, 'investigate', 'tracks'); await select(b, 'assist', 'tracks');
   const sameTurn = (await state(a)).room.turn;
-  await skip(a); await skip(b); await syncAll();
+  await skip(a); await sync(b);
+  assert.equal(await b.locator('[data-scene-target="tracks"] .di-object-teamwork').textContent(), '+1 teamwork');
+  assert.match(await b.locator('.di-dock-beat').textContent(), /\+1 teamwork/);
+  await skip(b); await syncAll();
   const shared = (await state(a)).room;
   assert.equal(shared.phase, 'reveal');
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
+  await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
+  const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
+  assert.equal(await a.locator('.di-resolution-total').evaluate(node => node.firstChild.textContent), String(actualResult.roll + actualResult.modifier));
+  assert.match(await a.locator('.di-resolution-benefits').textContent(), /progress/);
+  await a.waitForFunction(() => getComputedStyle(document.querySelector('.di-resolution-payoff')).opacity === '1');
+  await a.setViewportSize({ width: 1280, height: 800 });
+  await a.screenshot({ path: 'output/playwright/game-feel-desktop-payoff.png' });
+  note('real-result-total-and-visible-teamwork', { total: actualResult.roll + actualResult.modifier });
   note('two-player-shared-turn', { turn: sameTurn });
   await readyNext(a);
   await playToChapter(a, identities, 1);
@@ -357,8 +368,52 @@ try {
     assert.equal((await delta.locator('.di-stage-healing').textContent()).trim(), '+3');
     assert.ok((await delta.textContent()).includes('−2'));
     assert.match(await threat.getAttribute('aria-label'), /The strike lands:.*2 damage/);
+    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
     await a.screenshot({ path: 'output/playwright/integration-render-fixture-results.png' });
     note('snapshot-render-fixture-healing-and-damage', { evidence: 'Client snapshot rendering only' });
+
+    // The presentation clock must catch up on late delivery; a missed roll still
+    // shows its actual progress and cost. These are explicitly client fixtures.
+    await fixture([fixtureEvent('late-payoff', { kind: 'action', actorId: identities[0].userId, contribution: true,
+      at: clock() - 4000, success: false, roll: 3, modifier: 2,
+      result: { targetKind: 'scene', targetId: 'ward', progress: 0.5, danger: 0.5 } })]);
+    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
+    assert.match(await a.locator('.di-resolution-benefits').textContent(), /\+0.5 progress.*\+0.5 danger/);
+    await a.screenshot({ path: 'output/playwright/game-feel-phone-payoff.png' });
+    const fit = await a.locator('.di-turn-resolution').evaluate(node => {
+      const box = node.getBoundingClientRect(), stage = node.parentElement.getBoundingClientRect();
+      return box.left >= stage.left && box.right <= stage.right && box.top >= stage.top && box.bottom <= stage.bottom;
+    });
+    assert.ok(fit, 'Payoff fits the small phone stage');
+    await a.emulateMedia({ reducedMotion: 'reduce' });
+    await fixture([fixtureEvent('reduced-now', { kind: 'action', actorId: identities[0].userId, contribution: true, success: true, roll: 12, modifier: 3,
+      result: { targetKind: 'scene', targetId: 'ward', executionBonus: 1, progress: 1.5, danger: -0.5 } })]);
+    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
+    assert.equal(await a.locator('.di-resolution-total').evaluate(node => node.firstChild.textContent), '15');
+    assert.equal(await a.locator('.di-resolution-die').evaluate(node => getComputedStyle(node).animationName), 'none');
+    await a.emulateMedia({ reducedMotion: 'no-preference' });
+    await fixture([fixtureEvent('guaranteed-protect', { kind: 'action', actorId: identities[0].userId, contribution: true,
+      result: { targetKind: 'hero', targetId: renderVictim, protection: 3, progress: 0 } })]);
+    await a.locator('.di-resolution-guaranteed').waitFor();
+    assert.equal(await a.locator('.di-resolution-die').count(), 0);
+    assert.equal(await a.locator('.di-turn-resolution').getAttribute('data-beat'), 'payoff');
+    note('snapshot-pacing-late-receipt-reduced-motion-and-guaranteed-protect', { evidence: 'Client snapshot rendering only' });
+
+    const { chaptersFor } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
+    const keepsake = chaptersFor(renderBase)[renderBase.chapter].keepsake;
+    renderBase.outcomes = [{ chapter: renderBase.chapter, result: 'success', text: 'Presentation fixture chapter close.', at: clock() }];
+    renderBase.players[identities[0].userId].keepsakes.push(keepsake);
+    await fixture([fixtureEvent('chapter-close', { kind: 'action', actorId: identities[0].userId, contribution: true,
+      at: clock() - 3000, success: true, roll: 15, modifier: 3, result: { targetKind: 'scene', targetId: 'ward', progress: 1.5 } })]);
+    await a.locator('.di-resolution-chapter').waitFor();
+    assert.match(await a.locator('.di-resolution-chapter').textContent(), /Chapter 3 complete/);
+    assert.ok((await a.locator('.di-resolution-chapter').textContent()).includes(keepsake));
+    assert.ok(await a.locator('.di-turn-resolution').evaluate(node => {
+      const box = node.getBoundingClientRect(), stage = node.parentElement.getBoundingClientRect();
+      return box.top >= stage.top && box.bottom <= stage.bottom;
+    }), 'Chapter reward fits the small phone stage');
+    await a.screenshot({ path: 'output/playwright/game-feel-chapter-fixture.png' });
+    note('snapshot-chapter-keepsake-and-small-phone-fit', { evidence: 'Client snapshot rendering only' });
   } finally {
     await a.evaluate(async () => {
       const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
