@@ -1,0 +1,7 @@
+{
+  "name": "ui-scroll-compact",
+  "generator": "Codex built-in imagegen",
+  "source": "C:/Users/Yanni/.codex/generated_images/01a0c0af-1d32-7b11-8cc8-82339df8d8ad/exec-11803a34-d858-459e-9eb8-21d60b3d6410.png",
+  "references": ["assets/sheep.png", "assets/gate.png", "public/art/story-sail.png"],
+  "prompt": "Use case: stylized-concept\nAsset type: transparent game UI keyframe, partly unrolled story parchment\nPrimary request: One short wide parchment scroll viewed straight-on, opened vertically about halfway. Crooked wooden roller across the top and another across the bottom; broad completely blank cream paper center for HTML text overlay.\nInput images: attached sheep, gate, patched sail are style references only.\nStyle/medium: deliberately primitive old Windows MS Paint mouse doodle matching references; true-black jagged stair-stepped outline; lopsided hand-drawn rollers; flat bucket fills; sparse brown crease marks only near paper edges.\nComposition/framing: isolated centered 4:3 scroll, entire silhouette including every ribbon and roller end fully visible, minimum 15% transparent margin on all four sides. Keep central 70% visually empty and nearly uniform pale cream.\nColor palette: cream paper, mustard, warm brown, tiny dusty teal ties.\nConstraints: actual transparent alpha background; no element may touch or cross canvas edges; no text, symbols, letters, icons, characters, shadow, gradients, glossy light, polished vector edges, watermark. One scroll only."
+}

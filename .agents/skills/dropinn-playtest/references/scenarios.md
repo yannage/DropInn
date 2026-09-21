@@ -59,6 +59,8 @@ Check Story, Party, Chat, Invite, action details and Spotlight drawers for tab o
 
 Human acceptance is separate from automation: ask newcomers and experienced players who is threatened, what their token will do, and what changed after resolution without opening Story. Record first meaningful action time, unnecessary scrolling and whether Protect's tradeoff with objective progress is understood.
 
+Story now opens from the top-left cylinder. Check collapsed → compact → full and Escape back through both states. Compact is nonmodal and must stop above the action dock; full traps focus and makes the app background inert. Check at desktop and both phone sizes, with reduced motion and enlarged text. `scripts/check-story-scroll.mjs`, called by the adventure runner, verifies mode sizing, details/reading-position preservation, suspension for Party and real teammate results arriving while reading earlier entries. New events must offer a jump without moving the reader; story reading never pauses the server timer. Do not expect the removed bottom Story button or the old immediate modal opening.
+
 ## Private invitations
 
 Verify private tables are absent from discovery/matching, code-only joins fail for new members, full invitations work, previous members can return, and stale seats are reclaimed at the correct boundary. Do not expose full invitation URLs in screenshots or reports.

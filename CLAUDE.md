@@ -11,6 +11,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Default entry and legacy switch | `src/App.tsx` |
 | Discovery, hero builder, chat and recaps | `src/components/DropInn/DropInn.tsx` |
 | Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |
+| Three-state parchment story reader and chronological projection | `src/components/DropInn/StoryScroll.tsx`, `src/lib/dropinn/storyLog.ts` |
 | Timed commitment gesture and accessible alternatives | `src/components/DropInn/TimedRelease.tsx` |
 | Authored scene backgrounds, targets and developed states | `src/components/DropInn/SceneStageArt.tsx`, `TargetArtwork.tsx` |
 | Client session, sync, proposals and reward receipts | `src/store/adventureStore.ts` |

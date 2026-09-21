@@ -1117,6 +1117,51 @@
       "runtimeSha256": "c59bf1431ba8df188e39eed95b48487729bb71740370c9bd793b56f576033888",
       "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against retained PNG.",
       "promptFile": ".agents/skills/dropinn-art/references/generated/stage-orchard.json"
+    },
+    {
+      "id": "ui-scroll-rolled",
+      "purpose": "Collapsed story-scroll UI keyframe",
+      "file": "public/art/ui-scroll-rolled.png",
+      "width": 1774,
+      "height": 887,
+      "alpha": true,
+      "sha256": "d73a692be5ec234dff0b97a01e262f08585e63ace5ece29ab2bbfd9a14855312",
+      "generator": "Codex built-in imagegen",
+      "review": "Source alpha, unclipped silhouette, lossless runtime conversion, and collapsed in-game rendering checked on desktop and mobile.",
+      "runtimeFile": "public/art/ui-scroll-rolled.webp",
+      "runtimeSha256": "2c5a3061c22e0cacc7c7ae66fb1b6356bdd501af621ba9189972e4f8823c0613",
+      "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against retained PNG.",
+      "promptFile": ".agents/skills/dropinn-art/references/generated/ui-scroll-rolled.json"
+    },
+    {
+      "id": "ui-scroll-compact",
+      "purpose": "Compact story-scroll UI keyframe",
+      "file": "public/art/ui-scroll-compact.png",
+      "width": 1448,
+      "height": 1086,
+      "alpha": true,
+      "sha256": "3ff238f7f555cf4cca26f076641fd64532473d0617995fc8bf909d078809147c",
+      "generator": "Codex built-in imagegen",
+      "review": "Source alpha, unclipped silhouette, lossless runtime conversion, and compact in-game rendering checked at 1280x800 and 320x568.",
+      "runtimeFile": "public/art/ui-scroll-compact.webp",
+      "runtimeSha256": "30b7ceb62a62d5488bc5f94dba6d1c009599f122f2db8921bbd2ef5f4540a54a",
+      "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against retained PNG.",
+      "promptFile": ".agents/skills/dropinn-art/references/generated/ui-scroll-compact.json"
+    },
+    {
+      "id": "ui-scroll-full",
+      "purpose": "Full story-scroll UI keyframe",
+      "file": "public/art/ui-scroll-full.png",
+      "width": 1024,
+      "height": 1536,
+      "alpha": true,
+      "sha256": "74881998cb175167822d9de8e1a3939ad54a5208e54a265f5d0a65c07eb40bd9",
+      "generator": "Codex built-in imagegen",
+      "review": "Source alpha, broad readable paper field, lossless runtime conversion, and full-reader rendering checked on desktop and mobile.",
+      "runtimeFile": "public/art/ui-scroll-full.webp",
+      "runtimeSha256": "7925744c4da73be2c3dc8e78e5471d36d1d5a40eb57bb2316674b3bab75c6163",
+      "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against retained PNG.",
+      "promptFile": ".agents/skills/dropinn-art/references/generated/ui-scroll-full.json"
     }
   ]
 }

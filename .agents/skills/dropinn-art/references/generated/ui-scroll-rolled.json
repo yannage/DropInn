@@ -1,0 +1,7 @@
+{
+  "name": "ui-scroll-rolled",
+  "generator": "Codex built-in imagegen",
+  "source": "C:/Users/Yanni/.codex/generated_images/01a0c0af-1d32-7b11-8cc8-82339df8d8ad/exec-b7812361-80e0-4bb8-844b-07a1204ef878.png",
+  "references": ["assets/sheep.png", "assets/gate.png", "public/art/story-sail.png"],
+  "prompt": "Use case: stylized-concept\nAsset type: transparent game UI keyframe, collapsed story scroll\nPrimary request: One small horizontal rolled parchment cylinder viewed straight-on, closed tightly, with chunky wooden knobs at both ends and a blank cream paper band in the center.\nInput images: the attached sheep, gate, and patched sail are style references only.\nStyle/medium: deliberately primitive old Windows MS Paint mouse doodle matching the references; heavy true-black jagged stair-stepped outline; clumsy lopsided silhouette; flat bucket fills; minimal uneven brown hatch marks.\nComposition/framing: isolated centered object, wide 2:1 silhouette, large readable shapes, at least 12% clear margin.\nColor palette: cream paper, mustard gold, brown wood, tiny dusty teal thread accent.\nConstraints: actual transparent alpha background; no text, letters, icons, shadows, UI screenshot, characters, gradients, glossy light, polished vector curves, watermark. One object only."
+}

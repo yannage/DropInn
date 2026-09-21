@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import { createServer } from 'vite';
 import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {checkStoryScroll,watchStoryWhileWaiting,verifyNewStoryEvents} from './check-story-scroll.mjs';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:5198';
 const url = new URL(base);
@@ -54,6 +55,7 @@ try {
       assert.notEqual((await state(a)).userId, (await state(b)).userId);
       const captured = new Set();
       let reloaded = false;
+      let scrollChecked = false;
       for (let round = 0; round < 33; round++) {
         await sync();
         let room = (await state(a)).room;
@@ -82,6 +84,8 @@ try {
           await b.waitForFunction(async () => { const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState(); return s.ready && !!s.room && !!s.userId; });
           const after = await state(b); assert.ok(after.room,'Room must be restored after reconnect'); assert.equal(after.userId,before.userId); assert.equal(after.room.code,before.room.code); assert.equal(after.room.adventureId,definition.id); reloaded=true;
         }
+        const checkScroll = definition.id==='last-flight-teacup' && room.chapter===1 && !scrollChecked;
+        if(checkScroll) await checkStoryScroll(a);
         for (const page of pages) {
           const current = await state(page);
           if (current.room.pendingJoins.includes(current.userId)) continue;
@@ -95,8 +99,10 @@ try {
           }
           await page.getByRole('button',{name:'Roll now',exact:true}).click();
           await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+          if(checkScroll && page===a) await watchStoryWhileWaiting(a);
         }
         await sync();
+        if(checkScroll) {await verifyNewStoryEvents(a);scrollChecked=true;}
       }
       const finished = (await state(a)).room;
       assert.equal(finished.status,'completed');

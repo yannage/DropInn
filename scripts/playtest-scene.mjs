@@ -284,10 +284,12 @@ try {
   for (const target of ['gloamfang', 'ward', 'bell', 'captives']) await select(a, 'assist', target);
   const story = a.getByRole('button', { name: /^Story/ });
   await story.click();
+  await a.getByRole('button',{name:'Expand story',exact:true}).click();
   const dialog = a.getByRole('dialog', { name: 'Story & journal' });
   await dialog.waitFor();
   await a.keyboard.press('Tab');
   assert.equal(await a.evaluate(() => !!document.activeElement.closest('[role="dialog"]')), true);
+  await a.keyboard.press('Escape');
   await a.keyboard.press('Escape');
   assert.equal(await story.evaluate(node => document.activeElement === node), true);
   note('drag-valid-invalid-all-targets-and-drawer-focus');
