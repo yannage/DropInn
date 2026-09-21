@@ -21,7 +21,7 @@
 .di-story-backdrop { position:fixed; inset:0; background:#172b2577; z-index:120; }
 .di-scroll-paper {
   position:relative; display:flex; flex-direction:column; flex:1; min-height:0;
-  margin:-5px 22px; padding:8px 14px; background:#fff4d6;
+  margin:-11px 22px; padding:12px 14px; background:#fff4d6;
   border-left:3px solid #2c2118; border-right:3px solid #2c2118;
   box-shadow:3px 0 #c6a45b,-2px 0 #c6a45b;
 }
@@ -60,7 +60,7 @@
 .di-scroll-reading aside { border:1px dashed #9d7947; padding:8px; margin-top:12px; }
 @media(max-width:759px) {
   .di-story-scroll .di-scroll-roller { height:24px; grid-template-columns:32px minmax(0,1fr) 32px; }
-  .di-scroll-paper { margin:-4px 16px; padding:4px 9px; }
+  .di-scroll-paper { margin:-9px 16px; padding:8px 9px; }
   .di-story-scroll h2 { font-size:23px; }
   .di-story-scroll.is-full .di-scroll-clock { order:4; width:100%; padding-bottom:6px; }
 }

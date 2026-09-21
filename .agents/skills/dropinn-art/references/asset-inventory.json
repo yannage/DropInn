@@ -1162,6 +1162,21 @@
       "runtimeSha256": "7925744c4da73be2c3dc8e78e5471d36d1d5a40eb57bb2316674b3bab75c6163",
       "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against retained PNG.",
       "promptFile": ".agents/skills/dropinn-art/references/generated/ui-scroll-full.json"
+    },
+    {
+      "id": "ui-scroll-roller",
+      "purpose": "Complete standalone roller shared by all story-scroll states; replaces the clipped full-scroll slices",
+      "file": "public/art/ui-scroll-roller.png",
+      "width": 2044,
+      "height": 240,
+      "alpha": true,
+      "sha256": "8a5c1fffaf7c2bae88fb64872a28d3c917eb4b35a247ccf2bc676ce632d0b43f",
+      "generator": "Codex built-in imagegen",
+      "review": "Inspected standalone, in collapsed control, desktop compact and phone full reader. Alpha fringe removed with source retained; full silhouette has at least 16px transparent margin. Paper joins overlap within opaque shaft. No dangling ribbon clipping. Exact RGBA WebP conversion verified.",
+      "runtimeFile": "public/art/ui-scroll-roller.webp",
+      "runtimeSha256": "bb6344d39595f4a1e4e8ae8c4db51a157f2060cdb3d99cdd45a1fc2fe03df8a0",
+      "runtimeEncoding": "Lossless WebP; exact RGBA equality verified against prepared PNG.",
+      "promptFile": ".agents/skills/dropinn-art/references/generated/ui-scroll-roller.json"
     }
   ]
 }

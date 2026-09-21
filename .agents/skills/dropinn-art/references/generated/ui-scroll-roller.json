@@ -1,0 +1,30 @@
+{
+  "name": "ui-scroll-roller",
+  "generator": "Codex built-in imagegen",
+  "source": "public/art/ui-scroll-roller-source.png",
+  "references": [
+    "public/art/ui-scroll-full.png"
+  ],
+  "prompt": "Use case: stylized-concept\nAsset type: one isolated horizontal scroll roller for a reusable game UI sprite\nInput image: style reference only; match its warm brown wood, dusty teal wraps and primitive MS Paint jagged black outline.\nPrimary request: Draw ONE complete horizontal wooden parchment-scroll spindle, isolated with true transparent alpha all around it. A chunky short wooden knob at each end, a dusty teal band around each end, and a long thin brown shaft between. All silhouettes must be complete. No hanging ribbons, no strings, no parchment sheet, no other objects. This is only the roller, to be reused at both ends of the same UI scroll.\nComposition: wide landscape canvas; object centered vertically; ample transparent margin of at least 12% on every edge. The shaft should be horizontally straight with roughly parallel top and bottom black edges and a broad, simple middle that can be stretched. Keep irregularity subtle in the middle; put the funny wonky details on the end knobs. The teal bands must stay compact with nothing dangling below.\nStyle: primitive old Windows MS Paint mouse doodle, heavy true black stair-stepped outline, flat bucket fills, warm tan wood and muted teal wraps. No lighting or gradients, no drop shadow, no glow, no vignette, no dark halo, no translucent wash outside the object. No text, symbols, checkerboard pattern, UI, paper sheet or watermark. Actual transparent background, fully opaque wood and bands.",
+  "preparation": ".agents/skills/dropinn-art/scripts/prepare-scroll-roller.py",
+  "slices": {
+    "left": [
+      0,
+      0,
+      336,
+      240
+    ],
+    "middle": [
+      336,
+      0,
+      1350,
+      240
+    ],
+    "right": [
+      1686,
+      0,
+      358,
+      240
+    ]
+  }
+}
