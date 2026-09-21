@@ -31,6 +31,10 @@ Repeat for all three chapters: stable chapter ID, circle beats, short arrival ob
 
 Define success, mixed and setback endings, indispensable information on the round-cap route, and any carry-forward state. State flags here are design proposals until implemented.
 
+### On-screen context
+
+Add a `scene-context` JSON block per chapter with `situation` and `targets` keyed by target ID. Each target supplies `context`, `actionCues` keyed by supported wire tokens (`fight`, `influence`, `investigate`, `assist`), and `development: { context, actionCues }`. Context explains the current situation and a reason to interact; cues describe attempts, not guaranteed outcomes. Keep the initial/developed states consistent with the target table. Route targets receive the resolved route's actual cost at runtime. Aim for a short sentence or two, not tooltips containing rules notation. Do not invent NPC dialogue, required tasks, or additional state flags.
+
 ## Cost and branch contract
 
 Foreshadowing; visible alternatives; what each changes; when the party chooses; simultaneous resolution/tie/no-input rule; fallback route; behavior with one human, late joins, departures and duplicates. Avoid undocumented shared-resource decisions.

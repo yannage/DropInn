@@ -22,6 +22,7 @@ export function FocusedActionStage({ room, action, actor, modifier, result }: {
   return <section className={`di-focus-stage is-${action.token} ${result ? 'has-clashed' : ''}`} aria-label={duel ? 'Battle focus' : 'Action focus'}>
     <div className="di-focus-heading"><span>{duel ? 'A clash of dice' : title}</span><strong>{target?.name ?? ally?.character.name}</strong>
       {duel ? <small>Enemy rolls d20 + {room.enemyIntent!.duelModifier} · beat its total</small> : <small>{action.targetKind === 'hero' ? 'Guaranteed aid · no roll needed' : 'Choose what your success will change'}</small>}
+      {target && <p className="di-focus-context">{target.context ?? target.description}</p>}
     </div>
     <div className={`di-focus-opponent ${result?.success ? 'is-hit' : ''}`} data-scene-target={action.targetId} data-target-kind={action.targetKind ?? 'scene'}>
       {target ? <TargetArtwork target={target} pose={duel ? result ? 'reaction' : 'windup' : 'idle'} /> : ally && <HeroAvatar hero={ally.character} decorative />}
@@ -32,17 +33,17 @@ export function FocusedActionStage({ room, action, actor, modifier, result }: {
   </section>;
 }
 
-export function FocusedActionChoices({ room, action, locked, onChange, onBack }: {
-  room: AdventureRoom; action: PlayerAction; locked: boolean; onChange: (action: PlayerAction) => void; onBack: () => void;
+export function FocusedActionChoices({ room, action, locked, backLocked = locked, onChange, onBack }: {
+  room: AdventureRoom; action: PlayerAction; locked: boolean; backLocked?: boolean; onChange: (action: PlayerAction) => void; onBack: () => void;
 }) {
   const options = approachOptions(room, action);
   const ally = room.seats.find(seat => seat.actorId === action.targetId);
   const canProtect = action.targetKind === 'hero' && room.enemyIntent?.turn === room.turn && room.enemyIntent.targetActorId === action.targetId;
   return <div className="di-focus-choices">
-    <button className="di-focus-back" disabled={locked} onClick={onBack} aria-label="Back to scene"><ArrowLeft size={16} /><span>Scene</span></button>
+    <button className="di-focus-back" disabled={backLocked} onClick={onBack} aria-label="Back to scene"><ArrowLeft size={16} /><span>Scene</span></button>
     <div role="group" aria-label="Choose an approach">
       {canProtect && <button disabled={locked} aria-pressed={!action.approach} onClick={() => onChange({ ...action, approach: undefined })}><strong>Protect</strong><span>Block 2 · great release blocks 3</span></button>}
-      {options.map(option => <button key={option.id} disabled={locked || (option.id === 'mend' && (!ally || ally.hp >= ally.character.maxHp))} aria-pressed={action.approach === option.id} onClick={() => onChange({ ...action, approach: option.id })}>
+      {options.map(option => <button key={option.id} aria-label={`${option.label}: ${approachDetail(room, option)}`} disabled={locked || (option.id === 'mend' && (!ally || ally.hp >= ally.character.maxHp))} aria-pressed={action.approach === option.id} onClick={() => onChange({ ...action, approach: option.id })}>
         <strong>{option.label}</strong><span>{approachDetail(room, option)}</span>
       </button>)}
     </div>

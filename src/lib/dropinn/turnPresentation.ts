@@ -37,5 +37,5 @@ export function resultLine(event: StoryEvent) {
   if (result.healing) return `Recovered ${result.healing} HP`;
   if (event.change) return event.change.title;
   if (event.success === false) return 'A complication · keep going';
-  return result.progress ? 'Your move made a difference' : 'Your help made a difference';
+  return event.text;
 }

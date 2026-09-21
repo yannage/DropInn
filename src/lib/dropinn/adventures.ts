@@ -14,6 +14,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "Rescue a runaway postal airship. Choose what to bring home. Pella's ship is drifting with guests aboard. Secure a way onto the deck.",
         "catchUp": "Pella's ship is drifting with guests aboard. Secure a way onto the deck.",
         "objective": "Catch the airship before the last rope snaps.",
+        "situation": "Pella's ship is drifting with guests aboard. Secure a way onto the deck.",
         "art": "teacup",
         "firstTarget": "teacup-mooring",
         "targets": [
@@ -22,6 +23,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Last rope",
             "artKey": "story-rope",
             "description": "Fight: haul; Investigate: locate sound anchor; Help: brace",
+            "context": "The last mooring is fraying. A secure line could get everyone aboard.",
+            "actionCues": {
+              "fight": "haul",
+              "investigate": "locate sound anchor",
+              "assist": "brace"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -37,6 +44,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Last rope",
               "artKey": "story-rope",
               "description": "Secured boarding line → guide passengers across",
+              "context": "Secured boarding line. Guide passengers across.",
+              "actionCues": {
+                "investigate": "guide passengers across",
+                "assist": "guide passengers across"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -48,6 +60,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Captain Pella",
             "artKey": "story-pella",
             "description": "Influence: focus her orders; Investigate: ask about controls; Help: untangle coat",
+            "context": "Pella is tangled in her coat as her ship drifts away. Help her direct the rescue.",
+            "actionCues": {
+              "influence": "focus her orders",
+              "investigate": "ask about controls",
+              "assist": "untangle coat"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -63,6 +81,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Captain Pella",
               "artKey": "story-pella",
               "description": "Pella standing at rail → coordinate boarding",
+              "context": "Pella standing at rail. Coordinate boarding.",
+              "actionCues": {
+                "influence": "coordinate boarding",
+                "investigate": "coordinate boarding",
+                "assist": "coordinate boarding"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -75,6 +99,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Sliding parcels",
             "artKey": "story-parcels",
             "description": "Fight: wedge crates; Investigate: read emergency markings; Help: secure cargo",
+            "context": "Parcels slide across the deck. Securing them could uncover emergency instructions.",
+            "actionCues": {
+              "fight": "wedge crates",
+              "investigate": "read emergency markings",
+              "assist": "secure cargo"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -90,6 +120,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Sliding parcels",
               "artKey": "story-parcels",
               "description": "Tied stack exposes lifeboat diagram → study escape route",
+              "context": "Tied stack exposes lifeboat diagram. Study escape route.",
+              "actionCues": {
+                "investigate": "study escape route",
+                "assist": "study escape route"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -101,6 +136,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Festival guests",
             "artKey": "herd-gathered",
             "description": "Influence: calm; Help: catch a slipping guest",
+            "context": "The guests are slipping as the deck tilts. Help them reach a safety line.",
+            "actionCues": {
+              "influence": "calm",
+              "assist": "catch a slipping guest"
+            },
             "tokens": [
               "influence",
               "assist"
@@ -115,6 +155,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Festival guests",
               "artKey": "herd-gathered",
               "description": "Guests holding safety line → organize evacuation",
+              "context": "Guests holding safety line. Organize evacuation.",
+              "actionCues": {
+                "influence": "organize evacuation",
+                "assist": "organize evacuation"
+              },
               "tokens": [
                 "influence",
                 "assist"
@@ -139,6 +184,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "The guests are aboard, but the ship cannot descend. Its safety gull mistakes the rescue for damage.",
         "catchUp": "The guests are aboard, but the ship cannot descend. Its safety gull mistakes the rescue for damage.",
         "objective": "Steady the deck and restart the kettle engine.",
+        "situation": "The guests are aboard, but the ship cannot descend. Its safety gull mistakes the rescue for damage.",
         "art": "teacup",
         "firstTarget": "teacup-engine",
         "targets": [
@@ -147,6 +193,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Kettle engine",
             "artKey": "story-kettle",
             "description": "Fight: loosen valve; Investigate: trace steam; Help: repair",
+            "context": "The kettle engine has stalled. Restoring its steam could steady the ship.",
+            "actionCues": {
+              "fight": "loosen valve",
+              "investigate": "trace steam",
+              "assist": "repair"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -162,6 +214,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Kettle engine",
               "artKey": "story-kettle",
               "description": "Glowing kettle → regulate descent",
+              "context": "Glowing kettle. Regulate descent.",
+              "actionCues": {
+                "investigate": "regulate descent",
+                "assist": "regulate descent"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -173,6 +230,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Festival sail",
             "artKey": "story-sail",
             "description": "Investigate: find vent seam; Influence: coordinate handlers; Help: tension ropes",
+            "context": "The festival sail traps the airship above the clouds. Its seams may offer a way down.",
+            "actionCues": {
+              "investigate": "find vent seam",
+              "influence": "coordinate handlers",
+              "assist": "tension ropes"
+            },
             "tokens": [
               "investigate",
               "influence",
@@ -188,6 +251,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Festival sail",
               "artKey": "story-sail",
               "description": "Marked vent seam → prepare the descent option",
+              "context": "Marked vent seam. Prepare the descent option.",
+              "actionCues": {
+                "investigate": "prepare the descent option",
+                "influence": "prepare the descent option",
+                "assist": "prepare the descent option"
+              },
               "tokens": [
                 "investigate",
                 "influence",
@@ -200,6 +269,13 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Brass gull",
             "artKey": "story-gull",
             "description": "Fight: interrupt; Influence: mimic maintenance call; Investigate: identify command; Help: distract",
+            "context": "The safety gull mistakes your rescue for damage. Interrupt it or find its maintenance command.",
+            "actionCues": {
+              "fight": "interrupt",
+              "influence": "mimic maintenance call",
+              "investigate": "identify command",
+              "assist": "distract"
+            },
             "tokens": [
               "fight",
               "influence",
@@ -216,6 +292,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Brass gull",
               "artKey": "story-gull",
               "description": "Lowered beak and lit service symbol → keep it occupied",
+              "context": "Lowered beak and lit service symbol. Keep it occupied.",
+              "actionCues": {
+                "influence": "keep it occupied",
+                "investigate": "keep it occupied",
+                "assist": "keep it occupied"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -228,6 +310,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Hanging lifeboat",
             "artKey": "boat-afloat",
             "description": "Fight: release winch; Investigate: inspect harnesses; Help: secure guests",
+            "context": "The lifeboat hangs out of reach. Lowering it could prepare an escape.",
+            "actionCues": {
+              "fight": "release winch",
+              "investigate": "inspect harnesses",
+              "assist": "secure guests"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -243,6 +331,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Hanging lifeboat",
               "artKey": "boat-afloat",
               "description": "Lifeboat level with deck → prepare evacuation",
+              "context": "Lifeboat level with deck. Prepare evacuation.",
+              "actionCues": {
+                "investigate": "prepare evacuation",
+                "assist": "prepare evacuation"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -268,6 +361,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "The ship and its treasured sail cannot both survive intact. The prepared route shows how everyone can reach the dock.",
         "catchUp": "The ship and its treasured sail cannot both survive intact. The prepared route shows how everyone can reach the dock.",
         "objective": "Bring everyone home using the route you chose.",
+        "situation": "The ship and its treasured sail cannot both survive intact. The prepared route shows how everyone can reach the dock.",
         "art": "teacup",
         "firstTarget": "teacup-return-valve",
         "targets": [
@@ -276,6 +370,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Vent handle",
             "artKey": "story-kettle",
             "description": "Fight: turn; Investigate: match pressure; Help: brace",
+            "context": "This vent can bring the ship down, but opening it will tear the treasured sail.",
+            "actionCues": {
+              "fight": "turn",
+              "investigate": "match pressure",
+              "assist": "brace"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -291,6 +391,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Vent handle",
               "artKey": "story-kettle",
               "description": "Released vent and torn sail on ship route → stabilize landing; on evacuation route, idle vent → steady abandoned ship while boarding",
+              "context": "Released vent and torn sail on ship route. Steady abandoned ship while boarding.",
+              "actionCues": {
+                "investigate": "steady abandoned ship while boarding",
+                "assist": "steady abandoned ship while boarding"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -302,6 +407,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Lifeboat cradle",
             "artKey": "boat-afloat",
             "description": "Fight: winch; Investigate: balance load; Help: transfer guests",
+            "context": "The lifeboat can carry everyone and the sail home, leaving the airship behind.",
+            "actionCues": {
+              "fight": "winch",
+              "investigate": "balance load",
+              "assist": "transfer guests"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -317,6 +428,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Lifeboat cradle",
               "artKey": "boat-afloat",
               "description": "Lifeboat occupied on evacuation route, safety platform on ship route → guide final passengers",
+              "context": "Lifeboat occupied on evacuation route, safety platform on ship route. Guide final passengers.",
+              "actionCues": {
+                "investigate": "guide final passengers",
+                "assist": "guide final passengers"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -328,6 +444,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Passenger line",
             "artKey": "herd-gathered",
             "description": "Influence: coordinate; Help: support",
+            "context": "The passengers need a steady route home. Help the line keep moving.",
+            "actionCues": {
+              "influence": "coordinate",
+              "assist": "support"
+            },
             "tokens": [
               "influence",
               "assist"
@@ -342,6 +463,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Passenger line",
               "artKey": "herd-gathered",
               "description": "Guests arriving on dock → clear landing area",
+              "context": "Guests arriving on dock. Clear landing area.",
+              "actionCues": {
+                "influence": "clear landing area",
+                "assist": "clear landing area"
+              },
               "tokens": [
                 "influence",
                 "assist"
@@ -353,6 +479,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Home beacon",
             "artKey": "story-lantern",
             "description": "Investigate: find alignment; Influence: signal dock crew; Help: hold light",
+            "context": "The dock is difficult to see. A clear beacon could guide the last approach.",
+            "actionCues": {
+              "investigate": "find alignment",
+              "influence": "signal dock crew",
+              "assist": "hold light"
+            },
             "tokens": [
               "investigate",
               "influence",
@@ -368,6 +500,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Home beacon",
               "artKey": "story-lantern",
               "description": "Bright approach path → guide final descent",
+              "context": "Bright approach path. Guide final descent.",
+              "actionCues": {
+                "investigate": "guide final descent",
+                "influence": "guide final descent",
+                "assist": "guide final descent"
+              },
               "tokens": [
                 "investigate",
                 "influence",
@@ -434,6 +572,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "Find the missing dawn inside an inn stuck at breakfast. Morning is stuck on one repeated moment. Something behind the clock is collecting the sounds.",
         "catchUp": "Morning is stuck on one repeated moment. Something behind the clock is collecting the sounds.",
         "objective": "Find why breakfast keeps starting over.",
+        "situation": "Morning is stuck on one repeated moment. Something behind the clock is collecting the sounds.",
         "art": "tomorrow",
         "firstTarget": "tomorrow-spoon",
         "targets": [
@@ -442,6 +581,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Falling spoon",
             "artKey": "story-spoon",
             "description": "Investigate: follow its repeat; Help: catch and mark",
+            "context": "This spoon keeps falling at the same instant. Its repeating motion may reveal what trapped the morning.",
+            "actionCues": {
+              "investigate": "follow its repeat",
+              "assist": "catch and mark"
+            },
             "tokens": [
               "investigate",
               "assist"
@@ -456,6 +600,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Falling spoon",
               "artKey": "story-spoon",
               "description": "Marked spoon stops repeating locally → compare nearby loops",
+              "context": "Marked spoon stops repeating locally. Compare nearby loops.",
+              "actionCues": {
+                "investigate": "compare nearby loops",
+                "assist": "compare nearby loops"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -467,6 +616,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Brindle",
             "artKey": "story-brindle",
             "description": "Influence: ask for help; Investigate: question his instruction; Help: calm him",
+            "context": "Brindle wanted a perfect breakfast. His instructions to the clockwork helper may explain the loop.",
+            "actionCues": {
+              "influence": "ask for help",
+              "investigate": "question his instruction",
+              "assist": "calm him"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -482,6 +637,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Brindle",
               "artKey": "story-brindle",
               "description": "Apron loosened, note in hand → reveal the exact command",
+              "context": "Apron loosened, note in hand. Reveal the exact command.",
+              "actionCues": {
+                "influence": "reveal the exact command",
+                "investigate": "reveal the exact command",
+                "assist": "reveal the exact command"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -494,6 +655,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Breakfast clock",
             "artKey": "story-clock",
             "description": "Fight: free jammed casing; Investigate: follow ticking; Help: steady gears",
+            "context": "Something ticks behind the jammed clock casing. It may conceal a way into the workshop.",
+            "actionCues": {
+              "fight": "free jammed casing",
+              "investigate": "follow ticking",
+              "assist": "steady gears"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -509,6 +676,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Breakfast clock",
               "artKey": "story-clock-open",
               "description": "Open clock doorway → guide party inside",
+              "context": "Open clock doorway. Guide party inside.",
+              "actionCues": {
+                "investigate": "guide party inside",
+                "assist": "guide party inside"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -520,6 +692,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Stubborn toast",
             "artKey": "story-toast",
             "description": "Fight: lift jammed rack; Investigate: trace the heat; Help: shield hands",
+            "context": "The toast refuses to finish cooking. Follow its warmth or free the jammed rack for a clue.",
+            "actionCues": {
+              "fight": "lift jammed rack",
+              "investigate": "trace the heat",
+              "assist": "shield hands"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -535,6 +713,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Stubborn toast",
               "artKey": "story-toast",
               "description": "Warm crumbs point toward clock → mark workshop route",
+              "context": "Warm crumbs point toward clock. Mark workshop route.",
+              "actionCues": {
+                "investigate": "mark workshop route",
+                "assist": "mark workshop route"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -559,6 +742,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "Brindle asked for a perfect morning to last. His helper stored the dawn so morning could never end.",
         "catchUp": "Brindle asked for a perfect morning to last. His helper stored the dawn so morning could never end.",
         "objective": "Recover the dawn chime from the clockwork helper.",
+        "situation": "Brindle asked for a perfect morning to last. His helper stored the dawn so morning could never end.",
         "art": "tomorrow",
         "firstTarget": "tomorrow-jars",
         "targets": [
@@ -567,6 +751,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Sound jars",
             "artKey": "story-jar",
             "description": "Investigate: inspect symbols; Influence: hum to matching jars; Help: steady shelf",
+            "context": "The helper stores morning sounds in jars. Find the dawn among their symbols.",
+            "actionCues": {
+              "investigate": "inspect symbols",
+              "influence": "hum to matching jars",
+              "assist": "steady shelf"
+            },
             "tokens": [
               "investigate",
               "influence",
@@ -582,6 +772,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Sound jars",
               "artKey": "story-jar",
               "description": "Dawn jar glows beside rooster symbol → isolate the right note",
+              "context": "Dawn jar glows beside rooster symbol. Isolate the right note.",
+              "actionCues": {
+                "investigate": "isolate the right note",
+                "influence": "isolate the right note",
+                "assist": "isolate the right note"
+              },
               "tokens": [
                 "investigate",
                 "influence",
@@ -594,6 +790,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Tock",
             "artKey": "story-tock",
             "description": "Influence: acknowledge its work; Investigate: ask about command; Help: repair grip",
+            "context": "Tock is preserving the morning exactly as instructed. Help it understand why the day must continue.",
+            "actionCues": {
+              "influence": "acknowledge its work",
+              "investigate": "ask about command",
+              "assist": "repair grip"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -609,6 +811,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Tock",
               "artKey": "story-tock",
               "description": "Tock offers the dawn jar → cooperate on release",
+              "context": "Tock offers the dawn jar. Cooperate on release.",
+              "actionCues": {
+                "influence": "cooperate on release",
+                "investigate": "cooperate on release",
+                "assist": "cooperate on release"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -621,6 +829,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Recipe cylinder",
             "artKey": "story-cylinder",
             "description": "Fight: loosen spindle; Investigate: read routine; Help: uncouple gear",
+            "context": "The perfect breakfast routine is wound around this cylinder. It may help release the dawn.",
+            "actionCues": {
+              "fight": "loosen spindle",
+              "investigate": "read routine",
+              "assist": "uncouple gear"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -636,6 +850,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Recipe cylinder",
               "artKey": "story-cylinder",
               "description": "Cylinder exposed → prepare routine-unwinding route",
+              "context": "Cylinder exposed. Prepare routine-unwinding route.",
+              "actionCues": {
+                "investigate": "prepare routine-unwinding route",
+                "assist": "prepare routine-unwinding route"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -647,6 +866,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Memory spool",
             "artKey": "story-spool",
             "description": "Investigate: inspect stored breakfast pattern; Influence: explain alternative to Tock; Help: connect safe lead",
+            "context": "This spool holds Tock’s learned breakfast routine. Examine it carefully before deciding what to spend.",
+            "actionCues": {
+              "investigate": "inspect stored breakfast pattern",
+              "influence": "explain alternative to Tock",
+              "assist": "connect safe lead"
+            },
             "tokens": [
               "investigate",
               "influence",
@@ -662,6 +887,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Memory spool",
               "artKey": "story-spool",
               "description": "Spool in a protective cradle → prepare memory-spending route",
+              "context": "Spool in a protective cradle. Prepare memory-spending route.",
+              "actionCues": {
+                "investigate": "prepare memory-spending route",
+                "influence": "prepare memory-spending route",
+                "assist": "prepare memory-spending route"
+              },
               "tokens": [
                 "investigate",
                 "influence",
@@ -687,6 +918,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "The dawn is safe in its jar. Releasing it will cost the perfect routine or Tock's memory of making it.",
         "catchUp": "The dawn is safe in its jar. Releasing it will cost the perfect routine or Tock's memory of making it.",
         "objective": "Release the chime and let the day begin.",
+        "situation": "The dawn is safe in its jar. Releasing it will cost the perfect routine or Tock's memory of making it.",
         "art": "tomorrow",
         "firstTarget": "tomorrow-return-recipe",
         "targets": [
@@ -695,6 +927,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Perfect recipe",
             "artKey": "story-cylinder",
             "description": "Fight: turn release crank; Investigate: unwind safely; Help: support cylinder",
+            "context": "The recipe can be unwound to free the dawn. Breakfast will become an experiment.",
+            "actionCues": {
+              "fight": "turn release crank",
+              "investigate": "unwind safely",
+              "assist": "support cylinder"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -710,6 +948,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Perfect recipe",
               "artKey": "story-cylinder",
               "description": "Blank cylinder if spent, preserved recipe otherwise → support the selected release circuit",
+              "context": "Blank cylinder if spent, preserved recipe otherwise. Support the selected release circuit.",
+              "actionCues": {
+                "investigate": "support the selected release circuit",
+                "assist": "support the selected release circuit"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -721,6 +964,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Breakfast memory",
             "artKey": "story-spool",
             "description": "Investigate: guide transfer; Influence: reassure Tock; Help: support cradle",
+            "context": "Tock’s breakfast routine can power the release. It would need help learning that routine again.",
+            "actionCues": {
+              "investigate": "guide transfer",
+              "influence": "reassure Tock",
+              "assist": "support cradle"
+            },
             "tokens": [
               "investigate",
               "influence",
@@ -736,6 +985,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Breakfast memory",
               "artKey": "story-spool",
               "description": "Empty breakfast spool if spent, intact spool otherwise → help Tock steady the chime",
+              "context": "Empty breakfast spool if spent, intact spool otherwise. Help Tock steady the chime.",
+              "actionCues": {
+                "investigate": "help Tock steady the chime",
+                "influence": "help Tock steady the chime",
+                "assist": "help Tock steady the chime"
+              },
               "tokens": [
                 "investigate",
                 "influence",
@@ -748,6 +1003,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Window clock",
             "artKey": "story-clock",
             "description": "Fight: free bell arm; Investigate: align symbols; Help: seat jar",
+            "context": "The window clock can sound the recovered dawn. Help the chime reach the waiting morning.",
+            "actionCues": {
+              "fight": "free bell arm",
+              "investigate": "align symbols",
+              "assist": "seat jar"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -763,6 +1024,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Window clock",
               "artKey": "story-clock-open",
               "description": "Clock sounding in sunlight → stabilize ordinary time",
+              "context": "Clock sounding in sunlight. Stabilize ordinary time.",
+              "actionCues": {
+                "investigate": "stabilize ordinary time",
+                "assist": "stabilize ordinary time"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -774,6 +1040,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Waiting table",
             "artKey": "story-breakfast",
             "description": "Influence: organize guests; Help: share breakfast",
+            "context": "The guests are waiting for a breakfast that can finally end. Make room for Tock too.",
+            "actionCues": {
+              "influence": "organize guests",
+              "assist": "share breakfast"
+            },
             "tokens": [
               "influence",
               "assist"
@@ -788,6 +1059,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Waiting table",
               "artKey": "story-breakfast",
               "description": "Imperfect shared meal and extra chair → welcome Tock",
+              "context": "Imperfect shared meal and extra chair. Welcome Tock.",
+              "actionCues": {
+                "influence": "welcome Tock",
+                "assist": "welcome Tock"
+              },
               "tokens": [
                 "influence",
                 "assist"
@@ -853,6 +1129,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "Follow a wandering orchard and share the water it needs. The orchard has left its wall behind. A child is safely in its moving treehouse but needs help down.",
         "catchUp": "The orchard has left its wall behind. A child is safely in its moving treehouse but needs help down.",
         "objective": "Follow the trees and reach the stranded treehouse.",
+        "situation": "The orchard has left its wall behind. A child is safely in its moving treehouse but needs help down.",
         "art": "orchard",
         "firstTarget": "orchard-root-trail",
         "targets": [
@@ -861,6 +1138,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Root trail",
             "artKey": "story-roots",
             "description": "Investigate: follow moisture marks; Help: clear path",
+            "context": "The trees left damp footprints in dry soil. Follow them to find the moving treehouse.",
+            "actionCues": {
+              "investigate": "follow moisture marks",
+              "assist": "clear path"
+            },
             "tokens": [
               "investigate",
               "assist"
@@ -875,6 +1157,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Root trail",
               "artKey": "story-roots",
               "description": "Marked dry footprints → guide villagers",
+              "context": "Marked dry footprints. Guide villagers.",
+              "actionCues": {
+                "investigate": "guide villagers",
+                "assist": "guide villagers"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -886,6 +1173,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Gardener Nella",
             "artKey": "story-nella",
             "description": "Influence: organize search; Investigate: ask about watering; Help: carry basket",
+            "context": "Nella knows the orchard’s watering routes. Her memory could help locate the trees.",
+            "actionCues": {
+              "influence": "organize search",
+              "investigate": "ask about watering",
+              "assist": "carry basket"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -901,6 +1194,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Gardener Nella",
               "artKey": "story-nella",
               "description": "Nella holding old water map → compare changed stream",
+              "context": "Nella holding old water map. Compare changed stream.",
+              "actionCues": {
+                "influence": "compare changed stream",
+                "investigate": "compare changed stream",
+                "assist": "compare changed stream"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -913,6 +1212,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Orchard gate",
             "artKey": "gate",
             "description": "Fight: open jammed gate; Investigate: find root gap; Help: brace",
+            "context": "Roots jammed the orchard gate. Opening a passage could get rescue equipment through.",
+            "actionCues": {
+              "fight": "open jammed gate",
+              "investigate": "find root gap",
+              "assist": "brace"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -928,6 +1233,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Orchard gate",
               "artKey": "gate-sheltered",
               "description": "Wide passage → move rescue equipment",
+              "context": "Wide passage. Move rescue equipment.",
+              "actionCues": {
+                "investigate": "move rescue equipment",
+                "assist": "move rescue equipment"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -939,6 +1249,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Harvest ladder",
             "artKey": "story-ladder",
             "description": "Fight: free it from shed; Investigate: check joints; Help: lash rungs",
+            "context": "The harvest ladder is stuck in the shed. Make it ready to reach the treehouse.",
+            "actionCues": {
+              "fight": "free it from shed",
+              "investigate": "check joints",
+              "assist": "lash rungs"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -954,6 +1270,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Harvest ladder",
               "artKey": "story-ladder",
               "description": "Braced ladder on wheels → follow treehouse",
+              "context": "Braced ladder on wheels. Follow treehouse.",
+              "actionCues": {
+                "investigate": "follow treehouse",
+                "assist": "follow treehouse"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -978,6 +1299,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "The trees stopped beside a dry stream. Water still runs through the ornamental mill uphill.",
         "catchUp": "The trees stopped beside a dry stream. Water still runs through the ornamental mill uphill.",
         "objective": "Reach the treehouse and restore a path for water.",
+        "situation": "The trees stopped beside a dry stream. Water still runs through the ornamental mill uphill.",
         "art": "orchard",
         "firstTarget": "orchard-treehouse",
         "targets": [
@@ -986,6 +1308,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Moving treehouse",
             "artKey": "story-treehouse",
             "description": "Influence: guide the child; Help: steady descent",
+            "context": "A child is safe in the treehouse but needs help down. Guide a careful descent.",
+            "actionCues": {
+              "influence": "guide the child",
+              "assist": "steady descent"
+            },
             "tokens": [
               "influence",
               "assist"
@@ -1000,6 +1327,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Moving treehouse",
               "artKey": "story-treehouse",
               "description": "Child on the bank, empty treehouse → use platform to signal trees",
+              "context": "Child on the bank, empty treehouse. Use platform to signal trees.",
+              "actionCues": {
+                "influence": "use platform to signal trees",
+                "assist": "use platform to signal trees"
+              },
               "tokens": [
                 "influence",
                 "assist"
@@ -1011,6 +1343,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Elder Apple",
             "artKey": "story-appletree",
             "description": "Influence: listen; Investigate: inspect thirsty roots; Help: wet root cloth",
+            "context": "Elder Apple’s roots are thirsty. Listening and examining them could explain the orchard’s journey.",
+            "actionCues": {
+              "influence": "listen",
+              "investigate": "inspect thirsty roots",
+              "assist": "wet root cloth"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -1026,6 +1364,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Elder Apple",
               "artKey": "story-appletree",
               "description": "Relaxed branches showing water marks → guide the migration",
+              "context": "Relaxed branches showing water marks. Guide the migration.",
+              "actionCues": {
+                "influence": "guide the migration",
+                "investigate": "guide the migration",
+                "assist": "guide the migration"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -1038,6 +1382,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Diverted sluice",
             "artKey": "story-sluice",
             "description": "Fight: move debris; Investigate: trace channels; Help: test gate",
+            "context": "The stream was diverted uphill. Trace the channels to find ways to restore water.",
+            "actionCues": {
+              "fight": "move debris",
+              "investigate": "trace channels",
+              "assist": "test gate"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -1053,6 +1403,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Diverted sluice",
               "artKey": "story-sluice",
               "description": "Both water routes outlined → compare their costs",
+              "context": "Both water routes outlined. Compare their costs.",
+              "actionCues": {
+                "investigate": "compare their costs",
+                "assist": "compare their costs"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -1064,6 +1419,13 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Bramble guardian",
             "artKey": "story-bramble",
             "description": "Fight: interrupt; Influence: soothe; Investigate: find seed signals; Help: shield others",
+            "context": "The bramble guardian lashes out near the dry stream. Calm or interrupt it to protect the party.",
+            "actionCues": {
+              "fight": "interrupt",
+              "influence": "soothe",
+              "investigate": "find seed signals",
+              "assist": "shield others"
+            },
             "tokens": [
               "fight",
               "influence",
@@ -1080,6 +1442,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Bramble guardian",
               "artKey": "story-bramble",
               "description": "Thorns lowered around a damp patch → maintain safe passage",
+              "context": "Thorns lowered around a damp patch. Maintain safe passage.",
+              "actionCues": {
+                "influence": "maintain safe passage",
+                "investigate": "maintain safe passage",
+                "assist": "maintain safe passage"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -1106,6 +1474,7 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
         "intro": "Everyone is safe, but the roots still need water. Choose what the village will change to welcome them.",
         "catchUp": "Everyone is safe, but the roots still need water. Choose what the village will change to welcome them.",
         "objective": "Open the water route and guide the harvest home.",
+        "situation": "Everyone is safe, but the roots still need water. Choose what the village will change to welcome them.",
         "art": "orchard",
         "firstTarget": "orchard-return-wall",
         "targets": [
@@ -1114,6 +1483,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Orchard wall",
             "artKey": "story-wall",
             "description": "Fight: lift stones; Investigate: mark spillway; Help: brace path",
+            "context": "Opening the orchard wall would let water and neighbors through. The private garden would become shared.",
+            "actionCues": {
+              "fight": "lift stones",
+              "investigate": "mark spillway",
+              "assist": "brace path"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -1129,6 +1504,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Orchard wall",
               "artKey": "story-wall",
               "description": "Open water corridor if chosen, intact wall otherwise → stabilize chosen route without reversing cost",
+              "context": "Open water corridor if chosen, intact wall otherwise. Stabilize chosen route without reversing cost.",
+              "actionCues": {
+                "investigate": "stabilize chosen route without reversing cost",
+                "assist": "stabilize chosen route without reversing cost"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -1140,6 +1520,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Mill wheel",
             "artKey": "story-mill",
             "description": "Fight: release brake; Investigate: redirect channel; Help: support mechanism",
+            "context": "Redirecting the mill’s water could feed the roots. The ornamental wheel would have to stop.",
+            "actionCues": {
+              "fight": "release brake",
+              "investigate": "redirect channel",
+              "assist": "support mechanism"
+            },
             "tokens": [
               "fight",
               "investigate",
@@ -1155,6 +1541,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Mill wheel",
               "artKey": "story-mill",
               "description": "Retired decorative wheel if chosen, turning wheel otherwise → regulate water safely",
+              "context": "Retired decorative wheel if chosen, turning wheel otherwise. Regulate water safely.",
+              "actionCues": {
+                "investigate": "regulate water safely",
+                "assist": "regulate water safely"
+              },
               "tokens": [
                 "investigate",
                 "assist"
@@ -1166,6 +1557,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Waiting roots",
             "artKey": "story-appletree",
             "description": "Influence: call trees onward; Investigate: mark wet ground; Help: guide seedlings",
+            "context": "The trees are waiting for water and a place to settle. Help guide their roots home.",
+            "actionCues": {
+              "influence": "call trees onward",
+              "investigate": "mark wet ground",
+              "assist": "guide seedlings"
+            },
             "tokens": [
               "influence",
               "investigate",
@@ -1181,6 +1578,12 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Waiting roots",
               "artKey": "story-appletree",
               "description": "Trees settled beside water → tend new grove",
+              "context": "Trees settled beside water. Tend new grove.",
+              "actionCues": {
+                "influence": "tend new grove",
+                "investigate": "tend new grove",
+                "assist": "tend new grove"
+              },
               "tokens": [
                 "influence",
                 "investigate",
@@ -1193,6 +1596,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
             "name": "Harvest baskets",
             "artKey": "story-baskets",
             "description": "Influence: organize sharing; Help: carry fruit",
+            "context": "The harvest can welcome the orchard’s new neighbors. Help carry and share it.",
+            "actionCues": {
+              "influence": "organize sharing",
+              "assist": "carry fruit"
+            },
             "tokens": [
               "influence",
               "assist"
@@ -1207,6 +1615,11 @@ export const NEW_ADVENTURES: AdventureDefinition[] = [
               "name": "Harvest baskets",
               "artKey": "story-baskets",
               "description": "Baskets distributed among neighbors → finish welcoming feast",
+              "context": "Baskets distributed among neighbors. Finish welcoming feast.",
+              "actionCues": {
+                "influence": "finish welcoming feast",
+                "assist": "finish welcoming feast"
+              },
               "tokens": [
                 "influence",
                 "assist"

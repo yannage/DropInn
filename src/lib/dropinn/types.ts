@@ -9,11 +9,14 @@ export interface SceneTarget {
   id: string;
   name: string;
   description: string;
+  /** Authored presentation; never a promise of an unrecorded outcome. */
+  context?: string;
+  actionCues?: Partial<Record<TokenKind, string>>;
   tokens: TokenKind[];
   effects: CreativeEffect[];
   changed?: boolean;
   artKey?: string;
-  development?: { name: string; description: string; artKey?: string; tokens?: TokenKind[] };
+  development?: { name: string; description: string; artKey?: string; tokens?: TokenKind[]; context?: string; actionCues?: Partial<Record<TokenKind, string>> };
 }
 export interface SceneChange { title: string; text: string; next: string }
 export interface ChapterDefinition {
@@ -21,6 +24,7 @@ export interface ChapterDefinition {
   title: string;
   location: string;
   intro: string;
+  situation?: string;
   objective: string;
   threat: string;
   art: string;

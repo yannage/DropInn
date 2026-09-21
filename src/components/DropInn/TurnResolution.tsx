@@ -6,7 +6,7 @@ import { chaptersFor } from '../../lib/dropinn/registry';
 import { resultBenefits, resultLine, revealBeat } from '../../lib/dropinn/turnPresentation';
 import { playTableSound } from './tableSound';
 
-export function TurnResolution({ event, room, now, userId }: { event: StoryEvent; room: AdventureRoom; now: number; userId: string }) {
+export function TurnResolution({ event, room, now, userId, announce = true }: { event: StoryEvent; room: AdventureRoom; now: number; userId: string; announce?: boolean }) {
   const reducedMotion = !!useReducedMotion();
   const beat = event.roll === undefined ? 'payoff' : revealBeat(event, now, reducedMotion);
   const played = useRef('');
@@ -44,7 +44,7 @@ export function TurnResolution({ event, room, now, userId }: { event: StoryEvent
       <strong>{resultLine(event)}</strong>
       <div className="di-resolution-benefits">{benefits.map(benefit => <span key={benefit}>{benefit}</span>)}</div>
     </div>
-    <span className="di-game-sr" role="status">{event.roll !== undefined ? `Rolled ${event.roll}, modifier ${sign(modifier)}, total ${event.roll + modifier}. ` : ''}{duel ? `Enemy rolled ${duel.enemyRoll}, modifier ${duel.enemyModifier}, total ${duel.enemyTotal}. ` : ''}{resultLine(event)}. {benefits.join('. ')}</span>
+    {announce && <span className="di-game-sr" role="status">{event.roll !== undefined ? `Rolled ${event.roll}, modifier ${sign(modifier)}, total ${event.roll + modifier}. ` : ''}{duel ? `Enemy rolled ${duel.enemyRoll}, modifier ${duel.enemyModifier}, total ${duel.enemyTotal}. ` : ''}{resultLine(event)}. {benefits.join('. ')}</span>}
     {showChapter && <div className="di-resolution-chapter" role="status"><span><Check size={14} /> Chapter {room.chapter + 1} complete</span>{earned && <strong><Sparkles size={14} /> {keepsake}</strong>}{chapters[room.chapter + 1] && <small><ArrowRight size={12} /> {chapters[room.chapter + 1].title}</small>}</div>}
   </div>;
 }

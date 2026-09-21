@@ -134,14 +134,14 @@ async function playToChapter(a, identities, chapter) {
   throw new Error(`Could not reach chapter ${chapter}`);
 }
 async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label === 'river' ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
       targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, top: r.top, bottom: r.bottom }; }),
       buttons: [...document.querySelectorAll('.di-theater button:not(:disabled)')].map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, width: r.width, height: r.height }; }) }));
     assert.ok(result.scrollHeight <= result.height + 1 && result.scrollWidth <= result.width, `${label} document overflow ${JSON.stringify(result)}`);
     assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height), 'scene/hero target hit area');
-    await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png` });
+    await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png`, animations:'disabled' });
     note(`layout-${label}-${viewport.width}`, result);
   }
 }
@@ -161,10 +161,24 @@ try {
   await b.getByRole('textbox', { name: 'Adventure code or invitation link' }).fill(invite);
   await b.getByRole('button', { name: 'Join adventure by code' }).click();
   await b.getByRole('main', { name: 'Adventure table' }).waitFor();
+  await b.waitForFunction(async () => !!(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room);
   const identities = [await state(a), await state(b)];
   assert.notEqual(identities[0].userId, identities[1].userId);
   assert.ok(identities[1].room.pendingJoins.includes(identities[1].userId));
-  await select(a, 'investigate', 'tracks');
+  const inspectedRevision = (await state(a)).room.revision;
+  await a.locator('[data-scene-target="mara"]').click();
+  await a.getByRole('group', {name:'Moves for this target'}).waitFor();
+  assert.match(await a.locator('.di-inspection-context').textContent(), /Mara|gate/);
+  assert.equal(await a.getByRole('button', {name:'Roll now',exact:true}).count(), 0);
+  assert.equal((await state(a)).room.revision, inspectedRevision);
+  await layout(a, 'inspection');
+  await a.keyboard.press('Escape');
+  assert.equal(await a.evaluate(() => document.activeElement?.getAttribute('data-scene-target')), 'mara');
+  await a.locator('[data-scene-target="tracks"]').click();
+  await a.getByRole('button', {name:/^Investigate:/}).click();
+  await a.getByRole('region', {name:'Action focus',exact:true}).waitFor();
+  assert.match(await a.locator('.di-focus-context').textContent(), /Hoofprints/);
+  note('inspect-first-context-and-keyboard-return');
   const initial = await pointerRelease(a, 800);
   assert.ok(initial.command.action.releaseMs >= 650 && initial.command.action.releaseMs <= 950);
   await syncAll(); await readyNext(a);
@@ -182,16 +196,27 @@ try {
   assert.equal(shared.phase, 'reveal');
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
-  await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
+  await a.locator('.di-round-recap').waitFor();
+    await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
   const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
-  assert.equal(await a.locator('.di-resolution-total').evaluate(node => node.firstChild.textContent), String(actualResult.roll + actualResult.modifier));
-  assert.match(await a.locator('.di-resolution-benefits').textContent(), /progress/);
-  await a.waitForFunction(() => getComputedStyle(document.querySelector('.di-resolution-payoff')).opacity === '1');
+  assert.ok((await a.locator('.di-round-recap').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
+  assert.match(await a.locator('.di-round-recap').textContent(), /progress/);
+  assert.equal(await a.locator('.di-round-recap [data-kind=action]').count(), 2);
+  assert.equal(await a.locator('.di-round-recap').textContent(), await b.locator('.di-round-recap').textContent());
   await a.setViewportSize({ width: 1280, height: 800 });
   await a.screenshot({ path: 'output/playwright/game-feel-desktop-payoff.png' });
   note('real-result-total-and-visible-teamwork', { total: actualResult.roll + actualResult.modifier });
   note('two-player-shared-turn', { turn: sameTurn });
+  await layout(a, 'party-recap');
   await readyNext(a);
+  const beforeJournal = (await state(a)).room;
+  await a.getByRole('button', {name:/Last round/}).click();
+  await a.getByRole('dialog', {name:'Last round',exact:true}).waitFor();
+  assert.equal(await a.locator('.di-round-recap [data-kind=action]').count(), 2);
+  await a.keyboard.press('Escape');
+  assert.equal((await state(a)).room.turn, beforeJournal.turn);
+  assert.equal((await state(a)).room.revision, beforeJournal.revision);
+  note('persistent-journal-does-not-submit');
   await playToChapter(a, identities, 1);
   let room = (await state(a)).room;
   assert.ok(room.enemyIntent?.targetActorId);
@@ -220,8 +245,9 @@ try {
   const duels = clashed.events.filter(event => event.turn === clashed.turn && event.result?.duel);
   assert.equal(duels.length, 2);
   assert.equal(duels[0].result.duel.enemyRoll, duels[1].result.duel.enemyRoll);
-  await a.locator('.di-duel-score').waitFor();
-  await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.dataset.beat === 'payoff');
+  await a.locator('.di-round-recap').waitFor();
+  assert.match(await a.locator('.di-round-recap').textContent(), / vs /);
+  await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
   await a.screenshot({ path: 'output/playwright/battle-clash-desktop.png', animations: 'disabled' });
   note('two-player-focused-opposed-dice', { enemyRoll: duels[0].result.duel.enemyRoll, approaches: duels.map(event => event.result.approach) });
   await readyNext(a); room = (await state(a)).room;
@@ -288,7 +314,6 @@ try {
   for (let wait = 0; records.length === assistedBefore && wait < 50; wait++) await sleep(100);
   assert.equal(records.length, assistedBefore + 1); assert.equal(records.at(-1).command.action.releaseMs, 800);
   await select(b, 'assist', 'boat'); await skip(b); await syncAll(); await readyNext(a);
-  await a.getByRole('checkbox', { name: 'Assist timing' }).uncheck();
   note('assisted-release-same-bonus');
 
   // Authored Spotlight: signed preview is reviewed, then timed at the shared dock.
@@ -301,6 +326,7 @@ try {
   assert.equal(preview.source, 'authored'); assert.ok(preview.id.includes('.'));
   assert.equal((await state(a)).room.players[identities[0].userId].spotlightChapters.length, spentBefore);
   await a.getByRole('button', { name: 'Ready this Spotlight', exact: true }).click();
+  await a.getByRole('checkbox', { name: 'Assist timing' }).uncheck();
   const spotlight = await pointerRelease(a, 800);
   assert.equal(spotlight.command.action.token, 'spotlight'); assert.equal(spotlight.command.action.proposal.id, preview.id);
   await select(b, 'assist', 'boat'); await skip(b); await syncAll();
@@ -426,7 +452,8 @@ try {
     assert.equal((await delta.locator('.di-stage-healing').textContent()).trim(), '+3');
     assert.ok((await delta.textContent()).includes('−2'));
     assert.match(await threat.getAttribute('aria-label'), /The strike lands:.*2 damage/);
-    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
+    await a.locator('.di-round-recap').waitFor();
+    await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
     await a.screenshot({ path: 'output/playwright/integration-render-fixture-results.png' });
     note('snapshot-render-fixture-healing-and-damage', { evidence: 'Client snapshot rendering only' });
 
@@ -435,10 +462,11 @@ try {
     await fixture([fixtureEvent('late-payoff', { kind: 'action', actorId: identities[0].userId, contribution: true,
       at: clock() - 4000, success: false, roll: 3, modifier: 2,
       result: { targetKind: 'scene', targetId: 'ward', progress: 0.5, danger: 0.5 } })]);
-    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
-    assert.match(await a.locator('.di-resolution-benefits').textContent(), /\+0.5 progress.*\+0.5 danger/);
+    await a.locator('.di-round-recap').waitFor();
+    await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
+    assert.match(await a.locator('.di-round-recap').textContent(), /\+0.5 progress.*\+0.5 danger/);
     await a.screenshot({ path: 'output/playwright/game-feel-phone-payoff.png' });
-    const fit = await a.locator('.di-turn-resolution').evaluate(node => {
+    const fit = await a.locator('.di-round-recap').evaluate(node => {
       const box = node.getBoundingClientRect(), stage = node.parentElement.getBoundingClientRect();
       return box.left >= stage.left && box.right <= stage.right && box.top >= stage.top && box.bottom <= stage.bottom;
     });
@@ -446,15 +474,16 @@ try {
     await a.emulateMedia({ reducedMotion: 'reduce' });
     await fixture([fixtureEvent('reduced-now', { kind: 'action', actorId: identities[0].userId, contribution: true, success: true, roll: 12, modifier: 3,
       result: { targetKind: 'scene', targetId: 'ward', executionBonus: 1, progress: 1.5, danger: -0.5 } })]);
-    await a.waitForFunction(() => document.querySelector('.di-turn-resolution')?.getAttribute('data-beat') === 'payoff');
-    assert.equal(await a.locator('.di-resolution-total').evaluate(node => node.firstChild.textContent), '15');
-    assert.equal(await a.locator('.di-resolution-die').evaluate(node => getComputedStyle(node).animationName), 'none');
+    await a.locator('.di-round-recap').waitFor();
+    await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
+    assert.match(await a.locator('.di-round-recap').textContent(), /= 15/);
+    assert.equal(await a.locator('.di-turn-resolution').count(), 0);
     await a.emulateMedia({ reducedMotion: 'no-preference' });
     await fixture([fixtureEvent('guaranteed-protect', { kind: 'action', actorId: identities[0].userId, contribution: true,
       result: { targetKind: 'hero', targetId: renderVictim, protection: 3, progress: 0 } })]);
-    await a.locator('.di-resolution-guaranteed').waitFor();
+    await a.locator('.di-round-recap').waitFor();
     assert.equal(await a.locator('.di-resolution-die').count(), 0);
-    assert.equal(await a.locator('.di-turn-resolution').getAttribute('data-beat'), 'payoff');
+    assert.match(await a.locator('.di-round-recap').textContent(), /protection/);
     note('snapshot-pacing-late-receipt-reduced-motion-and-guaranteed-protect', { evidence: 'Client snapshot rendering only' });
 
     const { chaptersFor } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
@@ -463,12 +492,12 @@ try {
     renderBase.players[identities[0].userId].keepsakes.push(keepsake);
     await fixture([fixtureEvent('chapter-close', { kind: 'action', actorId: identities[0].userId, contribution: true,
       at: clock() - 3000, success: true, roll: 15, modifier: 3, result: { targetKind: 'scene', targetId: 'ward', progress: 1.5 } })]);
-    await a.locator('.di-resolution-chapter').waitFor();
-    assert.match(await a.locator('.di-resolution-chapter').textContent(), /Chapter 3 complete/);
-    assert.ok((await a.locator('.di-resolution-chapter').textContent()).includes(keepsake));
-    assert.ok(await a.locator('.di-turn-resolution').evaluate(node => {
-      const box = node.getBoundingClientRect(), stage = node.parentElement.getBoundingClientRect();
-      return box.top >= stage.top && box.bottom <= stage.bottom;
+    await a.locator('.di-party-keepsake').waitFor();
+    assert.match(await a.locator('.di-party-keepsake').textContent(), /Chapter 3 complete/);
+    assert.ok((await a.locator('.di-party-keepsake').textContent()).includes(keepsake));
+    assert.ok(await a.locator('.di-round-recap').evaluate(node => {
+      const box = node.getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= innerHeight;
     }), 'Chapter reward fits the small phone stage');
     await a.screenshot({ path: 'output/playwright/game-feel-chapter-fixture.png' });
     note('snapshot-chapter-keepsake-and-small-phone-fit', { evidence: 'Client snapshot rendering only' });
@@ -479,6 +508,50 @@ try {
       delete window.__qaRenderRestore;
     });
   }
+  // Four humans: a fresh solo turn admits three late arrivals at its boundary.
+  const four = [];
+  for (const name of ['C', 'D', 'E', 'F']) four.push(await setup(name, { width:390, height:844 }));
+  await four[0].getByRole('button', {name:'Start a friend table',exact:true}).click();
+  await four[0].getByRole('main', {name:'Adventure table'}).waitFor();
+  await four[0].getByRole('button', {name:'Invite',exact:true}).click();
+  const fourInvite = await four[0].getByRole('textbox', {name:'Full invitation link'}).inputValue();
+  await four[0].keyboard.press('Escape');
+  for (const page of four.slice(1)) {
+    await page.getByRole('textbox', {name:'Adventure code or invitation link'}).fill(fourInvite);
+    await page.getByRole('button', {name:'Join adventure by code'}).click();
+    await page.getByRole('main', {name:'Adventure table'}).waitFor();
+    await page.locator('[data-scene-target="mara"]').click();
+    await page.getByRole('group', {name:'Moves for this target'}).waitFor();
+    assert.equal(await page.getByRole('group', {name:'Moves for this target'}).locator('button:enabled').count(), 0);
+    await page.keyboard.press('Escape');
+  }
+  await select(four[0], 'assist', 'mara'); await skip(four[0]); await syncAll();
+  assert.ok((await four[0].locator('.di-round-recap').textContent()).includes('companion'));
+  await readyNext(four[0]);
+  assert.equal((await state(four[0])).room.seats.filter(seat=>seat.kind==='human').length, 4);
+  await four[1].reload(); await four[1].evaluate(value=>{window.__qaOffset=value;},offset);
+  await four[1].getByRole('button', {name:/Last round/}).waitFor();
+  await four[1].getByRole('button', {name:/Last round/}).click();
+  await four[1].getByRole('dialog', {name:'Last round',exact:true}).waitFor();
+  assert.ok((await four[1].locator('.di-round-recap').textContent()).includes('Mara'));
+  await four[1].keyboard.press('Escape');
+  for (const page of four) {
+    await select(page, page === four[0] ? 'investigate' : 'assist', 'mara'); await skip(page);
+    if (page === four[0]) {
+      const receipt = (await state(page)).room.commits[(await state(page)).userId];
+      await page.getByRole('button', {name:'Back to scene',exact:true}).click();
+      await page.locator('[data-scene-target="tracks"]').click();
+      assert.equal(await page.getByRole('group', {name:'Moves for this target'}).locator('button:enabled').count(), 0);
+      assert.deepEqual((await state(page)).room.commits[(await state(page)).userId], receipt);
+      await page.keyboard.press('Escape');
+    }
+  }
+  await syncAll();
+  assert.equal(await four[0].locator('.di-round-recap [data-kind=action]').count(), 4);
+  const fourText = await four[0].locator('.di-round-recap').textContent();
+  for (const page of four.slice(1)) assert.equal(await page.locator('.di-round-recap').textContent(), fourText);
+  await layout(four[0], 'four-player-recap');
+  note('four-player-attribution-late-arrival-reload-and-locked-inspection');
   assert.equal(externalCalls, 0); assert.deepEqual(errors, []);
   note('no-external-calls-or-browser-errors');
 } catch (error) {

@@ -1,4 +1,5 @@
 import { adventureFor, chaptersFor } from './registry';
+import { briarTargetContext } from './briarContext';
 import type { AdventureRoom, PlayerAction, SceneChange, SceneTarget } from './types';
 
 const developments: Record<string, { flag: string; name: string; description: string; tokens: SceneTarget['tokens']; change: SceneChange }> = {
@@ -21,6 +22,8 @@ export function getScene(room: AdventureRoom) {
   if (adventureFor(room).id !== 'briar-glen') {
     const branch = chapter.branch;
     const chosen = branch?.options.find(option => option.id === room.storyBranch);
+    const recentChange = [...room.events].reverse().find(event => event.chapter === room.chapter && event.success !== false && event.change && event.result?.targetId);
+    const changedContext = chapter.targets.find(target => target.id === recentChange?.result?.targetId)?.development?.context;
     const routeArt: Record<string, string> = room.storyBranch === 'recipe' ? { 'tomorrow-return-recipe': 'story-cylinder-blank' }
       : room.storyBranch === 'memory' ? { 'tomorrow-return-memory': 'story-spool-empty' }
       : room.storyBranch === 'vent' ? { 'teacup-return-valve': 'story-sail-torn' }
@@ -29,22 +32,23 @@ export function getScene(room: AdventureRoom) {
       : room.storyBranch === 'spillway' ? { 'orchard-return-wall': 'story-sluice' } : {};
     return { ...chapter,
       intro: room.storyBranch ? `${chapter.catchUp} ${chosen?.consequence ?? branch?.fallbackText}` : chapter.intro,
+      situation: room.storyBranch ? chosen?.consequence ?? branch?.fallbackText ?? chapter.situation : changedContext ?? chapter.situation,
       targets: chapter.targets.map(target => {
         const developed = room.flags.includes(`developed:${target.id}`);
         // Choosing targets remain preparation until the party resolves its route.
         const option = branch?.options.find(item => item.targetId === target.id);
-        if (option && !room.storyBranch) return { ...target, description: `${option.consequence} Place Help here to choose this route. Other tokens prepare the scene without voting.`, changed: false };
+        if (option && !room.storyBranch) return { ...target, context: option.consequence, actionCues: { ...target.actionCues, assist: `Choose: ${option.label}` }, description: `${option.consequence} Place Help here to choose this route. Other tokens prepare the scene without voting.`, changed: false };
         const description = option && room.storyBranch ? `${chosen?.consequence ?? branch?.fallbackText} Help sustain this route; the choice cannot be changed.` : undefined;
         const projected = developed && target.development ? { ...target, ...target.development, changed: true } : target;
-        return { ...projected, ...(description ? { description } : {}), ...(routeArt[target.id] ? { artKey: routeArt[target.id], changed: true } : {}) };
+        return { ...projected, ...(description ? { description, context: description, actionCues: Object.fromEntries(projected.tokens.map(token => [token, 'Support the chosen route'])) } : {}), ...(routeArt[target.id] ? { artKey: routeArt[target.id], changed: true } : {}) };
       }),
     };
   }
   const targets = chapter.targets.map(target => {
     const update = developments[target.id];
-    return update && room.flags.includes(update.flag)
+    return briarTargetContext(update && room.flags.includes(update.flag)
       ? { ...target, name: update.name, description: update.description, tokens: update.tokens, changed: true }
-      : { ...target };
+      : { ...target });
   });
   let intro = chapter.intro;
   let objective = chapter.objective;
@@ -60,7 +64,12 @@ export function getScene(room: AdventureRoom) {
     intro = 'The restored ward shines beneath the bell. Gloamfang falters as its old purpose stirs; the captives need a clear path home.';
     objective = 'Bring the guardian back to its purpose and lead the captives home.';
   }
-  return { ...chapter, intro, objective, targets };
+  const situation = intro !== chapter.intro ? intro.split('. ')[0] + '.' : [
+    'Mara is trapped by the gate. The missing herd left tracks toward the river.',
+    'The pack guards the crossing. A boat and the ferryman may offer a way through.',
+    'The captives huddle behind the altar. The broken ward binds Gloamfang to its curse.',
+  ][room.chapter];
+  return { ...chapter, intro, objective, situation, targets };
 }
 
 export function developScene(room: AdventureRoom, action: PlayerAction): SceneChange | undefined {

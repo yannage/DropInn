@@ -40,6 +40,78 @@ Arrival: **“Follow the trees and reach the stranded treehouse.”** Highlight 
 
 Success: reach the trees with the ladder prepared. Mixed: reach them after fruit spills along the trail. Setback: the trees pause beside a low bank, providing a climbable route even without the ladder. Every ending reveals dusty roots and Nella's map. Proposed fact: `orchard-ladder-ready` can acknowledge preparation but never gates rescue.
 
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "The orchard has left its wall behind. A child is safely in its moving treehouse but needs help down.",
+  "targets": {
+    "orchard-root-trail": {
+      "context": "The trees left damp footprints in dry soil. Follow them to find the moving treehouse.",
+      "actionCues": {
+        "investigate": "follow moisture marks",
+        "assist": "clear path"
+      },
+      "development": {
+        "context": "Marked dry footprints. Guide villagers.",
+        "actionCues": {
+          "investigate": "guide villagers",
+          "assist": "guide villagers"
+        }
+      }
+    },
+    "orchard-nella": {
+      "context": "Nella knows the orchard’s watering routes. Her memory could help locate the trees.",
+      "actionCues": {
+        "influence": "organize search",
+        "investigate": "ask about watering",
+        "assist": "carry basket"
+      },
+      "development": {
+        "context": "Nella holding old water map. Compare changed stream.",
+        "actionCues": {
+          "influence": "compare changed stream",
+          "investigate": "compare changed stream",
+          "assist": "compare changed stream"
+        }
+      }
+    },
+    "orchard-gate": {
+      "context": "Roots jammed the orchard gate. Opening a passage could get rescue equipment through.",
+      "actionCues": {
+        "fight": "open jammed gate",
+        "investigate": "find root gap",
+        "assist": "brace"
+      },
+      "development": {
+        "context": "Wide passage. Move rescue equipment.",
+        "actionCues": {
+          "investigate": "move rescue equipment",
+          "assist": "move rescue equipment"
+        }
+      }
+    },
+    "orchard-ladder": {
+      "context": "The harvest ladder is stuck in the shed. Make it ready to reach the treehouse.",
+      "actionCues": {
+        "fight": "free it from shed",
+        "investigate": "check joints",
+        "assist": "lash rungs"
+      },
+      "development": {
+        "context": "Braced ladder on wheels. Follow treehouse.",
+        "actionCues": {
+          "investigate": "follow treehouse",
+          "assist": "follow treehouse"
+        }
+      }
+    }
+  }
+}
+```
+
 ## Chapter 2 — Where the Water Went
 
 ID: `orchard-dry-stream` · Beats: Search/Find/Take · Combat against a territorial bramble guardian defending the dry streambed. Its announced strike targets a hero; the trees and child are never surprise damage targets.
@@ -54,6 +126,80 @@ Arrival: **“Reach the treehouse and restore a path for water.”** Highlight t
 | `orchard-bramble` / Bramble guardian | Fight: interrupt; Influence: soothe; Investigate: find seed signals; Help: shield others | Thorns lowered around a damp patch → maintain safe passage |
 
 Success: child safe, guardian calmed and routes understood. Mixed: everyone reaches the bank; the guardian stays wary. Setback: Elder Apple kneels to release the child and the sluice bursts enough to expose its channels. No outcome holds the child hostage to a moral choice. All routes reveal that the stream can bypass the mill through the wall or reclaim the mill's channel.
+
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "The trees stopped beside a dry stream. Water still runs through the ornamental mill uphill.",
+  "targets": {
+    "orchard-treehouse": {
+      "context": "A child is safe in the treehouse but needs help down. Guide a careful descent.",
+      "actionCues": {
+        "influence": "guide the child",
+        "assist": "steady descent"
+      },
+      "development": {
+        "context": "Child on the bank, empty treehouse. Use platform to signal trees.",
+        "actionCues": {
+          "influence": "use platform to signal trees",
+          "assist": "use platform to signal trees"
+        }
+      }
+    },
+    "orchard-elder": {
+      "context": "Elder Apple’s roots are thirsty. Listening and examining them could explain the orchard’s journey.",
+      "actionCues": {
+        "influence": "listen",
+        "investigate": "inspect thirsty roots",
+        "assist": "wet root cloth"
+      },
+      "development": {
+        "context": "Relaxed branches showing water marks. Guide the migration.",
+        "actionCues": {
+          "influence": "guide the migration",
+          "investigate": "guide the migration",
+          "assist": "guide the migration"
+        }
+      }
+    },
+    "orchard-sluice": {
+      "context": "The stream was diverted uphill. Trace the channels to find ways to restore water.",
+      "actionCues": {
+        "fight": "move debris",
+        "investigate": "trace channels",
+        "assist": "test gate"
+      },
+      "development": {
+        "context": "Both water routes outlined. Compare their costs.",
+        "actionCues": {
+          "investigate": "compare their costs",
+          "assist": "compare their costs"
+        }
+      }
+    },
+    "orchard-bramble": {
+      "context": "The bramble guardian lashes out near the dry stream. Calm or interrupt it to protect the party.",
+      "actionCues": {
+        "fight": "interrupt",
+        "influence": "soothe",
+        "investigate": "find seed signals",
+        "assist": "shield others"
+      },
+      "development": {
+        "context": "Thorns lowered around a damp patch. Maintain safe passage.",
+        "actionCues": {
+          "influence": "maintain safe passage",
+          "investigate": "maintain safe passage",
+          "assist": "maintain safe passage"
+        }
+      }
+    }
+  }
+}
+```
 
 ## Chapter 3 — A Place to Put Down Roots
 
@@ -73,6 +219,78 @@ Cost options: **“Open the wall; share the old private grove”** or **“Retir
 Success: trees settle and a shared harvest begins; either open grove or retired-mill gathering space appears. Mixed: only the near trees settle this season; villagers build a watering rota for those further away. Setback: trees settle at the public riverside instead, and villagers carry baskets along a new path. All endings preserve the route's actual construction/loss, and all show reciprocal care rather than forcing the trees home.
 
 Closing copy: “The baskets return. This year, everyone knows who watered the trees.” Keepsake: a small carved apple seed, using standard reward eligibility. Truthful recap example: “You steadied the ladder while the treehouse passenger climbed down.”
+
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "Everyone is safe, but the roots still need water. Choose what the village will change to welcome them.",
+  "targets": {
+    "orchard-return-wall": {
+      "context": "Opening the orchard wall would let water and neighbors through. The private garden would become shared.",
+      "actionCues": {
+        "fight": "lift stones",
+        "investigate": "mark spillway",
+        "assist": "brace path"
+      },
+      "development": {
+        "context": "Open water corridor if chosen, intact wall otherwise. Stabilize chosen route without reversing cost.",
+        "actionCues": {
+          "investigate": "stabilize chosen route without reversing cost",
+          "assist": "stabilize chosen route without reversing cost"
+        }
+      }
+    },
+    "orchard-return-wheel": {
+      "context": "Redirecting the mill’s water could feed the roots. The ornamental wheel would have to stop.",
+      "actionCues": {
+        "fight": "release brake",
+        "investigate": "redirect channel",
+        "assist": "support mechanism"
+      },
+      "development": {
+        "context": "Retired decorative wheel if chosen, turning wheel otherwise. Regulate water safely.",
+        "actionCues": {
+          "investigate": "regulate water safely",
+          "assist": "regulate water safely"
+        }
+      }
+    },
+    "orchard-return-roots": {
+      "context": "The trees are waiting for water and a place to settle. Help guide their roots home.",
+      "actionCues": {
+        "influence": "call trees onward",
+        "investigate": "mark wet ground",
+        "assist": "guide seedlings"
+      },
+      "development": {
+        "context": "Trees settled beside water. Tend new grove.",
+        "actionCues": {
+          "influence": "tend new grove",
+          "investigate": "tend new grove",
+          "assist": "tend new grove"
+        }
+      }
+    },
+    "orchard-return-baskets": {
+      "context": "The harvest can welcome the orchard’s new neighbors. Help carry and share it.",
+      "actionCues": {
+        "influence": "organize sharing",
+        "assist": "carry fruit"
+      },
+      "development": {
+        "context": "Baskets distributed among neighbors. Finish welcoming feast.",
+        "actionCues": {
+          "influence": "finish welcoming feast",
+          "assist": "finish welcoming feast"
+        }
+      }
+    }
+  }
+}
+```
 
 ## Signature mechanic, art and verification
 

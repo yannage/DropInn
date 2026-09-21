@@ -42,6 +42,78 @@ The ship fills the upper scene; four foreground objects stay reachable. Pressure
 
 Success: board with a sound line and intact parcels. Mixed: everyone boards; parcels spill. Setback: the dock net catches the party and is hauled aboard; the original mooring is lost. All routes show the lifeboat diagram and the sail's “emergency vent” patch before chapter 2. Proposed fact: `teacup-line-sound` records the cleaner boarding, not permission to continue.
 
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "Pella's ship is drifting with guests aboard. Secure a way onto the deck.",
+  "targets": {
+    "teacup-mooring": {
+      "context": "The last mooring is fraying. A secure line could get everyone aboard.",
+      "actionCues": {
+        "fight": "haul",
+        "investigate": "locate sound anchor",
+        "assist": "brace"
+      },
+      "development": {
+        "context": "Secured boarding line. Guide passengers across.",
+        "actionCues": {
+          "investigate": "guide passengers across",
+          "assist": "guide passengers across"
+        }
+      }
+    },
+    "teacup-pella": {
+      "context": "Pella is tangled in her coat as her ship drifts away. Help her direct the rescue.",
+      "actionCues": {
+        "influence": "focus her orders",
+        "investigate": "ask about controls",
+        "assist": "untangle coat"
+      },
+      "development": {
+        "context": "Pella standing at rail. Coordinate boarding.",
+        "actionCues": {
+          "influence": "coordinate boarding",
+          "investigate": "coordinate boarding",
+          "assist": "coordinate boarding"
+        }
+      }
+    },
+    "teacup-parcels": {
+      "context": "Parcels slide across the deck. Securing them could uncover emergency instructions.",
+      "actionCues": {
+        "fight": "wedge crates",
+        "investigate": "read emergency markings",
+        "assist": "secure cargo"
+      },
+      "development": {
+        "context": "Tied stack exposes lifeboat diagram. Study escape route.",
+        "actionCues": {
+          "investigate": "study escape route",
+          "assist": "study escape route"
+        }
+      }
+    },
+    "teacup-guests": {
+      "context": "The guests are slipping as the deck tilts. Help them reach a safety line.",
+      "actionCues": {
+        "influence": "calm",
+        "assist": "catch a slipping guest"
+      },
+      "development": {
+        "context": "Guests holding safety line. Organize evacuation.",
+        "actionCues": {
+          "influence": "organize evacuation",
+          "assist": "organize evacuation"
+        }
+      }
+    }
+  }
+}
+```
+
 ## Chapter 2 — Above the Cloudline
 
 ID: `teacup-cloudline` · Beats: Search/Find/Take · Combat through a clockwork maintenance gull striking exposed heroes; existing hero intent and Protect apply.
@@ -56,6 +128,81 @@ Arrival: **“Steady the deck and restart the kettle engine.”** Highlight the 
 | `teacup-lifeboat` / Hanging lifeboat | Fight: release winch; Investigate: inspect harnesses; Help: secure guests | Lifeboat level with deck → prepare evacuation |
 
 Success: engine stable and both routes prepared. Mixed: the engine coughs, but both routes remain available. Setback: the engine gives one final burst; Pella points out both escape options directly. All outcomes expose the same cost before a choice is accepted: **“Save the ship; tear the sail”** or **“Save the sail; leave the ship.”** No guest is a hidden price. Proposed facts: `teacup-engine-steady`, `teacup-route`.
+
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "The guests are aboard, but the ship cannot descend. Its safety gull mistakes the rescue for damage.",
+  "targets": {
+    "teacup-engine": {
+      "context": "The kettle engine has stalled. Restoring its steam could steady the ship.",
+      "actionCues": {
+        "fight": "loosen valve",
+        "investigate": "trace steam",
+        "assist": "repair"
+      },
+      "development": {
+        "context": "Glowing kettle. Regulate descent.",
+        "actionCues": {
+          "investigate": "regulate descent",
+          "assist": "regulate descent"
+        }
+      }
+    },
+    "teacup-sail": {
+      "context": "The festival sail traps the airship above the clouds. Its seams may offer a way down.",
+      "actionCues": {
+        "investigate": "find vent seam",
+        "influence": "coordinate handlers",
+        "assist": "tension ropes"
+      },
+      "development": {
+        "context": "Marked vent seam. Prepare the descent option.",
+        "actionCues": {
+          "investigate": "prepare the descent option",
+          "influence": "prepare the descent option",
+          "assist": "prepare the descent option"
+        }
+      }
+    },
+    "teacup-gull": {
+      "context": "The safety gull mistakes your rescue for damage. Interrupt it or find its maintenance command.",
+      "actionCues": {
+        "fight": "interrupt",
+        "influence": "mimic maintenance call",
+        "investigate": "identify command",
+        "assist": "distract"
+      },
+      "development": {
+        "context": "Lowered beak and lit service symbol. Keep it occupied.",
+        "actionCues": {
+          "influence": "keep it occupied",
+          "investigate": "keep it occupied",
+          "assist": "keep it occupied"
+        }
+      }
+    },
+    "teacup-lifeboat": {
+      "context": "The lifeboat hangs out of reach. Lowering it could prepare an escape.",
+      "actionCues": {
+        "fight": "release winch",
+        "investigate": "inspect harnesses",
+        "assist": "secure guests"
+      },
+      "development": {
+        "context": "Lifeboat level with deck. Prepare evacuation.",
+        "actionCues": {
+          "investigate": "prepare evacuation",
+          "assist": "prepare evacuation"
+        }
+      }
+    }
+  }
+}
+```
 
 ## Chapter 3 — Something Worth Bringing Home
 
@@ -75,6 +222,78 @@ Use the baseline's proposed one-turn branch resolution; branch-directed Help at 
 Success: precise arrival; Pella opens a rescue service from the patched ship or salvaged-sail shelter. Mixed: everyone arrives, but scattered parcels become the community's next repair job. Setback: guests land in the dock's soft emergency nets; transport is lost, but neighbors build a temporary shelter together. Branch loss remains true in every ending.
 
 Closing copy: “Pella hangs a new sign: People first. Parcels when possible.” Keepsake: Pella's dented brass badge, under normal contribution eligibility. Recap example, only if supported by events: “You held the boarding line while the guests crossed.”
+
+### On-screen context
+
+Authored presentation; describes opportunities, not new completion requirements.
+
+```scene-context
+{
+  "situation": "The ship and its treasured sail cannot both survive intact. The prepared route shows how everyone can reach the dock.",
+  "targets": {
+    "teacup-return-valve": {
+      "context": "This vent can bring the ship down, but opening it will tear the treasured sail.",
+      "actionCues": {
+        "fight": "turn",
+        "investigate": "match pressure",
+        "assist": "brace"
+      },
+      "development": {
+        "context": "Released vent and torn sail on ship route. Steady abandoned ship while boarding.",
+        "actionCues": {
+          "investigate": "steady abandoned ship while boarding",
+          "assist": "steady abandoned ship while boarding"
+        }
+      }
+    },
+    "teacup-return-boat": {
+      "context": "The lifeboat can carry everyone and the sail home, leaving the airship behind.",
+      "actionCues": {
+        "fight": "winch",
+        "investigate": "balance load",
+        "assist": "transfer guests"
+      },
+      "development": {
+        "context": "Lifeboat occupied on evacuation route, safety platform on ship route. Guide final passengers.",
+        "actionCues": {
+          "investigate": "guide final passengers",
+          "assist": "guide final passengers"
+        }
+      }
+    },
+    "teacup-return-guests": {
+      "context": "The passengers need a steady route home. Help the line keep moving.",
+      "actionCues": {
+        "influence": "coordinate",
+        "assist": "support"
+      },
+      "development": {
+        "context": "Guests arriving on dock. Clear landing area.",
+        "actionCues": {
+          "influence": "clear landing area",
+          "assist": "clear landing area"
+        }
+      }
+    },
+    "teacup-return-beacon": {
+      "context": "The dock is difficult to see. A clear beacon could guide the last approach.",
+      "actionCues": {
+        "investigate": "find alignment",
+        "influence": "signal dock crew",
+        "assist": "hold light"
+      },
+      "development": {
+        "context": "Bright approach path. Guide final descent.",
+        "actionCues": {
+          "investigate": "guide final descent",
+          "influence": "guide final descent",
+          "assist": "guide final descent"
+        }
+      }
+    }
+  }
+}
+```
 
 ## Signature mechanic, art and verification
 

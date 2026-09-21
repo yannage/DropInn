@@ -1,4 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import { useReducedMotion } from 'framer-motion';
+import { latestRound, roundCallouts } from '../../lib/dropinn/roundSummary';
+import { RoundRecap } from './RoundRecap';
+import { InspectionBubble } from './InspectionBubble';
 import { StoryScroll, type StoryScrollMode } from './StoryScroll';
 import { ArrowLeft, Check, Clock3, Copy, Dices, Flame, Heart, Info, MessageCircle, Shield, Sparkles, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
@@ -23,15 +27,15 @@ import { FocusedActionStage, FocusedActionChoices } from './FocusedAction';
 import { approachDetail, approachOption, approachOptions, isDuel, turnInsight } from '../../lib/dropinn/approaches';
 import './scene-adventure.css';
 import './game-feel.css';
+import './shared-story.css';
 
 const TOKENS: { kind: IllustratedToken; label: string }[] = [
   { kind: 'fight', label: 'Fight' }, { kind: 'influence', label: 'Influence' },
   { kind: 'investigate', label: 'Investigate' }, { kind: 'assist', label: 'Help' },
 ];
-const objectives = ['Help Mara. Find the missing herd.', 'Cross before the shadow pack strikes.', 'Free the herd. Restore the ward.'];
 const verbs: Record<string, string> = { mara: 'Help Mara', tracks: 'Follow the tracks', gate: 'Clear the gate', herd: 'Calm the herd', pack: 'Face the pack', reeds: 'Find a hidden path', boat: 'Free the boat', ferryman: 'Ask the ferryman', gloamfang: 'Face Gloamfang', ward: 'Restore the ward', bell: 'Ring the bell', captives: 'Free the captives' };
 const effects: Record<IllustratedToken, string> = { fight: 'Progress · block 2', influence: 'Progress · ease danger', investigate: 'Progress · next-turn insight', assist: 'Progress · class support' };
-type Drawer = 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | 'choice' | null;
+type Drawer = 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | 'choice' | 'round' | null;
 
 export function SceneDrawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -80,6 +84,17 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   useEffect(() => {setStoryMode('collapsed');},[room.id]);
   const [token, setToken] = useState<IllustratedToken>('investigate');
   const [selection, setSelection] = useState<PlayerAction | null>(null);
+  const [inspectedId, setInspectedId] = useState<string | null>(null);
+  const [armedToken, setArmedToken] = useState(false);
+  const [focusDismissed, setFocusDismissed] = useState(false);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const inspected = scene.targets.find(item => item.id === inspectedId);
+  const reducedMotion = !!useReducedMotion();
+  const lastRound = useMemo(() => latestRound(room), [room.id, room.events, room.outcomes, room.turn, room.chapter, room.phase]);
+  const partyPayoff = room.phase === 'reveal' && (!lastRound || reducedMotion || now - lastRound.at >= 1100);
+  const callouts = lastRound ? roundCallouts(lastRound) : [];
+  const calloutIndex = lastRound ? Math.floor((now - lastRound.at - 1100) / 1200) : -1;
+  const callout = room.phase === 'reveal' && partyPayoff && calloutIndex >= 0 ? callouts[calloutIndex] : undefined;
   const [holding, setHolding] = useState(false);
   const [idea, setIdea] = useState('');
   const [spotlightTarget, setSpotlightTarget] = useState(scene.targets[0]?.id ?? '');
@@ -94,10 +109,11 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const [threatPath, setThreatPath] = useState<{ width: number; height: number; path: string } | null>(null);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 100); return () => window.clearInterval(timer); }, []);
   useEffect(() => {
-    setSelection(null); setHolding(false); setDrag(null); gesture.current = null;
+    setSelection(null); setInspectedId(null); setArmedToken(false); setFocusDismissed(false); setHolding(false); setDrag(null); gesture.current = null;
     setIdea(''); setSpotlightTarget(scene.targets[0]?.id ?? ''); clearProposal(); setDrawer(current => current === 'spotlight' || current === 'choice' ? null : current);
     setHint('Place a token on something in the scene.');
   }, [room.turn, clearProposal]);
+  useEffect(() => { setInspectedId(null); setArmedToken(false); }, [room.phase]);
   useEffect(() => { if (drawer === 'chat') setSeenMessages(messages.length); }, [drawer, messages.length]);
   const pending = pendingMove?.turn === room.turn ? pendingMove : null;
   const canAct = !!self && !self.leaving && !joining && room.status === 'active' && room.phase === 'choosing' && !committed && now < room.deadline;
@@ -116,7 +132,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     };
     update(); const observer = new ResizeObserver(update); observer.observe(node);
     return () => observer.disconnect();
-  }, [room.chapter, intent?.targetActorId, intent?.sourceId, intent?.turn]);
+  }, [room.chapter, intent?.targetActorId, intent?.sourceId, intent?.turn, partyPayoff, inspectedId, selection?.targetId]);
   const locked = !canAct || loading || holding || !!pending;
   const target = scene.targets.find(target => target.id === selection?.targetId);
   const protect = selection?.targetKind === 'hero';
@@ -136,14 +152,23 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     return type === 'hero' ? kind === 'assist' && (intent?.targetActorId === id || (room.mechanicsVersion === 1 && room.seats.some(member => member.actorId === id && !member.leaving && member.hp < member.character.maxHp))) : !!scene.targets.find(target => target.id === id)?.tokens.includes(kind);
   };
   const choose = (kind: IllustratedToken, id: string, type: 'scene' | 'hero' = 'scene') => {
-    if (locked) { if (!canAct) { if (type === 'hero') setDrawer('party'); else if (!holding && !drag) setStoryMode('compact'); } return; }
+    if (locked) return;
     if (!canPlace(kind, id, type)) { setHint(type === 'hero' ? 'Use Help to protect the threatened hero.' : 'Try a highlighted object, or choose another token.'); return; }
     const action: PlayerAction = { token: kind, targetId: id, targetKind: type };
     if (type === 'hero') { if (intent?.targetActorId !== id) action.approach = 'mend'; }
     else action.approach = approachOptions(room, action)[0]?.id;
-    setToken(kind); setSelection(action); clearProposal();
+    setToken(kind); setInspectedId(null); setArmedToken(false); setFocusDismissed(false); setSelection(action); clearProposal();
     if (branchOpen && kind === 'assist' && type === 'scene' && scene.branch?.options.some(option => option.targetId === id)) setDrawer('choice');
     setHint('Hold the die, then release in the bright zone.'); playTableSound('place');
+  };
+  const inspect = (id: string) => {
+    if (holding || drag) return;
+    setInspectedId(id); setArmedToken(false);
+    if (!locked) { setSelection(null); clearProposal(); }
+  };
+  const dismissInspection = (restore = false) => {
+    const id = inspectedId; setInspectedId(null); setArmedToken(false);
+    if (restore) requestAnimationFrame(() => Array.from(stage.current?.querySelectorAll<HTMLElement>('[data-scene-target]') ?? []).find(node => node.dataset.sceneTarget === id)?.focus());
   };
   const hit = (x: number, y: number) => {
     const node = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-scene-target]');
@@ -181,14 +206,15 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   };
   const branchOption = branchOpen && selection?.token === 'assist' ? scene.branch?.options.find(option => option.targetId === selection.targetId && selection.targetKind !== 'hero') : undefined;
   const focusAction = selection ?? pending?.action ?? room.commits[userId] ?? (ownResult?.result?.approach && ownResult.result.token && ownResult.result.targetId ? { token: ownResult.result.token, targetId: ownResult.result.targetId, targetKind: ownResult.result.targetKind, approach: ownResult.result.approach } : null);
-  const focus = !!self && room.mechanicsVersion === 1 && !!focusAction && (focusAction.approach !== undefined || focusAction.targetKind === 'hero');
+  const focus = !focusDismissed && !inspected && !partyPayoff && !!self && room.mechanicsVersion === 1 && !!focusAction && (focusAction.approach !== undefined || focusAction.targetKind === 'hero');
   const focusedOption = focusAction ? approachOption(room, focusAction) : undefined;
   const focusDescription = focusAction && self ? describeAction(self.character.classKey, focusAction.token, focusAction.targetId, room) : null;
   const focusModifier = self && focusDescription && focusAction ? self.character.traits[focusDescription.trait] + rollSupport(room, userId, focusAction).total + (focusedOption?.modifier ?? 0) : 0;
   const backToScene = () => {
-    if (locked) return;
-    const id = selection?.targetId;
-    setSelection(null);
+    if (holding || drag) return;
+    const id = focusAction?.targetId;
+    if (!locked) setSelection(null);
+    setFocusDismissed(true); setInspectedId(null); setArmedToken(false);
     requestAnimationFrame(() => { Array.from(stage.current?.querySelectorAll<HTMLElement>('[data-scene-target]') ?? []).find(node => node.dataset.sceneTarget === id)?.focus(); });
   };
   useEffect(() => {
@@ -201,14 +227,14 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const handEffects: Record<IllustratedToken, string> = { fight: scene.combat ? 'Push · cover' : 'Clear the way', influence: 'Ease danger', investigate: 'Set up next turn', assist: downed ? 'Still in the fight' : 'Support · protect' };
   const activeSupport = [turnInsight(room) ? `+${turnInsight(room)} insight` : '', room.flags.includes(`opening:${room.turn}`) ? '+1 opening' : '', support?.teamwork ? '+1 teamwork' : ''].filter(Boolean).join(' · ');
   const compactEffect = branchOption ? 'Your route vote counts even if the roll misses.' : protect ? 'Block 2 · great release blocks 3' : selection?.token === 'spotlight' ? `On success: ${selection.proposal?.effect}` : selection ? `${selection.token === 'assist' ? helpEffect : selection.token === 'fight' && !scene.combat ? 'Progress · clear the way' : effects[selection.token as IllustratedToken]}${support?.total ? ` · +${support.total}` : ''}` : branchOpen ? 'Place Help on a route to review its cost.' : hint;
-  const openSpotlight = () => { if (holding || pending || !canAct || downed || spent) return; setDrawer('spotlight'); setSpotlightTarget(target?.id ?? scene.targets[0].id); setIdea(''); clearProposal(); };
+  const openSpotlight = () => { if (holding || pending || !canAct || downed || spent) return; setDrawer('spotlight'); setSpotlightTarget(inspected?.id ?? target?.id ?? scene.targets[0].id); setIdea(''); clearProposal(); };
   const closeDrawer = () => { setDrawer(null); if (drawer === 'spotlight') { clearProposal(); setIdea(''); } };
   const chooseSpotlight = () => {
     if (!availableProposal?.supported || !canAct) return;
-    setSelection({ token: 'spotlight', targetKind: 'scene', targetId: availableProposal.targetId, proposal: availableProposal }); setDrawer(null);
+    setInspectedId(null); setArmedToken(false); setSelection({ token: 'spotlight', targetKind: 'scene', targetId: availableProposal.targetId, proposal: availableProposal }); setDrawer(null);
   };
   const share = async () => { try { await navigator.clipboard.writeText(invitationUrl(room, window.location.origin)); setCopied(true); } catch { setCopied(false); } };
-  return <main className="di-theater" aria-label="Adventure table" onKeyDown={event => { if (event.key === 'Escape' && focus && !drawer && storyMode === 'collapsed') { event.preventDefault(); backToScene(); } }}>
+  return <main className={`di-theater ${bubbleVisible ? 'has-inspection-bubble' : ''}`} aria-label="Adventure table" onKeyDown={event => { if (event.key === 'Escape' && !drawer && storyMode === 'collapsed') { if (inspected) { event.preventDefault(); dismissInspection(true); } else if (focus) { event.preventDefault(); backToScene(); } } }}>
     <header className="di-stage-header">
       <div className="di-stage-header-left">
       <button aria-label={room.status === 'completed' ? 'Back to the inn' : 'Leave & save'} disabled={loading || holding} onClick={() => void leaveRoom()}><ArrowLeft size={20} /><span>Leave</span></button>
@@ -219,8 +245,8 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       </div>
       <span className={`di-stage-clock ${seconds <= 8 && room.phase === 'choosing' ? 'urgent' : ''}`} role="timer" aria-label={room.status !== 'active' ? 'Table paused' : `${Math.ceil(seconds)} seconds ${room.phase === 'reveal' ? 'until next turn' : 'to choose'}`}><small>Turn {room.chapterRound}</small><Clock3 size={16} />{room.status === 'active' ? Math.ceil(seconds) : '—'}</span>
     </header>
-    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : adventureFor(room).id === 'briar-glen' ? objectives[room.chapter] : scene.objective}</strong><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
-    <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''} ${holding ? 'is-charging' : ''} ${focus ? 'is-focused' : ''}`} ref={stage}>
+    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : scene.objective}</strong><p className="di-scene-situation">{scene.situation ?? scene.catchUp ?? scene.intro}</p><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
+    <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''} ${holding ? 'is-charging' : ''} ${focus ? 'is-focused' : ''}`} ref={stage} onClick={event => { if (inspected && !(event.target as HTMLElement).closest('[data-scene-target],button')) dismissInspection(); }}>
       <SceneStageArt chapter={room.chapter} art={scene.art} />
       {focus && focusAction && self ? <FocusedActionStage room={room} action={focusAction} actor={self} modifier={focusModifier} result={room.phase === 'reveal' ? ownResult : undefined} /> : <>
       {threatPath && <svg className="di-threat-link" aria-hidden="true" viewBox={`0 0 ${threatPath.width} ${threatPath.height}`}><defs><marker id="stage-threat-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b44e35" /></marker></defs><path d={threatPath.path} fill="none" stroke="#b44e35" strokeWidth="2.5" strokeDasharray="5 6" markerEnd="url(#stage-threat-arrow)" /></svg>}
@@ -250,29 +276,34 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
           const targetResults = results.filter(event => event.result?.targetKind !== 'hero' && event.result?.targetId === item.id && event.result?.token);
           const event = targetResults.find(event => event.result?.changed || event.success) ?? targetResults[0];
           const source = intent?.sourceId === item.id;
-          return <button type="button" key={item.id} data-scene-target={item.id} data-target-kind="scene" className={`di-scene-object object-${index} ${can && canAct ? 'is-compatible' : ''} ${selected ? 'is-selected' : ''} ${drag?.over === item.id ? 'is-over' : ''} ${item.changed ? 'is-developed' : ''} ${source ? 'is-enemy' : ''} ${room.phase === 'reveal' && event ? 'has-result' : ''}`}
-            aria-label={`${item.name}${item.changed ? ', changed' : ''}${can && canAct ? `, place ${TOKENS.find(item => item.kind === token)?.label}` : ''}`} aria-pressed={selected} onClick={() => choose(token, item.id)}>
+          return <button type="button" key={item.id} data-scene-target={item.id} data-target-kind="scene" className={`di-scene-object object-${index} ${can && canAct && armedToken ? 'is-compatible' : ''} ${selected || inspectedId === item.id ? 'is-selected' : ''} ${drag?.over === item.id ? 'is-over' : ''} ${item.changed ? 'is-developed' : ''} ${source ? 'is-enemy' : ''} ${room.phase === 'reveal' && event ? 'has-result' : ''}`}
+            aria-label={`${item.name}${item.changed ? ', changed' : ''}${can && canAct && armedToken ? `, place ${TOKENS.find(item => item.kind === token)?.label}` : ', inspect'}`} aria-pressed={selected || inspectedId === item.id} aria-expanded={inspectedId === item.id} onClick={() => armedToken && can && !locked ? choose(token, item.id) : inspect(item.id)}>
             <TargetArtwork target={item} pose={source ? room.phase === 'reveal' ? 'reaction' : 'windup' : 'idle'} />
             <span className="di-object-label">{!selection && room.chapterRound === 1 && item.id === scene.firstTarget && <span aria-label="Suggested first target">✦ </span>}{item.name}{item.changed && <Check size={12} />}</span>
-            {selected && <span className="di-object-coin">{selection.token === 'spotlight' ? <Sparkles /> : <TokenArtwork token={selection.token} />}</span>}
+            {selected && selection && <span className="di-object-coin">{selection.token === 'spotlight' ? <Sparkles /> : <TokenArtwork token={selection.token} />}</span>}
             <span className="di-object-teammates">{teammates.map(mate => <span key={mate.userId} title={mate.name}>{mate.token === 'spotlight' ? <Sparkles size={12} /> : <TokenArtwork token={mate.token as IllustratedToken} />}</span>)}</span>
             {teamwork && <span className="di-object-teamwork">+1 teamwork</span>}
+            {inspectedId === item.id && <InspectionBubble text={item.context ?? item.description} onVisible={setBubbleVisible} />}
+            {callout?.targetId === item.id && <span className="di-story-callout" key={`${lastRound?.id}:${callout.targetId}`} aria-hidden="true">{callout.text}</span>}
             {room.phase === 'reveal' && event && <span className="di-object-result" key={event.id}>{event.success ? <Check size={18} /> : '!'}</span>}
           </button>;
         })}
       </div>
       </>}
-      {room.phase === 'reveal' && ownResult && room.status !== 'completed' && <TurnResolution key={ownResult.id} event={ownResult} room={room} now={now} userId={userId} />}
+      {room.phase === 'reveal' && !partyPayoff && ownResult && room.status !== 'completed' && <TurnResolution key={ownResult.id} event={ownResult} room={room} now={now} userId={userId} announce={false} />}
       {joining && <div className="di-stage-notice" role="status"><Users size={20} />Joining next turn. Explore the scene.</div>}
       {!self && !joining && room.status !== 'completed' && <div className="di-stage-notice"><button disabled={loading} onClick={() => void joinRoom(room.code)}>Rejoin the adventure</button></div>}
       {room.status === 'completed' && <div className="di-stage-finale"><Sparkles size={30} /><h2>A story worth telling.</h2>{closing && <><TargetArtwork target={{ id: "closing", artKey: closing.artKey }} /><strong>{closing.caption}</strong></>}<p>{participant?.actions ?? 0} contributions · +{participant?.xp ?? 0} XP</p><button onClick={() => void leaveRoom()} disabled={loading}>Collect your recap</button></div>}
     </div>
-    <section className="di-scene-dock" aria-label="Your move" data-phase={room.phase} data-holding={holding}>
+    <section className={`di-scene-dock ${inspected ? 'is-inspecting' : ''} ${selection || focus ? 'has-action' : ''}`} aria-label="Your move" data-phase={room.phase} data-holding={holding}>
+      {room.phase === 'reveal' && lastRound ? <><RoundRecap key={lastRound.id} summary={lastRound} announce />{room.outcomes.some(outcome => outcome.chapter === room.chapter) && <div className="di-party-keepsake">Chapter {room.chapter + 1} complete{participant?.keepsakes.includes(scene.keepsake) && <strong> · {scene.keepsake}</strong>}</div>}</> : <>
+      {lastRound && <button className="di-last-round" onClick={() => setDrawer('round')} disabled={holding || !!drag}><strong>Last round · Ch. {lastRound.chapter + 1}</strong><span>{lastRound.headline}</span><span aria-hidden="true">↗</span></button>}
+      {inspected && <div className="di-inspection-context"><div><strong>{inspected.name}</strong><p>{inspected.context ?? inspected.description}</p></div><button aria-label="Close inspection" onClick={() => dismissInspection(true)}><X size={18}/></button></div>}
       <div className="di-dock-beat"><span>{phaseLabel}</span><span>{room.phase === 'choosing' && canAct ? activeSupport || 'Choose → place → release' : room.phase === 'reveal' ? 'Results saved in Story' : 'Your party moves together'}</span></div>
-      {focus && focusAction ? <FocusedActionChoices room={room} action={focusAction} locked={locked} onBack={backToScene} onChange={action => { if (!locked) { setSelection(action); playTableSound('pick'); } }} /> : <div className="di-scene-hand" role="group" aria-label="Action tokens">
+      {inspected ? <div className="di-context-moves" role="group" aria-label="Moves for this target">{TOKENS.filter(item => inspected.tokens.includes(item.kind)).map(item => <button key={item.kind} aria-label={`${item.label}: ${inspected.actionCues?.[item.kind] ?? inspected.name}`} disabled={locked || !canPlace(item.kind, inspected.id)} onClick={() => choose(item.kind, inspected.id)}><TokenArtwork token={item.kind}/><span><strong>{item.label}</strong><small>{inspected.actionCues?.[item.kind] ?? inspected.description}</small></span></button>)}<button disabled={locked || spent || downed} onClick={openSpotlight}><Sparkles size={18}/><span>Spotlight</span></button></div> : focus && focusAction ? <FocusedActionChoices room={room} action={focusAction} locked={locked} backLocked={holding || !!drag} onBack={backToScene} onChange={action => { if (!locked) { setSelection(action); playTableSound('pick'); } }} /> : <div className="di-scene-hand" role="group" aria-label="Action tokens">
         {TOKENS.map(item => <button key={item.kind} data-token={item.kind} className={token === item.kind && selection?.token !== 'spotlight' ? 'is-chosen' : ''} aria-label={`${item.label} token`} aria-pressed={token === item.kind && selection?.token !== 'spotlight'} disabled={locked || (downed && item.kind !== 'assist')}
           onPointerDown={event => startDrag(event, item.kind)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={() => { gesture.current = null; setDrag(null); suppressClick.current = true; }}
-          onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } setToken(item.kind); setSelection(null); clearProposal(); playTableSound('pick'); setHint(item.kind === 'assist' && victim ? `Place Help on ${victim.character.name} to protect.` : 'Choose a highlighted object.'); }}>
+          onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } setToken(item.kind); setArmedToken(true); setSelection(null); clearProposal(); playTableSound('pick'); setHint(item.kind === 'assist' && victim ? `Place Help on ${victim.character.name} to protect.` : 'Choose a highlighted object.'); }}>
           <TokenArtwork token={item.kind} /><span>{item.label}<small>{handEffects[item.kind]}</small></span>
         </button>)}
         <button className={`di-scene-spark ${selection?.token === 'spotlight' ? 'is-chosen' : ''}`} disabled={locked || spent || downed} onClick={openSpotlight} aria-label="Spotlight idea"><Sparkles size={25} /><span>Spotlight</span></button>
@@ -282,7 +313,8 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
         <strong role="status">{room.status === 'completed' ? 'A keepsake. A story. Your next adventure.' : room.phase === 'reveal' ? room.outcomes.some(outcome => outcome.chapter === room.chapter) ? 'A chapter closes. The journey continues.' : 'See what your party changed.' : 'Your move is on the table.'}</strong>
         <div className="di-party-readiness" role="status" aria-label="Party readiness">{readyHumans.map(member => <span key={member.actorId} data-ready={room.phase === 'reveal' || !!room.commits[member.actorId]}>{room.phase === 'reveal' || room.commits[member.actorId] ? <Check size={12} /> : <Clock3 size={12} />}{member.actorId === userId ? 'You' : member.character.name}</span>)}</div>
         <small>{room.status === 'completed' ? 'Collect your recap above.' : room.status === 'parked' ? 'Table resting until someone returns.' : room.phase === 'reveal' ? `Next turn in ${seconds}s` : `Resolves when everyone is ready · ${seconds}s left`}</small>
-      </div> : pending && canAct ? <button className="di-scene-retry" disabled={loading} onClick={() => void commitAction(pending.action)}>{loading ? 'Checking your move…' : 'Retry same move'}</button> : <TimedRelease key={room.turn} turn={room.turn} deadline={room.deadline} disabled={!selection || !canAct || loading || !!pending || drawer !== null} onCommit={commit} onHoldingChange={setHolding} />}
+      </div> : pending && canAct ? <button className="di-scene-retry" disabled={loading} onClick={() => void commitAction(pending.action)}>{loading ? 'Checking your move…' : 'Retry same move'}</button> : !selection ? <p className="di-inspect-hint">{inspected ? canAct ? 'Choose how to help. Your move resolves with the party.' : 'You can look around while the party chooses.' : 'Tap someone or something to learn what needs doing.'}</p> : <TimedRelease key={room.turn} turn={room.turn} deadline={room.deadline} disabled={!selection || !canAct || loading || !!pending || drawer !== null} onCommit={commit} onHoldingChange={setHolding} />}
+      </>}
     </section>
     <nav className="di-scene-tools" aria-label="Adventure tools">
       <button onClick={() => setDrawer('party')}><Users size={18} /><span>Party</span></button>
@@ -291,7 +323,8 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       <button aria-label={sound ? 'Mute table sounds' : 'Enable table sounds'} onClick={() => { setSound(!sound); setTableSound(!sound); }}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}<span>Sound</span></button>
     </nav>
     {drag && <div className="di-scene-drag" style={{ left: drag.x, top: drag.y } as CSSProperties}><TokenArtwork token={drag.kind} /></div>}
-    {drawer && <SceneDrawer title={{ party: 'Your party', chat: 'Table chat', invite: 'Invite a friend', details: 'Your action', spotlight: 'A Spotlight idea', choice: 'Choose your route' }[drawer]} onClose={() => { if (drawer === 'choice') setSelection(null); closeDrawer(); }}>
+    {drawer && <SceneDrawer title={{ party: 'Your party', chat: 'Table chat', invite: 'Invite a friend', details: 'Your action', spotlight: 'A Spotlight idea', choice: 'Choose your route', round: 'Last round' }[drawer]} onClose={() => { if (drawer === 'choice') setSelection(null); closeDrawer(); }}>
+      {drawer === 'round' && lastRound && <RoundRecap summary={lastRound} />}
       {drawer === 'choice' && scene.branch && <><h3>{branchOption?.label}</h3><p>{branchOption?.consequence}</p><p>Everyone chooses this turn. Most Help votes wins; timing and die results do not change your vote. Other actions contribute without voting.</p><p>{scene.branch.fallbackText}</p><button className="di-scene-primary" disabled={!canAct || !branchOption} onClick={() => setDrawer(null)}>Ready this route</button></>}
       {drawer === 'party' && <>{room.seats.map(member => <article className="di-scene-party-detail" key={member.id}><HeroAvatar hero={member.character} /><div><h3>{member.character.name}{member.actorId === userId ? ' · you' : ''}</h3><p>{member.kind === 'companion' ? 'Rules-based companion' : CHARACTER_CLASS_PRESETS[member.character.classKey].label} · {member.hp}/{member.character.maxHp} HP</p><p>{member.hp === 0 ? 'Downed · Help is still available' : member.leaving ? 'Leaving at the boundary' : room.commits[member.actorId] ? 'Move committed' : 'Choosing a move'}</p></div></article>)}<TableReactions room={room} /></>}
       {drawer === 'chat' && chat}

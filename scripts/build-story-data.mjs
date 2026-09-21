@@ -64,17 +64,20 @@ for (const config of configs) {
   const sections = source.split(/^## Chapter /m).slice(1);
   const chapters = sections.map((section, index) => {
     const title = section.split('\n')[0].replace(/^\d+ — /, '').trim();
+    const presentation = JSON.parse(section.match(/```scene-context\s*([\s\S]*?)```/)?.[1] ?? '{}');
     const targets = [...section.matchAll(/^\| `([^`]+)` \/ ([^|]+)\| ([^|]+)\| ([^|]+)\|/gm)].map(([, id, name, actions, developed], targetIndex) => {
       const tokens = [...actions.matchAll(/(Fight|Influence|Investigate|Help):/g)].map(match => ({ Fight: 'fight', Influence: 'influence', Investigate: 'investigate', Help: 'assist' })[match[1]]);
       const artKey = artwork[config.art][index * 4 + targetIndex];
-      return { id, name: name.trim(), artKey, description: actions.trim(), tokens, effects: ['cover','distract','reveal','rescue'],
-        development: { name: name.trim(), artKey: artKey === 'story-clock' ? 'story-clock-open' : artKey === 'gate' ? 'gate-sheltered' : artKey, description: developed.trim(), tokens: tokens.filter(token => token !== 'fight').includes('assist') ? tokens.filter(token => token !== 'fight') : ['investigate','assist'] } };
+      const copy = presentation.targets?.[id];
+      if (!copy?.context || !copy?.development?.context || tokens.some(token => !copy.actionCues?.[token])) throw new Error(`Missing scene context: ${id}`);
+      return { id, name: name.trim(), artKey, description: actions.trim(), context: copy.context, actionCues: copy.actionCues, tokens, effects: ['cover','distract','reveal','rescue'],
+        development: { name: name.trim(), artKey: artKey === 'story-clock' ? 'story-clock-open' : artKey === 'gate' ? 'gate-sheltered' : artKey, description: developed.trim(), context: copy.development.context, actionCues: copy.development.actionCues, tokens: tokens.filter(token => token !== 'fight').includes('assist') ? tokens.filter(token => token !== 'fight') : ['investigate','assist'] } };
     });
     if (targets.length !== 4) throw new Error(`Expected four targets in ${config.id}/${index}`);
     const objective = strip(section.match(/Arrival: \*\*“([^”]+)”\*\*/)[1]);
     const catchUp = section.match(/Catch-up: “([^”]+)”/)[1];
     const intro = index === 0 ? `${config.pitch} ${catchUp}` : catchUp;
-    return { id: section.match(/ID: `([^`]+)`/)[1], title, location: title, intro, catchUp, objective,
+    return { id: section.match(/ID: `([^`]+)`/)[1], title, location: title, intro, catchUp, objective, situation: presentation.situation,
       art: config.art, firstTarget: targets[0].id, targets, progressGoal: [24,26,30][index], combat: index === 1 && !!config.enemy,
       ...(index === 1 && config.enemy ? { enemySource: config.enemy } : {}),
       threat: config.enemy && index === 1 ? `${config.enemy === 'teacup-gull' ? 'The brass gull dives at the exposed crew' : 'The bramble guardian lashes toward an exposed hero'}. Protect or interrupt the announced strike.` : ['The way forward is slipping out of reach.', 'The situation tightens while the party works.', 'The final opportunity is closing.'][index],
