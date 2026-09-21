@@ -134,7 +134,7 @@ async function playToChapter(a, identities, chapter) {
   throw new Error(`Could not reach chapter ${chapter}`);
 }
 async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label === 'river' ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
       targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, top: r.top, bottom: r.bottom }; }),
