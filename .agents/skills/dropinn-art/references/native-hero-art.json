@@ -2,7 +2,7 @@
   "style": "Expressive primitive native hero layers",
   "method": "Native SVG path editing; no raster generation for modular hero layers",
   "canvas": "256×256, original face and hat anchors, paired identical body silhouette masks",
-  "review": "Reviewed three distinct body gestures with all seven hats and bare heads, four eye choices, four nose choices, and small avatars. All 24 sources decoded at 256×256. Side-eye and snout save/reload, color and hat persistence, Cancel, and 320px layout passed in browser. 131 tests and production build passed.",
+  "review": "Reviewed Pear, Puff, and Lanky with all seven hats and bare heads, every palette color, the cleaned Unimpressed eyes, and all added face parts at 256px, 64px, and 48px on light and dark backgrounds. Desktop, 390×844, and 320×568 builder layouts passed. Puff/Worried/Freckled/Tongue with no hat saved and reloaded through the local backend; Cancel preserved the saved choices. All 266 tests, asset checks, native hero review, and production build passed.",
   "assets": [
     {
       "file": "public/heroes/body-bean-fill.svg",
@@ -29,6 +29,30 @@
       "sha256": "08a9cd5cfdb9fdf4b92c407c948fa40c02e576e86adeb00670a52a37bc697672"
     },
     {
+      "file": "public/heroes/body-pear-fill.svg",
+      "sha256": "8cfbd655f4906d44b1da6265976f31382a2fe44fe614a7aa5605dbc45101f084"
+    },
+    {
+      "file": "public/heroes/body-pear.svg",
+      "sha256": "5fe90eeabaf53fae4972dd12c56a77be16eb1171c912ad3649237b15b371b9b7"
+    },
+    {
+      "file": "public/heroes/body-puff-fill.svg",
+      "sha256": "8cc75a407a40952777c748da2a03b3c0b3e8cff531c601922bb005d1c2ca7934"
+    },
+    {
+      "file": "public/heroes/body-puff.svg",
+      "sha256": "a9ff66303230cd733a39fb633a06c0378cf62116f8d7e1851e8dfbbe9cdc3816"
+    },
+    {
+      "file": "public/heroes/body-lanky-fill.svg",
+      "sha256": "ae9267772130263d1a101078b8b33dadc9dcf7b96ab48ec7d514ac46193d71a8"
+    },
+    {
+      "file": "public/heroes/body-lanky.svg",
+      "sha256": "68a81917de870e5e813411419fdabf834266d1870f1a1ebe34fd3694b6e3bb77"
+    },
+    {
       "file": "public/heroes/eyes-dots.svg",
       "sha256": "a9976fc11c224c85372a6850787280140f8544e1ae75c5fbce4e6cd629bc796a"
     },
@@ -38,11 +62,23 @@
     },
     {
       "file": "public/heroes/eyes-sleepy.svg",
-      "sha256": "81690c7b4b75a4fe882e044927a9cb67610f5a6859de58d476a100c8d0232f9f"
+      "sha256": "83c39c854770fe91b0c107bb6666fe759ed5c1efbec81d69bea450fac0e8c6e3"
     },
     {
       "file": "public/heroes/eyes-wide.svg",
       "sha256": "7e42e1d9478bc6236209d916531d36f8decc31a8f4386ff247c43a12d50e6fd0"
+    },
+    {
+      "file": "public/heroes/eyes-happy.svg",
+      "sha256": "571c846c00ff5eac4c476ed7fa847a9075650c0430c2a35781589009dc3ce140"
+    },
+    {
+      "file": "public/heroes/eyes-wink.svg",
+      "sha256": "aa6b5fa44e8536d5694a062f60d442cfab641dcbff3bc985327e8ce8d037601c"
+    },
+    {
+      "file": "public/heroes/eyes-worried.svg",
+      "sha256": "abbaabb1ea6ae096821356589d45124fc2e50ac014016348ea5ca1059230e674"
     },
     {
       "file": "public/heroes/hat-cleric.svg",
@@ -85,6 +121,18 @@
       "sha256": "6b3ea9f6e8eede1f58bf5bf82c373bb394fdc7a03331a35e4e031e3f89eac685"
     },
     {
+      "file": "public/heroes/mouth-open.svg",
+      "sha256": "ebe00763591938e24668931a00422c2205c702e92ea5385c02ad180c11f2684b"
+    },
+    {
+      "file": "public/heroes/mouth-smirk.svg",
+      "sha256": "694bda19ad505f390849e16c926f891b79854e7592a7aaf8c4657c0484f67d02"
+    },
+    {
+      "file": "public/heroes/mouth-tongue.svg",
+      "sha256": "335fb8611f868a378672ed94e9965a6de896d73888aecd4d07daa8a89b522aec"
+    },
+    {
       "file": "public/heroes/nose-button.svg",
       "sha256": "6f661c856148570aabf809d158e9870cc68bcdfaa5f0f560ccacf048ae5e80d0"
     },
@@ -99,6 +147,14 @@
     {
       "file": "public/heroes/nose-triangle.svg",
       "sha256": "03a9b6c35ec8efc5cc8f11ce13a4203c87cd0c3f21082704b35843d00a0d2447"
+    },
+    {
+      "file": "public/heroes/nose-freckles.svg",
+      "sha256": "47f46524fb7a63771bffe9b2b686be2fd13c6794ba5f941a3f2e66f70d5907c4"
+    },
+    {
+      "file": "public/heroes/nose-beak.svg",
+      "sha256": "62054d952673293edcc02d8943c6ce172b5f2062d740c04eb241f7148ad2b1b1"
     }
   ]
 }

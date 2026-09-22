@@ -50,7 +50,7 @@ try {
   const add = (label, appearance, hat = null, accent = HERO_COLORS[0].value) => examples.push({ label, hero: { name: label, classKey: 'wizard', accent, inventory, appearance, equipment: { hat } } });
   for (const body of HERO_PARTS.body) for (const hat of [null, ...HERO_HATS]) add(`${body.label} / ${hat?.label ?? 'No hat'}`, { ...DEFAULT_APPEARANCE, body: body.id }, hat?.id ?? null);
   for (const category of ['eyes', 'nose', 'mouth']) for (const part of HERO_PARTS[category]) add(`${category}: ${part.label}`, { ...DEFAULT_APPEARANCE, [category]: part.id });
-  for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) add(`${body.label} / ${color.label}`, { ...DEFAULT_APPEARANCE, body: body.id }, null, color.value);
+  for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) add(`${body.label} / ${color.name}`, { ...DEFAULT_APPEARANCE, body: body.id }, null, color.value);
   // One render tree ensures useId-generated mask IDs are unique across the sheet.
   let markup = renderToStaticMarkup(React.createElement('main', null, examples.map(({ label, hero }) => React.createElement('section', { key: label },
     React.createElement('h2', null, label),

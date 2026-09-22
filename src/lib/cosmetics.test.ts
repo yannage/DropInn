@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from './character';
-import { DEFAULT_APPEARANCE, HERO_HATS, normalizeCustomization, normalizeHero, ownsHat } from './cosmetics';
+import { DEFAULT_APPEARANCE, HERO_HATS, HERO_PARTS, normalizeCustomization, normalizeHero, ownsHat, type HeroAppearance } from './cosmetics';
 import { CHAPTERS } from './dropinn/content';
 import { createAdventure, reduceAdventure } from './dropinn/engine';
 
@@ -21,6 +21,16 @@ describe('cosmetic catalog and compatibility', () => {
     expect(normalizeCustomization({ ...base, equipment: { hat: 'missing' } }).equipment.hat).toBeNull();
     expect(normalizeCustomization({ ...base, appearance: { body: 'round', eyes: 'bad', nose: null, mouth: [] } }).appearance)
       .toEqual({ ...DEFAULT_APPEARANCE, body: 'round' });
+  });
+
+  it('accepts every current body and face option as a saved catalog ID', () => {
+    const base = createCharacterProfile('Many faces', 'wizard');
+    for (const key of Object.keys(HERO_PARTS) as (keyof HeroAppearance)[]) {
+      expect(new Set(HERO_PARTS[key].map(part => part.id)).size).toBe(HERO_PARTS[key].length);
+      for (const part of HERO_PARTS[key]) {
+        expect(normalizeCustomization({ ...base, appearance: { ...DEFAULT_APPEARANCE, [key]: part.id } }).appearance[key]).toBe(part.id);
+      }
+    }
   });
 
   it('grants all four starter hats to every class and retroactively unlocks each chapter hat', () => {

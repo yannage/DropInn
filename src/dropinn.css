@@ -3213,6 +3213,7 @@ html.dropinn-v2 #root {
   .di-equipped-slot strong { font-size: 12px; }
   .di-builder-preview .di-builder-caption { display: none; }
   .di-builder-options { padding: 17px 18px 24px; }
+  .di-part-picker > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .di-builder-footer { padding: 12px 18px max(12px, env(safe-area-inset-bottom)); }
   .di-builder-footer > span { display: none; }
   .di-builder-footer > div { width: 100%; }

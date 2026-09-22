@@ -6,7 +6,7 @@ import { HERO_HATS, HERO_PARTS, normalizeCustomization, ownsHat, type HeroAppear
 import { useAdventureStore } from '../../store/adventureStore';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 
-const labels: Record<keyof HeroAppearance, string> = { body: 'A little shape', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
+const labels: Record<keyof HeroAppearance, string> = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
 
 export function HeroCustomizer({ character, onClose }: { character: CharacterProfile; onClose: () => void }) {
   const [draft, setDraft] = useState(() => ({ ...character, ...normalizeCustomization(character) }));

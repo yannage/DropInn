@@ -11,10 +11,39 @@ const part = (category: string, id: string, label: string, tint = false): HeroPa
   id, label, art: { src: `/heroes/${category}-${id}.svg`, ...(tint ? { maskSrc: `/heroes/${category}-${id}-fill.svg` } : {}) },
 });
 export const HERO_PARTS = {
-  body: [part('body', 'bean', 'Bean', true), part('body', 'round', 'Round', true), part('body', 'squish', 'Squish', true)],
-  eyes: [part('eyes', 'dots', 'Curious eyes'), part('eyes', 'wide', 'Startled eyes'), part('eyes', 'sleepy', 'Unimpressed eyes'), part('eyes', 'side-eye', 'Side-eye')],
-  nose: [part('nose', 'button', 'Round nose'), part('nose', 'triangle', 'Crooked nose'), part('nose', 'snout', 'Little snout'), part('nose', 'none', 'No nose')],
-  mouth: [part('mouth', 'smile', 'Smile'), part('mouth', 'flat', 'Straight face'), part('mouth', 'toothy', 'Toothy grin')],
+  body: [
+    part('body', 'bean', 'Bean', true),
+    part('body', 'round', 'Round', true),
+    part('body', 'squish', 'Squish', true),
+    part('body', 'pear', 'Pear', true),
+    part('body', 'puff', 'Puff', true),
+    part('body', 'lanky', 'Lanky', true),
+  ],
+  eyes: [
+    part('eyes', 'dots', 'Curious eyes'),
+    part('eyes', 'wide', 'Startled eyes'),
+    part('eyes', 'sleepy', 'Unimpressed eyes'),
+    part('eyes', 'side-eye', 'Side-eye'),
+    part('eyes', 'happy', 'Happy eyes'),
+    part('eyes', 'wink', 'Winking eyes'),
+    part('eyes', 'worried', 'Worried eyes'),
+  ],
+  nose: [
+    part('nose', 'button', 'Round nose'),
+    part('nose', 'triangle', 'Crooked nose'),
+    part('nose', 'snout', 'Little snout'),
+    part('nose', 'freckles', 'Freckled nose'),
+    part('nose', 'beak', 'Little beak'),
+    part('nose', 'none', 'No nose'),
+  ],
+  mouth: [
+    part('mouth', 'smile', 'Smile'),
+    part('mouth', 'flat', 'Straight face'),
+    part('mouth', 'toothy', 'Toothy grin'),
+    part('mouth', 'open', 'Little gasp'),
+    part('mouth', 'smirk', 'Crooked smirk'),
+    part('mouth', 'tongue', 'Tongue out'),
+  ],
 } satisfies Record<keyof HeroAppearance, HeroPart[]>;
 export const HERO_HATS: HeroHat[] = [
   part('hat', 'wizard', 'Spellbound hat'),
