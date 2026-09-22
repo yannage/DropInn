@@ -2,83 +2,102 @@
   "style": "Expressive primitive native hero layers",
   "method": "Native SVG path editing; no raster generation for modular hero layers",
   "canvas": "256×256, original face and hat anchors, paired identical body silhouette masks",
-  "review": "Reviewed Pear, Puff, and Lanky with all seven hats and bare heads, every palette color, the cleaned Unimpressed eyes, and all added face parts at 256px, 64px, and 48px on light and dark backgrounds. Desktop, 390×844, and 320×568 builder layouts passed. Puff/Worried/Freckled/Tongue with no hat saved and reloaded through the local backend; Cancel preserved the saved choices. All 266 tests, asset checks, native hero review, and production build passed.",
+  "review": "Style consistency pass: reviewed all six bodies, seven eye expressions, and six mouths with the actual HeroAvatar renderer on light/dark backgrounds, including 64px and 48px previews. Reviewed all body/hat and body/color combinations. Unified limb outlines, hand construction, and boots; removed wrist overlaps; rounded and differentiated mouth and eye expressions. Canvas anchors and catalog IDs preserved. This pass changes native SVG assets only.",
   "assets": [
     {
       "file": "public/heroes/body-bean-fill.svg",
-      "sha256": "9e5aae255569b18ade7bec4c922cfad88fb705e428b8d6d98139df9ccff95ca7"
+      "sha256": "32831cc85e992c90c78c929434ace0940cdc9a42ebca010e4d4a249549318927",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-bean.svg",
-      "sha256": "36763f5ab686da2cb99c4d2bbb525913d5ae5f7435dcc0c3038857201d5b8f43"
+      "sha256": "1c25c8ebfc208eca2de04e2af1b49abc00db5943ea7cca504c3e2df0260bb50d",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-round-fill.svg",
-      "sha256": "3146f51645893ab603cd8960bf9402f385cf3d1217dc6297a309408a0963c7f6"
+      "sha256": "bb8abe18001d7ca0ec150156360f5efb396bf700aa1c64600d34fd0ab696b722",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-round.svg",
-      "sha256": "5ffcf6f2623938e04b53ef6e82e93ae3dba6638b1e50f6dd417cd5db6ac91971"
+      "sha256": "f9413f2a75a0ead31d89ebe6795bbf75d08b91cb57d6de9d456c5b5afd7acfb6",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-squish-fill.svg",
-      "sha256": "2b552ab2da36770ce39725df6ea1807693d2bb816f05bb26a3db4d430e8e2e84"
+      "sha256": "b01724ca1a53a2fb4997c0ce6429ecc55f1b3c860e31c8f9eb7978074307f403",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-squish.svg",
-      "sha256": "08a9cd5cfdb9fdf4b92c407c948fa40c02e576e86adeb00670a52a37bc697672"
+      "sha256": "97da841f7b4166140f0a03857c6218a7767b7ed2ac23e0f44007935e6395f308",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-pear-fill.svg",
-      "sha256": "8cfbd655f4906d44b1da6265976f31382a2fe44fe614a7aa5605dbc45101f084"
+      "sha256": "3011593677aa1c31e029efc1d8362f36c796cc0fb1054a1b982011f2c0c028f9",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-pear.svg",
-      "sha256": "5fe90eeabaf53fae4972dd12c56a77be16eb1171c912ad3649237b15b371b9b7"
+      "sha256": "3cdcd25091a8fe5f0af7bcbe4f1375fffa85c835b7a15012784fec0c90e0a973",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-puff-fill.svg",
-      "sha256": "8cc75a407a40952777c748da2a03b3c0b3e8cff531c601922bb005d1c2ca7934"
+      "sha256": "cfbbef5fe226b2e2cc03e6d0861391df45fea44abfca016171e026ddbab709a9",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-puff.svg",
-      "sha256": "a9ff66303230cd733a39fb633a06c0378cf62116f8d7e1851e8dfbbe9cdc3816"
+      "sha256": "64ef1497fce1d925e27c2418427eb33ae9c940351f92bd143157cdaa28c943f6",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-lanky-fill.svg",
-      "sha256": "ae9267772130263d1a101078b8b33dadc9dcf7b96ab48ec7d514ac46193d71a8"
+      "sha256": "0257eab6128dd267eaf075fb0bd4d83ee00f7b7875bd70e65cac3f54c4f1c34f",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/body-lanky.svg",
-      "sha256": "68a81917de870e5e813411419fdabf834266d1870f1a1ebe34fd3694b6e3bb77"
+      "sha256": "5b53c8fd5b66c1d42fdb60415de263741f3306993417adc3ac8980267d748a14",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-dots.svg",
-      "sha256": "a9976fc11c224c85372a6850787280140f8544e1ae75c5fbce4e6cd629bc796a"
+      "sha256": "8bef71ba360b9995326995c728fcdd7f731bc08afb3c5d30dab06ecc04cd7ec6",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-side-eye.svg",
-      "sha256": "5786645ab3d0c7c2f94b4d5b181e571d1e7f70a612ca63a3287b1ea309c8bc57"
+      "sha256": "20bd4970d63c756348eb1a7d12e9d9edb94af7fdc95251d6721dc2e98b568617",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-sleepy.svg",
-      "sha256": "83c39c854770fe91b0c107bb6666fe759ed5c1efbec81d69bea450fac0e8c6e3"
+      "sha256": "aba78b5b3054c5345fbbde9ddc151ab45338e41c53f1f190ff82007a62193f6a",
+      "review": "Redrawn with single straight lid boundaries and clipped pupils; visually inspected with HeroAvatar at 256/64/48px on light and dark backgrounds."
     },
     {
       "file": "public/heroes/eyes-wide.svg",
-      "sha256": "7e42e1d9478bc6236209d916531d36f8decc31a8f4386ff247c43a12d50e6fd0"
+      "sha256": "950521f43234b81117564bbb8dd5dbbc6e5f1aec2cc8abb97fe593263349881a",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-happy.svg",
-      "sha256": "571c846c00ff5eac4c476ed7fa847a9075650c0430c2a35781589009dc3ce140"
+      "sha256": "aed7454fd22aaad112639d8d88e045e9102daf5b038deee4453607fa9e848255",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-wink.svg",
-      "sha256": "aa6b5fa44e8536d5694a062f60d442cfab641dcbff3bc985327e8ce8d037601c"
+      "sha256": "226b3d908c85a05951ac9be6e06f02c1b210c4643898c095b70e36777fa6dd09",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/eyes-worried.svg",
-      "sha256": "abbaabb1ea6ae096821356589d45124fc2e50ac014016348ea5ca1059230e674"
+      "sha256": "4ea17b90e63604b2011e8217394fb69c8250e9300627a5cc6ff096f66b8ef08f",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/hat-cleric.svg",
@@ -110,27 +129,33 @@
     },
     {
       "file": "public/heroes/mouth-flat.svg",
-      "sha256": "bc4a4232cec5ccfda9727e3fdf024a5f7c4a1f5d3778f95825466f0e78baff55"
+      "sha256": "138cc462334c5fae1c01decc232ab9865530ab425d467449f141907d05bfe6e3",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/mouth-smile.svg",
-      "sha256": "35b8c64f1e2ced165f1df4d935cd1d40f617afc134e27fa660613677bbe24a10"
+      "sha256": "4d23334b02c28882c69e2354e9659e72dd4c4ad684cfb2a08bfb803ea3884d0c",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/mouth-toothy.svg",
-      "sha256": "6b3ea9f6e8eede1f58bf5bf82c373bb394fdc7a03331a35e4e031e3f89eac685"
+      "sha256": "5d2ef38b705bc5248dc5e17d7bd0a908c1fb38564b160dbb346502673193fe73",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/mouth-open.svg",
-      "sha256": "ebe00763591938e24668931a00422c2205c702e92ea5385c02ad180c11f2684b"
+      "sha256": "290c50993884cfc15a1a8de4999a483af6dda66c1d96260b48e814800fa3e1a0",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/mouth-smirk.svg",
-      "sha256": "694bda19ad505f390849e16c926f891b79854e7592a7aaf8c4657c0484f67d02"
+      "sha256": "c0e1dad1c6cade8feabc9047019d3f75d27537bfd7496313d1eb4894cf247b6a",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/mouth-tongue.svg",
-      "sha256": "335fb8611f868a378672ed94e9965a6de896d73888aecd4d07daa8a89b522aec"
+      "sha256": "1245a052d4baf74679cdddabcf1a6f1c0923266cf193920d8edfac952c752d6b",
+      "review": "Inspected in the style consistency contact sheet on light/dark backgrounds and at small avatar sizes."
     },
     {
       "file": "public/heroes/nose-button.svg",
@@ -154,7 +179,8 @@
     },
     {
       "file": "public/heroes/nose-beak.svg",
-      "sha256": "62054d952673293edcc02d8943c6ce172b5f2062d740c04eb241f7148ad2b1b1"
+      "sha256": "c183f2b0f5ecdc913a977875cd044f9298465d353a781042841d52d46df8a773",
+      "review": "Redrawn as a centered golden pointed beak with one connected seam; visually inspected with HeroAvatar at 256/64/48px on light and dark backgrounds."
     }
   ]
 }

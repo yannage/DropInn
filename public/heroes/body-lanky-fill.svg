@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <path d="M80 143 Q65 144 60 160 L57 181 Q54 192 48 202 Q40 202 36 207 Q34 213 41 217 Q48 221 55 214 Q57 222 63 219 Q69 215 65 207 L68 187 Q72 171 87 164Z M177 143 Q192 145 197 161 L200 181 Q203 193 209 202 Q217 203 220 208 Q222 214 215 218 Q208 222 201 215 Q199 223 193 220 Q187 216 191 208 L188 187 Q184 171 169 164Z" fill="#fff"/>
-  <path d="M101 208 Q99 222 90 232 L101 238 Q116 228 117 213Z M142 213 Q148 225 146 235 L161 237 Q167 220 159 208Z" fill="#fff"/>
-  <path d="M84 104 Q82 91 96 86 Q107 80 118 87 Q129 78 140 85 Q156 81 166 94 Q176 102 170 116 Q180 132 176 151 Q184 170 177 190 Q183 207 166 216 Q149 224 132 216 Q113 224 95 216 Q77 209 81 192 Q71 173 79 152 Q72 133 81 118 Q76 110 84 104Z" fill="#fff"/>
+<g fill="#fff">
+  <path d="M81 145 Q62 148 58 172 L51 199 L40 202 L45 215 Q61 214 64 198 L72 175 Q75 166 86 164Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M175 145 Q194 148 198 172 L205 199 L216 202 L211 215 Q195 214 192 198 L184 175 Q181 166 170 164Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 199 Q91 216 85 228 L99 232 Q112 217 114 202Z M144 202 Q148 215 149 229 L163 229 Q167 214 160 199Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(43 207) rotate(-95)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(214 207) rotate(95)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M84 104 Q82 91 96 86 Q107 80 118 87 Q129 78 140 85 Q156 81 166 94 Q176 102 170 116 Q180 132 176 151 Q184 170 177 190 Q183 207 166 216 Q149 224 132 216 Q113 224 95 216 Q77 209 81 192 Q71 173 79 152 Q72 133 81 118 Q76 110 84 104Z"/>
+</g>
 </svg>

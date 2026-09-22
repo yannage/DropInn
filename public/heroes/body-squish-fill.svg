@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path d="M69 150 Q54 143 43 151 Q34 158 38 172 L46 184 Q43 191 49 194 Q55 196 57 188 Q65 194 68 188 Q69 183 59 179 L51 166 Q55 160 67 167Z M188 158 Q199 161 208 155 L214 147 Q210 140 215 136 Q220 134 224 145 L231 140 Q237 138 238 144 Q238 150 232 155 Q239 155 237 161 Q232 168 217 167 L208 173 Q195 180 183 173Z" fill="#fff"/><path d="M93 197 Q86 211 92 220 L102 229 114 220 104 208 109 199Z M145 196 Q145 210 151 221 L164 219 161 199Z" fill="#fff"/><path d="M68 118 Q75 104 96 108 Q102 96 118 99 L128 104 Q146 96 161 104 Q180 103 183 123 L182 134 Q194 149 198 163 Q213 176 204 190 L198 192 Q191 207 168 203 Q155 210 137 203 Q119 210 104 203 L94 206 Q66 205 57 190 L53 187 Q47 172 59 156 L61 144 Q56 128 68 118Z" fill="#fff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<g fill="#fff">
+  <path d="M67 150 Q43 141 39 163 Q38 178 56 186 L65 178 Q49 169 53 164 L69 168Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M185 158 Q202 163 215 148 L224 153 Q215 176 184 175Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 199 Q91 216 85 228 L99 232 Q112 217 114 202Z M144 202 Q148 215 149 229 L163 229 Q167 214 160 199Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(58 181) rotate(65)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(225 150) rotate(45)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M68 118 Q75 104 96 108 Q102 96 118 99 L128 104 Q146 96 161 104 Q180 103 183 123 L182 134 Q194 149 198 163 Q213 176 204 190 L198 192 Q191 207 168 203 Q155 210 137 203 Q119 210 104 203 L94 206 Q66 205 57 190 L53 187 Q47 172 59 156 L61 144 Q56 128 68 118Z"/>
+</g>
+</svg>

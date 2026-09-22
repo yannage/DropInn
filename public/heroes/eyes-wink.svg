@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <path d="M77 130 Q76 116 89 111 Q104 108 114 120 Q119 134 111 146 Q101 153 88 148 Q78 144 77 130Z" fill="#fff8e5" stroke="#080907" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M101 124 Q107 122 108 131 Q108 140 103 141 Q98 137 101 124Z" fill="#080907"/>
-  <path d="M140 138 Q158 117 177 137" fill="none" stroke="#080907" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M79 131 Q77 117 89 114 Q102 110 111 121 Q118 135 109 145 Q100 153 87 146 Q80 142 79 131Z" fill="#fff8e5" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="100" cy="132" rx="4" ry="7" fill="#080907"/>
+  <path d="M143 128 L171 136 L143 143" fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

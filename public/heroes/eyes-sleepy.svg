@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <path d="M79 124 Q96 118 116 127 Q116 139 109 146 Q95 153 83 142 Q79 135 79 124Z" fill="#fff8e5" stroke="#080907" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M140 129 Q157 133 178 123 Q180 136 173 145 Q161 154 145 144 Q141 138 140 129Z" fill="#fff8e5" stroke="#080907" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M102 128 Q108 127 109 134 Q109 143 104 144 Q99 141 102 128Z" fill="#080907"/>
-  <path d="M148 133 Q154 132 155 139 Q155 147 150 147 Q146 143 148 133Z" fill="#080907"/>
-  <path d="M80 124 Q97 133 116 127 M141 129 Q159 139 178 123" fill="none" stroke="#080907" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <defs>
+    <clipPath id="lids"><path d="M80 130 L115 132 Q114 149 98 149 Q82 149 80 130Z M141 132 L176 130 Q176 148 159 149 Q143 149 141 132Z"/></clipPath>
+  </defs>
+  <path d="M80 130 L115 132 Q114 149 98 149 Q82 149 80 130Z M141 132 L176 130 Q176 148 159 149 Q143 149 141 132Z" fill="#fff8e5"/>
+  <g clip-path="url(#lids)" fill="#080907">
+    <ellipse cx="100" cy="134" rx="4.5" ry="9"/>
+    <ellipse cx="157" cy="134" rx="4.5" ry="9"/>
+  </g>
+  <path d="M80 130 L115 132 Q114 149 98 149 Q82 149 80 130Z M141 132 L176 130 Q176 148 159 149 Q143 149 141 132Z" fill="none" stroke="#080907" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
 </svg>

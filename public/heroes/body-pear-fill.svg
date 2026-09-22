@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <path d="M77 153 Q62 150 53 161 Q44 173 51 185 Q57 195 66 187 Q71 182 68 176 Q75 172 86 178Z M180 154 Q195 151 204 162 Q213 174 206 186 Q200 196 191 188 Q186 183 189 177 Q182 173 171 179Z" fill="#fff"/>
-  <path d="M96 204 Q97 215 88 224 L84 230 99 233 Q115 222 116 208Z M145 209 Q150 220 148 230 L164 232 Q168 217 160 205Z" fill="#fff"/>
-  <path d="M86 105 Q84 92 99 87 Q111 80 122 86 Q132 77 143 85 Q159 84 168 98 Q174 108 169 119 Q181 136 183 154 Q194 173 187 193 Q183 207 166 211 Q150 219 132 213 Q113 219 96 212 Q75 211 67 196 Q56 181 66 161 Q65 143 76 126 Q73 113 86 105Z" fill="#fff"/>
+<g fill="#fff">
+  <path d="M76 150 Q52 149 44 169 L35 176 L42 187 Q62 185 67 171 L84 169Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M180 150 Q204 149 213 170 L222 177 L214 188 Q195 186 189 172 L173 169Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 199 Q91 216 85 228 L99 232 Q112 217 114 202Z M144 202 Q148 215 149 229 L163 229 Q167 214 160 199Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(36 180) rotate(-65)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(221 180) rotate(65)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="#fff" stroke="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M86 105 Q84 92 99 87 Q111 80 122 86 Q132 77 143 85 Q159 84 168 98 Q174 108 169 119 Q181 136 183 154 Q194 173 187 193 Q183 207 166 211 Q150 219 132 213 Q113 219 96 212 Q75 211 67 196 Q56 181 66 161 Q65 143 76 126 Q73 113 86 105Z"/>
+</g>
 </svg>
