@@ -41,7 +41,7 @@ async function service(payload) {
   return result;
 }
 async function setup(name, viewport) {
-  const context = await browser.newContext({ viewport });
+  const context = await browser.newContext({ viewport, hasTouch: true });
   await context.addInitScript(({ offset }) => { const realNow = Date.now.bind(Date); window.__qaOffset = offset; Date.now = () => realNow() + window.__qaOffset; }, { offset });
   const page = await context.newPage(); pages.push(page);
   page.on('pageerror', error => errors.push({ page: name, message: error.message }));
@@ -135,13 +135,23 @@ async function playToChapter(a, identities, chapter) {
   throw new Error(`Could not reach chapter ${chapter}`);
 }
 async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
+      regions: Object.fromEntries(['.di-scene-tools', '.di-focus-stage', '.di-focus-heading', '.di-focus-player', '.di-focus-opponent', '.di-focus-stakes', '.di-focus-control'].map(selector => [selector, document.querySelector(selector)?.getBoundingClientRect().toJSON()])),
       targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, top: r.top, bottom: r.bottom }; }),
       buttons: [...document.querySelectorAll('.di-theater button:not(:disabled)')].map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, width: r.width, height: r.height }; }) }));
     assert.ok(result.scrollHeight <= result.height + 1 && result.scrollWidth <= result.width, `${label} document overflow ${JSON.stringify(result)}`);
     assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height), 'scene/hero target hit area');
+    assert.ok(result.regions['.di-scene-tools'].bottom <= result.height + 1, `${label}: footer clipped by the app shell`);
+    const stage = result.regions['.di-focus-stage'];
+    if (stage) {
+      const heading = result.regions['.di-focus-heading'], player = result.regions['.di-focus-player'], opponent = result.regions['.di-focus-opponent'], stakes = result.regions['.di-focus-stakes'];
+      assert.ok(heading.bottom <= player.top + 1 && heading.bottom <= opponent.top + 1, `${label}: encounter copy overlaps an actor`);
+      assert.ok(player.right <= opponent.left + 1, `${label}: hero stats overlap the opponent`);
+      assert.ok(Math.max(player.bottom, opponent.bottom) <= stakes.top + 1 && stakes.bottom <= stage.bottom + 1, `${label}: threat message clipped or overlaps actors`);
+      assert.ok(result.regions['.di-focus-control'].bottom <= result.regions['.di-scene-tools'].top + 1, `${label}: release controls overlap toolbar`);
+    }
     await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png`, animations:'disabled' });
     note(`layout-${label}-${viewport.width}`, result);
   }
@@ -362,6 +372,13 @@ try {
 
   await playToChapter(a, identities, 2);
   await layout(a, 'chapel');
+  await a.getByRole('button', { name: 'Fight token', exact: true }).tap();
+  await a.locator('[data-scene-target="gloamfang"][data-target-kind="scene"]').tap();
+  await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
+  await a.getByRole('button', { name: /Heavy Blow:/ }).tap();
+  await a.getByRole('button', { name: /Quick Strike:/ }).tap();
+  await layout(a, 'chapel-focus');
+  await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
   note('three-chapters-real-handler', { chapter: (await state(a)).room.chapter });
 
   // Real pointer dragging uses the same accessible targets as tap placement.
@@ -509,6 +526,20 @@ try {
       delete window.__qaRenderRestore;
     });
   }
+  // Finish the original adventure through visible controls, including the phone finale.
+  for (let round = 0; round < 10 && (await state(a)).room.status !== 'completed'; round++) {
+    await readyNext(a);
+    const target = getScene((await state(a)).room).targets.find(item => item.tokens.includes('assist'));
+    for (const page of [a, b]) {
+      await select(page, 'assist', target.id);
+      await skip(page);
+    }
+    await syncAll();
+  }
+  assert.equal((await state(a)).room.status, 'completed');
+  assert.equal((await state(b)).room.status, 'completed');
+  await layout(a, 'completed');
+  note('three-chapter-browser-playthrough-completed');
   // Four humans: a fresh solo turn admits three late arrivals at its boundary.
   const four = [];
   for (const name of ['C', 'D', 'E', 'F']) four.push(await setup(name, { width:390, height:844 }));

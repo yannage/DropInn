@@ -66,6 +66,34 @@
 @media(max-height:620px) and (max-width:759px){.di-theater .di-scene-hand>button{min-height:46px;border-width:1px;padding:3px 1px}.di-theater .di-scene-hand>button .di-token-art,.di-theater .di-scene-hand>button .di-tabletop-art{width:24px;height:24px}.di-theater .di-scene-hand{padding:3px 0}.di-theater .di-focus-choices>[role=group]>button{min-height:44px;padding:5px 9px;border-width:1px}.di-chapter-meter{margin-top:2px}.di-theater .di-scene-selection>.di-tabletop-art{width:26px;height:26px}.di-theater .di-round-recap>header .di-tabletop-art{width:22px;height:22px}}
 @media(max-height:620px) and (max-width:759px){.di-theater .di-focus-heading>small{display:none}.di-theater .di-focus-heading>strong{padding:3px 9px}.di-theater .di-focus-heading .di-focus-context{font-size:10px;line-height:1.15;padding:3px 5px}.di-theater .di-focus-opponent{top:42%;height:37%}.di-theater .di-scene-hand>button.di-scene-spark{border-width:1px}.di-theater .di-party-keepsake .di-keepsake-art{width:26px;height:26px}.di-theater .di-party-keepsake strong{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.di-theater .di-scene-hand>button,.di-theater .di-focus-choices>[role=group]>button,.di-lobby .di-play,.di-chapter-meter i{transition:none!important;animation:none!important}.di-theater .di-scene-hand>button.is-chosen{transform:none}}
+/* Reserve separate lanes for encounter copy, the two actors, and the stakes.
+   Percentage offsets let wrapped descriptions cover HP on phone screens. */
+@media(max-width:759px){
+  .di-theater .di-focus-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(44px,1fr) auto;gap:6px 10px;padding:10px 12px 8px}
+  .di-theater .di-focus-heading{position:static;grid-column:1/-1;max-width:none;min-width:0}
+  .di-theater .di-focus-heading .di-focus-context{margin:2px 0 0;max-width:100%}
+  .di-theater .di-focus-player{position:static;grid-column:1;grid-row:2;min-width:0;min-height:0;height:100%;max-height:180px;align-self:center;flex-direction:column;justify-content:center;gap:4px}
+  .di-theater .di-focus-player>.di-avatar{flex:0 1 70px;min-height:0}
+  .di-theater .di-focus-player>div{max-width:100%;min-width:0;flex:none}
+  .di-theater .di-focus-player strong{overflow-wrap:anywhere}
+  .di-theater .di-focus-opponent{position:relative;inset:auto;grid-column:2;grid-row:2;align-self:stretch;width:100%;height:100%;min-height:44px;min-width:0}
+  .di-theater .di-focus-stakes{position:static;grid-column:1/-1;min-width:0;margin:0}
+  .di-theater .di-focus-choices>[role=group]>button{padding:7px 6px}
+}
+@media(max-height:740px) and (max-width:759px){
+  .di-theater .di-focus-stage{padding:4px 7px;gap:3px 6px}
+  .di-theater .di-focus-heading{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:5px}
+  .di-theater .di-focus-heading>span,.di-theater .di-focus-heading>small,.di-theater .di-focus-player small{display:none}
+  .di-theater .di-focus-heading>strong{font-size:18px;line-height:1.1;padding:3px 6px}
+  .di-theater .di-focus-heading .di-focus-context{margin:0}
+  .di-theater .di-focus-player{height:auto;flex-direction:row;gap:3px}
+  .di-theater .di-focus-player>.di-avatar{width:44px;height:44px;flex:none}
+  .di-theater .di-scene-dock{gap:1px}
+  /* Keep the hint available to screen readers; the die still displays its +1. */
+  .di-theater .di-focus-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .di-theater .di-focus-control{grid-template-rows:44px 44px;row-gap:4px}
+  .di-theater .di-focus-options{grid-row:2}
+}
 /* The completed story gives its exit control space before the scrollable ledger. */
 @media(max-height:620px) and (max-width:759px){
   .di-theater[data-completed=true] .di-round-entries{max-height:110px}
