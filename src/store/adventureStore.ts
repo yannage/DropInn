@@ -94,7 +94,9 @@ interface AdventureState {
   loading: boolean;
   proposing: boolean;
   reacting: boolean;
+  skippingReveal: boolean;
   sendReaction: (reaction: ReactionKind) => Promise<void>;
+  skipReveal: () => Promise<void>;
   error: string | null;
   syncError: string | null;
   syncing: boolean;
@@ -264,7 +266,27 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
     rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
     pendingMove: saved.pendingAction?.roomCode === saved.activeCode ? { turn: saved.pendingAction.turn, action: saved.pendingAction.action } : null,
-    loading: false, proposing: false, reacting: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
+    loading: false, proposing: false, reacting: false, skippingReveal: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
+    skipReveal: async () => {
+      const room = get().room;
+      const userId = get().userId;
+      if (!room || room.status !== 'active' || room.phase !== 'reveal' || get().skippingReveal || room.revealSkips?.includes(userId)
+        || !room.seats.some(seat => seat.kind === 'human' && !seat.leaving && seat.actorId === userId)) return;
+      const epoch = viewEpoch;
+      set({ skippingReveal: true });
+      try {
+        await accept(await request({ operation: 'command', roomCode: room.code, command: {
+          id: crypto.randomUUID(), type: 'skip-reveal', userId, expectedTurn: room.turn,
+        } }), epoch);
+      } catch (error) {
+        if (epoch === viewEpoch) {
+          if (error instanceof AdventureRequestError && error.status === 409) void get().syncRoom();
+          else fail(error);
+        }
+      } finally {
+        if (epoch === viewEpoch) set({ skippingReveal: false });
+      }
+    },
     sendReaction: async reaction => {
       const room = get().room;
       if (!room || get().reacting) return;

@@ -39,7 +39,7 @@ Eight stages do not mean eight screens, mandatory turns or dialogue pauses. Use 
 | 2: discovery and complication | Search, Find, Take | Pressure → earned relief → understandable cost | The apparent solution reveals a choice. |
 | 3: payoff and return | Resolve Take, Return, Change | Deliberate response → climax → release | A final action produces a changed familiar image. |
 
-Keep the current 30-second simultaneous turns and six-second reveal. Ten rounds is the existing chapter cap: at the full allowance that is approximately six minutes, not a guaranteed duration. Early commitments shorten play. Do not add minimum waits to force a dramatic schedule. A five-to-ten-minute visit may cover only part of an adventure; each chapter needs its own satisfying contribution and payoff.
+Keep the current 30-second simultaneous turns and up-to-ten-second reveal. Ten rounds is the existing chapter cap: at the full allowance that is approximately seven minutes, not a guaranteed duration. Early commitments and unanimous reveal skips shorten play. Do not add minimum waits to force a dramatic schedule. A five-to-ten-minute visit may cover only part of an adventure; each chapter needs its own satisfying contribution and payoff.
 
 Author transitions around resolved state, not elapsed wall time. Specify what is discovered on ordinary progress, what early success reveals, and how the round-cap outcome still communicates essential facts. Fast parties must not skip the causal link between discovery and cost. Slow parties must not repeatedly roll for the same clue. Fold necessary information into the chapter outcome when its optional discovery was missed.
 

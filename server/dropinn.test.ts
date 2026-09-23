@@ -59,6 +59,31 @@ function commit(room: AdventureRoom, id = crypto.randomUUID()) {
 }
 
 describe('adventure service local command contract', () => {
+  it('accepts authenticated skip votes and advances only after all seated humans vote', async () => {
+    const { call, hero } = harness();
+    const room = (await call('play', { character: hero, visibility: 'private' })).room as AdventureRoom;
+    expect((await call('join', { character: hero, roomCode: room.code, inviteKey: room.inviteKey }, 'player_two')).status).toBe(200);
+    expect((await call('command', commit(room))).status).toBe(200);
+    const firstReveal = (await call('read', { roomCode: room.code })).room as AdventureRoom;
+    const pendingVote = await call('command', { roomCode: room.code, command: { id: 'pending-skip-vote', type: 'skip-reveal', expectedTurn: firstReveal.turn } }, 'player_two');
+    expect(pendingVote.status).toBe(409);
+    const soloNext = await call('command', { roomCode: room.code, command: { id: 'solo-skip-vote', type: 'skip-reveal', expectedTurn: firstReveal.turn, userId: 'player_two' } });
+    expect(soloNext.room.phase).toBe('choosing');
+    expect(soloNext.room.seats.filter((seat: { kind: string }) => seat.kind === 'human')).toHaveLength(2);
+    const choosing = soloNext.room as AdventureRoom;
+    expect((await call('command', commit(choosing))).status).toBe(200);
+    const reveal = await call('command', commit(choosing), 'player_two');
+    expect(reveal.room.phase).toBe('reveal');
+    const vote = { roomCode: room.code, command: { id: 'first-skip-vote', type: 'skip-reveal', expectedTurn: choosing.turn } };
+    const first = await call('command', vote);
+    expect(first.room.phase).toBe('reveal');
+    expect(first.room.revealSkips).toEqual(['player_one']);
+    expect((await call('command', vote)).room.revealSkips).toEqual(['player_one']);
+    const advanced = await call('command', { roomCode: room.code, command: { id: 'second-skip-vote', type: 'skip-reveal', expectedTurn: choosing.turn } }, 'player_two');
+    expect(advanced.room.phase).toBe('choosing');
+    expect(advanced.room.turn).toBe(choosing.turn + 1);
+    expect((await call('command', { roomCode: room.code, command: { id: 'stale-skip-vote', type: 'skip-reveal', expectedTurn: choosing.turn } })).status).toBe(409);
+  });
   it('validates focused approaches and preserves them through receipts and reads', async () => {
     const { call, hero } = harness();
     const { room } = await call('play', { character: hero, visibility: 'private' });
@@ -103,7 +128,7 @@ describe('adventure service local command contract', () => {
       expect((await call('join', { character: hero, roomCode: room.code, inviteKey: room.inviteKey }, id)).status).toBe(200);
     }
     await call('command', commit(room));
-    advance(6000);
+    advance(10000);
     const full = (await call('read', { roomCode: room.code })).room as AdventureRoom;
     expect(full.seats.filter(seat => seat.kind === 'human')).toHaveLength(4);
     advance(66000);
@@ -132,7 +157,7 @@ describe('adventure service local command contract', () => {
     expect(joined.status).toBe(200);
     expect(joined.room.pendingJoins).toContain('player_friend');
     await call('command', commit(room));
-    advance(6000);
+    advance(10000);
     expect((await call('read', { roomCode: room.code }, 'player_friend')).room.players.player_friend.seatId).not.toBeNull();
     await call('command', { roomCode: room.code, command: { id: crypto.randomUUID(), type: 'leave' } }, 'player_friend');
     const returning = await call('join', { roomCode: room.code, character: hero }, 'player_friend');
@@ -203,7 +228,7 @@ describe('adventure service local command contract', () => {
     for (let round = 0; room.chapter === 0 && round < 10; round++) {
       const response = await call('command', commit(room));
       expect(response.status).toBe(200);
-      advance(6000);
+      advance(10000);
       room = (await call('read', { roomCode: room.code })).room;
     }
     expect(room.chapter).toBe(1);
@@ -259,7 +284,7 @@ describe('adventure service local command contract', () => {
     // A new arrival can queue until the next turn; advance the existing human once.
     if (!joined.players.player_two.seatId) {
       await call('command', commit(joined));
-      advance(6000);
+      advance(10000);
       joined = (await call('read', { roomCode: initial.code })).room;
     }
     expect(joined.players.player_two.seatId).not.toBeNull();
@@ -282,7 +307,7 @@ describe('adventure service local command contract', () => {
       action: { token: 'spotlight', targetId: CHAPTERS[0].targets[0].id, proposal: { id: 'invented', supported: true, effect: 'reveal' } } } });
     expect(forged.status).toBe(409);
     await call('command', commit(initial));
-    advance(6000);
+    advance(10000);
     await call('read', { roomCode: initial.code });
     expect((await call('command', commit(initial))).status).toBe(409);
   });

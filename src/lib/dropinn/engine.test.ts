@@ -34,6 +34,42 @@ function combatRoom(size = 2) {
   return next(room);
 }
 
+describe('shared reveal skipping', () => {
+  it('keeps a ten-second reveal unless every seated human skips', () => {
+    const solo = act(initial());
+    expect(solo.revealUntil).toBe(solo.updatedAt + 10_000);
+    expect(command(solo, 'tick', 'alice', {}, solo.revealUntil! - 1)).toBe(solo);
+    expect(next(solo).phase).toBe('choosing');
+
+    let room = twoPlayers();
+    room = act(room);
+    room = act(room, { token: 'assist', targetId: 'mara' }, 'bob');
+    const turn = room.turn;
+    const first = command(room, 'skip-reveal', 'alice', { expectedTurn: turn });
+    expect(first.phase).toBe('reveal');
+    expect(first.revealSkips).toEqual(['alice']);
+    expect(command(first, 'skip-reveal', 'alice', { expectedTurn: turn })).toBe(first);
+    expect(command(first, 'tick', 'bob', {}, first.revealUntil! - 1)).toBe(first);
+    const advanced = command(first, 'skip-reveal', 'bob', { expectedTurn: turn });
+    expect(advanced.phase).toBe('choosing');
+    expect(advanced.turn).toBe(turn + 1);
+    expect(advanced.deadline).toBe(advanced.updatedAt + 30_000);
+    expect(advanced.revealSkips).toEqual([]);
+    expect(() => command(advanced, 'skip-reveal', 'alice', { expectedTurn: turn })).toThrow('ended');
+  });
+
+  it('does not count companions, pending arrivals, or departed seats as skip voters', () => {
+    let room = twoPlayers();
+    room = act(room);
+    room = act(room, { token: 'assist', targetId: 'mara' }, 'bob');
+    const turn = room.turn;
+    expect(() => command(room, 'skip-reveal', 'companion-2', { expectedTurn: turn })).toThrow('seat');
+    room = command(room, 'skip-reveal', 'alice', { expectedTurn: turn });
+    room = command(room, 'leave', 'bob');
+    expect(room.phase).toBe('choosing');
+  });
+});
+
 describe('announced threats, protection and timed release', () => {
   it.each([[undefined, 0], [0, 0], [649, 0], [650, 1], [800, 1], [950, 1], [951, 0], [1200, 0]] as const)('grants the bounded release bonus at %s milliseconds', (releaseMs, expected) => {
     expect(releaseBonus(releaseMs)).toBe(expected);

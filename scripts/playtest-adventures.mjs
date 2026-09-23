@@ -119,7 +119,7 @@ try {
           `${label} is clipped by the stage at 320×568: ${JSON.stringify({bounds,stageBounds})}`);
       }
       await a.screenshot({path:`output/playwright/${definition.id}-finale-320.png`});
-      await a.getByRole('button',{name:/^Story/}).click();
+      await a.getByRole('button',{name:'Story',exact:true}).click();
       assert.ok(await a.getByText(finished.outcomes[2].text,{exact:true}).count());
       evidence.push({ adventure:definition.id, chapters:[...captured], branch:finished.storyBranch, reconnect:reloaded, completed:true });
       console.log(JSON.stringify(evidence.at(-1)));

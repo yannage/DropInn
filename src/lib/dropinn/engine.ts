@@ -8,7 +8,7 @@ import { approachOption, turnInsight } from './approaches';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
 const ROUND_MS = 30_000;
-const REVEAL_MS = 6_000;
+const REVEAL_MS = 10_000;
 const MAX_ROUNDS = 10;
 export const RELEASE_DURATION_MS = 1200;
 export const RELEASE_SWEET_START_MS = 650;
@@ -337,7 +337,7 @@ function resolveRound(room: AdventureRoom, now: number) {
     if (seat.leaving || seat.missedTurns >= 2) releasePlayer(room, seat, now, !seat.leaving);
   }
   if (room.progress >= chapterOf(room).progressGoal || room.chapterRound >= MAX_ROUNDS) finishChapter(room, now);
-  room.phase = 'reveal'; room.revealUntil = now + REVEAL_MS; room.commits = {};
+  room.phase = 'reveal'; room.revealUntil = now + REVEAL_MS; room.revealSkips = []; room.commits = {};
   if (room.outcomes.length < chaptersFor(room).length && !humans(room).length && !room.pendingJoins.length) room.status = 'parked';
   fillCompanions(room);
 }
@@ -354,7 +354,7 @@ function advanceRound(room: AdventureRoom, now: number) {
     event(room, now, { kind: 'chapter', text: `${chapterOf(room).intro}${priorSuccess ? ' Your earlier success gives the party a head start.' : ''}${maraHelp ? ' Because you helped Mara, her directions give the party another point of progress.' : ''}` });
   } else room.chapterRound += 1;
   room.turn += 1;
-  room.phase = 'choosing'; room.deadline = now + ROUND_MS; room.revealUntil = null; room.commits = {};
+  room.phase = 'choosing'; room.deadline = now + ROUND_MS; room.revealUntil = null; room.revealSkips = []; room.commits = {};
   for (const userId of room.pendingJoins) { const player = room.players[userId]; if (player && player.leftAt === null) seatPlayer(room, player, now); }
   room.pendingJoins = [];
   fillCompanions(room);
@@ -372,7 +372,14 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
     throw new Error('This adventure is complete. Start another story.');
   }
   const room: AdventureRoom = JSON.parse(JSON.stringify(original));
-  if (command.type === 'react') {
+  if (command.type === 'skip-reveal') {
+    if (command.expectedTurn === undefined || command.expectedTurn !== room.turn) throw new Error('That reveal has ended.');
+    if (room.phase !== 'reveal' || room.status !== 'active') throw new Error('There is no turn reveal to skip.');
+    if (!humans(room).some(seat => seat.actorId === command.userId)) throw new Error('Take a seat before skipping the reveal.');
+    if (room.revealSkips?.includes(command.userId)) return original;
+    room.revealSkips = [...(room.revealSkips ?? []), command.userId];
+    if (humans(room).every(seat => room.revealSkips!.includes(seat.actorId))) advanceRound(room, now);
+  } else if (command.type === 'react') {
     if (!room.seats.some(seat => seat.kind === 'human' && seat.actorId === command.userId && !seat.leaving)) throw new Error('Take a seat before reacting.');
     if (!command.reaction || !['cheer', 'thanks', 'clever'].includes(command.reaction)) throw new Error('Choose a table reaction.');
     const recent = (room.reactions ?? []).filter(reaction => now - reaction.at < 10_000);
@@ -423,6 +430,7 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
       for (const departing of [...room.seats].filter(candidate => candidate.kind === 'human' && candidate.leaving)) releasePlayer(room, departing, now);
       delete room.enemyIntent;
     }
+    if (room.status === 'active' && room.phase === 'reveal' && active.length && active.every(seat => room.revealSkips?.includes(seat.actorId))) advanceRound(room, now);
     fillCompanions(room);
   } else if (command.type === 'tick') {
     if (room.status === 'parked') return original;

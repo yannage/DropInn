@@ -8,7 +8,7 @@ Design and implementation, 2026-09-20. Uses the installed Game Design Fundamenta
 
 Browser/tablet/phone; one to four players with companions. Intended experience: tactical challenge, readable impact, and cooperation. The familiar four-target scene is the navigation layer. Choosing an enemy with Fight replaces it with a large enemy, a visible hero, the current threat and three attack options. Investigation, Influence and hero Help use the same focused space with different decisions. Escape or Scene returns to target selection before commitment.
 
-The loop remains within one simultaneous 30-second turn: select a target → inspect stakes → choose an approach → timed release or Roll now → shared resolution → six-second reveal. The reveal shows actual dice and arithmetic; it never invents cosmetic results or delays the next choosing boundary. A late response skips elapsed presentation beats. Chapter progress and the real threatened hero remain the stakes; the interface does not invent an enemy HP pool.
+The loop remains within one simultaneous 30-second turn: select a target → inspect stakes → choose an approach → timed release or Roll now → shared resolution → up-to-ten-second reveal. The reveal shows actual dice and arithmetic; each seated human may skip it, and unanimous skips begin the next turn early. A late response skips elapsed presentation beats. Chapter progress and the real threatened hero remain the stakes; the interface does not invent an enemy HP pool.
 
 ## Mechanics and tradeoffs
 

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { useReducedMotion } from 'framer-motion';
 import { latestRound, roundCallouts } from '../../lib/dropinn/roundSummary';
 import { RoundRecap } from './RoundRecap';
+import { RoundSequence } from './RoundSequence';
 import { InspectionBubble } from './InspectionBubble';
 import { Narrator } from './Narrator';
 import { StoryScroll, type StoryScrollMode } from './StoryScroll';
@@ -39,6 +40,8 @@ const TOKENS: { kind: IllustratedToken; label: string }[] = [
 ];
 const verbs: Record<string, string> = { mara: 'Help Mara', tracks: 'Follow the tracks', gate: 'Clear the gate', herd: 'Calm the herd', pack: 'Face the pack', reeds: 'Find a hidden path', boat: 'Free the boat', ferryman: 'Ask the ferryman', gloamfang: 'Face Gloamfang', ward: 'Restore the ward', bell: 'Ring the bell', captives: 'Free the captives' };
 const effects: Record<IllustratedToken, string> = { fight: 'Progress · block 2', influence: 'Progress · ease danger', investigate: 'Progress · next-turn insight', assist: 'Progress · class support' };
+const pacedTurnsKey = 'dropinn-paced-turn-results';
+function initialPacedTurns() { try { return localStorage.getItem(pacedTurnsKey) !== 'off'; } catch { return true; } }
 type Drawer = 'party' | 'chat' | 'invite' | 'details' | 'spotlight' | 'choice' | 'round' | null;
 
 export function SceneDrawer({ title, onClose, children, presentation = 'sheet' }: { title: string; onClose: () => void; children: ReactNode; presentation?: 'sheet' | 'dialog' }) {
@@ -71,7 +74,7 @@ export function SceneDrawer({ title, onClose, children, presentation = 'sheet' }
 }
 
 export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: ReactNode }) {
-  const { userId, loading, leaveRoom, joinRoom, commitAction, pendingMove, propose, proposal, proposing, clearProposal, messages, narration } = useAdventureStore();
+  const { userId, loading, leaveRoom, joinRoom, commitAction, pendingMove, propose, proposal, proposing, clearProposal, messages, narration, skipReveal, skippingReveal } = useAdventureStore();
   const scene = getScene(room);
   const CHAPTERS = chaptersFor(room);
   const branchOpen = !!scene.branch && !room.storyBranch;
@@ -83,6 +86,10 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const joining = room.pendingJoins.includes(userId);
   const committed = Boolean(room.commits[userId]);
   const [now, setNow] = useState(Date.now());
+  const [pacedTurns, setPacedTurns] = useState(initialPacedTurns);
+  const [localSkipId, setLocalSkipId] = useState('');
+  const autoSkipAttempt = useRef('');
+  useEffect(() => { try { localStorage.setItem(pacedTurnsKey, pacedTurns ? 'on' : 'off'); } catch {/* Optional preference. */} }, [pacedTurns]);
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [storyMode,setStoryMode] = useState<StoryScrollMode>('collapsed');
   useEffect(() => {setStoryMode('collapsed');},[room.id]);
@@ -95,7 +102,17 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const inspected = scene.targets.find(item => item.id === inspectedId);
   const reducedMotion = !!useReducedMotion();
   const lastRound = useMemo(() => latestRound(room), [room.id, room.events, room.outcomes, room.turn, room.chapter, room.phase]);
-  const partyPayoff = room.phase === 'reveal' && (!lastRound || reducedMotion || now - lastRound.at >= 1100);
+  const skipVoted = room.revealSkips?.includes(userId) ?? false;
+  const revealBypassed = !pacedTurns || skipVoted || (lastRound !== undefined && localSkipId === lastRound.id);
+  const partyPayoff = room.phase === 'reveal' && (!lastRound || reducedMotion || revealBypassed || now - lastRound.at >= 1100);
+  const revealVoters = room.seats.filter(seat => seat.kind === 'human' && !seat.leaving);
+  const canSkipReveal = room.status === 'active' && room.phase === 'reveal' && revealVoters.some(seat => seat.actorId === userId);
+  useEffect(() => {
+    if (pacedTurns || !canSkipReveal || skipVoted || skippingReveal || !lastRound) return;
+    if (autoSkipAttempt.current === lastRound.id) return;
+    autoSkipAttempt.current = lastRound.id;
+    void skipReveal();
+  }, [pacedTurns, canSkipReveal, skipVoted, skippingReveal, lastRound?.id, skipReveal]);
   const callouts = lastRound ? roundCallouts(lastRound) : [];
   const calloutIndex = lastRound ? Math.floor((now - lastRound.at - 1100) / 1200) : -1;
   const callout = room.phase === 'reveal' && partyPayoff && calloutIndex >= 0 ? callouts[calloutIndex] : undefined;
@@ -239,6 +256,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     setInspectedId(null); setArmedToken(false); setSelection({ token: 'spotlight', targetKind: 'scene', targetId: availableProposal.targetId, proposal: availableProposal }); setDrawer(null);
   };
   const share = async () => { try { await navigator.clipboard.writeText(invitationUrl(room, window.location.origin)); setCopied(true); } catch { setCopied(false); } };
+  const skipRound = () => { if (!lastRound) return; setLocalSkipId(lastRound.id); if (canSkipReveal && !skipVoted) void skipReveal(); };
   return <main className={`di-theater ${bubbleVisible ? 'has-inspection-bubble' : ''}`} aria-label="Adventure table" data-completed={room.status === 'completed'} onKeyDown={event => { if (event.key === 'Escape' && !drawer && storyMode === 'collapsed') { if (inspected) { event.preventDefault(); dismissInspection(true); } else if (focus) { event.preventDefault(); backToScene(); } } }}>
     <header className="di-stage-header">
       <div className="di-stage-header-left">
@@ -250,7 +268,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       </div>
       <span className={`di-stage-clock ${seconds <= 8 && room.phase === 'choosing' ? 'urgent' : ''}`} role="timer" aria-label={room.status !== 'active' ? 'Table paused' : `${Math.ceil(seconds)} seconds ${room.phase === 'reveal' ? 'until next turn' : 'to choose'}`}><small>Turn {room.chapterRound}</small><Clock3 size={16} />{room.status === 'active' ? Math.ceil(seconds) : '—'}</span>
     </header>
-    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : scene.objective}</strong><Narrator key={room.id} room={room} /><div className="di-chapter-meter"><span>Chapter progress <b>{Number(room.progress.toFixed(1))} / {scene.progressGoal}</b></span><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
+    <div className="di-stage-objective"><strong>{room.status === 'completed' ? 'You made a little legend.' : branchOpen ? scene.branch!.prompt : scene.objective}</strong><Narrator key={room.id} room={room} pacedTurns={pacedTurns} onPacedTurns={setPacedTurns} suppressCue={room.phase === 'reveal' && revealBypassed} /><div className="di-chapter-meter"><span>Chapter progress <b>{Number(room.progress.toFixed(1))} / {scene.progressGoal}</b></span><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, room.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, room.progress / scene.progressGoal * 100)}%` }} /></div></div><span className="di-stage-pressure" aria-label={`Danger ${room.danger}`}><Flame size={12} />{Number(room.danger.toFixed(1))}</span></div>
     <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''} ${holding ? 'is-charging' : ''} ${focus ? 'is-focused' : ''}`} ref={stage} onClick={event => { if (inspected && !(event.target as HTMLElement).closest('[data-scene-target],button')) dismissInspection(); }}>
       <SceneStageArt chapter={room.chapter} art={scene.art} />
       {focus && focusAction && self ? <FocusedActionStage room={room} action={focusAction} actor={self} modifier={focusModifier} result={room.phase === 'reveal' ? ownResult : undefined} /> : <>
@@ -301,7 +319,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       {room.status === 'completed' && <div className="di-stage-finale"><Sparkles size={30} /><h2>A story worth telling.</h2>{closing && <><TargetArtwork target={{ id: "closing", artKey: closing.artKey }} /><strong>{closing.caption}</strong></>}<p>{participant?.actions ?? 0} contributions · +{participant?.xp ?? 0} XP</p><button onClick={() => void leaveRoom()} disabled={loading}>Collect your recap</button></div>}
     </div>
     <section className={`di-scene-dock ${inspected ? 'is-inspecting' : ''} ${selection || focus ? 'has-action' : ''}`} aria-label="Your move" data-phase={room.phase} data-holding={holding}>
-      {room.phase === 'reveal' && lastRound ? <><RoundRecap key={lastRound.id} summary={lastRound} announce />{room.outcomes.some(outcome => outcome.chapter === room.chapter) && <div className="di-party-keepsake">{participant?.keepsakes.includes(scene.keepsake) && <KeepsakeArtwork name={scene.keepsake}/>}<div><span>Chapter {room.chapter + 1} complete</span>{participant?.keepsakes.includes(scene.keepsake) && <strong>{scene.keepsake}</strong>}</div></div>}</> : <>
+      {room.phase === 'reveal' && lastRound ? <><RoundSequence summary={lastRound} now={now} bypass={revealBypassed} skipped={skipVoted} skipping={skippingReveal} canVote={canSkipReveal} skipCount={revealVoters.filter(seat => room.revealSkips?.includes(seat.actorId)).length} playerCount={revealVoters.length} onSkip={skipRound}/>{room.outcomes.some(outcome => outcome.chapter === room.chapter) && <div className="di-party-keepsake">{participant?.keepsakes.includes(scene.keepsake) && <KeepsakeArtwork name={scene.keepsake}/>}<div><span>Chapter {room.chapter + 1} complete</span>{participant?.keepsakes.includes(scene.keepsake) && <strong>{scene.keepsake}</strong>}</div></div>}</> : <>
       {lastRound && <button className="di-last-round" onClick={() => setDrawer('round')} disabled={holding || !!drag}><TabletopArtwork kind="journal" /><strong>Last round · Ch. {lastRound.chapter + 1}</strong><span className="di-last-round-text">{lastRound.headline}</span><span aria-hidden="true">↗</span></button>}
       {inspected && <div className="di-inspection-context"><div><strong>{inspected.name}</strong><p>{inspected.context ?? inspected.description}</p></div><button aria-label="Close inspection" onClick={() => dismissInspection(true)}><X size={18}/></button></div>}
       <div className="di-dock-beat"><span>{phaseLabel}</span><span>{room.phase === 'choosing' && canAct ? activeSupport || 'Choose → place → release' : room.phase === 'reveal' ? 'Results saved in Story' : 'Your party moves together'}</span></div>
@@ -317,7 +335,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       {committed || room.phase === 'reveal' || room.status === 'completed' ? <div className="di-turn-rest">
         <strong role="status">{room.status === 'completed' ? 'A keepsake. A story. Your next adventure.' : room.phase === 'reveal' ? room.outcomes.some(outcome => outcome.chapter === room.chapter) ? 'A chapter closes. The journey continues.' : 'See what your party changed.' : 'Your move is on the table.'}</strong>
         <div className="di-party-readiness" role="status" aria-label="Party readiness">{readyHumans.map(member => <span key={member.actorId} data-ready={room.phase === 'reveal' || !!room.commits[member.actorId]}>{room.phase === 'reveal' || room.commits[member.actorId] ? <Check size={12} /> : <Clock3 size={12} />}{member.actorId === userId ? 'You' : member.character.name}</span>)}</div>
-        <small>{room.status === 'completed' ? 'Collect your recap above.' : room.status === 'parked' ? 'Table resting until someone returns.' : room.phase === 'reveal' ? `Next turn in ${seconds}s` : `Resolves when everyone is ready · ${seconds}s left`}</small>
+        <small>{room.status === 'completed' ? 'Collect your recap above.' : room.status === 'parked' ? 'Table resting until someone returns.' : room.phase === 'reveal' ? `${revealVoters.filter(seat => room.revealSkips?.includes(seat.actorId)).length} of ${revealVoters.length} ready · Next turn in ${seconds}s` : `Resolves when everyone is ready · ${seconds}s left`}</small>
       </div> : pending && canAct ? <button className="di-scene-retry" disabled={loading} onClick={() => void commitAction(pending.action)}>{loading ? 'Checking your move…' : 'Retry same move'}</button> : !selection ? inspected ? <p className="di-inspect-hint">{canAct ? 'Choose how to help. Your move resolves with the party.' : 'You can look around while the party chooses.'}</p> : null : <TimedRelease key={room.turn} turn={room.turn} deadline={room.deadline} disabled={!selection || !canAct || loading || !!pending || drawer !== null} onCommit={commit} onHoldingChange={setHolding} />}
       </>}
     </section>

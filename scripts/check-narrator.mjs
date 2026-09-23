@@ -26,20 +26,25 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('button',{name:'Mute narrator',exact:true}).click();
   assert.ok(await page.evaluate(()=>window.__narratorSpeech.cancels)>0);
   await page.getByRole('button',{name:'Show narrator subtitles',exact:true}).click();
-  await page.getByRole('button',{name:'Narrator voice settings',exact:true}).click();
+  await page.getByRole('button',{name:'Story settings',exact:true}).click();
+  const pace=page.getByRole('checkbox',{name:/Pace turn results/});
+  assert.equal(await pace.isChecked(),true);
+  await pace.uncheck();
+  assert.equal(await page.evaluate(()=>localStorage.getItem('dropinn-paced-turn-results')),'off');
+  await pace.check();
   await page.evaluate(()=>{const s=window.__narratorSpeech;s.voices=[{voiceURI:'test-natural',name:'Test English Natural',lang:'en-GB',default:true}];s.dispatchEvent(new Event('voiceschanged'));});
   await page.getByRole('combobox',{name:'Browser voice'}).selectOption('test-natural');
   for(const viewport of [{width:390,height:844},{width:320,height:568}]) {
     await page.setViewportSize(viewport);
-    const box=await page.getByRole('group',{name:'Narrator settings'}).boundingBox();
-    assert.ok(box.x>=0 && box.x+box.width<=viewport.width && box.y+box.height<=viewport.height,'Narrator settings fit the viewport');
+    const box=await page.getByRole('group',{name:'Story settings'}).boundingBox();
+    assert.ok(box.x>=0 && box.x+box.width<=viewport.width && box.y+box.height<=viewport.height,`Story settings fit ${viewport.width}×${viewport.height}: ${JSON.stringify(box)}`);
     await page.screenshot({path:`output/playwright/narrator-settings-${viewport.width}.png`,animations:'disabled'});
   }
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Read this line',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).voice),'test-natural');
   await page.keyboard.press('Escape');
-  assert.equal(await page.getByRole('group',{name:'Narrator settings'}).count(),0);
+  assert.equal(await page.getByRole('group',{name:'Story settings'}).count(),0);
   const previous=await page.locator('.di-narrator-words').textContent();
   await page.evaluate(()=>window.__narratorSpeech.current.onend());
   await page.waitForFunction(text=>document.querySelector('.di-narrator-words')?.textContent!==text,previous);

@@ -374,7 +374,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       if (body.operation === 'command') {
         const input = body.command;
-        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react'].includes(input.type)) throw new RequestError('That action is not supported.');
+        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react', 'skip-reveal'].includes(input.type)) throw new RequestError('That action is not supported.');
         const command: AdventureCommand = { id: input.id, type: input.type, userId,
           expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action, reaction: input.reaction };
         room = await mutate(code, command,authUser.id);

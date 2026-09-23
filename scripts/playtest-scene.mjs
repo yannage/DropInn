@@ -210,13 +210,14 @@ try {
   assert.equal(shared.phase, 'reveal');
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
-  await a.locator('.di-round-recap').waitFor();
-    await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
+  await a.locator('.di-round-sequence .di-round-recap').waitFor();
+  await a.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
   const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
-  assert.ok((await a.locator('.di-round-recap').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
-  assert.match(await a.locator('.di-round-recap').textContent(), /progress/);
-  assert.equal(await a.locator('.di-round-recap [data-kind=action]').count(), 2);
-  assert.equal(await a.locator('.di-round-recap').textContent(), await b.locator('.di-round-recap').textContent());
+  assert.ok((await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
+  assert.match(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent(), /progress/);
+  assert.equal(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap [data-kind=action]').count(), 2);
+  await b.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
+  assert.equal(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent(), await b.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent());
   await a.setViewportSize({ width: 1280, height: 800 });
   await a.screenshot({ path: 'output/playwright/game-feel-desktop-payoff.png' });
   note('real-result-total-and-visible-teamwork', { total: actualResult.roll + actualResult.modifier });
@@ -418,7 +419,7 @@ try {
   await a.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 }); await a.mouse.up();
   assert.equal(await altar.getAttribute('aria-pressed'), 'true'); assert.equal(records.length, dragBefore);
   for (const target of ['gloamfang', 'ward', 'bell', 'captives']) await select(a, 'assist', target);
-  const story = a.getByRole('button', { name: /^Story/ });
+  const story = a.getByRole('button', { name: 'Story', exact: true });
   await story.click();
   await a.getByRole('button',{name:'Expand story',exact:true}).click();
   const dialog = a.getByRole('dialog', { name: 'Story & journal' });
@@ -589,6 +590,7 @@ try {
     await page.keyboard.press('Escape');
   }
   await select(four[0], 'assist', 'mara'); await skip(four[0]); await syncAll();
+  await four[0].waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'consequences');
   assert.ok((await four[0].locator('.di-round-recap').textContent()).includes('companion'));
   await readyNext(four[0]);
   assert.equal((await state(four[0])).room.seats.filter(seat=>seat.kind==='human').length, 4);
@@ -610,11 +612,33 @@ try {
     }
   }
   await syncAll();
+  await four[0].waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
   assert.equal(await four[0].locator('.di-round-recap [data-kind=action]').count(), 4);
   const fourText = await four[0].locator('.di-round-recap').textContent();
-  for (const page of four.slice(1)) assert.equal(await page.locator('.di-round-recap').textContent(), fourText);
+  for (const page of four.slice(1)) { await page.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full'); assert.equal(await page.locator('.di-round-recap').textContent(), fourText); }
   await layout(four[0], 'four-player-recap');
   note('four-player-attribution-late-arrival-reload-and-locked-inspection');
+  await readyNext(four[0]); await syncAll();
+  await four[3].getByRole('button',{name:'Story settings',exact:true}).click();
+  await four[3].getByRole('checkbox',{name:/Pace turn results/}).uncheck();
+  await four[3].keyboard.press('Escape');
+  const skipRoundRoom=(await state(four[0])).room;
+  const skipTarget=getScene(skipRoundRoom).targets.find(item=>item.tokens.includes('assist'));
+  for(const page of four) { await select(page,'assist',skipTarget.id); await skip(page); }
+  await syncAll();
+  assert.equal((await state(four[0])).room.phase,'reveal');
+  await four[3].waitForFunction(async()=>{const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState();return s.room?.revealSkips?.includes(s.userId);});
+  assert.equal((await state(four[3])).room.revealSkips.length,1,'setting off sends one automatic skip vote');
+  await four[0].getByRole('button',{name:'Skip result sequence',exact:true}).click();
+  await syncAll();
+  assert.equal((await state(four[0])).room.phase,'reveal','one player cannot advance the whole table');
+  assert.equal((await state(four[0])).room.revealSkips.length,2);
+  assert.equal(await four[0].locator('.di-round-sequence').getAttribute('data-beat'),'full');
+  await four[1].getByRole('button',{name:'Skip result sequence',exact:true}).click();
+  await four[2].getByRole('button',{name:'Skip result sequence',exact:true}).click();
+  await syncAll();
+  for(const page of four) assert.equal((await state(page)).room.phase,'choosing');
+  note('four-player-unanimous-skip-and-persistent-auto-skip-setting');
   const narratorPage=await setup('Narrator',{width:390,height:844});
   await checkNarrator({page:narratorPage,select,skip,state,sync,readyNext,note});
   assert.equal(externalCalls, 0); assert.deepEqual(errors, []);

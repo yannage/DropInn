@@ -1,0 +1,14 @@
+.di-round-sequence{width:100%;max-width:760px;margin:auto;color:#fff5d8}
+.di-round-sequence-header{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:13px}
+.di-round-sequence-header strong{min-width:0}.di-round-sequence-header small{margin-left:auto;white-space:nowrap;font-size:10px;color:#d0dbbd}
+.di-theater .di-round-sequence-header button{min-width:54px;min-height:44px;padding:5px 8px;border:1px solid #c7bd8a;border-radius:8px;background:#fff1c2;color:#244334;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.di-round-sequence-intro{min-height:80px;display:grid;place-items:center;padding:10px 20px;text-align:center;border:1px solid #c3d29d45;border-radius:8px;background:#183e334d;font-size:14px;line-height:1.35}
+.di-round-sequence-card{animation:di-sequence-land .25s ease-out both}
+.di-round-sequence-card .di-round-recap>header{padding-top:2px}
+.di-round-sequence[data-beat=actions] .di-round-entries,.di-round-sequence[data-beat=consequences] .di-round-entries{display:block;max-height:180px}
+.di-round-sequence[data-beat=actions] .di-round-entries article,.di-round-sequence[data-beat=consequences] .di-round-entries article{margin-bottom:6px}
+@keyframes di-sequence-land{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.di-round-sequence-card{animation:none}}
+.di-round-sequence-card.no-motion{animation:none}
+@media(max-width:420px){.di-round-sequence-header{font-size:11px}.di-round-sequence-header small{font-size:9px}}
+@media(max-height:620px) and (max-width:759px){.di-theater .di-round-sequence .di-round-entries{max-height:140px}}

@@ -16,7 +16,7 @@ export function ResultBenefits({ benefits }: { benefits: string[] }) {
   })}</div>;
 }
 
-export function RoundRecap({ summary, announce = false }: { summary: RoundSummary; announce?: boolean }) {
+export function RoundRecap({ summary, announce = false, showHeader = true }: { summary: RoundSummary; announce?: boolean; showHeader?: boolean }) {
   const reducedMotion = !!useReducedMotion();
   const mountedAt = useRef(Date.now());
   const elapsed = mountedAt.current - summary.at;
@@ -24,7 +24,7 @@ export function RoundRecap({ summary, announce = false }: { summary: RoundSummar
   // the recorded round's beat instead of starting the sequence again on reconnect.
   const fresh = announce && !reducedMotion && elapsed >= 0 && elapsed < 650;
   return <section className="di-round-recap" aria-label="Your party’s round" data-fresh={fresh}>
-    <header><strong><TabletopArtwork kind="journal" /> Your party’s round</strong><small>Chapter {summary.chapter + 1} · Round {summary.turn}</small></header>
+    {showHeader && <header><strong><TabletopArtwork kind="journal" /> Your party’s round</strong><small>Chapter {summary.chapter + 1} · Round {summary.turn}</small></header>}
     <div className="di-round-entries" tabIndex={0} role="region" aria-label="Round actions and consequences">
       {summary.entries.map((item, index) => {
         const Mark = item.kind === 'consequence' ? Flag : item.kind === 'companion' ? HandHeart : item.kind === 'inactive' ? Moon : CircleDot;

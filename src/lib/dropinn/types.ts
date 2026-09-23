@@ -150,6 +150,8 @@ export interface AdventureRoom {
   turn: number;
   deadline: number;
   revealUntil: number | null;
+  /** Human seats that have finished watching this turn's reveal. Absent on older snapshots. */
+  revealSkips?: string[];
   createdAt: number;
   updatedAt: number;
   progress: number;
@@ -186,7 +188,7 @@ export interface RoomSummary {
 export interface AdventureCommand {
   inviteKey?: string;
   id: string;
-  type: 'join' | 'leave' | 'tick' | 'act' | 'react';
+  type: 'join' | 'leave' | 'tick' | 'act' | 'react' | 'skip-reveal';
   userId: string;
   expectedTurn?: number;
   expectedRevision?: number;

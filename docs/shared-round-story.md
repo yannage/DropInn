@@ -6,7 +6,7 @@ Implementation: 2026-09-21. Local verification results are recorded separately i
 
 The audience is a newcomer arriving alone or with friends for a short cooperative visit. The intended experience is narrative, discovery, and fellowship: understand the situation, inspect a useful target, choose an attempt, then recognize what each person contributed. This follows the [storytelling baseline](storytelling-guide.md) and the installed Game Design Fundamentals GDD and motivation worksheet at feature scale.
 
-The same 30-second choosing and six-second reveal govern the loop. Inspection costs no resource. The opening personal dice beat lasts 1.1 seconds; the party recap remains independently readable. The next decision can refer back to Last round. There is no new economy, progression tier, required checklist, acknowledgement gate, or reward schedule.
+The same 30-second choosing and up-to-ten-second reveal govern the loop. Inspection costs no resource. The opening personal dice beat lasts 1.1 seconds; recorded actions and consequences then land in sequence, followed by the full party recap. Skip shows the full recap immediately, and unanimous skips begin the next turn early. The next decision can refer back to Last round. There is no new economy, progression tier, or reward schedule.
 
 | Motivation | Support | Observation still needed |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ Numeric effects use structured results; scene changes use recorded authored chan
 
 Tap an object to inspect it. Choose one of its supported moves to prepare an action. Choosing a token first or dragging one remains a shortcut. Escape closes inspection and restores focus. Waiting/joining/committed players may inspect without editing a submitted action. Timed holds lock inspection.
 
-Desktop inspection uses a parchment bubble; narrow or short screens allocate context in the dock. The six-second reveal uses a bounded, keyboard-scrollable party recap and decorative target callouts. The journal opens in the existing focus-trapped drawer without pausing the clock. Reduced motion omits floating motion and the personal dice beat. One polite announcement summarizes the round, rather than announcing each floating label.
+Desktop inspection uses a parchment bubble; narrow or short screens allocate context in the dock. The reveal uses a bounded, keyboard-scrollable party recap and decorative target callouts. The journal opens in the existing focus-trapped drawer without pausing the clock. Reduced motion omits floating motion and the personal dice beat while keeping results readable. The current narrative beat is announced without announcing decorative labels.
 
 ## Acceptance
 

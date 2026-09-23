@@ -10,7 +10,7 @@ function readPreference(): {collapsed:boolean;voice:string} {
   catch { return {collapsed:false,voice:''}; }
 }
 
-export function Narrator({room}:{room:AdventureRoom}) {
+export function Narrator({room, pacedTurns, onPacedTurns, suppressCue}:{room:AdventureRoom; pacedTurns:boolean; onPacedTurns:(value:boolean)=>void; suppressCue:boolean}) {
   const [preference,setPreference]=useState(readPreference);
   // Speech starts only after this visit's explicit click, including on browsers requiring activation.
   const [enabled,setEnabled]=useState(false);
@@ -28,6 +28,7 @@ export function Narrator({room}:{room:AdventureRoom}) {
   const speech=supported?window.speechSynthesis:undefined;
   const utterance=useRef<SpeechSynthesisUtterance>();
   const activeKey=useRef('');
+  const suppressedCue=useRef('');
   const generation=useRef(0);
   const settingsButton=useRef<HTMLButtonElement>(null);
   const availableVoices=() => {try {return speech?.getVoices() ?? [];}catch{return [];}};
@@ -68,8 +69,9 @@ export function Narrator({room}:{room:AdventureRoom}) {
     document.addEventListener('visibilitychange',visibility);
     return ()=>{document.removeEventListener('visibilitychange',visibility);stop();};
   },[speech]);
+  useEffect(()=>{if(suppressCue && suppressedCue.current!==cue.id){suppressedCue.current=cue.id;stop();}},[suppressCue,cue.id]);
   useEffect(()=>{
-    if(hidden) return;
+    if(hidden || suppressedCue.current===cue.id) return;
     const key=`${cue.id}:${index}:${preference.voice}`;
     if(enabled) {
       if(activeKey.current!==key) speak(caption,key);
@@ -79,7 +81,7 @@ export function Narrator({room}:{room:AdventureRoom}) {
     }
     const timer=window.setTimeout(next,captionDuration(caption));
     return ()=>window.clearTimeout(timer);
-  },[cue.id,index,caption,enabled,hidden,visibilityRevision,preference.voice]);
+  },[cue.id,index,caption,enabled,hidden,visibilityRevision,preference.voice,suppressCue]);
 
   const toggleVoice=()=>{
     setError('');
@@ -95,11 +97,13 @@ export function Narrator({room}:{room:AdventureRoom}) {
         {preference.collapsed ? <><MessageCircle size={18}/><span>Narrator</span></> : <><span className="di-narrator-label">The storyteller</span><span id="narrator-caption-text" className="di-narrator-words" key={`${cue.id}:${index}`}>{caption}</span></>}
       </button>
       <button className="di-narrator-voice" disabled={!supported} onClick={toggleVoice} aria-label={supported?enabled?'Mute narrator':'Enable narrator voice':'Narrator voice unavailable'} aria-pressed={enabled} title={supported?enabled?'Mute storyteller':'Read with your browser’s voice':'This browser has no speech synthesis'}>{enabled?<Volume2 size={18}/>:<VolumeX size={18}/>}</button>
-      {!preference.collapsed && <button ref={settingsButton} className="di-narrator-settings-button" aria-label="Narrator voice settings" aria-expanded={settings} onClick={()=>setSettings(!settings)}><Settings2 size={17}/></button>}
+      <button ref={settingsButton} className="di-narrator-settings-button" aria-label="Story settings" aria-expanded={settings} onClick={()=>setSettings(!settings)}><Settings2 size={17}/></button>
     </div>
     {error && !preference.collapsed && <p className="di-narrator-error" role="status">{error}</p>}
-    {settings && <div className="di-narrator-settings" role="group" aria-label="Narrator settings">
-      <header><strong>A voice for the story</strong><button aria-label="Close narrator settings" onClick={closeSettings}><X size={18}/></button></header>
+    {settings && <div className="di-narrator-settings" role="group" aria-label="Story settings">
+      <header><strong>Story settings</strong><button aria-label="Close story settings" onClick={closeSettings}><X size={18}/></button></header>
+      <label className="di-narrator-check"><input type="checkbox" checked={pacedTurns} onChange={event=>onPacedTurns(event.target.checked)}/><span>Pace turn results<small>Show each move before the full recap. Turning this off automatically skips your wait between turns.</small></span></label>
+      <strong className="di-narrator-settings-subhead">A voice for the story</strong>
       <label>Browser voice<select disabled={!supported} value={preference.voice} onChange={event=>{setPreference({...preference,voice:event.target.value});if(enabled) speak(caption,`${cue.id}:${index}:${event.target.value}`,event.target.value);}}>
         <option value="">Storyteller · automatic</option>{voices.map(voice=><option key={voice.voiceURI} value={voice.voiceURI}>{voice.name} · {voice.lang}</option>)}
       </select></label>
