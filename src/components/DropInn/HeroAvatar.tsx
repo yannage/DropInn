@@ -5,6 +5,21 @@ import { HERO_HATS, HERO_PARTS, normalizeCustomization, type HeroArt, type HeroA
 
 export type AvatarHero = Pick<CharacterProfile, 'name' | 'classKey' | 'accent'> & Partial<Pick<CharacterProfile, 'appearance' | 'equipment' | 'inventory'>>;
 
+// One fixed pencil wobble for the complete drawing (including its tint mask).
+// Never animate the seed: tiny table portraits should not shimmer or crawl.
+function PencilEdges({ id }: { id: string }) {
+  return <defs>
+    <filter id={id} filterUnits="userSpaceOnUse" x="-4" y="-4" width="264" height="264" colorInterpolationFilters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="1" seed="17" result="pencil" />
+      <feComponentTransfer in="pencil" result="steps">
+        <feFuncR type="discrete" tableValues="0 .25 .5 .75 1" />
+        <feFuncG type="discrete" tableValues="0 .25 .5 .75 1" />
+      </feComponentTransfer>
+      <feDisplacementMap in="SourceGraphic" in2="steps" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>;
+}
+
 function ArtLayer({ art, color, maskId }: { art: HeroArt; color: string; maskId: string }) {
   const bounds = { x: art.x ?? 0, y: art.y ?? 0, width: art.width ?? 256, height: art.height ?? 256 };
   return <g>
@@ -25,13 +40,17 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
   const hat = HERO_HATS.find(hat => hat.id === equipment.hat);
   if (hat) parts.push(hat);
   return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${hero.name || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
-    {parts.map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={heroAccent(hero.accent, hero.classKey)} maskId={`${id}-${index}`} />)}
+    <PencilEdges id={`${id}-pencil`} />
+    <g filter={`url(#${id}-pencil)`}>
+      {parts.map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={heroAccent(hero.accent, hero.classKey)} maskId={`${id}-${index}`} />)}
+    </g>
   </svg>;
 }
 
 export function HeroHatPreview({ hat, color = '#e0bd70' }: { hat: HeroHat; color?: string }) {
   const id = useId().replace(/:/g, '');
   return <svg className="di-hat-art" viewBox="0 0 256 140" aria-hidden="true">
-    <ArtLayer art={hat.art} color={color} maskId={`${id}-hat`} />
+    <PencilEdges id={`${id}-pencil`} />
+    <g filter={`url(#${id}-pencil)`}><ArtLayer art={hat.art} color={color} maskId={`${id}-hat`} /></g>
   </svg>;
 }

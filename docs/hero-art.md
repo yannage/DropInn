@@ -33,6 +33,10 @@ The current native drawings use flat fills, heavy near-black outlines, hand-shap
 
 ## Catalog and saves
 
+The shared renderer adds a static, stepped pencil-edge displacement to the assembled hero and wardrobe previews. It roughens contours without adding shaded fills or animated noise. Apply it to the composite, never independently to the body and tint mask, to avoid seams. The fixed seed keeps expressions stable; SVG sources and saved customization IDs remain unchanged. The effect is deliberately subtle at 48–64px and most visible in the larger builder preview.
+
+Pencil-effect review: inspected the actual renderer's six bodies, eye and mouth rows at large/64/48px on parchment and dark backgrounds, plus the body/hat and body/color matrix. No source assets or hashes changed. This was a local Chromium visual review, not a hosted or physical-phone performance test.
+
 `appearance` stores body/eyes/nose/mouth IDs; `equipment.hat` stores a hat ID or explicit `null` for no hat. Missing fields on older heroes receive defaults. Invalid face IDs receive defaults; invalid or unowned hats are unequipped. The existing `accent` is the body color. There are no cosmetic stat modifiers.
 
 All four class-themed hats are available to everyone. The other three are derived from exact existing keepsake strings in `inventory`, so existing players receive their unlocks automatically and repeated rewards cannot duplicate hats. Do not rename those strings without a compatibility migration. Earning a hat never equips it automatically.
