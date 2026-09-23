@@ -56,6 +56,7 @@ async function setup(name, viewport) {
   });
   await page.route('**/api/dropinn', async route => {
     const payload = route.request().postDataJSON();
+    if (name === 'A' && payload.command?.type === 'act' && faults.pauseAAct) await faults.pauseAAct;
     if (name === 'A' && faults.blockAReads && payload.operation === 'read') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Intentional QA read interruption' }) });
     const response = await handler(new Request(`${base}/api/dropinn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }));
     const body = await response.text();
@@ -135,7 +136,7 @@ async function playToChapter(a, identities, chapter) {
   throw new Error(`Could not reach chapter ${chapter}`);
 }
 async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }, { width: 414, height: 770 }, { width: 390, height: 780 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
       regions: Object.fromEntries(['.di-scene-tools', '.di-focus-stage', '.di-focus-heading', '.di-focus-player', '.di-focus-opponent', '.di-focus-stakes', '.di-focus-control'].map(selector => [selector, document.querySelector(selector)?.getBoundingClientRect().toJSON()])),
@@ -143,9 +144,11 @@ async function layout(page, label) {
       buttons: [...document.querySelectorAll('.di-theater button:not(:disabled)')].map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, width: r.width, height: r.height }; }) }));
     assert.ok(result.scrollHeight <= result.height + 1 && result.scrollWidth <= result.width, `${label} document overflow ${JSON.stringify(result)}`);
     assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height), 'scene/hero target hit area');
-    assert.ok(result.regions['.di-scene-tools'].bottom <= result.height + 1, `${label}: footer clipped by the app shell`);
+    assert.ok(result.regions['.di-scene-tools'].bottom <= result.height + 1, `${label}/${viewport.width}: footer clipped by the app shell ${JSON.stringify(result.regions)}`);
     const stage = result.regions['.di-focus-stage'];
     if (stage) {
+      const avatar = await page.locator('.di-focus-player>.di-avatar').boundingBox();
+      assert.ok(avatar.width >= 44 && avatar.height >= 44, `${label}/${viewport.width}: hero artwork collapsed`);
       const heading = result.regions['.di-focus-heading'], player = result.regions['.di-focus-player'], opponent = result.regions['.di-focus-opponent'], stakes = result.regions['.di-focus-stakes'];
       assert.ok(heading.bottom <= player.top + 1 && heading.bottom <= opponent.top + 1, `${label}: encounter copy overlaps an actor`);
       assert.ok(player.right <= opponent.left + 1, `${label}: hero stats overlap the opponent`);
@@ -350,7 +353,27 @@ try {
   await select(a, 'fight', room.enemyIntent.sourceId);
   await a.getByRole('button', { name: /Heavy Blow/ }).click();
   faults.loseAResponses = 2;
-  const uncertain = await pointerRelease(a, 800);
+  await a.setViewportSize({ width: 414, height: 770 });
+  const choosingStage = await a.locator('.di-focus-stage').boundingBox();
+  let resumeAct;
+  faults.pauseAAct = new Promise(resolve => { resumeAct = resolve; });
+  const uncertainBefore = records.length;
+  try {
+    const releaseButton = a.getByRole('button', { name: 'Hold and release the die', exact: true });
+    await releaseButton.focus();
+    await a.keyboard.down('Space'); await sleep(800); await a.keyboard.up('Space');
+    await a.getByRole('button', { name: 'Checking your move…', exact: true }).waitFor();
+    const pendingStage = await a.locator('.di-focus-stage').boundingBox();
+    const pendingHero = await a.locator('.di-focus-player>.di-avatar').boundingBox();
+    assert.ok(Math.abs(pendingStage.height - choosingStage.height) <= 1, 'Receipt checking keeps the encounter height stable');
+    assert.ok(pendingHero.width >= 44 && pendingHero.height >= 44, 'Hero remains visible while checking receipt');
+    await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
+    note('pending-receipt-stable-scene-and-visible-hero');
+  } finally { resumeAct(); faults.pauseAAct = null; }
+  await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  assert.equal(records.length, uncertainBefore + 1, 'one timed move after receipt delay');
+  const uncertain = records.at(-1);
+  assert.ok(Number.isInteger(uncertain.command.action.releaseMs), 'Delayed receipt preserves a timed release');
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
   await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   const duplicate = records.at(-1);
@@ -438,6 +461,14 @@ try {
     store.setState({ room: snapshot });
   }, { ...renderBase, mechanicsVersion: undefined, events });
   try {
+    await a.evaluate(async snapshot => {
+      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      store.setState({ room: snapshot });
+    }, { ...renderBase, phase: 'choosing', commits: {}, flags: [...renderBase.flags, 'bell-rung'], deadline: clock() + 60_000 });
+    await select(a, 'investigate', 'bell');
+    await layout(a, 'ringing-bell-focus');
+    await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
+    note('developed-bell-mobile-focus', { evidence: 'Client snapshot rendering only; reproduces the supplied long-title state' });
     await fixture([fixtureEvent('blocked', { result: { targetKind: 'hero', targetId: renderVictim, damage: 0, protection: 3, hp: 7 } })]);
     const threat = a.locator('.di-stage-threat');
     await a.waitForFunction(() => document.querySelector('.di-stage-threat strong')?.textContent === 'Attack blocked');

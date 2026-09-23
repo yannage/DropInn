@@ -53,6 +53,8 @@ Use `src/lib/cosmetics.test.ts`, `src/lib/supabase/characters.test.ts`, and host
 
 ## Mobile interaction and accessibility
 
+For the lobby, hero editor and drawers, run `npm run test:mobile -- http://127.0.0.1:5198` against the local Vite server. It uses an isolated real handler, a fixed turn clock, phone/touch emulation at 320×568, 390×844 and 412×844, plus a desktop comparison. It checks the story scroller, first-screen shortcuts, hero save/reload, hats, help/account panels, five adventure drawers, and reaching a submit control with a reduced viewport. Screenshots wait for visible images to decode and mask invitation links. Reduced viewport space is not proof of physical keyboard behavior. Use the scene and adventure runners separately for timed play and story completion.
+
 Use desktop plus exactly 390×844 and 320×568. After joining, inspect all four scene targets and the threatened hero, select a compatible action, open/close details and commit without document scrolling. Confirm scene objects/hero targets and commitment controls are at least 44px, and the dock stays in place when targets change. Verify valid/invalid touch drop, tap and keyboard alternatives, selection marks and no horizontal clipping. Optional drawers may scroll; normal play should not.
 
 Check Story, Party, Chat, Invite, action details and Spotlight drawers for tab order, focus trap/return and Escape. Enlarge text/zoom: allow reflow and scrolling where needed instead of hiding content. Reduced motion must keep target changes and results understandable; the journal remains readable after animations. Check all ten developed-state objects and small avatars. Desktop emulation does not verify a physical on-screen keyboard; record that separately.

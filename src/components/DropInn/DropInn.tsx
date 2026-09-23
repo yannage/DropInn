@@ -531,6 +531,10 @@ function Lobby() {
             <i />
             <span>No experience needed</span>
           </div>
+          <nav className="di-mobile-shortcuts" aria-label="Get ready to play">
+            {character && <button type="button" onClick={() => setEditingHero(true)} aria-haspopup="dialog">Your hero</button>}
+            <a href="#friend-table">Join friends <ArrowDown size={14} /></a>
+          </nav>
         </div>
         <div className="di-location-stamp">
           <span>Stories from</span>
@@ -541,7 +545,8 @@ function Lobby() {
 
       <section className="di-story-library" aria-label="Choose an adventure">
         <h2>Choose your next story</h2>
-        <div>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
+        <p className="di-mobile-story-hint">Swipe to browse stories</p>
+        <div className="di-story-cards" role="group" aria-label="Story choices" tabIndex={0}>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
           <SceneArt scene={adventure.chapters[0].art} />
           <h3>{adventure.title}</h3><p>{adventure.pitch}</p>
           <button className="di-button di-secondary" aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>Select story</button>
@@ -702,7 +707,7 @@ function Lobby() {
               <AccountPanel/>
             </section>
           )}
-          <section className="di-join-card">
+          <section className="di-join-card" id="friend-table">
             <div className="di-friend-table-start">
               <span className="di-eyebrow">Just your people</span>
               <h3>Save a table for friends.</h3>

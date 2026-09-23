@@ -69,11 +69,14 @@
 /* Reserve separate lanes for encounter copy, the two actors, and the stakes.
    Percentage offsets let wrapped descriptions cover HP on phone screens. */
 @media(max-width:759px){
+  .di-theater .di-scene-stage{container-type:size;container-name:encounter}
+  /* The round ledger keeps full outcomes; floating prose otherwise covers the strike banner. */
+  .di-theater .di-story-callout{display:none}
   .di-theater .di-focus-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(44px,1fr) auto;gap:6px 10px;padding:10px 12px 8px}
   .di-theater .di-focus-heading{position:static;grid-column:1/-1;max-width:none;min-width:0}
   .di-theater .di-focus-heading .di-focus-context{margin:2px 0 0;max-width:100%}
   .di-theater .di-focus-player{position:static;grid-column:1;grid-row:2;min-width:0;min-height:0;height:100%;max-height:180px;align-self:center;flex-direction:column;justify-content:center;gap:4px}
-  .di-theater .di-focus-player>.di-avatar{flex:0 1 70px;min-height:0}
+  .di-theater .di-focus-player>.di-avatar{flex:0 1 70px;min-height:44px}
   .di-theater .di-focus-player>div{max-width:100%;min-width:0;flex:none}
   .di-theater .di-focus-player strong{overflow-wrap:anywhere}
   .di-theater .di-focus-opponent{position:relative;inset:auto;grid-column:2;grid-row:2;align-self:stretch;width:100%;height:100%;min-height:44px;min-width:0}
@@ -93,6 +96,30 @@
   .di-theater .di-focus-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   .di-theater .di-focus-control{grid-template-rows:44px 44px;row-gap:4px}
   .di-theater .di-focus-options{grid-row:2}
+}
+/* Browser chrome and wrapped copy can shorten the arena on otherwise tall phones. */
+@container encounter (max-height:300px){
+  .di-theater .di-focus-stage{padding:4px 7px;gap:3px 6px}
+  .di-theater .di-focus-heading{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:5px}
+  .di-theater .di-focus-heading>span,.di-theater .di-focus-heading>small,.di-theater .di-focus-player small{display:none}
+  .di-theater .di-focus-heading>strong{font-size:18px;line-height:1.1;padding:3px 6px}
+  .di-theater .di-focus-heading .di-focus-context{margin:0}
+}
+@container encounter (max-height:190px){
+  .di-theater .di-focus-player{height:auto;flex-direction:row;gap:3px}
+  .di-theater .di-focus-player>.di-avatar{width:44px;height:44px;flex:none}
+  .di-theater .di-focus-player>div{padding:2px 4px;gap:1px}
+  .di-theater .di-focus-player strong{font-size:10px}
+  .di-theater .di-focus-player span{font-size:9px}
+}
+/* A receipt replaces the release control without moving the encounter above it. */
+.di-theater .di-scene-dock{--di-commit-height:106px}
+.di-theater .di-scene-retry,.di-theater .di-turn-rest{height:var(--di-commit-height);min-height:var(--di-commit-height)}
+@media(max-width:420px){.di-theater .di-scene-dock{--di-commit-height:104px}}
+@media(max-height:740px) and (max-width:759px){.di-theater .di-scene-dock{--di-commit-height:92px}}
+@media(max-height:620px) and (max-width:759px){
+  .di-theater .di-narrator-caption{padding-top:1px;padding-bottom:1px}
+  .di-theater .di-scene-dock{padding-top:1px;padding-bottom:1px}
 }
 /* The completed story gives its exit control space before the scrollable ledger. */
 @media(max-height:620px) and (max-width:759px){
