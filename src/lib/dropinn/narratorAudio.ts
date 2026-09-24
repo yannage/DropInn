@@ -1,16 +1,4 @@
-/** These are static public files, never an inference endpoint. */
-export const narratorModel = 'onnx-community/Kokoro-82M-v1.0-ONNX';
-export const narratorRevision = '1939ad2a8e416c0acfeecc08a694d14ef25f2231';
-export const narratorAssetBase = `https://huggingface.co/${narratorModel}/resolve/${narratorRevision}/`;
-export const narratorCache = `dropinn-emma-${narratorRevision}`;
-export const narratorFiles = ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model_quantized.onnx', 'voices/bf_emma.bin'];
-
-export async function narratorDownloaded(): Promise<boolean> {
-  try {
-    const cache = await caches.open(narratorCache);
-    return (await Promise.all(narratorFiles.map(file => cache.match(narratorAssetBase + file)))).every(Boolean);
-  } catch { return false; }
-}
+import type { NarratorAssets } from './narratorModel';
 
 export type NarratorEngine = 'natural' | 'device';
 export interface NarratorPreference { collapsed: boolean; voice: string; engine: NarratorEngine }
@@ -21,7 +9,7 @@ export function narratorPreference(raw: string | null): NarratorPreference {
   } catch { return { collapsed: false, voice: '', engine: 'natural' }; }
 }
 
-export type NarratorRequest = { id: number; type: 'init'; download: boolean } | { id: number; type: 'generate'; text: string };
+export type NarratorRequest = { id: number; type: 'init'; assets?: NarratorAssets } | { id: number; type: 'generate'; text: string };
 export type NarratorResponse = { id: number; type: 'ready' } | { id: number; type: 'progress'; loaded: number; total: number }
   | { id: number; type: 'audio'; samples: Float32Array; sampleRate: number } | { id: number; type: 'error'; message: string };
 

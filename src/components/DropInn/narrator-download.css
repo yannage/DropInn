@@ -1,0 +1,7 @@
+.di-narrator-download { margin-top:auto;padding-top:8px;text-align:right;width:100%; }
+.di-narrator-download > button { min-height:44px;max-width:100%;white-space:normal; }
+.di-narrator-download-details { text-align:left;border-top:1px solid #bb956555;margin-top:8px;padding-top:8px;font-size:.85rem; }
+.di-narrator-download-details p { margin:6px 0; }
+.di-narrator-download-details button { min-height:44px;padding:8px 12px;border:1px solid #96734c;border-radius:8px;background:#fff5e1;color:#392a1d;cursor:pointer;max-width:100%; }
+.di-narrator-download-details progress { width:100%; }
+.di-narrator-download.is-compact { text-align:left; }

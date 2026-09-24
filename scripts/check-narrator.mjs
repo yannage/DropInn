@@ -80,6 +80,12 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null,'Leaving cancels narration');
   note('narrator-speech-bridge',{evidence:'Mock SpeechSynthesis: activation, subtitle sync, voice loading, mute, collapse, error, visibility, reload, unmount; no audible quality assertion'});
   await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'natural',collapsed:false,voice:'test-natural'})));
+  // Static download fixtures: the worker remains mocked; no live model is fetched.
+  await page.route('https://huggingface.co/KittenML/**', route => {
+    const path = new URL(route.request().url()).pathname;
+    const bytes = path.endsWith('.onnx') ? 24369971 : path.endsWith('.npz') ? 3278902 : 688;
+    return route.fulfill({ status: 200, contentType: 'application/octet-stream', body: Buffer.alloc(bytes) });
+  });
   await page.addInitScript(()=>{
     window.__natural={workers:0,terminated:0,requests:[],hold:true,fail:false};
     window.Worker=class {
@@ -114,11 +120,9 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   assert.equal(await page.evaluate(()=>window.__natural.terminated),1);
   await page.evaluate(()=>{window.__natural.hold=false;window.__natural.fail=true;});
   await page.getByRole('button',{name:'Read this line',exact:true}).click();
-  await page.getByRole('button',{name:'Download natural voice',exact:true}).click();
   await page.getByText('Voice download failed. Please retry.',{exact:true}).waitFor();
   await page.evaluate(()=>window.__natural.fail=false);
   await page.getByRole('button',{name:'Retry voice',exact:true}).click();
-  await page.getByRole('button',{name:'Download natural voice',exact:true}).click();
   await page.getByRole('button',{name:'Mute narrator',exact:true}).waitFor();
   await page.waitForFunction(()=>window.__natural.requests.some(item=>item.type==='generate'));
   await page.getByRole('button',{name:'Mute narrator',exact:true}).click();

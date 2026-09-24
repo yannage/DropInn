@@ -1,4 +1,5 @@
 import { TabletopArtwork } from './TabletopArtwork';
+import { NarratorDownload } from './NarratorDownload';
 import './tabletop-art.css';
 import {
   useEffect,
@@ -552,6 +553,7 @@ function Lobby() {
           <button className="di-button di-secondary" aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>Select story</button>
           <button className="di-button di-primary" disabled={loading} onClick={() => void playNow(adventure.id)} aria-label={`Play ${adventure.title}`}>Play this story</button>
           <button className="di-text-button" disabled={loading} onClick={() => void startFriendTable(adventure.id)} aria-label={`Start a friend table for ${adventure.title}`}>Start with friends</button>
+          <NarratorDownload />
         </article>)}</div>
       </section>
       <div className="di-lobby-grid">

@@ -1,6 +1,38 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { readFileSync, statSync } from 'node:fs'
+
+// Only this tiny manifest loads before consent. Report uncompressed sizes so CDN
+// compression can make the actual transfer smaller, never hide runtime overhead.
+function narratorAssets(): Plugin {
+  return {
+    name: 'dropinn-narrator-assets',
+    configureServer(server) {
+      server.middlewares.use('/narrator-runtime.mjs', (_req, res) => {
+        res.setHeader('Content-Type', 'text/javascript');
+        res.end(readFileSync('node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs'));
+      });
+      server.middlewares.use('/narrator-assets.json', (_req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+          worker: statSync('node_modules/phonemizer/dist/phonemizer.js').size + statSync('src/lib/dropinn/narrator.worker.ts').size,
+          wasm: statSync('node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm').size,
+          module: statSync('node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs').size,
+        }));
+      });
+    },
+    generateBundle(_options, bundle) {
+      const sizes: Record<string, number> = {};
+      for (const [name, asset] of Object.entries(bundle)) {
+        const key = /narrator\.worker-.*\.js$/.test(name) ? 'worker' : /ort-wasm-simd-threaded-.*\.wasm$/.test(name) ? 'wasm' : /ort-wasm-simd-threaded-.*\.mjs$/.test(name) ? 'module' : undefined;
+        if (key) sizes[key] = Buffer.byteLength(asset.type === 'asset' ? asset.source : asset.code);
+      }
+      if (!sizes.worker || !sizes.wasm || !sizes.module) this.error('Narrator runtime assets are missing.');
+      this.emitFile({ type: 'asset', fileName: 'narrator-assets.json', source: JSON.stringify(sizes) });
+    },
+  };
+}
 
 // Development uses the production command handler with an isolated local repository.
 // Secrets loaded here stay in the Node process; Vite only exposes VITE_* to browsers.
@@ -47,7 +79,9 @@ function adventureServer(env: Record<string, string>): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [react(), tailwindcss(), adventureServer(env)],
+    plugins: [react(), tailwindcss(), adventureServer(env), narratorAssets()],
+    optimizeDeps: { include: ['onnxruntime-web/wasm', 'phonemizer', 'fflate'] },
+    worker: { format: 'es' as const, rollupOptions: { output: { inlineDynamicImports: true } } },
     define: { 'import.meta.env.VITE_DROPINN_BACKEND': JSON.stringify(env.DROPINN_BACKEND === 'supabase' ? 'supabase' : 'local') },
   };
 });

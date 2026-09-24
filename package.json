@@ -18,14 +18,16 @@
     "test:mobile": "node scripts/playtest-mobile.mjs",
     "stories:build": "node scripts/build-story-data.mjs",
     "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs",
-    "test:narrator:model": "node scripts/playtest-narrator-model.mjs"
+    "test:narrator:model": "node scripts/playtest-narrator-model.mjs",
+    "test:narrator:production": "node scripts/check-narrator-production.mjs"
   },
   "dependencies": {
-    "@huggingface/transformers": "3.8.1",
     "@supabase/supabase-js": "^2.105.4",
+    "fflate": "0.8.2",
     "framer-motion": "^11.15.0",
-    "kokoro-js": "1.2.1",
     "lucide-react": "^0.462.0",
+    "onnxruntime-web": "1.30.0",
+    "phonemizer": "1.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.184.0",

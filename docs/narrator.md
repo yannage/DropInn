@@ -1,37 +1,92 @@
 # The storyteller
 
-The narrator adds a short, optional reading layer to the shared scene. It helps a newcomer follow the setting and a recent consequence without opening Story. It does not add a wait, change the turn timer, or replace the complete party recap.
+The narrator is an optional reading layer over the shared scene. It never delays
+joining, actions, or the server turn timer. Captions remain available without audio.
+The cue projection is unchanged: authored introductions, recorded consequences and
+saved endings. Names and dynamic outcomes can be spoken; no prerecorded story pack
+or speech API is required.
 
-## What it says
+## Bella and downloads
 
-Chapter introductions come from the authored scene projection. A completed round supplies a recorded development with its actor name, or a short selection of the shared summary's recorded actions. Chapter endings use the saved outcome. Failed attempts cannot supply a successful development. New cues replace old ones; a choosing/reveal boundary alone does not replay a passage. Reconnecting selects the current passage instead of narrating the entire history.
+Natural narration uses KittenML Nano 0.8 int8 with Bella (`expr-voice-2-f`). The
+model/voice/config revision is `84781d74e29ee25217551556398b42f80593a813`.
+The initial production build measures **43.3 MB uncompressed**, including the
+27.65 MB model/voice/config, ONNX WASM, its module, and the standalone worker with
+embedded phonemizer. Hosting compression may reduce network transfer. The build
+emits `narrator-assets.json` from actual output sizes, so displayed totals track
+subsequent code changes. Development reports an estimate because Vite transforms
+the worker on demand.
 
-Each passage splits into brief captions, independently of speech sentences. Muted captions advance at a reading pace. Emma speaks whole sentences; captions follow approximate word-weighted timing within each audio segment and synchronize at its end. Device speech uses word-boundary events when available. The last caption stays until the next story cue. The existing objective, inspection context, complete recap, and Story history remain available.
+Every story card offers a narrator download control at its bottom-right. Expanding
+it explains the size and that one optional download serves all stories. Downloads
+share progress and state, support cancellation and retry, and never enable audio.
+The same management control is available in Story settings. Before consent only
+the tiny local manifest is fetched: no model, worker code, phonemizer, or WASM.
 
-## Controls and browser behavior
+Complete files are stored in the versioned `dropinn-kitten-*` Cache Storage bucket.
+Interrupted files are never marked complete; retries reuse completed files. The
+download validates file lengths, and the worker validates configuration/voice data.
+When storage fails, completed files remain available for this visit with an explicit
+message. Cache-only activation checks every asset, including the runtime, before
+creating a worker; eviction offers downloading again without fetching weights.
+Removing the download cancels any active transfer/playback and removes only DropInn
+narrator caches, including obsolete Emma caches. Browser-managed HTTP caching is
+separate and is not cleared by the application.
 
-Subtitles start visible. Clicking them collapses the strip into a narrator bubble; clicking the bubble opens it again. The adjacent speaker independently enables or mutes narration. Speech starts only through an explicit click in the current visit, including after a reload. The collapsed state and chosen voice are optional local preferences.
+Existing preferences preserve the selected engine, device voice and caption state.
+No stored preference authorizes a Kitten download or autoplay. Old Emma caches never
+qualify as a downloaded Bella narrator.
 
-The default is Natural voice · Emma, Kokoro's British female voice (`bf_emma`, speed 1). The first speaker click offers an optional 100–150 MB download or device speech. Nothing downloads before that choice. Model files are public static downloads from Hugging Face, pinned to revision `1939ad2a8e416c0acfeecc08a694d14ef25f2231`; there is no inference API, account, token, or paid service. ONNX runtime assets are served with the app. Natural speech never uploads story text. Browser Cache Storage is optional; missing/evicted assets bring back the download choice. The game itself still needs its normal server connection.
+## Playback
 
-Kokoro.js 1.2.1 runs the q8 model in a dedicated Web Worker using single-threaded WebAssembly, without requiring WebGPU or cross-origin isolation. It generates one sentence ahead. Actual tokenization is checked before inference; oversized sentences split recursively at clauses or whitespace instead of silently truncating. Emma's pinned voice data bypasses the library's unversioned voice fetch. No pitch shifting is applied.
+The production worker is bundled into one self-contained module and constructed
+from its cached bytes. ONNX Runtime Web 1.30.0 uses the cached module and WASM binary
+with single-threaded SIMD, without requiring WebGPU or cross-origin isolation.
+The phonemizer is bundled into that worker. No story text leaves the device for
+natural narration. ONNX 1.22.0's runtime stalled during verification and was replaced
+before evaluating model performance; the selected Nano model was not changed.
 
-Settings retain device voices as an explicit alternative and provide replay. Device voice selection favors natural English voices, then an English default, at neutral rate/pitch. Some browser voices use their provider's online speech service; the fully local guarantee applies to Emma. Engine, device voice and collapsed state are local preferences. Reload never enables speech automatically.
+Kitten's vocabulary, Unicode word splitting, Bella embedding selection, 0.8 speed
+prior, 24 kHz output and 5,000-sample trailing trim follow the official Nano pipeline.
+Text normalization preserves names and punctuation; eSpeak handles numbers and
+abbreviations. Long input splits at clauses/words rather than dropping text.
 
-Voice lists can arrive after page load. Missing or failed speech returns to subtitles with retry/device-voice controls, without silently changing voices. Changing a passage, muting, hiding the tab, or leaving cancels playback and invalidates pending results. Returning resumes the current sentence. Natural synthesis times out after 20 seconds; initialization/download has a three-minute timeout and explicit cancellation. Device speech has a length-aware stall timeout of at least 20 seconds. Collapsing subtitles leaves enabled speech running. Leaving terminates the worker and closes the audio context while retaining downloaded assets.
+Speech starts only from a click in the current visit. AudioContext unlock happens
+inside that click. The player generates a sentence ahead and shows shorter captions
+with approximate word-weighted timings. Mute, skip/suppression, scene changes,
+backgrounding, removal and leaving invalidate stale audio. Replay reads the current
+cue. Hiding the tab stops speech; returning can resume the current sentence.
+Initialization and downloads have bounded timeouts; synthesis retains its 20-second
+watchdog. Failure leaves subtitles and explicit retry/device-voice controls, without
+silently changing voices. Device speech remains independent and may use an OS/browser
+online service; the local-only guarantee applies to Bella.
 
-Controls have 44-pixel minimum touch targets. Reduced motion removes the caption fade. Caption text remains available to screen readers without adding a second live announcement stream alongside the consolidated party recap. Voice settings support Escape and focus restoration.
+Controls retain 44-pixel touch targets, Escape/focus restoration, reduced-motion
+support, and scrollable settings on small screens. Captions avoid duplicate live
+announcements alongside the party recap.
 
-## Verification and remaining observation
+## Verification
 
-Unit tests cover cue selection, failed events, chapter boundaries, caption preservation, and voice selection. The maintained scene browser runner checks opt-in speech, caption/utterance synchronization, late voice loading, collapse, mute, failure fallback, visibility changes, reload preferences, unmount cancellation, and absent speech support. It captures settings at 390×844 and 320×568 and uses the existing desktop/mobile game layout checks.
+- Targeted Vitest checks cover cue fidelity, tokenizer input, preferences, consent,
+  shared downloads, truncation/retry, cancellation, eviction, removal, and worker races.
+- `npm run test:scene` checks gameplay, mobile layouts and the narrator's mock speech
+  and worker bridge against an isolated local handler. Its mock weights are not live
+  inference evidence.
+- `npm run test:narrator:model` checks real synthesis, cache reuse, and a game action
+  during narration against the development server on port 5198. Set
+  `NARRATOR_TEST_BROWSER=chromium` for one browser. Installed Windows WebKit lacks
+  AudioContext, so its worker-only result is not Safari playback verification.
+- After `npm run build`, start preview on port 5199 and run
+  `npm run test:narrator:production`. This checks the shipped consent controls,
+  measured files, shared story-card state, real Nano synthesis, cached offline
+  synthesis, and removal without requiring hosted credentials.
 
-The scene speech bridge is mocked. Unit tests also cover preference migration, whole sentences, clause splitting, cache availability, cancellation races and synthesis timeout. `node scripts/playtest-narrator-model.mjs` is a separate, explicit real-model check against the local Vite server on port 5198 (override with `NARRATOR_TEST_URL`). It downloads weights in Chromium and WebKit, checks nonempty finite audio, cached reload without external model requests, and writes WAV samples and timing reports to ignored `output/playwright/`. It requires both Playwright browsers. It does not establish subjective audio quality or physical-phone performance: listen to the samples and check a real phone separately.
+Production Chromium generated the user's Yanni/boat sentence in about 3.3 seconds
+for 4.9 seconds of audio on this computer. Cached runtime/model initialization was
+about one second. Longer paragraphs cost more; these are desktop measurements,
+not mobile promises. WAV samples and timing reports are saved under ignored
+`output/playwright/`. Subjective listening and physical Android Chrome/iPhone
+playback remain release checks. No hosted deployment was performed.
 
-Third-party licenses and source links are distributed at `/licenses/narrator.txt`.
-
-### Local verification, 2026-09-23
-
-The scene suite passes with mock device speech and a mock neural worker, including download consent/cancel/failure/retry and both mobile layouts. Fifteen targeted unit tests and the production build pass. A separate production-worker smoke check loads the built JavaScript/WASM assets and produces nonempty Emma audio. Real Chromium generates Emma audio, reuses cached model files without external requests, and accepts an action during synthesis (51 ms click-to-response in the local fixture). On this machine, first audio took about 13 seconds uncached and 11 seconds after a cached reload; this is functional but not instant narration. Generated WAV samples are in `output/playwright/narrator-emma-chromium.wav` for listening review.
-
-The installed Windows Playwright WebKit build exposes neither AudioContext nor browser speech, so it correctly offers subtitles only. Its real worker still generated four seconds of speech; Cache Storage was unavailable, and a cache-only retry correctly requested another download without fetching. This does not verify Safari/iPhone audio playback. Subjective voice-quality review and physical-phone latency remain unverified. No hosted rollout was performed.
+Third-party notices, including eSpeak NG's GPL terms and source links, are provided
+at `/licenses/narrator.txt`.

@@ -1,5 +1,6 @@
 import { narratorCaptions, narratorVoice } from './narrator';
 import type { NarratorRequest, NarratorResponse } from './narratorAudio';
+import { createNarratorWorker, cancelNarratorDownload } from './narratorDownload';
 
 type AudioResult = Extract<NarratorResponse, {type: 'audio'}>;
 type Pending = { resolve: (result: NarratorResponse) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; type: string };
@@ -15,10 +16,12 @@ export class NarratorPlayer {
   private speech?: SpeechSynthesisUtterance;
   private timers: ReturnType<typeof setTimeout>[] = [];
   private finishPlayback?: () => void;
+  private initialization = 0;
+  private ownsDownload = false;
   ready = false;
   onProgress?: (loaded: number, total: number) => void;
 
-  constructor(private createWorker = () => new Worker(new URL('./narrator.worker.ts', import.meta.url), { type: 'module' })) {}
+  constructor(private createWorker = createNarratorWorker) {}
 
   /** Called synchronously inside the user's click, before downloads or synthesis. */
   async unlock() {
@@ -27,35 +30,40 @@ export class NarratorPlayer {
   }
 
   private request(message: Omit<Extract<NarratorRequest, {type: 'init'}>, 'id'> | Omit<Extract<NarratorRequest, {type: 'generate'}>, 'id'>): Promise<NarratorResponse> {
-    if (!this.worker) {
-      this.worker = this.createWorker();
-      this.worker.onmessage = (event: MessageEvent<NarratorResponse>) => {
-        const result = event.data, pending = this.pending.get(result.id);
-        if (!pending) return;
-        if (result.type === 'progress') { this.onProgress?.(result.loaded, result.total); return; }
-        clearTimeout(pending.timer); this.pending.delete(result.id);
-        if (result.type === 'error') pending.reject(new Error(result.message));
-        else pending.resolve(result);
-      };
-      this.worker.onerror = () => this.resetWorker(new Error('Natural voice unavailable on this device.'));
-    }
+    if (!this.worker) return Promise.reject(new Error('The narrator is not ready.'));
+    this.worker.onmessage = (event: MessageEvent<NarratorResponse>) => {
+      const result = event.data, pending = this.pending.get(result.id);
+      if (!pending) return;
+      if (result.type === 'progress') { this.onProgress?.(result.loaded, result.total); return; }
+      clearTimeout(pending.timer); this.pending.delete(result.id);
+      if (result.type === 'error') pending.reject(new Error(result.message));
+      else pending.resolve(result);
+    };
+    this.worker.onerror = () => this.resetWorker(new Error('Natural voice unavailable on this device.'));
     const id = ++this.serial;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => this.resetWorker(new Error(message.type === 'init' ? 'The voice download took too long. Please retry.' : 'Speech took too long on this device.')), message.type === 'init' ? 180000 : 20000);
       this.pending.set(id, { resolve, reject, timer, type: message.type });
-      this.worker!.postMessage({ ...message, id });
+      const assets = message.type === 'init' ? message.assets : undefined;
+      this.worker!.postMessage({ ...message, id }, assets ? Object.values(assets) : []);
     });
   }
 
   async initialize(download: boolean) {
     if (this.ready) return;
+    const ticket = ++this.initialization;
+    this.ownsDownload = download;
     try {
-      await this.request({ type: 'init', download });
+      const prepared = await this.createWorker(download, this.onProgress);
+      if (ticket !== this.initialization) { prepared.worker.terminate(); throw canceled(); }
+      this.worker = prepared.worker;
+      await this.request({ type: 'init', assets: prepared.assets });
+      if (ticket !== this.initialization) throw canceled();
       this.ready = true;
     } catch (error) {
-      this.resetWorker(error instanceof Error ? error : new Error('Natural voice unavailable.'));
+      if (ticket === this.initialization) this.resetWorker(error instanceof Error ? error : new Error('Natural voice unavailable.'));
       throw error;
-    }
+    } finally { if (ticket === this.initialization) this.ownsDownload = false; }
   }
 
   private resetWorker(error: Error) {
@@ -77,7 +85,7 @@ export class NarratorPlayer {
     }
   }
 
-  cancelDownload() { this.stop(); this.resetWorker(canceled()); }
+  cancelDownload() { ++this.initialization; if (this.ownsDownload) cancelNarratorDownload(); this.ownsDownload = false; this.stop(); this.resetWorker(canceled()); }
   dispose() { this.cancelDownload(); void this.context?.close(); this.context = undefined; }
 
   private async audio(result: AudioResult, text: string, ticket: number, caption: (text: string) => void) {

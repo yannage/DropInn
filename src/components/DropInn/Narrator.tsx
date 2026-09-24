@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { MessageCircle, Settings2, Volume2, VolumeX, X } from 'lucide-react';
 import type { AdventureRoom } from '../../lib/dropinn/types';
 import { captionDuration, narratorCaptions, narratorCue } from '../../lib/dropinn/narrator';
-import { narratorDownloaded, narratorPreference, narratorSentences, type NarratorEngine } from '../../lib/dropinn/narratorAudio';
+import { narratorPreference, narratorSentences, type NarratorEngine } from '../../lib/dropinn/narratorAudio';
+import { narratorDownloaded, narratorDownloadSnapshot, narratorSize, refreshNarratorDownload, subscribeNarratorDownload } from '../../lib/dropinn/narratorDownload';
+import { NarratorDownload } from './NarratorDownload';
 import { NarratorPlayer } from '../../lib/dropinn/narratorPlayer';
 import './narrator.css';
 
@@ -14,6 +16,7 @@ function readPreference() {
 
 export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room: AdventureRoom; pacedTurns: boolean; onPacedTurns: (value: boolean) => void; suppressCue: boolean }) {
   const [preference, setPreference] = useState(readPreference);
+  const pack = useSyncExternalStore(subscribeNarratorDownload, narratorDownloadSnapshot);
   const [enabled, setEnabled] = useState(false);
   const [settings, setSettings] = useState(false);
   const [downloadChoice, setDownloadChoice] = useState(false);
@@ -76,16 +79,20 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
       return;
     }
     if (ticket !== activation.current || (await unlocked) === false) return;
-    setDownloadChoice(false); setLoading(true); setProgress('Preparing Emma…');
+    setDownloadChoice(false); setLoading(true); setProgress('Preparing Bella…');
     player.current!.onProgress = (loaded, total) => {
-      if (ticket === activation.current) setProgress(total ? `Downloading voice · ${Math.floor(loaded / total * 100)}%` : 'Downloading voice…');
+      if (ticket === activation.current) setProgress(total && loaded >= total ? 'Preparing Bella…' : total ? `Downloading voice · ${Math.floor(loaded / total * 100)}%` : 'Downloading voice…');
     };
     try {
       await player.current!.initialize(download);
       if (ticket !== activation.current) return;
       setLoading(false); setEnabled(true); setReplay(value => value + 1);
       // The effect starts the latest cue, rather than the one at download start.
-    } catch (reason) { if (ticket === activation.current) fail(reason); }
+    } catch (reason) {
+      if (ticket !== activation.current) return;
+      if (reason instanceof DOMException && reason.name === 'AbortError') { setLoading(false); setEnabled(false); setDownloadChoice(true); }
+      else fail(reason);
+    }
   }
   function cancelLoading() {
     ++activation.current; stop(); player.current!.cancelDownload(); setLoading(false); setProgress(''); setEnabled(false);
@@ -98,6 +105,12 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
   const closeSettings = () => { setSettings(false); settingsButton.current?.focus(); };
 
   useEffect(() => { try { localStorage.setItem(preferenceKey, JSON.stringify(preference)); } catch { /* Optional preference. */ } }, [preference]);
+  useEffect(() => {
+    void refreshNarratorDownload();
+    const removed = () => { ++activation.current; stop(); player.current!.cancelDownload(); setEnabled(false); setLoading(false); setDownloadChoice(true); };
+    window.addEventListener('dropinn-narrator-removed', removed);
+    return () => window.removeEventListener('dropinn-narrator-removed', removed);
+  }, []);
   useEffect(() => {
     if (!speech) return;
     const update = () => { try { setVoices(speech.getVoices()); } catch { setVoices([]); } };
@@ -145,12 +158,12 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
       <label className="di-narrator-check"><input type="checkbox" checked={pacedTurns} onChange={event => onPacedTurns(event.target.checked)} /><span>Pace turn results<small>Show each move before the full recap. Turning this off automatically skips your wait between turns.</small></span></label>
       <strong className="di-narrator-settings-subhead">A voice for the story</strong>
       <label>Narrator voice<select value={preference.engine} disabled={loading} onChange={event => { ++activation.current; stop(); setEnabled(false); setDownloadChoice(false); setPreference({ ...preference, engine: event.target.value as NarratorEngine }); }}>
-        <option value="natural" disabled={!naturalSupported}>Natural voice · Emma · British English</option><option value="device" disabled={!speech}>Device voice</option>
+        <option value="natural" disabled={!naturalSupported}>Natural voice · Bella · English</option><option value="device" disabled={!speech}>Device voice</option>
       </select></label>
       {preference.engine === 'device' && <label>Browser voice<select disabled={!speech} value={preference.voice} onChange={event => { setPreference({ ...preference, voice: event.target.value }); if (enabled) start('device', event.target.value); }}>
         <option value="">Storyteller · automatic</option>{voices.map(voice => <option key={voice.voiceURI} value={voice.voiceURI}>{voice.name} · {voice.lang}</option>)}
       </select></label>}
-      {preference.engine === 'natural' ? <p>Emma speaks on your device. First use downloads about 100–150 MB, saved here when your browser allows. Your story stays on your device.</p> : <p>Uses voices supplied by your device or browser. Availability and quality vary.</p>}
+      {preference.engine === 'natural' ? <><p>Bella speaks on your device. An optional {pack.total ? narratorSize(pack.total) + ' ' : ''}download works across every story. Your story stays on your device.</p><NarratorDownload compact /></> : <p>Uses voices supplied by your device or browser. Availability and quality vary.</p>}
       {error && <p className="di-narrator-error" role="status">{error}</p>}
       {loading ? <><p role="status">{progress}</p><button className="di-narrator-replay" onClick={cancelLoading}>Cancel download</button></> : <>
         <button className="di-narrator-replay" disabled={preference.engine === 'natural' ? !naturalSupported : !speech} onClick={() => { if (downloadChoice) void activate('natural', true); else void activate(); }}>{downloadChoice ? 'Download natural voice' : error ? 'Retry voice' : 'Read this line'}</button>

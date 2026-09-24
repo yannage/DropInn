@@ -23,7 +23,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
   const requests = [], errors = [];
   page.on('request', request => { if (/huggingface|hf\.co|xethub|jsdelivr/.test(new URL(request.url()).hostname)) requests.push({ url: request.url(), method: request.method() }); });
   page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if (message.type() === 'error') console.error(name, message.text().slice(0, 500)); });
+  page.on('console', message => { if (message.type() === 'error' || message.text().includes('[Kitten]')) console.error(name, message.text().slice(0, 500)); });
   await page.addInitScript(() => {
     window.__narratorModel = { messages: [], firstAudio: null, started: performance.now() };
     const OriginalWorker = window.Worker;
@@ -51,22 +51,29 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     const hasAudio = await page.evaluate(() => typeof AudioContext !== 'undefined');
     if (!hasAudio) {
       assert.equal(await page.getByRole('button',{name:'Narrator voice unavailable',exact:true}).isDisabled(),true);
+      if (!base.endsWith(':5198')) {
+        console.log(JSON.stringify({browser:name,playback:'Unavailable: this browser build has no AudioContext; physical Safari remains unverified.'}));
+        continue;
+      }
       const runWorker = async (download, expectAudio = true) => {
-        await page.evaluate(download => {
+        await page.evaluate(async download => {
           window.__narratorModel.messages=[];
-          const worker=new Worker('/src/lib/dropinn/narrator.worker.ts',{type:'module'});
-          window.__qaWorker=worker;
-          worker.addEventListener('message',({data})=>{if(data.type==='ready')worker.postMessage({id:2,type:'generate',text:'Mara watches the river while Wren studies the silver tracks.'});});
-          worker.postMessage({id:1,type:'init',download});
+          const { createNarratorWorker } = await import('/src/lib/dropinn/narratorDownload.ts');
+          try {
+            const {worker, assets} = await createNarratorWorker(download);
+            window.__qaWorker=worker;
+            worker.addEventListener('message',({data})=>{if(data.type==='ready')worker.postMessage({id:2,type:'generate',text:'And then Yanni got into the boat and started swimming away.'});});
+            worker.postMessage({id:1,type:'init',assets},Object.values(assets));
+          } catch(error) { window.__narratorModel.messages.push({type:'error',message:error.message}); }
         },download);
         await page.waitForFunction(()=>window.__narratorModel.messages.some(item=>item.type==='audio'||item.type==='error'),{},{timeout:210000});
-        const messages=await page.evaluate(()=>{window.__qaWorker.terminate();return window.__narratorModel.messages.filter(item=>item.type!=='progress');});
+        const messages=await page.evaluate(()=>{window.__qaWorker?.terminate();return window.__narratorModel.messages.filter(item=>item.type!=='progress');});
         if(expectAudio) assert.ok(messages.some(item=>item.type==='audio'&&item.peak>0.01),JSON.stringify(messages));
         else assert.ok(messages.some(item=>item.type==='error'&&item.message.includes('download')),JSON.stringify(messages));
         return messages;
       };
       const initial=await runWorker(true);
-      const cacheAvailable=await page.evaluate(async()=> (await import('/src/lib/dropinn/narratorAudio.ts')).narratorDownloaded());
+      const cacheAvailable=await page.evaluate(async()=> (await import('/src/lib/dropinn/narratorDownload.ts')).narratorDownloaded());
       requests.length=0;
       const cached=await runWorker(false,cacheAvailable);
       assert.equal(requests.length,0,JSON.stringify(requests));
@@ -89,12 +96,12 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     const elapsed = Date.now() - started;
     await page.getByRole('button', { name: 'Close story settings', exact: true }).click();
     await page.getByRole('button', { name: 'Mute narrator', exact: true }).click();
-    await page.screenshot({ path: `output/playwright/narrator-emma-${name}.png` });
+    await page.screenshot({ path: `output/playwright/narrator-bella-${name}.png` });
     const { samples, sampleRate } = record.firstAudio;
     const wav = Buffer.alloc(44 + samples.length * 2);
     wav.write('RIFF'); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(sampleRate, 24); wav.writeUInt32LE(sampleRate * 2, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(samples.length * 2, 40);
     samples.forEach((value, index) => wav.writeInt16LE(Math.round(Math.max(-1, Math.min(1, value)) * 32767), 44 + index * 2));
-    await writeFile(`output/playwright/narrator-emma-${name}.wav`, wav);
+    await writeFile(`output/playwright/narrator-bella-${name}.wav`, wav);
     requests.length = 0;
     await page.reload();
     await page.getByRole('button', { name: 'Enable narrator voice', exact: true }).waitFor();
