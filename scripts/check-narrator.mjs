@@ -19,8 +19,12 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Speech is opt in');
   const first=await page.locator('.di-narrator-words').textContent();
   await page.getByRole('button',{name:'Enable narrator voice',exact:true}).click();
+  await page.getByRole('button',{name:'Download natural voice',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Download choice does not speak or silently fall back');
+  await page.getByRole('button',{name:'Use device voice',exact:true}).click();
+  await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   let spoken=await page.evaluate(()=>window.__narratorSpeech.spoken);
-  assert.equal(spoken.length,1);assert.equal(spoken[0].text,first);assert.equal(spoken[0].rate,.92);
+  assert.equal(spoken.length,1);assert.ok(spoken[0].text.startsWith(first));assert.equal(spoken[0].rate,1);
   await page.getByRole('button',{name:'Collapse narrator subtitles',exact:true}).click();
   assert.equal(await page.locator('.di-narrator-words').count(),0);
   await page.getByRole('button',{name:'Mute narrator',exact:true}).click();
@@ -48,7 +52,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   const previous=await page.locator('.di-narrator-words').textContent();
   await page.evaluate(()=>window.__narratorSpeech.current.onend());
   await page.waitForFunction(text=>document.querySelector('.di-narrator-words')?.textContent!==text,previous);
-  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).text),await page.locator('.di-narrator-words').textContent());
+  assert.ok((await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).text)).startsWith(await page.locator('.di-narrator-words').textContent()));
   const priorSpoken=await page.evaluate(()=>window.__narratorSpeech.spoken.length);
   await select(page,'investigate','tracks');await skip(page);await sync(page);
   await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,priorSpoken);
@@ -59,6 +63,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.evaluate(()=>window.__narratorSpeech.current.onerror({error:'synthesis-failed'}));
   await page.getByRole('button',{name:'Enable narrator voice',exact:true}).waitFor();
   assert.match(await page.locator('.di-narrator-error').textContent(),/Voice unavailable/);
+  await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   await page.getByRole('button',{name:'Enable narrator voice',exact:true}).click();
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null);
@@ -74,7 +79,55 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('region',{name:'Story narrator',exact:true}).waitFor({state:'hidden'});
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null,'Leaving cancels narration');
   note('narrator-speech-bridge',{evidence:'Mock SpeechSynthesis: activation, subtitle sync, voice loading, mute, collapse, error, visibility, reload, unmount; no audible quality assertion'});
-  await page.addInitScript(()=>{Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});});
+  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'natural',collapsed:false,voice:'test-natural'})));
+  await page.addInitScript(()=>{
+    window.__natural={workers:0,terminated:0,requests:[],hold:true,fail:false};
+    window.Worker=class {
+      constructor(){window.__natural.workers++;this.alive=true;}
+      postMessage(message){
+        window.__natural.requests.push(message);
+        if(message.type==='cancel')return;
+        const send=data=>setTimeout(()=>{if(this.alive)this.onmessage?.({data});},0);
+        if(message.type==='init'){
+          send({id:message.id,type:'progress',loaded:50,total:100});
+          if(window.__natural.fail)send({id:message.id,type:'error',message:'Voice download failed. Please retry.'});
+          else if(!window.__natural.hold)send({id:message.id,type:'ready'});
+        } else send({id:message.id,type:'audio',samples:new Float32Array(24000),sampleRate:24000});
+      }
+      terminate(){this.alive=false;window.__natural.terminated++;}
+    };
+  });
+  await page.reload();
+  await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
+  await page.getByRole('button',{name:'Enable narrator voice',exact:true}).click();
+  await page.getByRole('button',{name:'Download natural voice',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>window.__natural.workers),0,'No model worker before consent');
+  for(const viewport of [{width:390,height:844},{width:320,height:568}]){
+    await page.setViewportSize(viewport);
+    const box=await page.getByRole('group',{name:'Story settings'}).boundingBox();
+    assert.ok(box.x>=0 && box.x+box.width<=viewport.width && box.y+box.height<=viewport.height);
+    await page.screenshot({path:`output/playwright/narrator-download-${viewport.width}.png`,animations:'disabled'});
+  }
+  await page.getByRole('button',{name:'Download natural voice',exact:true}).click();
+  await page.getByText('Downloading voice · 50%',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Cancel download',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.__natural.terminated),1);
+  await page.evaluate(()=>{window.__natural.hold=false;window.__natural.fail=true;});
+  await page.getByRole('button',{name:'Read this line',exact:true}).click();
+  await page.getByRole('button',{name:'Download natural voice',exact:true}).click();
+  await page.getByText('Voice download failed. Please retry.',{exact:true}).waitFor();
+  await page.evaluate(()=>window.__natural.fail=false);
+  await page.getByRole('button',{name:'Retry voice',exact:true}).click();
+  await page.getByRole('button',{name:'Download natural voice',exact:true}).click();
+  await page.getByRole('button',{name:'Mute narrator',exact:true}).waitFor();
+  await page.waitForFunction(()=>window.__natural.requests.some(item=>item.type==='generate'));
+  await page.getByRole('button',{name:'Mute narrator',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Natural voice does not invoke device speech');
+  await page.getByRole('button',{name:'Close story settings',exact:true}).click();
+  await page.getByRole('button',{name:'Leave & save',exact:true}).click();
+  note('narrator-natural-bridge',{evidence:'Mock worker, real AudioContext: consent, mobile download controls, progress, cancel, failure, retry, playback and mute'});
+  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'device',collapsed:true,voice:'test-natural'})));
+  await page.addInitScript(()=>{Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});Object.defineProperty(window,'AudioContext',{configurable:true,value:undefined});});
   await page.reload();
   await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
   await page.getByRole('button',{name:'Show narrator subtitles',exact:true}).click();

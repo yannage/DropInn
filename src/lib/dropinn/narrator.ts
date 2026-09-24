@@ -17,7 +17,7 @@ export function narratorCue(room: AdventureRoom): NarratorCue {
   return {id:`${room.id}:chapter:${room.chapter}`,text:getScene(room).intro};
 }
 
-/** Each caption is also one utterance, keeping displayed and spoken words together. */
+/** Short display captions; speech uses independent sentence boundaries. */
 export function narratorCaptions(text: string, limit = 88): string[] {
   const sentences = text.replace(/\s+/g,' ').trim().match(/[^.!?]+[.!?]+(?:[”"’']|$)?|[^.!?]+$/g) ?? [];
   return sentences.flatMap(sentence => {

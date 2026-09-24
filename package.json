@@ -17,11 +17,14 @@
     "test:tabletop": "node scripts/playtest-tabletop.mjs",
     "test:mobile": "node scripts/playtest-mobile.mjs",
     "stories:build": "node scripts/build-story-data.mjs",
-    "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs"
+    "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs",
+    "test:narrator:model": "node scripts/playtest-narrator-model.mjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "3.8.1",
     "@supabase/supabase-js": "^2.105.4",
     "framer-motion": "^11.15.0",
+    "kokoro-js": "1.2.1",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
