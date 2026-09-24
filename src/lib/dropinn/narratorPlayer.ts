@@ -1,5 +1,5 @@
 import { narratorCaptions, narratorVoice } from './narrator';
-import type { NarratorRequest, NarratorResponse } from './narratorAudio';
+import { narratorSpeed, type NarratorRequest, type NarratorResponse } from './narratorAudio';
 import { createNarratorWorker, cancelNarratorDownload } from './narratorDownload';
 
 type AudioResult = Extract<NarratorResponse, {type: 'audio'}>;
@@ -111,12 +111,12 @@ export class NarratorPlayer {
     if (ticket === this.generation) { this.timers.forEach(clearTimeout); this.timers = []; this.finishPlayback = undefined; }
   }
 
-  private device(text: string, preferred: string, ticket: number, caption: (text: string) => void): Promise<void> {
+  private device(text: string, preferred: string, rate: number, ticket: number, caption: (text: string) => void): Promise<void> {
     return new Promise((resolve, reject) => {
       const line = new SpeechSynthesisUtterance(text);
       const voice = narratorVoice(window.speechSynthesis.getVoices(), preferred);
       if (voice) line.voice = voice;
-      line.lang = voice?.lang ?? 'en-GB'; line.rate = 1; line.pitch = 1;
+      line.lang = voice?.lang ?? 'en-GB'; line.rate = rate; line.pitch = 1;
       const captions = narratorCaptions(text);
       caption(captions[0] ?? text);
       line.onboundary = event => {
@@ -124,7 +124,7 @@ export class NarratorPlayer {
         let end = 0;
         for (const part of captions) { end += part.length + 1; if (event.charIndex < end) { caption(part); break; } }
       };
-      const watchdog = setTimeout(() => reject(new Error('Voice paused. Tap the speaker to try again.')), Math.max(20000, text.split(/\s+/).length * 1000));
+      const watchdog = setTimeout(() => reject(new Error('Voice paused. Tap the speaker to try again.')), Math.max(20000, text.split(/\s+/).length * 1000 / rate));
       this.timers.push(watchdog);
       this.finishPlayback = resolve;
       line.onend = () => { clearTimeout(watchdog); this.speech = undefined; resolve(); };
@@ -134,15 +134,16 @@ export class NarratorPlayer {
     });
   }
 
-  async play(sentences: string[], start: number, engine: 'natural' | 'device', preferred: string, onCaption: (text: string, segment: number) => void) {
+  async play(sentences: string[], start: number, engine: 'natural' | 'device', preferred: string, onCaption: (text: string, segment: number) => void, speed = 1) {
     this.stop();
     const ticket = this.generation;
+    const rate = narratorSpeed(speed);
     // Attach a rejection handler immediately to prefetched work, even while audio plays.
-    const synthesize = (text: string) => this.request({ type: 'generate', text }).then(value => ({ value: value as AudioResult }), error => ({ error: error as Error }));
+    const synthesize = (text: string) => this.request({ type: 'generate', text, speed: rate }).then(value => ({ value: value as AudioResult }), error => ({ error: error as Error }));
     let next = engine === 'natural' && sentences[start] ? synthesize(sentences[start]) : undefined;
     for (let index = start; index < sentences.length && ticket === this.generation; index++) {
       const text = sentences[index];
-      if (engine === 'device') await this.device(text, preferred, ticket, caption => onCaption(caption, index));
+      if (engine === 'device') await this.device(text, preferred, rate, ticket, caption => onCaption(caption, index));
       else {
         const result = await next!;
         if (ticket !== this.generation) return;

@@ -1,15 +1,19 @@
 import type { NarratorAssets } from './narratorModel';
 
 export type NarratorEngine = 'natural' | 'device';
-export interface NarratorPreference { collapsed: boolean; voice: string; engine: NarratorEngine }
+export interface NarratorPreference { collapsed: boolean; voice: string; engine: NarratorEngine; speed: number }
+/** Relative to the voice's original pace. Reject malformed saved values. */
+export function narratorSpeed(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0.75, Math.min(2, value)) : 1;
+}
 export function narratorPreference(raw: string | null): NarratorPreference {
   try {
     const saved = JSON.parse(raw ?? '{}') ?? {};
-    return { collapsed: saved.collapsed === true, voice: typeof saved.voice === 'string' ? saved.voice : '', engine: saved.engine === 'device' ? 'device' : 'natural' };
-  } catch { return { collapsed: false, voice: '', engine: 'natural' }; }
+    return { collapsed: saved.collapsed === true, voice: typeof saved.voice === 'string' ? saved.voice : '', engine: saved.engine === 'device' ? 'device' : 'natural', speed: narratorSpeed(saved.speed) };
+  } catch { return { collapsed: false, voice: '', engine: 'natural', speed: 1 }; }
 }
 
-export type NarratorRequest = { id: number; type: 'init'; assets?: NarratorAssets } | { id: number; type: 'generate'; text: string };
+export type NarratorRequest = { id: number; type: 'init'; assets?: NarratorAssets } | { id: number; type: 'generate'; text: string; speed?: number };
 export type NarratorResponse = { id: number; type: 'ready' } | { id: number; type: 'progress'; loaded: number; total: number }
   | { id: number; type: 'audio'; samples: Float32Array; sampleRate: number } | { id: number; type: 'error'; message: string };
 

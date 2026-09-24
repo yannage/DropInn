@@ -1,7 +1,7 @@
 import * as ort from 'onnxruntime-web/wasm';
 import { phonemize } from 'phonemizer';
 import { bellaVoice, kittenText, kittenTokens } from './kittenInput';
-import { splitNarratorClause, type NarratorRequest, type NarratorResponse } from './narratorAudio';
+import { narratorSpeed, splitNarratorClause, type NarratorRequest, type NarratorResponse } from './narratorAudio';
 import type { NarratorAssets } from './narratorModel';
 
 const send = (message: NarratorResponse, transfer: Transferable[] = []) => self.postMessage(message, { transfer });
@@ -26,13 +26,13 @@ async function initialize(assets: NarratorAssets) {
   } finally { URL.revokeObjectURL(moduleUrl); }
 }
 
-async function generate(input: string): Promise<Float32Array> {
+async function generate(input: string, rate: number): Promise<Float32Array> {
   const text = kittenText(input);
   if (!text) throw Error('There is no text to read.');
   const tokens = kittenTokens((await phonemize(text, 'en-us')).join(' '));
   if (text.length > 300 || tokens.length > 400) {
     const [left, right] = splitNarratorClause(input);
-    const a = await generate(left), b = await generate(right);
+    const a = await generate(left, rate), b = await generate(right, rate);
     const combined = new Float32Array(a.length + 2400 + b.length);
     combined.set(a); combined.set(b, a.length + 2400); return combined;
   }
@@ -40,7 +40,7 @@ async function generate(input: string): Promise<Float32Array> {
   const inputs = {
     input_ids: new ort.Tensor('int64', tokens, [1, tokens.length]),
     style: new ort.Tensor('float32', voice.slice(row * 256, (row + 1) * 256), [1, 256]),
-    speed: new ort.Tensor('float32', [speed], [1]),
+    speed: new ort.Tensor('float32', [speed * rate], [1]),
   };
   const output = await session!.run(inputs);
   try {
@@ -64,7 +64,7 @@ self.onmessage = (event: MessageEvent<NarratorRequest | { type: 'cancel'; id: nu
         send({ id: request.id, type: 'ready' });
       } else {
         if (!session) throw Error('The narrator is not ready.');
-        const samples = await generate(request.text);
+        const samples = await generate(request.text, narratorSpeed(request.speed));
         if (!canceled.delete(request.id)) send({ id: request.id, type: 'audio', samples, sampleRate: 24000 }, [samples.buffer as ArrayBuffer]);
       }
     } catch (error) { send({ id: request.id, type: 'error', message: error instanceof Error ? error.message : 'Narrator unavailable.' }); }

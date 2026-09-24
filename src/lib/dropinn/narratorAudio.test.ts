@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { narratorPreference, narratorSentences, splitNarratorClause } from './narratorAudio';
+import { narratorPreference, narratorSpeed, narratorSentences, splitNarratorClause } from './narratorAudio';
 import { NarratorPlayer } from './narratorPlayer';
 import type { NarratorAssets } from './narratorModel';
 vi.mock('./narratorDownload', () => ({ createNarratorWorker: vi.fn(), cancelNarratorDownload: vi.fn() }));
@@ -7,10 +7,18 @@ vi.mock('./narratorDownload', () => ({ createNarratorWorker: vi.fn(), cancelNarr
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe('natural narrator input and preferences', () => {
   it('migrates old preferences without losing a device voice or enabling autoplay', () => {
-    expect(narratorPreference('{"voice":"old","collapsed":true}')).toEqual({ voice: 'old', collapsed: true, engine: 'natural' });
+    expect(narratorPreference('{"voice":"old","collapsed":true}')).toEqual({ voice: 'old', collapsed: true, engine: 'natural', speed: 1 });
     expect(narratorPreference('null').engine).toBe('natural');
     expect(narratorPreference('invalid').collapsed).toBe(false);
     expect(narratorPreference('{"engine":"device"}').engine).toBe('device');
+  });
+  it('restores speed and safely bounds invalid preferences', () => {
+    expect(narratorPreference('{"speed":1.5}').speed).toBe(1.5);
+    expect(narratorPreference('{"speed":"fast"}').speed).toBe(1);
+    expect(narratorSpeed(NaN)).toBe(1);
+    expect(narratorSpeed(Infinity)).toBe(1);
+    expect(narratorSpeed(0)).toBe(0.75);
+    expect(narratorSpeed(10)).toBe(2);
   });
   it('keeps full sentences and handles abbreviations and quotes', () => {
     const text = 'Dr. Mara watches the long winding river while Wren looks for the silver fragment hidden among the muddy tracks. “Come here!” she calls.';
@@ -74,7 +82,8 @@ describe('worker lifecycle', () => {
   it('replacing a cue discards a late audio result without playing or showing it', async () => {
     const worker = new WorkerStub(), player = new NarratorPlayer(worker.prepare), caption = vi.fn();
     const init = player.initialize(true); await Promise.resolve(); worker.reply({ id: 1, type: 'ready' }); await init;
-    const play = player.play(['Old cue.'], 0, 'natural', '', caption);
+    const play = player.play(['Old cue.'], 0, 'natural', '', caption, 1.5);
+    expect(worker.messages).toContainEqual({ type: 'generate', id: 2, text: 'Old cue.', speed: 1.5 });
     player.stop(); worker.reply({ id: 2, type: 'audio', samples: new Float32Array(24), sampleRate: 24000 });
     await play; expect(caption).not.toHaveBeenCalled();
     expect(worker.messages).toContainEqual({ type: 'cancel', id: 2 }); player.dispose();

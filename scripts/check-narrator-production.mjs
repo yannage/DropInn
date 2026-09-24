@@ -20,8 +20,8 @@ function wav(samples, sampleRate) {
   samples.forEach((value, index) => buffer.writeInt16LE(Math.round(Math.max(-1, Math.min(1, value)) * 32767), 44 + index * 2));
   return buffer;
 }
-async function run(texts) {
-  return page.evaluate(async texts => {
+async function run(texts, speed = 1) {
+  return page.evaluate(async ({ texts, speed }) => {
     const cacheName = (await caches.keys()).find(name => name.startsWith('dropinn-kitten-'));
     if (!cacheName) throw Error('No downloaded narrator cache.');
     const cache = await caches.open(cacheName), buffers = {};
@@ -44,13 +44,13 @@ async function run(texts) {
       const initMs = performance.now() - start;
       for (const [index, text] of texts.entries()) {
         const then = performance.now();
-        const audio = await invoke({ id: index + 2, type: 'generate', text });
+        const audio = await invoke({ id: index + 2, type: 'generate', text, speed });
         const generationMs = performance.now() - then;
         output.push({ text, generationMs, duration: audio.samples.length / audio.sampleRate, finite: audio.samples.every(Number.isFinite), peak: audio.samples.reduce((m, n) => Math.max(m, Math.abs(n)), 0), samples: Array.from(audio.samples), sampleRate: audio.sampleRate });
       }
       return { initMs, output };
     } finally { worker.terminate(); URL.revokeObjectURL(blob); }
-  }, texts);
+  }, { texts, speed });
 }
 try {
   await page.goto(base);
@@ -82,7 +82,9 @@ try {
   await cards.getByRole('button', { name: 'Narrator downloaded', exact: true }).first().waitFor();
   requests.length = 0;
   await context.setOffline(true);
-  const cached = await run(['And then Yanni got into the boat and started swimming away.']);
+  const cached = await run(['And then Yanni got into the boat and started swimming away.'], 1.5);
+  assert.ok(cached.output[0].duration < initial.output[0].duration * 0.85, '1.5× synthesis produces shorter speech');
+  await writeFile('output/playwright/narrator-bella-fast.wav', wav(cached.output[0].samples, cached.output[0].sampleRate));
   assert.equal(requests.length, 0, 'Cached worker, runtime and model work offline without fetches');
   assert.ok(cached.output[0].finite && cached.output[0].peak > 0.01);
   await context.setOffline(false);

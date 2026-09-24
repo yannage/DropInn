@@ -37,6 +37,17 @@ Existing preferences preserve the selected engine, device voice and caption stat
 No stored preference authorizes a Kitten download or autoplay. Old Emma caches never
 qualify as a downloaded Bella narrator.
 
+## Speaking speed
+
+Story settings → Speaking speed offers 0.75× through 2×; 1× preserves the original
+pace. Try 1.25× or 1.5× for brisker narration. The setting is saved on this browser
+and works with both Bella and device voices. Changing it while speaking restarts
+the current sentence and discards audio prepared at the old speed. It never enables
+audio or downloads a model by itself.
+
+Bella multiplies her model speed prior by the selected rate during synthesis,
+leaving playback pitch unchanged. Device voices use the browser speech rate.
+
 ## Playback
 
 The production worker is bundled into one self-contained module and constructed

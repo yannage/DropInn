@@ -47,6 +47,9 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Read this line',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).voice),'test-natural');
+  await page.getByRole('combobox',{name:'Speaking speed'}).selectOption('1.5');
+  await page.waitForFunction(()=>window.__narratorSpeech.spoken.at(-1).rate===1.5);
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).pitch),1);
   await page.keyboard.press('Escape');
   assert.equal(await page.getByRole('group',{name:'Story settings'}).count(),0);
   const previous=await page.locator('.di-narrator-words').textContent();
@@ -75,6 +78,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('button',{name:'Show narrator subtitles',exact:true}).waitFor();
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Reload preserves visual preference without autoplay');
   await page.getByRole('button',{name:'Enable narrator voice',exact:true}).click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('dropinn-narrator')).speed),1.5);
   await page.getByRole('button',{name:'Leave & save',exact:true}).click();
   await page.getByRole('region',{name:'Story narrator',exact:true}).waitFor({state:'hidden'});
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null,'Leaving cancels narration');
@@ -125,6 +129,8 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('button',{name:'Retry voice',exact:true}).click();
   await page.getByRole('button',{name:'Mute narrator',exact:true}).waitFor();
   await page.waitForFunction(()=>window.__natural.requests.some(item=>item.type==='generate'));
+  await page.getByRole('combobox',{name:'Speaking speed'}).selectOption('1.5');
+  await page.waitForFunction(()=>window.__natural.requests.some(item=>item.type==='generate'&&item.speed===1.5));
   await page.getByRole('button',{name:'Mute narrator',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Natural voice does not invoke device speech');
   await page.getByRole('button',{name:'Close story settings',exact:true}).click();

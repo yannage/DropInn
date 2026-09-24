@@ -52,7 +52,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
   }
   function start(engine = preference.engine, voice = preference.voice) {
     if (document.hidden || suppressed.current === cue.id || suppressCue) return;
-    const key = `${cue.id}:${cue.text}:${engine}:${voice}:${replay}`;
+    const key = `${cue.id}:${cue.text}:${engine}:${voice}:${preference.speed}:${replay}`;
     if (activeKey.current === key) return;
     stop(); activeKey.current = key;
     const ticket = run.current;
@@ -60,7 +60,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
     void player.current!.play(sentences, current.current.segment, engine, voice, (text, segment) => {
       if (run.current !== ticket) return;
       current.current = { id: cue.id, segment }; setDisplay({ id: cue.id, text });
-    }).catch(reason => { if (run.current === ticket) fail(reason); });
+    }, preference.speed).catch(reason => { if (run.current === ticket) fail(reason); });
   }
 
   async function activate(engine = preference.engine, download = false) {
@@ -142,7 +142,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
     };
     timer = setTimeout(next, captionDuration(captions[index] ?? ''));
     return () => clearTimeout(timer);
-  }, [cue.id, cue.text, enabled, preference.engine, preference.voice, visibility, replay, suppressCue]);
+  }, [cue.id, cue.text, enabled, preference.engine, preference.voice, preference.speed, visibility, replay, suppressCue]);
 
   return <section className={`di-narrator ${preference.collapsed ? 'is-collapsed' : ''}`} aria-label="Story narrator" onKeyDown={event => { if (event.key === 'Escape' && settings) { event.stopPropagation(); closeSettings(); } }}>
     <div className="di-narrator-line">
@@ -159,6 +159,9 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
       <strong className="di-narrator-settings-subhead">A voice for the story</strong>
       <label>Narrator voice<select value={preference.engine} disabled={loading} onChange={event => { ++activation.current; stop(); setEnabled(false); setDownloadChoice(false); setPreference({ ...preference, engine: event.target.value as NarratorEngine }); }}>
         <option value="natural" disabled={!naturalSupported}>Natural voice · Bella · English</option><option value="device" disabled={!speech}>Device voice</option>
+      </select></label>
+      <label>Speaking speed<select value={preference.speed} onChange={event => setPreference({ ...preference, speed: Number(event.target.value) })}>
+        <option value={0.75}>0.75× · Slower</option><option value={1}>1× · Original</option><option value={1.25}>1.25× · Brisk</option><option value={1.5}>1.5× · Fast</option><option value={1.75}>1.75× · Faster</option><option value={2}>2× · Fastest</option>
       </select></label>
       {preference.engine === 'device' && <label>Browser voice<select disabled={!speech} value={preference.voice} onChange={event => { setPreference({ ...preference, voice: event.target.value }); if (enabled) start('device', event.target.value); }}>
         <option value="">Storyteller · automatic</option>{voices.map(voice => <option key={voice.voiceURI} value={voice.voiceURI}>{voice.name} · {voice.lang}</option>)}
