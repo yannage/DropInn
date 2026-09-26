@@ -16,6 +16,7 @@ export function SupporterShop() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const identity = useRef(account?.id);
   identity.current = account?.id;
@@ -46,7 +47,7 @@ export function SupporterShop() {
     else if (next) setMessage('Payment is not confirmed yet. Check again or resume the same checkout.');
   }, [account?.id, eligible, visible, refreshCollection, storageKey]);
   useEffect(() => {
-    setOrder(null); setMessage(''); setError(''); setBusy(false);
+    setOrder(null); setMessage(''); setError(''); setBusy(false); setAcceptedTerms(false);
     return () => closeCheckout();
   }, [account?.id]);
   useEffect(() => {
@@ -63,7 +64,7 @@ export function SupporterShop() {
   }, [order?.id, order?.status, check]);
   async function buy() {
     if (!eligible) { window.dispatchEvent(new Event('dropinn-open-account')); return; }
-    if (!config || busy || room) return;
+    if (!config || busy || room || !acceptedTerms) return;
     setBusy(true); setError('');
     const accountId = account?.id;
     try {
@@ -96,16 +97,17 @@ export function SupporterShop() {
       const hat = HERO_HATS.find(h => h.id === id)!;
       return <article key={id}><HeroHatPreview hat={hat}/><h3>{hat.label}</h3><div className="di-supporter-palettes">{SUPPORTER_STYLES.filter(s => s.hat === id).map(style => <figure key={style.id}><HeroHatPreview hat={hat} hatColor={style.id}/><figcaption>{style.label}</figcaption></figure>)}</div></article>;
     })}</div>
-    <p className="di-supporter-price">{launchPrice ? <><strong>$5 USD launch price</strong><span>50% off the $10 regular price</span></> : <strong>$10 USD · one-time</strong>}
+    <p className="di-supporter-price">{launchPrice ? <><strong>$5 USD launch price</strong><span>50% off <del>$10 USD</del> regular price</span></> : <strong>$10 USD · one-time</strong>}
       {launchPrice && config.launchOffer && <span>Offer ends {new Date(config.launchOffer.endsAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}.</span>}
       <span>One-time purchase. Paddle shows the final total and applicable taxes before payment.</span></p>
+    {!owned && eligible && <label className="di-supporter-consent"><input type="checkbox" checked={acceptedTerms} onChange={event => setAcceptedTerms(event.target.checked)} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">terms of use</a> and <a href="/refunds" target="_blank" rel="noreferrer">refund policy</a>.</span></label>}
     {owned ? <p className="di-supporter-owned" role="status">Yours — open Your hero → Hats to wear them.</p>
-      : <button type="button" className="di-button di-primary" disabled={busy || !!room || !config.enabled || order?.status === 'disputed'} onClick={() => void buy()}>{busy ? 'Opening checkout…' : !eligible ? 'Sign in to buy' : order?.status === 'ready' ? 'Resume checkout' : sandbox ? 'Open test checkout' : 'Buy supporter pack'}</button>}
+      : <button type="button" className="di-button di-primary" disabled={busy || !!room || !config.enabled || order?.status === 'disputed' || (eligible && !acceptedTerms)} onClick={() => void buy()}>{busy ? 'Opening checkout…' : !eligible ? 'Sign in to buy' : order?.status === 'ready' ? 'Resume checkout' : sandbox ? 'Open test checkout' : 'Buy supporter pack'}</button>}
     {room && <p>Visit the wardrobe and shop between adventures.</p>}
     {!config.enabled && <p>New purchases are currently unavailable. Existing payments can still be checked.</p>}
     {eligible && <button type="button" className="di-button di-secondary" disabled={busy} onClick={() => {setError(''); void check(order?.id).catch(e => setError(e instanceof Error ? e.message : 'Could not check payment.'));}}>Check purchase / restore items</button>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     {order && <p className="di-fine">Purchase reference: <code>{order.id}</code></p>}
-    <p className="di-fine">Refunded purchases lose their paid items; earned items are unaffected. A purchase never equips a hat automatically. Payment questions and refund requests: <a href="https://paddle.net" target="_blank" rel="noreferrer">Paddle payment support</a>.</p>
+    <p className="di-fine">Refunded purchases lose their paid items; earned items are unaffected. A purchase never equips a hat automatically. See our <a href="/privacy" target="_blank" rel="noreferrer">privacy policy</a>. Payment questions and refund requests: <a href="https://paddle.net" target="_blank" rel="noreferrer">Paddle payment support</a>. Game support: <a href="mailto:themainyak@gmail.com">themainyak@gmail.com</a>.</p>
   </section>;
 }

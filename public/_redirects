@@ -1,2 +1,5 @@
 /api/dropinn /.netlify/functions/dropinn 200
+/privacy /privacy.html 200
+/terms /terms.html 200
+/refunds /refunds.html 200
 /* /index.html 200

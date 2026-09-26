@@ -53,7 +53,7 @@ export function AccountPanel() {
       <div className="di-account-panel">
         <SaveStatus/>
         <p>One recoverable hero is free. Your adventures and earned keepsakes stay yours.</p>
-        {localPlay ? <><p>This preview saves on this browser and address. Different preview ports have separate heroes. Account sign-in is available in the online game once configured.</p><a className="di-button di-primary" href="https://dropp-in.netlify.app/" target="_blank" rel="noreferrer">Open the online inn</a></> : <>
+        {localPlay ? <><p>This preview saves on this browser and address. Different preview ports have separate heroes. Account sign-in is available in the online game once configured.</p><a className="di-button di-primary" href="https://playdropinn.com/" target="_blank" rel="noreferrer">Open the online inn</a></> : <>
           {locked && <p>Finish or leave your visit before changing accounts or heroes.</p>}
           {guest ? <>
             <label className="di-account-existing"><input type="checkbox" checked={existing} disabled={locked || !!codeType} onChange={e=>setExisting(e.target.checked)}/> I already have a DropInn account</label>

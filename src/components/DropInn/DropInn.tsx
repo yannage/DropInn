@@ -411,6 +411,9 @@ export function DropInn() {
             ? 'Local playtest · rooms on this computer'
             : 'Live adventures · come and go freely'}
         </span>
+        <nav className="di-legal-links" aria-label="Legal information">
+          <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/refunds">Refunds</a><a href="mailto:themainyak@gmail.com">Contact</a>
+        </nav>
       </footer>}
       {recap && <Recap recap={recap} onClose={dismissRecap} />}
       {help && (

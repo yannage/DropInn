@@ -974,6 +974,15 @@ html.dropinn-v2 #root {
   align-items: center;
   gap: 7px;
 }
+.di-footer .di-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.di-footer .di-legal-links a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
 
 /* At the table */
 .di-adventure {
