@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Public identifiers imported as protected dashboard values; neither is a credential.
+  # API keys, webhook secrets and all other values remain scanned.
+  SECRETS_SCAN_OMIT_KEYS = "PADDLE_ENVIRONMENT,PADDLE_SUPPORTER_PRICE_ID"
 
 [[redirects]]
   from = "/api/dropinn"
