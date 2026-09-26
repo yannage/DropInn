@@ -1,8 +1,7 @@
 import { useId } from 'react';
 import type { CharacterProfile } from '../../lib/character';
 import { heroAccent } from '../../lib/character';
-import { HERO_HATS, HERO_PARTS, SHEPHERD_STYLE_ART, normalizeCustomization, type HeroArt, type HeroAppearance, type HeroHat } from '../../lib/cosmetics';
-import { HAT_STYLES } from '../../lib/dropinn/collection';
+import { HERO_HATS, HERO_PARTS, ALL_HAT_STYLES, SHEPHERD_STYLE_ART, normalizeCustomization, type HeroArt, type HeroAppearance, type HeroHat } from '../../lib/cosmetics';
 
 export type AvatarHero = Pick<CharacterProfile, 'name' | 'classKey' | 'accent'> & Partial<Pick<CharacterProfile, 'appearance' | 'equipment' | 'inventory' | 'cosmeticUnlocks'>>;
 
@@ -35,8 +34,8 @@ function ArtLayer({ art, color, maskId }: { art: HeroArt; color: string; maskId:
 }
 
 function HatLayer({hat,hatColor,hatTrim,id,color}:{hat:HeroHat;hatColor?:string|null;hatTrim?:string|null;id:string;color:string}) {
-  const palette=HAT_STYLES.find(style=>style.id===hatColor && style.hat===hat.id && style.kind==='color');
-  const art=palette ? SHEPHERD_STYLE_ART.color : hat.art;
+  const palette=ALL_HAT_STYLES.find(style=>style.id===hatColor && style.hat===hat.id && style.kind==='color');
+  const art=palette ? hat.paletteArt ?? SHEPHERD_STYLE_ART.color : hat.art;
   return <><ArtLayer art={art} color={palette?.color ?? color} maskId={id}/>
     {hat.id==='shepherd' && hatTrim==='shepherd-feather' && <ArtLayer art={SHEPHERD_STYLE_ART.trim} color={color} maskId={`${id}-trim`}/>}</>;
 }

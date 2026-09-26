@@ -10,7 +10,7 @@ import type { AccountSnapshot } from '../lib/dropinn/accounts';
 import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
 import { normalizeHero, HERO_HATS, type HeroCustomization } from '../lib/cosmetics';
-import { HAT_STYLES, emptyCollection, mergeCollection, craftCollection, creditKey, type CollectionSnapshot } from '../lib/dropinn/collection';
+import { HAT_STYLES, emptyCollection, mergeCollection, craftCollection, creditKey, collectionUnlocks, type CollectionSnapshot } from '../lib/dropinn/collection';
 import { getErrorMessage } from '../lib/errors';
 
 const namespace = (import.meta.env.DEV ? new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) : undefined) || 'default';
@@ -145,7 +145,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     const collection = replace ? incoming : mergeCollection(get().collection, incoming);
     saved.collection = collection;
     const current = get().character;
-    const character = current ? normalizeHero({ ...current, cosmeticUnlocks: { hats: collection.hats, styles: collection.styles } }) : null;
+    const character = current ? normalizeHero({ ...current, cosmeticUnlocks: collectionUnlocks(collection) }) : null;
     if (character) saved.character = character;
     set({ collection, ...(character ? { character } : {}) });
     save();
@@ -175,7 +175,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     const selected=account.heroes.find(hero=>hero.character.id===account.selectedCharacterId) ?? account.heroes[0];
     if(!selected) throw new Error('Your hero could not be loaded. Please retry.');
     const collection = changed ? account.collection ?? emptyCollection() : mergeCollection(get().collection, account.collection ?? emptyCollection());
-    const character=normalizeHero({...selected.character,cosmeticUnlocks:{hats:collection.hats,styles:collection.styles}});
+    const character=normalizeHero({...selected.character,cosmeticUnlocks:collectionUnlocks(collection)});
     if (changed || saved.userId!==selected.playerId) {
       viewEpoch++;unsubscribe?.();unsubscribe=null;
       saved.activeCode = null;

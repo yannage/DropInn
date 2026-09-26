@@ -3,7 +3,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCharacterName, type CharacterProfile } from '../src/lib/character';
 import { normalizeHero } from '../src/lib/cosmetics';
 import { FREE_ACCOUNT_CAPABILITIES, type AccountSnapshot } from '../src/lib/dropinn/accounts';
-import { HAT_STYLES, type CollectionSnapshot } from '../src/lib/dropinn/collection';
+import { HAT_STYLES, collectionUnlocks, type CollectionSnapshot } from '../src/lib/dropinn/collection';
+import { paymentConfig, paymentEnvironment } from './payments';
 
 export class AccountError extends Error { constructor(message:string, public status=400){super(message);} }
 const uuid=(value:unknown):value is string=>typeof value==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -22,14 +23,21 @@ function checkedCollection(data:unknown,error:{code?:string;message?:string}|nul
     || !Number.isSafeInteger(value.earned) || value.earned<0 || !Number.isSafeInteger(value.spent) || value.spent<0) throw new AccountError('Your collection could not be loaded. Please retry.',503);
   return value;
 }
-export async function loadCollection(db:SupabaseClient, accountId:string):Promise<CollectionSnapshot> {
+export async function loadCollection(db:SupabaseClient, accountId:string, env:Record<string,string|undefined> = {}):Promise<CollectionSnapshot> {
   const {data,error}=await db.rpc('dropinn_collection',{p_account:accountId});
-  return checkedCollection(data,error);
+  const collection = checkedCollection(data,error);
+  if (env.PADDLE_ENVIRONMENT) {
+    const paid = await db.rpc('dropinn_paid_collection', { p_account: accountId, p_environment: paymentEnvironment(env) });
+    if (paid.error) throw new AccountError('Paid collections need the 202609260001_payments.sql database update.', 503);
+    if (!paid.data || !Number.isSafeInteger(paid.data.revision) || !Array.isArray(paid.data.hats) || !Array.isArray(paid.data.styles)) throw new AccountError('Paid collection could not be loaded.',503);
+    collection.paid = paid.data;
+  }
+  return collection;
 }
 export function heroFromRow(row:Record<string,any>, collection?:CollectionSnapshot):CharacterProfile {
   const base=createCharacterProfile(row.name,row.class_key);
   return normalizeHero({...base,id:row.id,xp:row.xp,level:row.level,inventory:row.inventory ?? [],accent:heroAccent(row.accent,row.class_key),appearance:row.appearance,equipment:row.equipment,
-    cosmeticUnlocks:collection ? {hats:collection.hats,styles:collection.styles} : undefined});
+    cosmeticUnlocks:collection ? collectionUnlocks(collection) : undefined});
 }
 export function validatedHero(input:unknown, existing?:CharacterProfile):CharacterProfile {
   const value=input as Partial<CharacterProfile> | null;
@@ -51,26 +59,27 @@ export async function ownedPlayers(db:SupabaseClient, accountId:string):Promise<
 export async function accountSnapshot(db:SupabaseClient,user:User,env:Record<string,string|undefined>):Promise<AccountSnapshot> {
   const bootstrap=await db.rpc('dropinn_bootstrap_account',{p_account:user.id,p_starter:normalizeHero(createCharacterProfile('Wren','wizard'))});checked(bootstrap.error);
   const players=await ownedPlayers(db,user.id);
-  const collection=await loadCollection(db,user.id);
+  const collection=await loadCollection(db,user.id,env);
   const rows=await db.from('characters').select('*').in('user_id',players).order('created_at',{ascending:true});checked(rows.error);
   const profile=await db.from('player_accounts').select('selected_character_id').eq('account_id',user.id).single();checked(profile.error);
   const heroes=(rows.data ?? []).map(row=>({playerId:row.user_id,character:heroFromRow(row,collection)}));
   if(!heroes.length) throw new AccountError('Your saved hero could not be loaded. Please retry.',503);
   return {id:user.id,guest:user.is_anonymous===true,email:user.email,identities:user.identities?.map(identity=>identity.provider) ?? [],heroes,collection,
     selectedCharacterId:heroes.find(h=>h.character.id===profile.data?.selected_character_id)?.character.id ?? heroes[0].character.id,
-    capabilities:FREE_ACCOUNT_CAPABILITIES,providers:{google:env.DROPINN_GOOGLE_AUTH_ENABLED==='1',email:env.DROPINN_EMAIL_AUTH_ENABLED==='1'}};
+    capabilities:{...FREE_ACCOUNT_CAPABILITIES,payments:!!paymentConfig(env)?.enabled},payments:paymentConfig(env),providers:{google:env.DROPINN_GOOGLE_AUTH_ENABLED==='1',email:env.DROPINN_EMAIL_AUTH_ENABLED==='1'}};
 }
 export async function handleAccount(db:SupabaseClient,user:User,body:{operation:string;character?:CharacterProfile;characterId?:string;claimToken?:string;recipeId?:string;commandId?:string},env:Record<string,string|undefined>) {
   if(body.operation==='account') return {account:await accountSnapshot(db,user,env)};
   const players=await ownedPlayers(db,user.id);
-  if(body.operation==='collection') return {collection:await loadCollection(db,user.id)};
+  if(body.operation==='collection') return {collection:await loadCollection(db,user.id,env)};
   if(body.operation==='craft') {
     if(!HAT_STYLES.some(style=>style.id===body.recipeId) || typeof body.commandId!=='string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(body.commandId)) throw new AccountError('Choose a valid style and crafting identifier.');
     const result=await db.rpc('dropinn_craft',{p_account:user.id,p_command_id:body.commandId,p_recipe_id:body.recipeId});
-    return {collection:checkedCollection(result.data,result.error)};
+    checkedCollection(result.data,result.error);
+    return {collection:await loadCollection(db,user.id,env)};
   }
   if(body.operation==='hero-save' || body.operation==='hero-create') {
-    const collection=await loadCollection(db,user.id);
+    const collection=await loadCollection(db,user.id,env);
     let existing:CharacterProfile|undefined;
     if(body.operation==='hero-save') {
       if(!uuid(body.character?.id)) throw new AccountError('Choose a valid hero.');

@@ -6,6 +6,8 @@ import { HERO_HATS, HERO_PARTS, normalizeCustomization, ownsHat, type HeroAppear
 import { useAdventureStore } from '../../store/adventureStore';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { CollectionWardrobe } from './Collection';
+import { collectionUnlocks } from '../../lib/dropinn/collection';
+import { SUPPORTER_STYLES } from '../../lib/dropinn/payments';
 
 const labels: Record<keyof HeroAppearance, string> = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
 
@@ -20,10 +22,13 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
   const savingRef = useRef(saving);
   savingRef.current = saving;
   const loading = useAdventureStore(state => state.loading);
-  const collection = useAdventureStore(state => state.collection);
+  const collection = collectionUnlocks(useAdventureStore(state => state.collection));
+  const payments = useAdventureStore(state => state.account?.payments);
+  const showSupporter = payments?.environment === 'production' || new URLSearchParams(location.search).get('payments') === 'sandbox' || location.pathname === '/checkout';
+  const hats = HERO_HATS.filter(hat => !hat.supporter || showSupporter || ownsHat(hat, character.inventory, collection));
   const preview = { ...draft, inventory: character.inventory, cosmeticUnlocks: collection };
   const equipped = HERO_HATS.find(hat => hat.id === draft.equipment.hat);
-  const owned = HERO_HATS.filter(hat => ownsHat(hat, character.inventory, collection)).length;
+  const owned = hats.filter(hat => ownsHat(hat, character.inventory, collection)).length;
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -77,7 +82,7 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
                   event.preventDefault(); const next = event.key === 'Home' ? 'character' : event.key === 'End' ? 'hats' : tab === 'character' ? 'hats' : 'character';
                   setTab(next); document.getElementById(`hero-tab-${next}`)?.focus();
                 }
-              }}>{value === 'character' ? 'Character' : `Hats · ${owned}/${HERO_HATS.length}`}</button>)}
+              }}>{value === 'character' ? 'Character' : `Hats · ${owned}/${hats.length}`}</button>)}
             </div>
             <div id="hero-builder-panel" role="tabpanel" aria-labelledby={`hero-tab-${tab}`}>
               {tab === 'character' ? <>
@@ -91,14 +96,18 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
               </> : <>
                 <div className="di-wardrobe-heading"><h3>A hat for every little adventure.</h3><p>Four to start. Three with a story. Wear any hat, whatever your calling.</p></div>
                 <button className="di-bare-head" type="button" aria-pressed={draft.equipment.hat === null} onClick={() => setDraft({ ...draft, equipment: { hat: null } })}>No hat {draft.equipment.hat === null ? <Check size={17} /> : <span>Unequip</span>}</button>
-                <div className="di-hat-grid">{HERO_HATS.map(hat => {
+                <div className="di-hat-grid">{hats.map(hat => {
                   const unlocked = ownsHat(hat, character.inventory, collection);
                   const selected = draft.equipment.hat === hat.id;
                   return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} className={unlocked ? '' : 'di-hat-locked'} onClick={() => setDraft({ ...draft, equipment: { hat: hat.id } })}>
                     <span className="di-hat-paper"><HeroHatPreview hat={hat} color={draft.accent} />{selected ? <Check size={18} /> : !unlocked ? <LockKeyhole size={16} /> : null}</span>
-                    <strong>{hat.label}</strong><small>{selected ? 'Equipped' : unlocked ? hat.keepsake ? 'Earned · ready to wear' : 'Starter · ready to wear' : `Earn ${hat.keepsake} in ${hat.chapter}`}</small>
+                    <strong>{hat.label}</strong><small>{selected ? 'Equipped' : unlocked ? hat.supporter ? 'Supporter · ready to wear' : hat.keepsake ? 'Earned · ready to wear' : 'Starter · ready to wear' : hat.supporter ? 'Optional supporter pack' : `Earn ${hat.keepsake} in ${hat.chapter}`}</small>
                   </button>;
                 })}</div>
+                {equipped?.supporter && ownsHat(equipped, character.inventory, collection) && <fieldset className="di-builder-colors"><legend>{equipped.label} palettes</legend><div>
+                  <button type="button" aria-pressed={!draft.equipment.hatColor} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:null}})}>Original color</button>
+                  {SUPPORTER_STYLES.filter(style => style.hat === equipped.id && collection.styles.includes(style.id)).map(style => <button key={style.id} type="button" aria-pressed={draft.equipment.hatColor===style.id} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:style.id}})}><span style={{background:style.color}}/><small>{style.label}</small></button>)}
+                </div></fieldset>}
                 <CollectionWardrobe hero={preview} onEquip={equipment => setDraft({ ...draft,equipment })} />
               </>}
             </div>

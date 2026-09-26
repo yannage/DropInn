@@ -1,5 +1,6 @@
 import { TabletopArtwork } from './TabletopArtwork';
 import { NarratorDownload } from './NarratorDownload';
+import { SupporterShop } from './SupporterShop';
 import './tabletop-art.css';
 import {
   useEffect,
@@ -563,6 +564,7 @@ function Lobby() {
           <NarratorDownload />
         </article>)}</div>
       </section>
+      <SupporterShop />
       <div className="di-lobby-grid">
         <div className="di-lobby-main">
           <div className="di-section-heading">

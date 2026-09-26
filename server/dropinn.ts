@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 import { AccountError, handleAccount, ownedPlayers, loadCollection, heroFromRow } from './accounts';
 import type { AccountOperation } from '../src/lib/dropinn/accounts';
+import { handlePayment, PaymentError } from './payments';
 import WebSocket from 'ws';
 import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterProfile } from '../src/lib/character';
@@ -10,6 +11,7 @@ import { adventureFor } from '../src/lib/dropinn/registry';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText, type AIOptions, type AdventureVariation, type ServerEnv } from './ai';
 
 interface RequestBody {
+  bundleId?: string; orderId?: string;
   recipeId?: string; commandId?: string;
   adventureId?: string;
   operation: AccountOperation | 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
@@ -191,7 +193,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       throw new RequestError('Your saved hero could not be loaded. Please retry shortly.', 503);
     }
     if (!data) throw new RequestError('That hero is not available to your account.', 403);
-    return heroFromRow(data,await loadCollection(client(),accountId));
+    return heroFromRow(data,await loadCollection(client(),accountId,env));
   }
   async function heartbeat(code: string, userId: string) {
     if (local) { state.presence.set(`${code}:${userId}`, now()); return; }
@@ -255,6 +257,11 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new RequestError('Send a valid adventure request.');
       const authUser = await authenticate(request, body);
       await rateLimit(authUser.id, 'requests', 240);
+      if (body.operation === 'checkout' || body.operation === 'payment-status') {
+        if (local) throw new PaymentError('Payments require a signed-in online account.', 503);
+        await rateLimit(authUser.id, 'payments', 30);
+        return reply(await handlePayment(client(), authUser, body, env, options.fetch));
+      }
       if(['account','hero-save','hero-create','hero-select','claim-prepare','claim-redeem','collection','craft'].includes(body.operation)) {
         if(local) throw new RequestError('This preview saves heroes in this browser. Account sign-in requires the online game.',409);
         await rateLimit(authUser.id,'account',30);
@@ -419,7 +426,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       throw new RequestError('That operation is not supported.');
     } catch (error) {
-      if (error instanceof RequestError || error instanceof AccountError) return reply({ error: error.message }, error.status);
+      if (error instanceof RequestError || error instanceof AccountError || error instanceof PaymentError) return reply({ error: error.message }, error.status);
       // Validation messages are deliberately readable; infrastructure errors never expose credentials.
       if (error instanceof Error && /^(?:Please |Use between |Choose something)/.test(error.message)) return reply({ error: error.message }, 400);
       return reply({ error: 'The adventure service hit a snag. Please retry.' }, 503);

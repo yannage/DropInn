@@ -196,6 +196,36 @@
       "file": "public/heroes/hat-shepherd-feather.svg",
       "sha256": "06d1e014366ad37f997ed4de879f80f2036dfe85a7deb0e2942765786b9808b3",
       "review": "Collection pilot: inspected actual renderer with blue palette and feather on all six bodies at 256/64/48px, light and dark backgrounds; inspected green/red/gold on Bean at the same sizes and in the wardrobe. Original hat and catalog IDs unchanged. Native SVG derivative, no image generation."
+    },
+    {
+      "file": "public/heroes/hat-teacup.svg",
+      "sha256": "07d1462bc4137ce81eff695519b70b0c00925cd7e7aa1cdb0911e7f6e95c5d5e",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/hat-teacup-fill.svg",
+      "sha256": "cc0453b399ccd32e59ae342ec96b8e5613c9986a9a1a1cf6cd81e28d0eee75de",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/hat-teacup-outline.svg",
+      "sha256": "5797c775a3c63c635fc06fa4aa18c7e3426578e41cf38d63b6845be6387f7f54",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/hat-lantern.svg",
+      "sha256": "3046919a55085bbc1da0735c87eee3d89933fa5a9063298f527f0032c7c98472",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/hat-lantern-fill.svg",
+      "sha256": "fe9bd86b690aeff96fd5d72696272413d67479f5719450bb773f51e99b3c92c6",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/hat-lantern-outline.svg",
+      "sha256": "be7b628acc71a3afda2643f5aa8338e2c9a48715a2d06282e1e58fb1b21e1fb0",
+      "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
     }
   ]
 }

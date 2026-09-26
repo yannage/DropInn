@@ -1,0 +1,98 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { HERO_HATS } from '../../lib/cosmetics';
+import { adventureRequest } from '../../lib/dropinn/api';
+import { openCheckout, closeCheckout } from '../../lib/dropinn/checkout';
+import { SUPPORTER_BUNDLE, SUPPORTER_STYLES, type Purchase } from '../../lib/dropinn/payments';
+import { useAdventureStore } from '../../store/adventureStore';
+import { HeroHatPreview } from './HeroAvatar';
+import './supporter-shop.css';
+
+export function SupporterShop() {
+  const { account, collection, room, refreshCollection } = useAdventureStore();
+  const config = account?.payments;
+  const sandbox = config?.environment === 'sandbox';
+  const visible = !!config && (!sandbox || new URLSearchParams(location.search).get('payments') === 'sandbox' || location.pathname === '/checkout');
+  const [order, setOrder] = useState<Purchase | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const identity = useRef(account?.id);
+  identity.current = account?.id;
+  const owned = collection.paid?.environment === config?.environment && collection.paid?.bundles.includes(SUPPORTER_BUNDLE.id);
+  const eligible = !!account && !account.guest;
+  const storageKey = `dropinn-purchase:${config?.environment}:${account?.id}:${SUPPORTER_BUNDLE.id}`;
+  const check = useCallback(async (orderId?: string) => {
+    if (!eligible || !visible) return;
+    const accountId = account?.id;
+    const response = await adventureRequest({ operation: 'payment-status', orderId });
+    if (identity.current !== accountId) return;
+    const next = response.purchase ?? null;
+    setOrder(next);
+    await refreshCollection();
+    if (next?.status === 'completed') { setMessage('Your pack is in your wardrobe. Choose a hat, then Save hero.'); localStorage.removeItem(storageKey); }
+    else if (next?.status === 'refunded' || next?.status === 'canceled') { setMessage(next.status === 'refunded' ? 'This purchase was refunded. Its paid items are no longer available.' : 'This checkout was canceled.'); localStorage.removeItem(storageKey); }
+    else if (next?.status === 'disputed') setMessage('This payment is under dispute. Contact payment support using your receipt.');
+    else if (next) setMessage('Payment is not confirmed yet. Check again or resume the same checkout.');
+  }, [account?.id, eligible, visible, refreshCollection, storageKey]);
+  useEffect(() => {
+    setOrder(null); setMessage(''); setError(''); setBusy(false);
+    return () => closeCheckout();
+  }, [account?.id]);
+  useEffect(() => {
+    if (!visible || !eligible) return;
+    const sync = () => { void check().catch(e => setError(e instanceof Error ? e.message : 'Could not check your purchase.')); };
+    sync(); window.addEventListener('focus', sync);
+    return () => window.removeEventListener('focus', sync);
+  }, [check, eligible, visible]);
+  useEffect(() => {
+    if (!order || !['ready', 'creating'].includes(order.status)) return;
+    let attempts = 0;
+    const timer = window.setInterval(() => { if (++attempts > 12) { clearInterval(timer); return; } void check(order.id).catch(() => {}); }, 5000);
+    return () => clearInterval(timer);
+  }, [order?.id, order?.status, check]);
+  async function buy() {
+    if (!eligible) { window.dispatchEvent(new Event('dropinn-open-account')); return; }
+    if (!config || busy || room) return;
+    setBusy(true); setError('');
+    const accountId = account?.id;
+    try {
+      let commandId = localStorage.getItem(storageKey);
+      if (!commandId) { commandId = crypto.randomUUID(); localStorage.setItem(storageKey, commandId); }
+      const response = await adventureRequest({ operation: 'checkout', commandId, bundleId: SUPPORTER_BUNDLE.id });
+      if (identity.current !== accountId) return;
+      const next = response.purchase;
+      if (!next) throw new Error('Your checkout could not be confirmed. Check your purchase before trying again.');
+      setOrder(next);
+      if (next.status === 'completed') { await check(next.id); return; }
+      if (next.status !== 'ready' || !next.transactionId) { await check(next.id); return; }
+      await openCheckout(config, next.transactionId, event => {
+        if (identity.current !== accountId) { closeCheckout(); return; }
+        if (event.name === 'checkout.completed') {
+          setMessage('Confirming payment with the server…');
+          void check(next.id).catch(e => setError(e instanceof Error ? e.message : 'Check your purchase again shortly.'));
+        }
+        if (event.name === 'checkout.error' || event.name === 'checkout.payment.failed') setError('Checkout did not finish. Resume the same purchase or check its status.');
+      });
+    } catch (e) { setError(e instanceof Error ? e.message : 'Checkout could not finish. Please check again.'); }
+    finally { setBusy(false); }
+  }
+  if (!visible) return null;
+  return <section className="di-supporter-shop" aria-label="Supporter pack">
+    <div><p className="di-eyebrow">A little thank-you for keeping the inn open</p><h2>{SUPPORTER_BUNDLE.name}</h2>
+      <p>Two curious hats and four palettes for every hero on your account. One purchase. No subscription. Stories, abilities, and earned rewards stay free.</p></div>
+    {sandbox && <p className="di-payment-test" role="note"><strong>Sandbox checkout — no real money.</strong> Use Paddle test details only. Test items are separate from live purchases.</p>}
+    <div className="di-supporter-hats">{SUPPORTER_BUNDLE.hats.map(id => {
+      const hat = HERO_HATS.find(h => h.id === id)!;
+      return <article key={id}><HeroHatPreview hat={hat}/><h3>{hat.label}</h3><div className="di-supporter-palettes">{SUPPORTER_STYLES.filter(s => s.hat === id).map(style => <figure key={style.id}><HeroHatPreview hat={hat} hatColor={style.id}/><figcaption>{style.label}</figcaption></figure>)}</div></article>;
+    })}</div>
+    <p><strong>$10 USD · one-time</strong> · Paddle shows the final total and applicable taxes before payment.</p>
+    {owned ? <p className="di-supporter-owned" role="status">Yours — open Your hero → Hats to wear them.</p>
+      : <button type="button" className="di-button di-primary" disabled={busy || !!room || !config.enabled || order?.status === 'disputed'} onClick={() => void buy()}>{busy ? 'Opening checkout…' : !eligible ? 'Sign in to buy' : order?.status === 'ready' ? 'Resume checkout' : sandbox ? 'Open test checkout' : 'Buy supporter pack'}</button>}
+    {room && <p>Visit the wardrobe and shop between adventures.</p>}
+    {!config.enabled && <p>New purchases are currently unavailable. Existing payments can still be checked.</p>}
+    {eligible && <button type="button" className="di-button di-secondary" disabled={busy} onClick={() => {setError(''); void check(order?.id).catch(e => setError(e instanceof Error ? e.message : 'Could not check payment.'));}}>Check purchase / restore items</button>}
+    {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
+    {order && <p className="di-fine">Purchase reference: <code>{order.id}</code></p>}
+    <p className="di-fine">Refunded purchases lose their paid items; earned items are unaffected. A purchase never equips a hat automatically. Payment questions and refund requests: <a href="https://paddle.net" target="_blank" rel="noreferrer">Paddle payment support</a>.</p>
+  </section>;
+}

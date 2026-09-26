@@ -3,9 +3,11 @@ import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, Ro
 import type { CharacterProfile } from '../character';
 import type { AccountOperation, AccountSnapshot } from './accounts';
 import type { CollectionSnapshot } from './collection';
+import type { Purchase } from './payments';
 
 export const localPlay = import.meta.env.DEV && import.meta.env.VITE_DROPINN_BACKEND !== 'supabase';
 export interface AdventureResponse {
+  purchase?: Purchase | null;
   collection?: CollectionSnapshot;
   account?: AccountSnapshot;
   character?: CharacterProfile;
@@ -23,6 +25,8 @@ export interface AdventureResponse {
   error?: string;
 }
 export interface AdventureRequest {
+  bundleId?: string;
+  orderId?: string;
   recipeId?: string;
   commandId?: string;
   adventureId?: string;
