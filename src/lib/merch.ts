@@ -21,7 +21,7 @@ export const tavernTee: MerchProduct = {
     { size: 'L', usd: 28 }, { size: 'XL', usd: 28 },
     { size: '2XL', usd: 30 }, { size: '3XL', usd: 32 }, { size: '4XL', usd: 34 },
   ],
-  purchaseUrl: null,
+  purchaseUrl: 'https://playdropinn.printful.me/product/unisex-garment-dyed-heavyweight-t-shirt',
 };
 
 export function publicMerchUrl(value: string | null): string | null {
