@@ -16,6 +16,11 @@ export async function checkPaymentDatabase({sql,args}) {
  })));
  assert.equal(competing.filter(x=>x.create).length,1);
  assert.equal(competing[0].order.id,competing[1].order.id);
+ const discount='dsc_cccccccccccccccccccccccccc';
+ sql(`update payment_orders set discount_id='${discount}' where id='${competing[0].order.id}';`);
+ assert.equal(sql(`select discount_id from payment_orders where id='${competing[0].order.id}'`),discount);
+ let invalidDiscount=false;try{sql(`update payment_orders set discount_id='invalid' where id='${competing[0].order.id}';`);}catch{invalidDiscount=true;}
+ assert.equal(invalidDiscount,true);
  const apply=(status,time,event='evt_aaaaaaaaaaaaaaaaaaaaaaaaaa')=>`select dropinn_payment_apply('${first.order.id}','${txn}','${status}','2026-09-26T00:${time}:00Z','${event}');`;
  sql(apply('completed','01'));sql(apply('completed','01'));
  const collection=environment=>JSON.parse(sql(`select dropinn_paid_collection('${user}','${environment}');`));

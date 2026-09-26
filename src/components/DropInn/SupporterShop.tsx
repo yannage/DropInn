@@ -16,11 +16,22 @@ export function SupporterShop() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [now, setNow] = useState(() => Date.now());
   const identity = useRef(account?.id);
   identity.current = account?.id;
   const owned = collection.paid?.environment === config?.environment && collection.paid?.bundles.includes(SUPPORTER_BUNDLE.id);
   const eligible = !!account && !account.guest;
   const storageKey = `dropinn-purchase:${config?.environment}:${account?.id}:${SUPPORTER_BUNDLE.id}`;
+  const offerActive = !!config?.launchOffer && now < Date.parse(config.launchOffer.endsAt);
+  const pending = order?.status === 'ready' || order?.status === 'creating';
+  const launchPrice = pending ? order.launchDiscounted : offerActive;
+  useEffect(() => {
+    if (!config?.launchOffer) return;
+    const remaining = Date.parse(config.launchOffer.endsAt) - Date.now();
+    if (remaining <= 0) { setNow(Date.now()); return; }
+    const timer = window.setTimeout(() => setNow(Date.now()), Math.min(remaining + 100, 2147483647));
+    return () => window.clearTimeout(timer);
+  }, [config?.launchOffer?.endsAt]);
   const check = useCallback(async (orderId?: string) => {
     if (!eligible || !visible) return;
     const accountId = account?.id;
@@ -58,7 +69,7 @@ export function SupporterShop() {
     try {
       let commandId = localStorage.getItem(storageKey);
       if (!commandId) { commandId = crypto.randomUUID(); localStorage.setItem(storageKey, commandId); }
-      const response = await adventureRequest({ operation: 'checkout', commandId, bundleId: SUPPORTER_BUNDLE.id });
+      const response = await adventureRequest({ operation: 'checkout', commandId, bundleId: SUPPORTER_BUNDLE.id, expectLaunchOffer: offerActive && !pending });
       if (identity.current !== accountId) return;
       const next = response.purchase;
       if (!next) throw new Error('Your checkout could not be confirmed. Check your purchase before trying again.');
@@ -85,7 +96,9 @@ export function SupporterShop() {
       const hat = HERO_HATS.find(h => h.id === id)!;
       return <article key={id}><HeroHatPreview hat={hat}/><h3>{hat.label}</h3><div className="di-supporter-palettes">{SUPPORTER_STYLES.filter(s => s.hat === id).map(style => <figure key={style.id}><HeroHatPreview hat={hat} hatColor={style.id}/><figcaption>{style.label}</figcaption></figure>)}</div></article>;
     })}</div>
-    <p><strong>$10 USD · one-time</strong> · Paddle shows the final total and applicable taxes before payment.</p>
+    <p className="di-supporter-price">{launchPrice ? <><strong>$5 USD launch price</strong><span>50% off the $10 regular price</span></> : <strong>$10 USD · one-time</strong>}
+      {launchPrice && config.launchOffer && <span>Offer ends {new Date(config.launchOffer.endsAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}.</span>}
+      <span>One-time purchase. Paddle shows the final total and applicable taxes before payment.</span></p>
     {owned ? <p className="di-supporter-owned" role="status">Yours — open Your hero → Hats to wear them.</p>
       : <button type="button" className="di-button di-primary" disabled={busy || !!room || !config.enabled || order?.status === 'disputed'} onClick={() => void buy()}>{busy ? 'Opening checkout…' : !eligible ? 'Sign in to buy' : order?.status === 'ready' ? 'Resume checkout' : sandbox ? 'Open test checkout' : 'Buy supporter pack'}</button>}
     {room && <p>Visit the wardrobe and shop between adventures.</p>}

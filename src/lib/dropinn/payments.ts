@@ -23,6 +23,7 @@ export interface PaymentConfig {
   environment: PaymentEnvironment;
   enabled: boolean;
   clientToken: string;
+  launchOffer?: { endsAt: string; percent: 50 };
 }
 export interface Purchase {
   id: string;
@@ -30,4 +31,5 @@ export interface Purchase {
   environment: PaymentEnvironment;
   status: 'creating' | 'ready' | 'completed' | 'refunded' | 'disputed' | 'canceled';
   transactionId: string | null;
+  launchDiscounted: boolean;
 }

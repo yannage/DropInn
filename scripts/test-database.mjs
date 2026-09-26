@@ -94,4 +94,5 @@ sql(readFileSync('supabase/migrations/202609250001_collections.sql','utf8'));
 sql(readFileSync('supabase/migrations/202609250001_collections.sql','utf8'));
 await checkCollectionDatabase({sql,args});
 sql(readFileSync('supabase/migrations/202609260001_payments.sql','utf8'));
+sql(readFileSync('supabase/migrations/202609260002_payment_launch_discount.sql','utf8'));
 await checkPaymentDatabase({sql,args,user,other});

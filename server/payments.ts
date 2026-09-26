@@ -8,17 +8,34 @@ type Fetch = typeof globalThis.fetch;
 export class PaymentError extends Error { constructor(message: string, public status = 400, public creationRejected = false) { super(message); } }
 interface Order {
   id: string; player_id: string; environment: PaymentEnvironment; request_id: string; bundle_id: string;
-  bundle_version: number; price_id: string; transaction_id: string | null; status: Purchase['status']; created_at: string;
+  bundle_version: number; price_id: string; discount_id: string | null; transaction_id: string | null; status: Purchase['status']; created_at: string;
 }
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const txnId = (v: unknown): v is string => typeof v === 'string' && /^txn_[a-z0-9]{26}$/.test(v);
 export const paymentEnvironment = (env: Env): PaymentEnvironment => env.PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox';
+function launchOffer(env: Env, now = Date.now()) {
+  const fields = [env.PADDLE_LAUNCH_DISCOUNT_ID, env.PADDLE_LAUNCH_STARTS_AT, env.PADDLE_LAUNCH_ENDS_AT];
+  if (fields.every(value => !value)) return null;
+  const [id, start, end] = fields;
+  const startsAt = Date.parse(start ?? '');
+  const endsAt = Date.parse(end ?? '');
+  if (!/^dsc_[a-z0-9]{26}$/.test(id ?? '') || !Number.isFinite(startsAt) || !Number.isFinite(endsAt)
+    || startsAt >= endsAt || endsAt - startsAt > 7 * 24 * 60 * 60 * 1000) {
+    throw new PaymentError('The launch discount configuration needs review.', 503);
+  }
+  return { id: id!, startsAt, endsAt, active: startsAt <= now && now < endsAt };
+}
 export function paymentConfig(env: Env): PaymentConfig | undefined {
   if (!env.PADDLE_ENVIRONMENT) return;
   const environment = paymentEnvironment(env);
   const token = env.PADDLE_CLIENT_TOKEN ?? '';
-  const configured = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_') && !!env.PADDLE_API_KEY && !!env.PADDLE_WEBHOOK_SECRET;
-  return { environment, enabled: configured && env.DROPINN_PAYMENTS_ENABLED === '1', clientToken: configured ? token : '' };
+  let offer: ReturnType<typeof launchOffer> = null;
+  try { offer = launchOffer(env); } catch { /* A broken offer closes new sales below. */ }
+  const offerValid = ![env.PADDLE_LAUNCH_DISCOUNT_ID, env.PADDLE_LAUNCH_STARTS_AT, env.PADDLE_LAUNCH_ENDS_AT].some(Boolean) || !!offer;
+  const configured = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_') && !!env.PADDLE_API_KEY && !!env.PADDLE_WEBHOOK_SECRET
+    && /^pri_[a-z0-9]{26}$/.test(env.PADDLE_SUPPORTER_PRICE_ID ?? '') && offerValid;
+  return { environment, enabled: configured && env.DROPINN_PAYMENTS_ENABLED === '1', clientToken: configured ? token : '',
+    ...(offer?.active ? { launchOffer: { endsAt: new Date(offer.endsAt).toISOString(), percent: 50 as const } } : {}) };
 }
 function settings(env: Env) {
   if (!['sandbox', 'production'].includes(env.PADDLE_ENVIRONMENT ?? '')) throw new PaymentError('Payments are not configured yet.', 503);
@@ -32,7 +49,7 @@ function checked<T>(result: { data: T; error: { code?: string } | null }): T {
     ? 'Payments need the 202609260001_payments.sql database update.' : 'Payment records could not be saved. Please check again.', 503);
   return result.data;
 }
-const purchase = (order: Order): Purchase => ({ id: order.id, bundleId: order.bundle_id, environment: order.environment, status: order.status, transactionId: order.transaction_id });
+const purchase = (order: Order): Purchase => ({ id: order.id, bundleId: order.bundle_id, environment: order.environment, status: order.status, transactionId: order.transaction_id, launchDiscounted: !!order.discount_id });
 async function paddle(env: Env, path: string, init: RequestInit = {}, fetcher: Fetch = fetch) {
   const { base, apiKey } = settings(env);
   if (!path.startsWith('/')) throw new PaymentError('Invalid payment request.', 503);
@@ -51,13 +68,17 @@ export function validateTransaction(order: Order, transaction: any): Purchase['s
   if (!txnId(transaction?.id) || transaction.custom_data?.dropinn_order_id !== order.id
     || transaction.custom_data?.dropinn_bundle_id !== order.bundle_id || transaction.custom_data?.dropinn_bundle_version !== order.bundle_version
     || transaction.items.length !== 1 || item?.quantity !== 1 || item.price?.id !== order.price_id
-    || item.price.billing_cycle != null || transaction.subscription_id != null || transaction.discount_id != null
+    || item.price.billing_cycle != null || transaction.subscription_id != null || (transaction.discount_id ?? null) !== (order.discount_id ?? null)
     || item.price.unit_price?.amount !== String(SUPPORTER_BUNDLE.amount) || item.price.unit_price?.currency_code !== 'USD'
     || transaction.currency_code !== 'USD' || transaction.collection_mode !== 'automatic') {
     throw new PaymentError('The payment does not match this purchase. Contact support with your purchase reference.', 409);
   }
   if (transaction.status === 'canceled') return 'canceled';
   if (transaction.status !== 'completed') return 'ready';
+  if (order.discount_id && (transaction.discount?.id !== order.discount_id
+    || transaction.discount?.type !== 'percentage' || Number(transaction.discount?.amount) !== 50)) {
+    throw new PaymentError('The launch price could not be verified. Contact support with your purchase reference.', 409);
+  }
   if (!Object.hasOwn(transaction, 'adjustments')) throw new PaymentError('Payment adjustments could not be verified. Please check again.', 503);
   const approved = (transaction.adjustments ?? []).filter((a: any) => a.status === 'approved');
   if (approved.some((a: any) => a.action === 'refund')) return 'refunded';
@@ -72,7 +93,7 @@ async function applyTransaction(db: SupabaseClient, order: Order, transaction: a
   return checked(await db.rpc('dropinn_payment_apply', { p_order: order.id, p_transaction: transaction.id, p_status: status, p_observed_at: observedAt, p_event_id: eventId ?? null })) as Order;
 }
 async function currentTransaction(env: Env, id: string, fetcher: Fetch = fetch) {
-  const transaction = (await paddle(env, `/transactions/${id}?include=adjustments`, {}, fetcher)).data;
+  const transaction = (await paddle(env, `/transactions/${id}?include=adjustments,discount`, {}, fetcher)).data;
   // Paddle may omit the relationship when there are no adjustments. Confirm
   // that case explicitly rather than treating an incomplete response as paid.
   if (transaction.status === 'completed' && !Object.hasOwn(transaction, 'adjustments')) {
@@ -103,7 +124,7 @@ export async function reconcileOrder(db: SupabaseClient, env: Env, order: Order,
   }
   return order;
 }
-export async function handlePayment(db: SupabaseClient, user: User, body: { operation: string; commandId?: string; orderId?: string; bundleId?: string }, env: Env, fetcher: Fetch = fetch) {
+export async function handlePayment(db: SupabaseClient, user: User, body: { operation: string; commandId?: string; orderId?: string; bundleId?: string; expectLaunchOffer?: boolean }, env: Env, fetcher: Fetch = fetch) {
   if (user.is_anonymous || !user.email) throw new PaymentError('Sign in with Google or email before buying a supporter pack.', 401);
   const environment = settings(env).environment;
   const owners = checked(await db.from('player_ownership').select('player_id,account_id').eq('account_id', user.id)) ?? [];
@@ -121,19 +142,38 @@ export async function handlePayment(db: SupabaseClient, user: User, body: { oper
   }
   if (!paymentConfig(env)?.enabled) throw new PaymentError('New purchases are currently unavailable.', 503);
   if (body.bundleId !== SUPPORTER_BUNDLE.id || !uuid(body.commandId)) throw new PaymentError('Choose a valid bundle and purchase identifier.');
+  const offer = launchOffer(env);
+  if (body.expectLaunchOffer && !offer?.active) throw new PaymentError('The launch price just ended. Refresh to see the current price before buying.', 409);
   const priceId = env.PADDLE_SUPPORTER_PRICE_ID ?? '';
   if (!/^pri_[a-z0-9]{26}$/.test(priceId)) throw new PaymentError('The supporter pack price is not configured.', 503);
   const price = (await paddle(env, `/prices/${priceId}`, {}, fetcher)).data;
   if (price.status !== 'active' || price.billing_cycle != null || price.trial_period != null
     || price.unit_price?.amount !== '1000' || price.unit_price.currency_code !== 'USD') throw new PaymentError('The supporter pack price needs review before checkout.', 503);
+  if (offer?.active) {
+    const discount = (await paddle(env, `/discounts/${offer.id}`, {}, fetcher)).data;
+    if (discount.status !== 'active' || discount.type !== 'percentage' || Number(discount.amount) !== 50
+      || discount.recur !== false || discount.enabled_for_checkout !== true
+      || !Array.isArray(discount.restrict_to) || discount.restrict_to.length !== 1 || discount.restrict_to[0] !== priceId
+      || !Number.isFinite(Date.parse(discount.expires_at ?? '')) || Math.abs(Date.parse(discount.expires_at) - offer.endsAt) > 1000) {
+      throw new PaymentError('The launch discount needs review before checkout.', 503);
+    }
+  }
   const receipt = checked(await db.rpc('dropinn_payment_begin', { p_account: user.id, p_environment: environment, p_request_id: body.commandId, p_price_id: priceId }));
   order = receipt.order as Order;
-  if (!receipt.create) return { purchase: purchase(await reconcileOrder(db, env, order, fetcher)) };
+  if (!receipt.create) {
+    if (body.expectLaunchOffer && !order.discount_id) throw new PaymentError('An earlier checkout has the regular price. Check that purchase before buying.', 409);
+    return { purchase: purchase(await reconcileOrder(db, env, order, fetcher)) };
+  }
+  if (offer?.active) {
+    order = checked(await db.from('payment_orders').update({ discount_id: offer.id }).eq('id', order.id)
+      .eq('status', 'creating').is('transaction_id', null).select('*').single()) as Order;
+  }
   const observedAt = new Date().toISOString();
   let result;
   try {
     result = await paddle(env, '/transactions', { method: 'POST', body: JSON.stringify({
       items: [{ price_id: order.price_id, quantity: 1 }], currency_code: 'USD', collection_mode: 'automatic',
+      ...(order.discount_id ? { discount_id: order.discount_id } : {}),
       custom_data: { dropinn_order_id: order.id, dropinn_bundle_id: order.bundle_id, dropinn_bundle_version: order.bundle_version },
     }) }, fetcher);
   } catch (error) {

@@ -6,7 +6,7 @@ import { createCharacterProfile } from '../src/lib/character';
 import { normalizeHero } from '../src/lib/cosmetics';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 
-const order = {id:'11111111-1111-4111-8111-111111111111',player_id:'22222222-2222-4222-8222-222222222222',request_id:'33333333-3333-4333-8333-333333333333',environment:'sandbox' as const,bundle_id:'supporter-pack-1',bundle_version:1,price_id:`pri_${'a'.repeat(26)}`,transaction_id:`txn_${'b'.repeat(26)}`,status:'ready' as const,created_at:'2026-09-26T00:00:00Z'};
+const order = {id:'11111111-1111-4111-8111-111111111111',player_id:'22222222-2222-4222-8222-222222222222',request_id:'33333333-3333-4333-8333-333333333333',environment:'sandbox' as const,bundle_id:'supporter-pack-1',bundle_version:1,price_id:`pri_${'a'.repeat(26)}`,discount_id:null as string|null,transaction_id:`txn_${'b'.repeat(26)}`,status:'ready' as const,created_at:'2026-09-26T00:00:00Z'};
 const transaction = () => ({id:order.transaction_id,status:'completed',currency_code:'USD',collection_mode:'automatic',subscription_id:null,discount_id:null,custom_data:{dropinn_order_id:order.id,dropinn_bundle_id:order.bundle_id,dropinn_bundle_version:1},items:[{quantity:1,price:{id:order.price_id,billing_cycle:null,unit_price:{amount:'1000',currency_code:'USD'}}}],adjustments:[] as any[]});
 const env={PADDLE_ENVIRONMENT:'sandbox',PADDLE_API_KEY:'pdl_sdbx_apikey_test',PADDLE_CLIENT_TOKEN:'test_public',PADDLE_WEBHOOK_SECRET:'webhook-secret',PADDLE_SUPPORTER_PRICE_ID:order.price_id,DROPINN_PAYMENTS_ENABLED:'1'};
 
@@ -39,6 +39,57 @@ describe('payment authority',()=>{
   if(field==='discount')t.discount_id='discount';
   if(field==='adjustments')delete t.adjustments;
   expect(()=>validateTransaction(order,t)).toThrow();
+ });
+ it('accepts only the launch discount recorded for the order, including after the offer ends',()=>{
+  const discounted={...order,discount_id:`dsc_${'c'.repeat(26)}`};
+  const t={...transaction(),discount_id:discounted.discount_id,discount:{id:discounted.discount_id,type:'percentage',amount:'50'}};
+  expect(validateTransaction(discounted,t)).toBe('completed');
+  expect(()=>validateTransaction(discounted,{...t,discount_id:null})).toThrow();
+  expect(()=>validateTransaction(discounted,{...t,discount_id:`dsc_${'d'.repeat(26)}`})).toThrow();
+  expect(()=>validateTransaction(discounted,{...t,discount:{...t.discount,amount:'20'}})).toThrow();
+ });
+ it('advertises the 50% launch price only inside a valid seven-day window',()=>{
+  const start=new Date(Date.now()-60_000).toISOString();
+  const end=new Date(Date.now()+60_000).toISOString();
+  const offerEnv={...env,PADDLE_LAUNCH_DISCOUNT_ID:`dsc_${'c'.repeat(26)}`,PADDLE_LAUNCH_STARTS_AT:start,PADDLE_LAUNCH_ENDS_AT:end};
+  expect(paymentConfig(offerEnv)?.launchOffer).toEqual({endsAt:end,percent:50});
+  expect(paymentConfig({...offerEnv,PADDLE_LAUNCH_ENDS_AT:start})?.enabled).toBe(false);
+  expect(paymentConfig({...offerEnv,PADDLE_LAUNCH_STARTS_AT:new Date(Date.now()+120_000).toISOString(),PADDLE_LAUNCH_ENDS_AT:new Date(Date.now()+180_000).toISOString()})?.launchOffer).toBeUndefined();
+ });
+ it('pins the verified launch discount before creating a checkout transaction',async()=>{
+  const discountId=`dsc_${'c'.repeat(26)}`;
+  const endsAt=new Date(Date.now()+60_000).toISOString();
+  const offerEnv={...env,PADDLE_LAUNCH_DISCOUNT_ID:discountId,PADDLE_LAUNCH_STARTS_AT:new Date(Date.now()-60_000).toISOString(),PADDLE_LAUNCH_ENDS_AT:endsAt};
+  const owner=order.player_id;
+  const prepared={...order,transaction_id:null,status:'creating' as const};
+  let persisted=prepared;
+  const db={
+    from:(table:string)=>{
+      if(table==='player_ownership') return {select:()=>({eq:async()=>({data:[{player_id:owner,account_id:owner}],error:null})})};
+      if(table==='payment_orders') return {update:(patch:{discount_id:string})=>({eq:()=>({eq:()=>({is:()=>({select:()=>({single:async()=>{persisted={...prepared,discount_id:patch.discount_id};return {data:persisted,error:null};}})})})})})};
+      throw new Error(`Unexpected table ${table}`);
+    },
+    rpc:vi.fn(async(name:string,args:any)=>name==='dropinn_payment_begin'
+      ? {data:{order:prepared,create:true},error:null}
+      : {data:{...persisted,transaction_id:order.transaction_id,status:args.p_status},error:null}),
+  };
+  const requests:string[]=[];
+  const fetcher=vi.fn<typeof fetch>(async(input,init)=>{
+    const path=new URL(String(input)).pathname;requests.push(path);
+    if(path.startsWith('/prices/')) return new Response(JSON.stringify({data:{status:'active',billing_cycle:null,trial_period:null,unit_price:{amount:'1000',currency_code:'USD'}}}));
+    if(path.startsWith('/discounts/')) return new Response(JSON.stringify({data:{status:'active',type:'percentage',amount:'50',recur:false,enabled_for_checkout:true,restrict_to:[order.price_id],expires_at:endsAt}}));
+    if(path==='/transactions') {
+      const payload=JSON.parse(String(init?.body));
+      expect(payload.discount_id).toBe(discountId);
+      expect(persisted.discount_id).toBe(discountId);
+      return new Response(JSON.stringify({data:{...transaction(),status:'ready',discount_id:discountId}}));
+    }
+    throw new Error(`Unexpected request ${path}`);
+  });
+  const result=await handlePayment(db as unknown as SupabaseClient,{id:owner,email:'buyer@example.com',is_anonymous:false} as User,
+    {operation:'checkout',commandId:order.request_id,bundleId:order.bundle_id,expectLaunchOffer:true},offerEnv,fetcher);
+  expect(result.purchase).toMatchObject({status:'ready',launchDiscounted:true,transactionId:order.transaction_id});
+  expect(requests).toEqual([`/prices/${order.price_id}`,`/discounts/${discountId}`,'/transactions']);
  });
  it('rejects unsigned callbacks before touching the database or provider',async()=>{
   const fetcher=vi.fn();const result=await handlePaddleWebhook(new Request('https://example.test/webhook',{method:'POST',body:JSON.stringify({data:transaction()})}),env,{fetch:fetcher});

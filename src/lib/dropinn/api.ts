@@ -26,6 +26,7 @@ export interface AdventureResponse {
 }
 export interface AdventureRequest {
   bundleId?: string;
+  expectLaunchOffer?: boolean;
   orderId?: string;
   recipeId?: string;
   commandId?: string;
