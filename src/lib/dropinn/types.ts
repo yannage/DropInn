@@ -172,6 +172,7 @@ export interface AdventureRoom {
   reactions?: TableReaction[];
 }
 export interface RoomSummary {
+  collectionVersion?: 1;
   adventureId?: string;
   adventureVersion?: number;
   code: string;

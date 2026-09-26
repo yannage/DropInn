@@ -11,6 +11,7 @@ import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
 import { normalizeHero, HERO_HATS, type HeroCustomization } from '../lib/cosmetics';
 import { HAT_STYLES, emptyCollection, mergeCollection, craftCollection, creditKey, collectionUnlocks, type CollectionSnapshot } from '../lib/dropinn/collection';
+import { newlyEarnedHats } from '../lib/dropinn/rewardPresentation';
 import { getErrorMessage } from '../lib/errors';
 
 const namespace = (import.meta.env.DEV ? new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) : undefined) || 'default';
@@ -78,6 +79,8 @@ const mergeMessages = (current: ChatMessage[], incoming: ChatMessage[]) => [...n
   .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)).slice(-60);
 
 interface AdventureState {
+  /** Presentation only, scoped to this session; historical receipts never announce a new unlock. */
+  newRewardHats: Record<string, string[]>;
   collection: CollectionSnapshot;
   collectionGoal: string | null;
   pendingCraft: { commandId: string; recipeId: string } | null;
@@ -183,7 +186,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.muted = [];
       saved.seenOutcomes = {};
       setPendingAction(null);
-      set({ room:null, messages:[], proposal:null, narration:null, recaps: [], recap: null, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
+      set({ room:null, messages:[], proposal:null, narration:null, recaps: [], recap: null, newRewardHats: {}, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
     }
     saved.accountId=account.id;
     saved.userId = selected.playerId;
@@ -198,7 +201,16 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     try { await run(); } catch (error) { fail(error); }
     finally { set({ loading: false }); }
   };
-  const collectReceipts = async (recaps: VisitRecap[], refreshHero = false) => {
+  const collectReceipts = async (recaps: VisitRecap[], refreshHero = false, live = false) => {
+    const ownedHats = [...get().collection.hats, ...HERO_HATS.filter(hat => hat.keepsake && saved.character.inventory.includes(hat.keepsake)).map(hat => hat.id)];
+    for (const recap of recaps) {
+      const key = `${recap.code}:${recap.characterId}`;
+      const hats = newlyEarnedHats(recap, ownedHats, saved.receipts[key]?.keepsakes ?? [], live);
+      if (hats.length) {
+        set({ newRewardHats: { ...get().newRewardHats, [key]: [...new Set([...(get().newRewardHats[key] ?? []), ...hats])] } });
+        ownedHats.push(...hats);
+      }
+    }
     let changed = false;
     if (localPlay) {
       const keys = new Set(saved.collectionReceipts ?? []);
@@ -253,7 +265,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     if (changedTurn) proposalSequence++;
     set({ room, syncError: null, restoringCode: null, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
     const participant = room.players[get().userId];
-    if (participant) await collectReceipts([getVisitRecap(room, get().userId)]);
+    if (participant) await collectReceipts([getVisitRecap(room, get().userId)], false, current?.id === room.id);
     if (room.phase === 'reveal' && narrationKey !== `${room.code}:${room.turn}`) {
       narrationKey = `${room.code}:${room.turn}`;
       void request({ operation: 'narrate', roomCode: room.code }).then(result => {
@@ -328,11 +340,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       viewEpoch++;unsubscribe?.();unsubscribe=null;
       save();
       saved={userId:crypto.randomUUID(),character:createCharacterProfile('Wren','wizard'),activeCode:null,receipts:{},muted:[]};
-      set({account:null,character:saved.character,userId:saved.userId,recaps:[],recap:null,collection:emptyCollection(),collectionGoal:null,pendingCraft:null,saveStatus:'browser'});
+      set({account:null,character:saved.character,userId:saved.userId,recaps:[],recap:null,newRewardHats:{},collection:emptyCollection(),collectionGoal:null,pendingCraft:null,saveStatus:'browser'});
       await ensureHostedHero();await get().refreshRooms();
     }),
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,
-    rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
+    newRewardHats: {}, rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
     pendingMove: saved.pendingAction?.roomCode === saved.activeCode ? { turn: saved.pendingAction.turn, action: saved.pendingAction.action } : null,
     loading: false, proposing: false, reacting: false, skippingReveal: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
     skipReveal: async () => {
@@ -369,6 +381,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     seenOutcomes: saved.seenOutcomes || {},
     markRecapSeen: recap => {
       const key = `${recap.code}:${recap.characterId}`;
+      if (get().newRewardHats[key]) {
+        const remaining = { ...get().newRewardHats };
+        delete remaining[key];
+        set({ newRewardHats: remaining });
+      }
       const previous = saved.seenOutcomes?.[key] ?? 0;
       if (previous >= recap.outcomes.length) return;
       saved.seenOutcomes = { ...saved.seenOutcomes, [key]: recap.outcomes.length };

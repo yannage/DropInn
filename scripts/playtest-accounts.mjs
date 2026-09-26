@@ -79,7 +79,7 @@ async function setup(){
 const state=page=>page.evaluate(async()=>{const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState();return {character:s.character,account:s.account,error:s.error,saveStatus:s.saveStatus};});
 try{
  const a=await setup();
- await a.getByRole('button',{name:'Make this hero yours'}).click();await a.getByLabel('Hero name').fill('Moss');
+ await a.getByRole('button',{name:'Customize hero',exact:true}).click();await a.getByLabel('Hero name').fill('Moss');
  failSave=true;await a.getByRole('button',{name:'Save hero',exact:true}).click();await a.getByRole('alert').filter({hasText:'Save interrupted'}).first().waitFor();
  assert.equal((await state(a)).character.name,'Wren');failSave=false;await a.getByRole('button',{name:'Save hero',exact:true}).click();
  await a.getByRole('dialog',{name:'Meet your little weirdo.'}).waitFor({state:'hidden'});

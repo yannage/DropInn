@@ -446,7 +446,7 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
 
 export function summarizeRoom(room: AdventureRoom): RoomSummary {
   const definition = chapterOf(room);
-  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, status: room.status, chapter: room.chapter, chapterTitle: definition.title,
+  return { collectionVersion: room.collectionVersion, adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, status: room.status, chapter: room.chapter, chapterTitle: definition.title,
     predicament: room.status === 'completed' ? room.outcomes[room.outcomes.length - 1]?.text ?? definition.objective : definition.objective,
     humans: humans(room).length, companions: room.seats.filter(s => s.kind === 'companion').length,
     openSeats: room.status === 'completed' ? 0 : Math.max(0, 4 - humans(room).length - room.pendingJoins.length), progress: room.progress, progressGoal: definition.progressGoal, updatedAt: room.updatedAt };

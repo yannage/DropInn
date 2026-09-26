@@ -1,6 +1,7 @@
 import type { CharacterProfile } from '../../lib/character';
 import { HERO_HATS, type HeroEquipment } from '../../lib/cosmetics';
 import { HAT_STYLES, STARTER_PACK, threadBalance } from '../../lib/dropinn/collection';
+import { nextLook } from '../../lib/dropinn/rewardPresentation';
 import { ADVENTURES } from '../../lib/dropinn/registry';
 import { useAdventureStore } from '../../store/adventureStore';
 import { HeroHatPreview } from './HeroAvatar';
@@ -9,20 +10,20 @@ import './collection.css';
 export function CollectionGoal({ earned }: { earned?: number }) {
   const collection = useAdventureStore(state => state.collection);
   const goalId = useAdventureStore(state => state.collectionGoal);
-  const goal = HAT_STYLES.find(style => style.id === goalId);
+  const goal = nextLook(collection, goalId);
   return <span className="di-thread-goal">{earned !== undefined ? `+${earned} Thread` : `${threadBalance(collection)} Thread`}
-    {goal && <> · {goal.label}: {collection.styles.includes(goal.id) ? 'unlocked' : `${Math.min(threadBalance(collection),goal.cost)}/${goal.cost}`}</>}
+    {goal && <> · {goal.label}: {goal.ready ? 'Ready to unlock' : `${Math.min(goal.balance,goal.style.cost)}/${goal.style.cost}`}{!goal.baseOwned && ' · Base hat needed'}</>}
   </span>;
 }
 
-export function CollectionWardrobe({ hero, onEquip }: { hero: CharacterProfile; onEquip: (equipment: HeroEquipment) => void }) {
+export function CollectionWardrobe({ hero, onEquip, highlightStyleId }: { highlightStyleId?: string; hero: CharacterProfile; onEquip: (equipment: HeroEquipment) => void }) {
   const { collection, collectionGoal, setCollectionGoal, craftStyle, pendingCraft, loading, error } = useAdventureStore();
   const hat = HERO_HATS.find(hat => hat.id === 'shepherd')!;
   const baseOwned = collection.hats.includes(hat.id);
   const balance = threadBalance(collection);
   const owned = HAT_STYLES.filter(style => collection.styles.includes(style.id)).length;
   return <section className="di-collection" aria-label="First tales collection">
-    <h3>Make your keepsake yours.</h3>
+    <h3>Unlock a new look.</h3>
     <p><strong>{STARTER_PACK.name} · {balance} Thread</strong> · {owned}/{HAT_STYLES.length} styles collected</p>
     <p>Contribute to a chapter in any of the four stories to earn 1 Thread when it closes. Every outcome counts. Styles belong to all your heroes and never expire.</p>
     {!baseOwned && <p>First earn the Shepherd’s floppy hat in Briar Glen’s <strong>The missing livestock</strong>. You can save Thread and choose a goal now.</p>}
@@ -35,7 +36,7 @@ export function CollectionWardrobe({ hero, onEquip }: { hero: CharacterProfile; 
       const field = style.kind === 'color' ? 'hatColor' : 'hatTrim';
       const equipped = hero.equipment?.hat === hat.id && hero.equipment?.[field] === style.id;
       const pending = pendingCraft?.recipeId === style.id;
-      return <article key={style.id} className={selected ? 'is-goal' : ''}>
+      return <article key={style.id} data-cosmetic-id={style.id} className={`${selected ? 'is-goal' : ''} ${highlightStyleId === style.id ? 'di-cosmetic-highlight' : ''}`}>
         <HeroHatPreview hat={hat} hatColor={style.kind === 'color' ? style.id : undefined} hatTrim={style.kind === 'trim' ? style.id : undefined} />
         <h4>{style.label}</h4><p>{unlocked ? 'Yours permanently' : `${style.cost} Thread`}</p>
         <button type="button" aria-pressed={selected} onClick={() => setCollectionGoal(selected ? null : style.id)}>{selected ? `${style.label} goal selected` : `Aim for ${style.label}`}</button>

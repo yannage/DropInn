@@ -7,13 +7,14 @@ import { useAdventureStore } from '../../store/adventureStore';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { CollectionWardrobe } from './Collection';
 import { collectionUnlocks } from '../../lib/dropinn/collection';
+import type { HeroCustomizerTarget } from './HeroProgression';
 import { SUPPORTER_STYLES } from '../../lib/dropinn/payments';
 
 const labels: Record<keyof HeroAppearance, string> = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
 
-export function HeroCustomizer({ character, onClose }: { character: CharacterProfile; onClose: () => void }) {
+export function HeroCustomizer({ character, onClose, initialTarget = {} }: { character: CharacterProfile; onClose: () => void; initialTarget?: HeroCustomizerTarget }) {
   const [draft, setDraft] = useState(() => ({ ...character, ...normalizeCustomization(character) }));
-  const [tab, setTab] = useState<'character' | 'hats'>('character');
+  const [tab, setTab] = useState<'character' | 'hats'>(initialTarget.tab ?? 'character');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const dialog = useRef<HTMLDivElement>(null);
@@ -48,8 +49,24 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
       else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener('keydown', keydown);
-    return () => { document.body.style.overflow = overflow; if (root) root.inert = wasInert; document.removeEventListener('keydown', keydown); previous?.focus(); };
+    return () => {
+      document.body.style.overflow = overflow;
+      if (root) root.inert = wasInert;
+      document.removeEventListener('keydown', keydown);
+      if (previous?.isConnected) previous.focus();
+      else document.querySelector<HTMLButtonElement>('.di-arrival-hero button')?.focus();
+    };
   }, []);
+
+  useEffect(() => {
+    const target = initialTarget.styleId ?? initialTarget.hatId;
+    if (tab !== 'hats' || !target) return;
+    const frame = requestAnimationFrame(() => {
+      const element = Array.from(dialog.current?.querySelectorAll<HTMLElement>('[data-cosmetic-id]') ?? []).find(node => node.dataset.cosmeticId === target);
+      element?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [tab, initialTarget.styleId, initialTarget.hatId]);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -99,7 +116,7 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
                 <div className="di-hat-grid">{hats.map(hat => {
                   const unlocked = ownsHat(hat, character.inventory, collection);
                   const selected = draft.equipment.hat === hat.id;
-                  return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} className={unlocked ? '' : 'di-hat-locked'} onClick={() => setDraft({ ...draft, equipment: { hat: hat.id } })}>
+                  return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} data-cosmetic-id={hat.id} className={`${unlocked ? '' : 'di-hat-locked'} ${initialTarget.hatId === hat.id && !initialTarget.styleId ? 'di-cosmetic-highlight' : ''}`} onClick={() => setDraft({ ...draft, equipment: { hat: hat.id } })}>
                     <span className="di-hat-paper"><HeroHatPreview hat={hat} color={draft.accent} />{selected ? <Check size={18} /> : !unlocked ? <LockKeyhole size={16} /> : null}</span>
                     <strong>{hat.label}</strong><small>{selected ? 'Equipped' : unlocked ? hat.supporter ? 'Supporter · ready to wear' : hat.keepsake ? 'Earned · ready to wear' : 'Starter · ready to wear' : hat.supporter ? 'Optional supporter pack' : `Earn ${hat.keepsake} in ${hat.chapter}`}</small>
                   </button>;
@@ -108,7 +125,7 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
                   <button type="button" aria-pressed={!draft.equipment.hatColor} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:null}})}>Original color</button>
                   {SUPPORTER_STYLES.filter(style => style.hat === equipped.id && collection.styles.includes(style.id)).map(style => <button key={style.id} type="button" aria-pressed={draft.equipment.hatColor===style.id} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:style.id}})}><span style={{background:style.color}}/><small>{style.label}</small></button>)}
                 </div></fieldset>}
-                <CollectionWardrobe hero={preview} onEquip={equipment => setDraft({ ...draft,equipment })} />
+                <CollectionWardrobe highlightStyleId={initialTarget.styleId} hero={preview} onEquip={equipment => setDraft({ ...draft,equipment })} />
               </>}
             </div>
           </section>

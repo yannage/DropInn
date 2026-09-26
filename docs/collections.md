@@ -12,6 +12,16 @@ The Shepherd's floppy hat has four independently selectable palettes (blue, gree
 
 The wardrobe shows prices, previews, balance and an optional crafting goal. Goals are saved per account in this browser; ownership, spending and discoveries are hosted account data. **Your discoveries** shows only credited outcomes and indicates unseen endings without revealing their text. All routes pay equally. Color, trim and journal are available without payments, ads, streaks, deadlines or randomized rewards.
 
+## Hero and reward visibility
+
+The arrival card shows the saved hero beside the welcome panel (before the stories on phones), with **Customize hero** and a next-look preview. The header avatar opens the same editor. An unowned chosen goal takes priority; otherwise the preview suggests the first unowned style in catalog order without changing the saved goal. It shows the base-hat prerequisite, spendable Thread progress, readiness to craft, or completion of the available collection.
+
+Story cards preview the actual chapter hats and shared Thread rewards. Live-table previews use the optional `RoomSummary.collectionVersion` field; missing values never promise Thread. Chapter endings show personal hats and credits only for eligible contributors, while the post-visit recap links directly to the relevant hat or style. These links only open and highlight the item: crafting, wearing and saving remain explicit actions, and outfits stay pinned during visits.
+
+“New hat unlocked” is session-only presentation derived from pre-receipt ownership during a live visit. Opening the recap consumes that presentation marker. Historical refreshes, repeat ownership and reloads use neutral collection wording, without changing reward receipts or persistence.
+
+Local verification on 2026-09-26: 340 unit tests and the production build passed. The collection browser suite covers contributor/noncontributor rewards in two contexts, goal and hat links, historical recaps, spending, outfits and reload. Mobile checks passed at 320×568, 390×844, 412×844 and desktop, including first-screen hero/customization/play visibility. The scene suite passed shared turns, reconnection, result timing and small-phone reward layout. This is local Chromium evidence; no hosted deployment, Realtime check or physical-phone test was performed.
+
 ## Service and persistence
 
 - `AccountSnapshot.collection` and `operation: 'collection'` return cumulative `earned`, `spent`, `hats`, `styles`, and `discoveries`. Balance is earned minus spent. This pilot has one pack and one balance; introducing another pack requires an explicit wallet migration.

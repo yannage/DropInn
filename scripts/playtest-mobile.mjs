@@ -60,6 +60,10 @@ try {
       await page.goto(`${base}/?session=mobileflow${width}`);
       await page.getByRole('button', { name: 'Start a friend table', exact: true }).waitFor();
       await fits(page, `lobby-${width}`);
+      for (const control of [page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Play Now', exact: true }), page.locator('.di-arrival-identity .di-avatar')]) {
+        const box = await control.boundingBox();
+        assert.ok(box && box.y >= 0 && box.y + box.height <= height, 'Hero, customization and Play Now visible on first screen');
+      }
       if (width < 760) {
         const shortcuts = page.getByRole('navigation', { name: 'Get ready to play' });
         const box = await shortcuts.boundingBox();
@@ -72,8 +76,8 @@ try {
         await page.getByRole('link', { name: 'Join friends', exact: false }).click();
         await page.getByRole('textbox', { name: 'Adventure code or invitation link' }).scrollIntoViewIfNeeded();
         await fits(page, `friends-${width}`);
-        await page.getByRole('button', { name: 'Your hero', exact: true }).click();
-      } else await page.getByRole('button', { name: 'Make this hero yours' }).click();
+        await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
+      } else await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
       await page.getByRole('dialog').waitFor();
       await fits(page, `builder-${width}`);
       const name = page.getByRole('textbox', { name: 'Hero name optional' });
@@ -85,7 +89,7 @@ try {
       await page.getByRole('button', { name: 'Save hero', exact: true }).click();
       await page.getByRole('dialog').waitFor({ state: 'hidden' });
       await page.reload();
-      await page.getByRole('button', { name: 'Make this hero yours' }).click();
+      await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
       assert.equal(await name.inputValue(), 'Mobile Wren');
       await page.getByRole('button', { name: 'Cancel', exact: true }).click();
       await page.getByRole('button', { name: 'Save your hero', exact: true }).click();

@@ -544,7 +544,8 @@ try {
       at: clock() - 3000, success: true, roll: 15, modifier: 3, result: { targetKind: 'scene', targetId: 'ward', progress: 1.5 } })]);
     await a.locator('.di-party-keepsake').waitFor();
     assert.match(await a.locator('.di-party-keepsake').textContent(), /Chapter 3 complete/);
-    assert.ok((await a.locator('.di-party-keepsake').textContent()).includes(keepsake));
+    const { hatForKeepsake } = await ssr.ssrLoadModule('/src/lib/cosmetics.ts');
+    assert.ok((await a.locator('.di-party-keepsake').textContent()).includes(hatForKeepsake(keepsake)?.label ?? keepsake));
     assert.ok(await a.locator('.di-round-recap').evaluate(node => {
       const box = node.getBoundingClientRect();
       return box.top >= 0 && box.bottom <= innerHeight;

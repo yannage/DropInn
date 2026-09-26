@@ -45,8 +45,6 @@ import { ADVENTURES, chaptersFor } from '../../lib/dropinn/registry';
 import {
   CHARACTER_CLASS_PRESETS,
   heroAccent,
-  type CharacterClassKey,
-  type CharacterProfile,
 } from '../../lib/character';
 import type {
   AdventureRoom,
@@ -63,13 +61,9 @@ import { AccountPanel, SaveStatus } from './AccountPanel';
 import { localPlay } from '../../lib/dropinn/api';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { CollectionGoal, DiscoveryJournal } from './Collection';
+import { threadBalance } from '../../lib/dropinn/collection';
+import { CustomizeHeroContext, useCustomizeHero, NextLook, StoryRewards, type HeroCustomizerTarget } from './HeroProgression';
 
-const roleCopy: Record<CharacterClassKey, string> = {
-  wizard: 'Read the magic. Change the odds.',
-  fighter: 'Stand your ground. Protect your friends.',
-  rogue: 'Find an opening. Make trouble.',
-  cleric: 'Lift spirits. Keep hope alive.',
-};
 function HeroMark({
   hero,
   small = false,
@@ -170,6 +164,9 @@ function Modal({
 
 function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
   const CHAPTERS = chaptersFor(recap);
+  const openHero = useCustomizeHero();
+  const [newHats] = useState(() => useAdventureStore.getState().newRewardHats[`${recap.code}:${recap.characterId}`] ?? []);
+  const rewardHats = recap.keepsakes.flatMap(item => { const hat = hatForKeepsake(item); return hat ? [hat] : []; });
   const markRecapSeen = useAdventureStore(state => state.markRecapSeen);
   const joinRoom = useAdventureStore(state => state.joinRoom);
   const loading = useAdventureStore(state => state.loading);
@@ -184,6 +181,10 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
       <h2>You made a difference.</h2>
       <p className="di-muted">Your visit to {recap.title}</p>
       {!!recap.collectionCredits?.length && <p><CollectionGoal earned={recap.collectionCredits.length}/><small>Saved to your First tales collection.</small></p>}
+      {(rewardHats.length > 0 || !!recap.collectionCredits?.length) && <section className="di-recap-rewards" aria-label="Your cosmetic rewards">
+        {rewardHats.map(hat => <div className="di-recap-hat" key={hat.id}><HeroHatPreview hat={hat}/><div><small>{newHats.includes(hat.id) ? 'New hat unlocked' : 'In your collection'}</small><strong>{hat.label}</strong><button type="button" onClick={() => { onClose(); openHero({ tab: 'hats', hatId: hat.id }); }}>View your hat</button></div></div>)}
+        <CustomizeHeroContext.Provider value={target => { onClose(); openHero(target); }}><NextLook /></CustomizeHeroContext.Provider>
+      </section>}
       <div className="di-recap-stats">
         <div>
           <strong>{recap.actions}</strong>
@@ -216,11 +217,9 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
           {recap.keepsakes.map(item => {
             const chapter = CHAPTERS.findIndex(chapter => chapter.keepsake === item);
             const memory = recap.chapterHighlights?.[chapter];
-            const hat = hatForKeepsake(item);
             return <article className="di-keepsake-story" key={item}>
               <KeepsakeArtwork name={item} />
               <div><strong>{item}</strong>
-                {hat && <div className="di-hat-reward"><HeroHatPreview hat={hat} /><span>Hat unlocked: {hat.label}<small>Ready to wear in your hero builder between visits.</small></span></div>}
                 <small>{chapter >= 0 ? `Chapter ${chapter + 1} · ${CHAPTERS[chapter].title}` : recap.title}</small>
                 <p>{!recap.adventureId || recap.adventureId === 'briar-glen' ? ['A little bell to remember the villagers and the missing herd.', 'A river reed to remember the crossing to the chapel.', 'A moonstone to remember the guardian and Briar Glen’s fate.'][chapter] ?? 'A memento of the adventure you helped tell.' : 'A memento of the chapter you helped shape.'}</p>
                 {memory?.length ? <p className="di-keepsake-contribution"><b>Your part:</b> {memory.at(-1)}</p> : <p className="di-fine">Earned through your contributions to this chapter.</p>}
@@ -278,6 +277,13 @@ export function DropInn() {
   } = useAdventureStore();
   const inviteHandled = useRef(false);
   const [help, setHelp] = useState(false);
+  const [heroTarget, setHeroTarget] = useState<HeroCustomizerTarget | null>(null);
+  const openHero = (target: HeroCustomizerTarget = {}) => {
+    if (!useAdventureStore.getState().room && !useAdventureStore.getState().restoringCode) {
+      dismissRecap();
+      setHeroTarget(target);
+    }
+  };
   useEffect(() => {
     void initialize();
   }, [initialize]);
@@ -340,7 +346,7 @@ export function DropInn() {
   }, [ready, Boolean(room), restoringCode, syncRoom, refreshRooms]);
 
   return (
-    <div className={`di-app ${room ? 'di-app-playing' : ''}`}>
+    <CustomizeHeroContext.Provider value={openHero}><div className={`di-app ${room ? 'di-app-playing' : ''}`}>
       {!room && <header className="di-header">
         <a
           className="di-brand"
@@ -365,10 +371,10 @@ export function DropInn() {
             <span>How to play</span>
           </button>
           {character && (
-            <div className="di-header-hero">
+            <button type="button" className="di-header-hero" aria-label="Customize hero from header" onClick={() => openHero()}>
               <HeroMark hero={character} small />
               <span>{character.name}</span>
-            </div>
+            </button>
           )}
         </nav>
       </header>}
@@ -418,6 +424,7 @@ export function DropInn() {
         </nav>
       </footer>}
       {recap && <Recap recap={recap} onClose={dismissRecap} />}
+      {heroTarget && character && !room && !restoringCode && <HeroCustomizer character={character} initialTarget={heroTarget} onClose={() => setHeroTarget(null)} />}
       {help && (
         <Modal title="How to play DropInn" onClose={() => setHelp(false)}>
           <p className="di-eyebrow">Your first adventure starts here</p>
@@ -465,13 +472,14 @@ export function DropInn() {
           </button>
         </Modal>
       )}
-    </div>
+    </div></CustomizeHeroContext.Provider>
   );
 }
 
 function Lobby() {
   const {
     character,
+    collection,
     rooms,
     loading,
     playNow,
@@ -482,7 +490,7 @@ function Lobby() {
     seenOutcomes,
   } = useAdventureStore();
   const [code, setCode] = useState('');
-  const [editingHero, setEditingHero] = useState(false);
+  const openHero = useCustomizeHero();
   const [preparing, setPreparing] = useState(false);
   const [adventureId, setAdventureId] = useState('briar-glen');
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
@@ -499,7 +507,7 @@ function Lobby() {
   };
   return (
     <main className="di-lobby di-shell">
-      <section className="di-welcome">
+      <div className="di-arrival"><section className="di-welcome">
         <div className="di-welcome-art">
           <SceneArt />
           <div className="di-welcome-art-fade" />
@@ -542,7 +550,6 @@ function Lobby() {
             <span>No experience needed</span>
           </div>
           <nav className="di-mobile-shortcuts" aria-label="Get ready to play">
-            {character && <button type="button" onClick={() => setEditingHero(true)} aria-haspopup="dialog">Your hero</button>}
             <a href="#friend-table">Join friends <ArrowDown size={14} /></a>
           </nav>
         </div>
@@ -553,16 +560,23 @@ function Lobby() {
         </div>
       </section>
 
+      {character && <section className="di-arrival-hero" aria-label="Your hero">
+        <div className="di-arrival-identity"><HeroAvatar hero={character}/><div><p className="di-eyebrow">Your hero</p><h2>{character.name}</h2><span>{CHARACTER_CLASS_PRESETS[character.classKey].label}</span></div></div>
+        <button type="button" className="di-button di-secondary di-full" aria-haspopup="dialog" onClick={() => openHero()}>Customize hero</button>
+        <span className="di-thread-goal">{threadBalance(collection)} Thread to spend</span>
+        <NextLook compact />
+      </section>}
+      </div>
       <section className="di-story-library" aria-label="Choose an adventure">
         <h2>Choose your next story</h2>
-        <p>First tales · Four free adventures. One shared collection.</p>
+        <p>First tales · Four free adventures. One shared collection.</p><p>Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.</p>
         <CollectionGoal />
         <button type="button" className="di-button di-secondary" onClick={() => setJournal(true)}>Your discoveries</button>
         {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal/></Modal>}
         <p className="di-mobile-story-hint">Swipe to browse stories</p>
         <div className="di-story-cards" role="group" aria-label="Story choices" tabIndex={0}>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
           <SceneArt scene={adventure.chapters[0].art} />
-          <h3>{adventure.title}</h3><p>{adventure.pitch}</p>
+          <h3>{adventure.title}</h3><p>{adventure.pitch}</p><StoryRewards adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
           <button className="di-button di-secondary" aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>Select story</button>
           <button className="di-button di-primary" disabled={loading} onClick={() => void playNow(adventure.id)} aria-label={`Play ${adventure.title}`}>Play this story</button>
           <button className="di-text-button" disabled={loading} onClick={() => void startFriendTable(adventure.id)} aria-label={`Start a friend table for ${adventure.title}`}>Start with friends</button>
@@ -693,36 +707,7 @@ function Lobby() {
         </div>
 
         <aside className="di-lobby-aside">
-          {character && (
-            <section className="di-hero-card">
-              <p className="di-eyebrow">Your seat at the table</p>
-              <div className="di-profile">
-                <HeroMark hero={character} />
-                <h2>{character.name}</h2>
-                <span>{CHARACTER_CLASS_PRESETS[character.classKey].label}</span>
-                <p>{roleCopy[character.classKey]}</p>
-              </div>
-              <div className="di-profile-stats">
-                <span>
-                  <Star size={14} />
-                  {character.xp} XP
-                </span>
-                <span>
-                  <BookOpen size={14} />
-                  {character.inventory.length} keepsakes
-                </span>
-              </div>
-              <button
-                className="di-text-button di-customize"
-                onClick={() => setEditingHero(!editingHero)}
-                aria-expanded={editingHero}
-              >
-                Make this hero yours <ChevronDown size={15} />
-              </button>
-              {editingHero && <HeroCustomizer character={character} onClose={() => setEditingHero(false)} />}
-              <AccountPanel/>
-            </section>
-          )}
+          <AccountPanel/>
           <section className="di-join-card" id="friend-table">
             <div className="di-friend-table-start">
               <span className="di-eyebrow">Just your people</span>
@@ -802,7 +787,7 @@ function RoomCard({
           Chapter {summary.chapter + 1}
         </span>
         <h3>{summary.chapterTitle}</h3>
-        <p>{summary.predicament}</p>
+        <p>{summary.predicament}</p><StoryRewards adventureId={summary.adventureId} adventureVersion={summary.adventureVersion} chapter={summary.chapter} collectionVersion={summary.collectionVersion} />
         <div className="di-room-people">
           <span>
             <Users size={13} />

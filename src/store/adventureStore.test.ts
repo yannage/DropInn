@@ -49,7 +49,11 @@ describe('adventure client recovery', () => {
     room.players[userId].keepsakes=['Mara’s copper bell'];
     await store.getState().syncRoom();await store.getState().syncRoom();
     expect(store.getState().collection.earned).toBe(3);
+    const rewardKey = `${room.code}:${room.players[userId].character.id}`;
+    expect(store.getState().newRewardHats[rewardKey]).toEqual(['shepherd']);
     await store.getState().leaveRoom();
+    store.getState().markRecapSeen(store.getState().recap!);
+    expect(store.getState().newRewardHats[rewardKey]).toBeUndefined();
     await store.getState().craftStyle('shepherd-blue');
     expect(store.getState().collection).toMatchObject({earned:3,spent:3,styles:['shepherd-blue']});
     expect(store.getState().character?.equipment?.hatColor).not.toBe('shepherd-blue');
@@ -57,6 +61,7 @@ describe('adventure client recovery', () => {
     const {useAdventureStore:restored}=await import('./adventureStore');
     await restored.getState().initialize();
     expect(restored.getState().collection).toMatchObject({earned:3,spent:3,styles:['shepherd-blue']});
+    expect(restored.getState().newRewardHats).toEqual({});
   });
   it('saves every appearance selection and an unequipped hat across reload', async () => {
     const { store } = await setup();
