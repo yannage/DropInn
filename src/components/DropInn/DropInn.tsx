@@ -1,6 +1,7 @@
 import { TabletopArtwork } from './TabletopArtwork';
 import { NarratorDownload } from './NarratorDownload';
 import { SupporterShop } from './SupporterShop';
+import { MerchTeaser } from '../Merch/Merch';
 import './tabletop-art.css';
 import {
   useEffect,
@@ -354,6 +355,7 @@ export function DropInn() {
         </a>
         <span className="di-header-tag">Small moments. Legendary stories.</span>
         <nav aria-label="Main navigation">
+          {!room && <a className="di-nav-link di-merch-nav" href="/merch">Merch</a>}
           <button
             className="di-nav-link"
             aria-label="How to play"
@@ -412,7 +414,7 @@ export function DropInn() {
             : 'Live adventures · come and go freely'}
         </span>
         <nav className="di-legal-links" aria-label="Legal information">
-          <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/refunds">Refunds</a><a href="mailto:themainyak@gmail.com">Contact</a>
+          <a href="/merch">Merch</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/refunds">Refunds</a><a href="mailto:themainyak@gmail.com">Contact</a>
         </nav>
       </footer>}
       {recap && <Recap recap={recap} onClose={dismissRecap} />}
@@ -767,6 +769,7 @@ function Lobby() {
           </blockquote>
         </aside>
       </div>
+      <MerchTeaser />
       {viewRecap && (
         <Recap recap={viewRecap} onClose={() => setViewRecap(null)} />
       )}

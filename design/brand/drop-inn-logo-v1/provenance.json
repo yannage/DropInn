@@ -1,0 +1,107 @@
+{
+  "brand": "Drop Inn",
+  "website": "playdropinn.com",
+  "version": 1,
+  "created": "2026-09-26",
+  "brief": "Crooked tavern sign for printed shirts and hoodies, original irregular outlined lettering, welcoming doorway, optional website plaque, light/dark and one-ink variants.",
+  "generation": [
+    {
+      "role": "Original concept",
+      "generator": "Codex built-in image_gen",
+      "file": "source/generated-concept.png",
+      "prompt": "source/concept-prompt.txt",
+      "originalOutput": "exec-1ee406ac-0b7e-4bbe-b396-821d6acdbf91.png"
+    },
+    {
+      "role": "Illustrative cream-shirt mockup",
+      "generator": "Codex built-in image_gen",
+      "file": "previews/cream-shirt-illustrative.png",
+      "prompt": "source/cream-shirt-mockup-prompt.txt",
+      "reference": "png/drop-inn-light-website-10in-300ppi.png",
+      "originalOutput": "exec-fa04603c-d8a1-4fe8-b2fc-919d3b1119e5.png",
+      "productionProof": false
+    },
+    {
+      "role": "Illustrative black-hoodie mockup",
+      "generator": "Codex built-in image_gen",
+      "file": "previews/black-hoodie-illustrative.png",
+      "prompt": "source/black-hoodie-mockup-prompt.txt",
+      "reference": "png/drop-inn-dark-10in-300ppi.png",
+      "originalOutput": "exec-5fee54c6-6856-445e-a67a-99d2bdba24db.png",
+      "productionProof": false
+    }
+  ],
+  "vectorReconstruction": {
+    "geometry": "Sign, beam, straps, links, plaque and doorway redrawn as editable SVG paths; shading removed and palette reduced to four solid fills.",
+    "lettering": "Original generated letter shapes isolated by color and traced to spline paths with vtracer 0.6.15. Seven title shapes and sixteen URL components, including separate dots. No third-party font used in the logo.",
+    "master": "svg/drop-inn-master.svg",
+    "source": "scripts/build_vectors.py",
+    "renderer": "sharp 0.35.4 / libvips 8.18.6 / librsvg 2.62.91",
+    "export": "scripts/export.mjs",
+    "rasterMethod": "Direct vector render at final pixel dimensions. Tight alpha-bounded viewBox with two source units of safety margin. Embedded sRGB ICC and 300 PPI metadata. Single-ink exports normalize RGB while retaining vector-rendered edge coverage alpha."
+  },
+  "review": {
+    "visibleText": [
+      "Drop Inn",
+      "playdropinn.com"
+    ],
+    "inspected": [
+      "Generated concept",
+      "Full-size final color SVG renders",
+      "All eight variants on contrasting backgrounds",
+      "Relative 10-inch website and 3.5-inch name-only placements",
+      "Transparent gaps between sign components",
+      "Black and cream one-ink interiors",
+      "Cream-shirt and black-hoodie illustrative mockups"
+    ],
+    "automatedChecks": [
+      "3000-pixel width",
+      "300 PPI metadata",
+      "Embedded sRGB ICC",
+      "Actual alpha transparency",
+      "No edge clipping",
+      "SVG contains no live text or raster images",
+      "Single-ink PNG RGB consistency"
+    ],
+    "productTemplateVerified": false,
+    "physicalSampleVerified": false,
+    "mockupLimit": "AI garment illustrations may vary print contours, colors and proportions slightly; use SVG/PNG artwork, not mockup pixels, for production.",
+    "printfulSource": "https://help.printful.com/hc/en-us/articles/50264019148177-How-should-I-prepare-my-print-file-for-the-best-results",
+    "printfulSourceChecked": "2026-09-26"
+  },
+  "sha256": {
+    "README.md": "e760f9430647bd22dc3e7705bfd295d9ec7f5ebadace65f4288495781407d1e2",
+    "export-manifest.json": "f1180bcacce8067d41ceeaa1111ffa49cc2d3609e03d11330af9cd2611a99266",
+    "index.html": "287570c5bc86625a80c6f4cae33dec558d21cc0592c264fb826a4d1390f270d8",
+    "png/drop-inn-black-only-10in-300ppi.png": "bb2e02d34623efdb9c7386f097ad046cff09df26371b5c3f058aa61932aa3cd3",
+    "png/drop-inn-black-only-website-10in-300ppi.png": "8eb17a21d14fa7d4c4d7e05efc61cdd21c290dbbdfb3571a622b02a3ddf7dbb5",
+    "png/drop-inn-cream-only-10in-300ppi.png": "b76eb52825832e9d9f177e2362122583702da65da5e4467767fb54d4c3a47296",
+    "png/drop-inn-cream-only-website-10in-300ppi.png": "a29ec3f896285ce27dabce59078d93cacf831a8be107f7530bb8c97c5a2b9d13",
+    "png/drop-inn-dark-10in-300ppi.png": "49df7c49ee7ad215269bf1b6de6948810548097661cda1e159028003e8b64812",
+    "png/drop-inn-dark-website-10in-300ppi.png": "d891ffd674fd51fd022a7f96abfdd149dde52caa4e77fb12e139fdfc7c324832",
+    "png/drop-inn-light-10in-300ppi.png": "48301468efaa4ed4f2a840236ca5d38d6c702200c1de1643bedd37d44162a534",
+    "png/drop-inn-light-website-10in-300ppi.png": "f05cfe5c7f73e1b44366f3852f916e6dd15df0386fb30894ce5d5c72edf0a347",
+    "previews/all-variants.png": "d5bca2e637729705b1829e229d131f9a77b9ba29b60d3a2cb366295337f0d54c",
+    "previews/black-hoodie-illustrative.png": "0f9fba71fe4f470fa602b1daea7440cd1e091a2a377d56b2fba434d481e00f2c",
+    "previews/cream-shirt-illustrative.png": "9521a5a9c5c6c440bd65b3a63d8a916e542b1080fb1d9ee20f3cea8e9ec0c888",
+    "previews/logo-kit.png": "effa50c872c59074dc277821872beae04f182c0722c4d084992eaa4d8ce10254",
+    "previews/logo-kit.svg": "de69f52588eb8bf8fe211ef3840ded43a8612a29c764e292e1b5eadb232ac58d",
+    "previews/size-review.png": "ea73171a402fbc82a9150d7e9fe4708ad0d548e79e4c74f7f15ddbb4a7dde5ae",
+    "scripts/build_vectors.py": "81fd2fd81873cb618f7030bf065f34ac53d741b61307e58ce12b7aebda0ae012",
+    "scripts/export.mjs": "a0da4b054e21856190de9105b94efd8aff0fcef93ddcc9459d7a00686b0b330e",
+    "source/black-hoodie-mockup-prompt.txt": "08587882ec577466b9095d11a7b9c3cb5332af9a8083b9767084b5ffd66040f2",
+    "source/concept-prompt.txt": "2c5c6907e91b6da2117fcbcaa9571297e715135a49f2d4f3827921cc8ad86673",
+    "source/cream-shirt-mockup-prompt.txt": "026829b2a63e8ff49d3fb3dfb8af16f24f451bd7b4f2c61b323a6107f7e6e581",
+    "source/generated-concept.png": "d1387a7af7cf9b8792049efc6f7640aa9c6d83384b44e64751089c632dee5fde",
+    "source/lettering-paths.json": "644b27077fd3dd75e65c943950b3845eed6603b53f9f438d0ddd8e8dba28524d",
+    "svg/drop-inn-black-only-website.svg": "84b1640eb10bc390b99ffa1b93f08f9bf6841dcd446703a37913fee1a5137ff9",
+    "svg/drop-inn-black-only.svg": "2b0f87fb233f8f8d8a9399e7aa10ada75d499188f0ebb2efd1ed5a2338caba11",
+    "svg/drop-inn-cream-only-website.svg": "750337aa43d583d5c487c11a9a3c6f9c527a3eff6ff1cc5993e37fb17e66e4e5",
+    "svg/drop-inn-cream-only.svg": "f11909cb8759c5e403ee984f72d9ca6827cb392444ecfbf498d8c974f8a8bc67",
+    "svg/drop-inn-dark-website.svg": "1b969fe78be7519279f80bbb235815e49bf26b6464993140935e6c95f83a6fd7",
+    "svg/drop-inn-dark.svg": "67e7c494fd6695075c806b7d16f8321a51fae0b1631e0001461387933cd8c965",
+    "svg/drop-inn-light-website.svg": "c490c204512c56b593a02e3854fda6d323af5f0cef4e9066e923f29fef5b964c",
+    "svg/drop-inn-light.svg": "69792ce6ecb3df9f521984d15196f53af59a3c14d243c54e09ff119c5f7f5591",
+    "svg/drop-inn-master.svg": "c490c204512c56b593a02e3854fda6d323af5f0cef4e9066e923f29fef5b964c"
+  }
+}
