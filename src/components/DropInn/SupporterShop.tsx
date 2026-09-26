@@ -90,13 +90,15 @@ export function SupporterShop() {
   }
   if (!visible) return null;
   return <section className="di-supporter-shop" aria-label="Supporter pack">
-    <div><p className="di-eyebrow">A little thank-you for keeping the inn open</p><h2>{SUPPORTER_BUNDLE.name}</h2>
+    <div className="di-supporter-heading"><p className="di-eyebrow">A little thank-you for keeping the inn open</p><h2>{SUPPORTER_BUNDLE.name}</h2>
       <p>Two curious hats and four palettes for every hero on your account. One purchase. No subscription. Stories, abilities, and earned rewards stay free.</p></div>
     {sandbox && <p className="di-payment-test" role="note"><strong>Sandbox checkout — no real money.</strong> Use Paddle test details only. Test items are separate from live purchases.</p>}
+    <div className="di-supporter-layout">
     <div className="di-supporter-hats">{SUPPORTER_BUNDLE.hats.map(id => {
       const hat = HERO_HATS.find(h => h.id === id)!;
-      return <article key={id}><HeroHatPreview hat={hat}/><h3>{hat.label}</h3><div className="di-supporter-palettes">{SUPPORTER_STYLES.filter(s => s.hat === id).map(style => <figure key={style.id}><HeroHatPreview hat={hat} hatColor={style.id}/><figcaption>{style.label}</figcaption></figure>)}</div></article>;
+      return <article key={id}><h3>{hat.label}</h3><div className="di-supporter-palettes">{SUPPORTER_STYLES.filter(s => s.hat === id).map(style => <figure key={style.id}><HeroHatPreview hat={hat} hatColor={style.id}/><figcaption>{style.label}</figcaption></figure>)}</div></article>;
     })}</div>
+    <div className="di-supporter-purchase">
     <p className="di-supporter-price">{launchPrice ? <><strong>$5 USD launch price</strong><span>50% off <del>$10 USD</del> regular price</span></> : <strong>$10 USD · one-time</strong>}
       {launchPrice && config.launchOffer && <span>Offer ends {new Date(config.launchOffer.endsAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}.</span>}
       <span>One-time purchase. Paddle shows the final total and applicable taxes before payment.</span></p>
@@ -108,6 +110,8 @@ export function SupporterShop() {
     {eligible && <button type="button" className="di-button di-secondary" disabled={busy} onClick={() => {setError(''); void check(order?.id).catch(e => setError(e instanceof Error ? e.message : 'Could not check payment.'));}}>Check purchase / restore items</button>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     {order && <p className="di-fine">Purchase reference: <code>{order.id}</code></p>}
-    <p className="di-fine">Refunded purchases lose their paid items; earned items are unaffected. A purchase never equips a hat automatically. See our <a href="/privacy" target="_blank" rel="noreferrer">privacy policy</a>. Payment questions and refund requests: <a href="https://paddle.net" target="_blank" rel="noreferrer">Paddle payment support</a>. Game support: <a href="mailto:themainyak@gmail.com">themainyak@gmail.com</a>.</p>
+    </div>
+    </div>
+    <details className="di-supporter-help"><summary>Refunds, privacy & support</summary><p className="di-fine">Refunded purchases lose their paid items; earned items are unaffected. A purchase never equips a hat automatically. See our <a href="/refunds" target="_blank" rel="noreferrer">refund policy</a> and <a href="/privacy" target="_blank" rel="noreferrer">privacy policy</a>. Payment questions and refund requests: <a href="https://paddle.net" target="_blank" rel="noreferrer">Paddle payment support</a>. Game support: <a href="mailto:themainyak@gmail.com">themainyak@gmail.com</a>.</p></details>
   </section>;
 }

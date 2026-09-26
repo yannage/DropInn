@@ -34,6 +34,8 @@ export async function openCheckout(config: PaymentConfig, transactionId: string,
     paddle.Initialize({ token: config.clientToken, eventCallback: onEvent });
     configuredToken = config.clientToken;
   } else paddle.Update({ eventCallback: onEvent });
-  paddle.Checkout.open({ transactionId, settings: { displayMode: 'overlay', theme: 'light', locale: 'en', showAddDiscounts: false, allowLogout: false } });
+  // Paddle's one-page card form overflows 320px screens; its two-step form fits.
+  const variant = window.matchMedia('(max-width: 359px)').matches ? 'multi-page' : 'one-page';
+  paddle.Checkout.open({ transactionId, settings: { displayMode: 'overlay', variant, theme: 'light', locale: 'en', showAddDiscounts: false, allowLogout: false } });
 }
 export function closeCheckout() { window.Paddle?.Checkout.close(); }
