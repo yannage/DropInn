@@ -1,2 +1,4 @@
 import { handlePaddleWebhook } from '../../server/payments';
-export default (request: Request) => handlePaddleWebhook(request);
+
+// The original notification destination always uses sandbox credentials.
+export default (request: Request) => handlePaddleWebhook(request, { ...process.env, PADDLE_ENVIRONMENT: 'sandbox' });

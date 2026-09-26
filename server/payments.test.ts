@@ -98,8 +98,19 @@ describe('payment authority',()=>{
  it('requires a permanent authenticated account and matching provider environment',async()=>{
   await expect(handlePayment({} as SupabaseClient,{is_anonymous:true} as User,{operation:'checkout'},env)).rejects.toThrow('Sign in');
   await expect(handlePayment({} as SupabaseClient,{is_anonymous:false,email:'a@example.com'} as User,{operation:'checkout'},{...env,PADDLE_ENVIRONMENT:'production'})).rejects.toThrow('credentials');
+  await expect(handlePayment({} as SupabaseClient,{is_anonymous:false,email:'a@example.com'} as User,{operation:'checkout'},{...env,PADDLE_ENVIRONMENT:''})).rejects.toThrow('explicit sandbox or production');
+  expect(()=>paymentConfig({...env,PADDLE_ENVIRONMENT:'unexpected'})).toThrow('explicit sandbox or production');
   expect(paymentConfig({...env,DROPINN_PAYMENTS_ENABLED:'0'})?.enabled).toBe(false);
   expect(paymentConfig({...env,PADDLE_WEBHOOK_SECRET:''})?.enabled).toBe(false);
+ });
+ it('requires distinct live credentials and price before enabling live checkout',()=>{
+  const live={...env,PADDLE_ENVIRONMENT:'production',PADDLE_LIVE_API_KEY:'pdl_live_apikey_test',
+    PADDLE_LIVE_CLIENT_TOKEN:'live_public',PADDLE_LIVE_WEBHOOK_SECRET:'live-secret',
+    PADDLE_LIVE_SUPPORTER_PRICE_ID:`pri_${'c'.repeat(26)}`};
+  expect(paymentConfig(live)).toMatchObject({environment:'production',enabled:true,clientToken:'live_public'});
+  expect(paymentConfig({...live,PADDLE_LIVE_API_KEY:''})?.enabled).toBe(false);
+  expect(paymentConfig({...live,PADDLE_LIVE_CLIENT_TOKEN:'test_public'})?.enabled).toBe(false);
+  expect(paymentConfig({...live,PADDLE_LIVE_SUPPORTER_PRICE_ID:''})?.enabled).toBe(false);
  });
  it('reconciles an uncertain create without sending another create request',async()=>{
   const fetcher=vi.fn<typeof fetch>(async()=>new Response(JSON.stringify({data:[],meta:{pagination:{has_more:false}}}),{status:200}));

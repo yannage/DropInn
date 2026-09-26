@@ -12,9 +12,13 @@ interface Order {
 }
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const txnId = (v: unknown): v is string => typeof v === 'string' && /^txn_[a-z0-9]{26}$/.test(v);
-export const paymentEnvironment = (env: Env): PaymentEnvironment => env.PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox';
+export const paymentEnvironment = (env: Env): PaymentEnvironment => {
+  if (env.PADDLE_ENVIRONMENT === 'sandbox' || env.PADDLE_ENVIRONMENT === 'production') return env.PADDLE_ENVIRONMENT;
+  throw new PaymentError('Payments need an explicit sandbox or production environment.', 503);
+};
+const paddleValue = (env: Env, name: string) => env[`PADDLE_${paymentEnvironment(env) === 'production' ? 'LIVE_' : ''}${name}`];
 function launchOffer(env: Env, now = Date.now()) {
-  const fields = [env.PADDLE_LAUNCH_DISCOUNT_ID, env.PADDLE_LAUNCH_STARTS_AT, env.PADDLE_LAUNCH_ENDS_AT];
+  const fields = [paddleValue(env, 'LAUNCH_DISCOUNT_ID'), paddleValue(env, 'LAUNCH_STARTS_AT'), paddleValue(env, 'LAUNCH_ENDS_AT')];
   if (fields.every(value => !value)) return null;
   const [id, start, end] = fields;
   const startsAt = Date.parse(start ?? '');
@@ -28,19 +32,19 @@ function launchOffer(env: Env, now = Date.now()) {
 export function paymentConfig(env: Env): PaymentConfig | undefined {
   if (!env.PADDLE_ENVIRONMENT) return;
   const environment = paymentEnvironment(env);
-  const token = env.PADDLE_CLIENT_TOKEN ?? '';
+  const token = paddleValue(env, 'CLIENT_TOKEN') ?? '';
   let offer: ReturnType<typeof launchOffer> = null;
   try { offer = launchOffer(env); } catch { /* A broken offer closes new sales below. */ }
-  const offerValid = ![env.PADDLE_LAUNCH_DISCOUNT_ID, env.PADDLE_LAUNCH_STARTS_AT, env.PADDLE_LAUNCH_ENDS_AT].some(Boolean) || !!offer;
-  const configured = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_') && !!env.PADDLE_API_KEY && !!env.PADDLE_WEBHOOK_SECRET
-    && /^pri_[a-z0-9]{26}$/.test(env.PADDLE_SUPPORTER_PRICE_ID ?? '') && offerValid;
+  const offerValid = ![paddleValue(env, 'LAUNCH_DISCOUNT_ID'), paddleValue(env, 'LAUNCH_STARTS_AT'), paddleValue(env, 'LAUNCH_ENDS_AT')].some(Boolean) || !!offer;
+  const configured = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_')
+    && !!paddleValue(env, 'API_KEY') && !!paddleValue(env, 'WEBHOOK_SECRET')
+    && /^pri_[a-z0-9]{26}$/.test(paddleValue(env, 'SUPPORTER_PRICE_ID') ?? '') && offerValid;
   return { environment, enabled: configured && env.DROPINN_PAYMENTS_ENABLED === '1', clientToken: configured ? token : '',
     ...(offer?.active ? { launchOffer: { endsAt: new Date(offer.endsAt).toISOString(), percent: 50 as const } } : {}) };
 }
 function settings(env: Env) {
-  if (!['sandbox', 'production'].includes(env.PADDLE_ENVIRONMENT ?? '')) throw new PaymentError('Payments are not configured yet.', 503);
   const environment = paymentEnvironment(env);
-  const apiKey = env.PADDLE_API_KEY ?? '';
+  const apiKey = paddleValue(env, 'API_KEY') ?? '';
   if (!apiKey.startsWith(environment === 'sandbox' ? 'pdl_sdbx_apikey_' : 'pdl_live_apikey_')) throw new PaymentError('Payment credentials do not match the configured environment.', 503);
   return { environment, apiKey, base: environment === 'sandbox' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com' };
 }
@@ -144,7 +148,7 @@ export async function handlePayment(db: SupabaseClient, user: User, body: { oper
   if (body.bundleId !== SUPPORTER_BUNDLE.id || !uuid(body.commandId)) throw new PaymentError('Choose a valid bundle and purchase identifier.');
   const offer = launchOffer(env);
   if (body.expectLaunchOffer && !offer?.active) throw new PaymentError('The launch price just ended. Refresh to see the current price before buying.', 409);
-  const priceId = env.PADDLE_SUPPORTER_PRICE_ID ?? '';
+  const priceId = paddleValue(env, 'SUPPORTER_PRICE_ID') ?? '';
   if (!/^pri_[a-z0-9]{26}$/.test(priceId)) throw new PaymentError('The supporter pack price is not configured.', 503);
   const price = (await paddle(env, `/prices/${priceId}`, {}, fetcher)).data;
   if (price.status !== 'active' || price.billing_cycle != null || price.trial_period != null
@@ -204,7 +208,7 @@ export async function handlePaddleWebhook(request: Request, env: Env = process.e
   if (request.method !== 'POST') return response(405, 'Use POST.');
   try {
     const raw = await request.text();
-    if (!verifyPaddleSignature(raw, request.headers.get('paddle-signature') ?? '', env.PADDLE_WEBHOOK_SECRET ?? '')) return response(401, 'Invalid signature.');
+    if (!verifyPaddleSignature(raw, request.headers.get('paddle-signature') ?? '', paddleValue(env, 'WEBHOOK_SECRET') ?? '')) return response(401, 'Invalid signature.');
     const event = JSON.parse(raw);
     if (typeof event.event_id !== 'string' || !/^evt_[a-z0-9]{26}$/.test(event.event_id)) return response(400, 'Invalid event.');
     if (!['transaction.completed', 'transaction.updated', 'transaction.canceled', 'adjustment.created', 'adjustment.updated'].includes(event.event_type)) return response(200, 'Ignored event.');
@@ -233,7 +237,7 @@ export async function handlePaddleWebhook(request: Request, env: Env = process.e
   }
 }
 export async function reconcilePayments(env: Env = process.env) {
-  if (!env.PADDLE_ENVIRONMENT || !env.PADDLE_API_KEY) return { checked: 0, failed: 0 };
+  if (!env.PADDLE_ENVIRONMENT || !paddleValue(env, 'API_KEY')) return { checked: 0, failed: 0 };
   const db = paymentDatabase(env);
   const orders = checked(await db.from('payment_orders').select('*').eq('environment', paymentEnvironment(env)).neq('status', 'canceled').neq('status', 'refunded').order('checked_at', { ascending: true, nullsFirst: true }).limit(20)) as Order[];
   let failed = 0;
