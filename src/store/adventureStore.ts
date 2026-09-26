@@ -9,7 +9,8 @@ import { finishGuestRecovery } from '../lib/supabase/accountAuth';
 import type { AccountSnapshot } from '../lib/dropinn/accounts';
 import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
-import { normalizeHero, type HeroCustomization } from '../lib/cosmetics';
+import { normalizeHero, HERO_HATS, type HeroCustomization } from '../lib/cosmetics';
+import { HAT_STYLES, emptyCollection, mergeCollection, craftCollection, creditKey, type CollectionSnapshot } from '../lib/dropinn/collection';
 import { getErrorMessage } from '../lib/errors';
 
 const namespace = (import.meta.env.DEV ? new URLSearchParams(window.location.search).get('session')?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) : undefined) || 'default';
@@ -21,6 +22,10 @@ interface PendingAction {
   action: PlayerAction;
 }
 interface SavedPlayer {
+  collection?: CollectionSnapshot;
+  collectionReceipts?: string[];
+  collectionGoal?: string | null;
+  pendingCraft?: { commandId: string; recipeId: string } | null;
   accountId?: string;
   userId: string;
   character: CharacterProfile;
@@ -73,6 +78,12 @@ const mergeMessages = (current: ChatMessage[], incoming: ChatMessage[]) => [...n
   .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)).slice(-60);
 
 interface AdventureState {
+  collection: CollectionSnapshot;
+  collectionGoal: string | null;
+  pendingCraft: { commandId: string; recipeId: string } | null;
+  setCollectionGoal: (recipeId: string | null) => void;
+  craftStyle: (recipeId: string) => Promise<void>;
+  refreshCollection: () => Promise<void>;
   account: AccountSnapshot | null;
   saveStatus: 'browser' | 'guest' | 'cloud' | 'saving' | 'failed';
   saveError: string | null;
@@ -130,6 +141,15 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     characterId: get().character?.id,
   });
   const fail = (error: unknown) => set({ error: getErrorMessage(error, 'Something went wrong. Please retry.') });
+  const acceptCollection = (incoming: CollectionSnapshot, replace = false) => {
+    const collection = replace ? incoming : mergeCollection(get().collection, incoming);
+    saved.collection = collection;
+    const current = get().character;
+    const character = current ? normalizeHero({ ...current, cosmeticUnlocks: { hats: collection.hats, styles: collection.styles } }) : null;
+    if (character) saved.character = character;
+    set({ collection, ...(character ? { character } : {}) });
+    save();
+  };
   const setPendingAction = (pending: PendingAction | null) => {
     saved.pendingAction = pending;
     save();
@@ -149,12 +169,13 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       try {
         localStorage.setItem(`${storageKey}:${previousAccount}`,JSON.stringify(saved));
         const cached=JSON.parse(localStorage.getItem(`${storageKey}:${account.id}`) ?? 'null');
-        saved={...saved,activeCode:cached?.activeCode ?? null,receipts:cached?.receipts ?? {},pendingAction:cached?.pendingAction ?? null};
-      } catch {saved={...saved,activeCode:null,receipts:{},pendingAction:null};}
+        saved={...saved,activeCode:cached?.activeCode ?? null,receipts:cached?.receipts ?? {},pendingAction:cached?.pendingAction ?? null,collectionGoal:cached?.collectionGoal ?? null,pendingCraft:cached?.pendingCraft ?? null};
+      } catch {saved={...saved,activeCode:null,receipts:{},pendingAction:null,collectionGoal:null,pendingCraft:null};}
     }
     const selected=account.heroes.find(hero=>hero.character.id===account.selectedCharacterId) ?? account.heroes[0];
     if(!selected) throw new Error('Your hero could not be loaded. Please retry.');
-    const character=selected.character;
+    const collection = changed ? account.collection ?? emptyCollection() : mergeCollection(get().collection, account.collection ?? emptyCollection());
+    const character=normalizeHero({...selected.character,cosmeticUnlocks:{hats:collection.hats,styles:collection.styles}});
     if (changed || saved.userId!==selected.playerId) {
       viewEpoch++;unsubscribe?.();unsubscribe=null;
       saved.activeCode = null;
@@ -167,7 +188,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     saved.accountId=account.id;
     saved.userId = selected.playerId;
     saved.character = character;
-    set({ userId: selected.playerId, character, account,saveStatus:account.guest?'guest':'cloud',saveError:null });
+    saved.collection=collection;
+    set({ userId: selected.playerId, character, account,collection,collectionGoal:saved.collectionGoal ?? null,pendingCraft:saved.pendingCraft ?? null,saveStatus:account.guest?'guest':'cloud',saveError:null });
     save();
   };
   const busy = async (run: () => Promise<void>) => {
@@ -178,6 +200,16 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
   };
   const collectReceipts = async (recaps: VisitRecap[], refreshHero = false) => {
     let changed = false;
+    if (localPlay) {
+      const keys = new Set(saved.collectionReceipts ?? []);
+      const incoming = recaps.flatMap(recap => recap.collectionCredits ?? []).filter(credit => {
+        if (keys.has(creditKey(credit))) return false;
+        keys.add(creditKey(credit)); return true;
+      });
+      const hats = HERO_HATS.filter(hat => hat.keepsake && [saved.character.inventory, ...recaps.map(recap => recap.keepsakes)].some(items => items.includes(hat.keepsake!))).map(hat => hat.id);
+      saved.collectionReceipts = [...keys];
+      acceptCollection({ ...get().collection, earned: get().collection.earned + incoming.length, hats, discoveries: incoming });
+    }
     for (const recap of recaps) {
       if (recap.characterId !== get().character?.id) continue;
       const key = `${recap.code}:${recap.characterId}`;
@@ -204,6 +236,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
         set({ character });
         changed = true;
       }
+      await get().refreshCollection();
     }
     if (changed) {save();if(storageError)set({saveError:storageError,...(localPlay?{saveStatus:'failed' as const}:{})});}
   };
@@ -244,6 +277,41 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     unsubscribe = subscribeAdventure(response.room.code, () => { void get().syncRoom(); });
   };
   return {
+    collection: { ...emptyCollection(), ...saved.collection, hats: [...new Set([...(saved.collection?.hats ?? []), ...HERO_HATS.filter(hat => hat.keepsake && saved.character.inventory.includes(hat.keepsake)).map(hat => hat.id)])] },
+    collectionGoal: saved.collectionGoal ?? null,
+    pendingCraft: saved.pendingCraft ?? null,
+    setCollectionGoal: recipeId => {
+      if (recipeId !== null && !HAT_STYLES.some(style => style.id === recipeId)) return;
+      saved.collectionGoal = recipeId; save(); set({ collectionGoal: recipeId });
+    },
+    refreshCollection: async () => {
+      if (localPlay) return;
+      const identity = saved.accountId;
+      const response = await request({ operation: 'collection' });
+      if (identity !== saved.accountId) return;
+      if (!response.collection) throw new Error('Your collection could not be loaded. Please retry.');
+      acceptCollection(response.collection);
+    },
+    craftStyle: recipeId => busy(async () => {
+      if (get().room || get().restoringCode) throw new Error('Customize your keepsake between visits.');
+      if (saved.pendingCraft && saved.pendingCraft.recipeId !== recipeId) throw new Error('Retry your pending style before crafting another.');
+      const pending = saved.pendingCraft ?? { commandId: crypto.randomUUID(), recipeId };
+      const identity = saved.accountId;
+      saved.pendingCraft = pending; save(); set({ pendingCraft: pending });
+      try {
+        const collection = localPlay ? craftCollection(get().collection, recipeId)
+          : (await request({ operation: 'craft', ...pending })).collection;
+        if (identity !== saved.accountId) return;
+        if (!collection) throw new Error('Your style is still being checked. Retry safely.');
+        acceptCollection(collection);
+        saved.pendingCraft = null; save(); set({ pendingCraft: null });
+      } catch (error) {
+        if (localPlay || (error instanceof AdventureRequestError && [400,401,403,404,409,422].includes(error.status))) {
+          saved.pendingCraft=null; save(); set({pendingCraft:null});
+        }
+        throw error;
+      }
+    }),
     account:null,saveStatus:storageError?'failed':'browser',saveError:storageError,
     refreshAccount:async()=>{
       try {await ensureHostedHero();await get().refreshRooms();}
@@ -260,7 +328,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       viewEpoch++;unsubscribe?.();unsubscribe=null;
       save();
       saved={userId:crypto.randomUUID(),character:createCharacterProfile('Wren','wizard'),activeCode:null,receipts:{},muted:[]};
-      set({account:null,character:saved.character,userId:saved.userId,recaps:[],recap:null,saveStatus:'browser'});
+      set({account:null,character:saved.character,userId:saved.userId,recaps:[],recap:null,collection:emptyCollection(),collectionGoal:null,pendingCraft:null,saveStatus:'browser'});
       await ensureHostedHero();await get().refreshRooms();
     }),
     ready: false, backend: localPlay ? 'local' : 'supabase', userId: saved.userId, character: saved.character,

@@ -17,6 +17,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Timed commitment gesture and accessible alternatives | `src/components/DropInn/TimedRelease.tsx` |
 | Authored scene backgrounds, targets and developed states | `src/components/DropInn/SceneStageArt.tsx`, `TargetArtwork.tsx` |
 | Client session, sync, proposals and reward receipts | `src/store/adventureStore.ts` |
+| Account-wide keepsakes, Thread, crafting and discoveries | `src/lib/dropinn/collection.ts`, `src/components/DropInn/Collection.tsx`, [collection pilot](docs/collections.md) |
 | Shared types, authored chapters and pure reducer | `src/lib/dropinn/` |
 | Adventure identity, versions and authored definitions | `src/lib/dropinn/registry.ts`, `adventures.ts` |
 | Rebuild reviewed story packets into static definitions | `npm run stories:build` (`scripts/build-story-data.mjs`) |
@@ -46,6 +47,7 @@ React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Lega
 - Uncertain moves persist their complete action, release timing and command ID with the local saved table. Freeze edits until retry or synchronization settles the command. Reload must not manufacture a new timing attempt or duplicate rewards.
 - Each hero has one Spotlight attempt per chapter. Leaving and returning preserves its use, HP and contributions. Validated previews are signed and bound to the user, room, target and turn.
 - Class presets determine starting power regardless of saved XP. Downed heroes can Help. Progress and danger contributions scale with human count; every chapter closes by ten rounds.
+- New tables pin `collectionVersion: 1` and grant one First tales Thread per contributed chapter on every outcome. Account-wide collection ownership derives from the server ledger and exact keepsake strings; hero inventories stay personal. Crafting spends/grants atomically with a durable command ID, never auto-equips, and appearance stays pinned during a visit. Old rooms retain their reward policy. See [collection rollout and verification](docs/collections.md).
 - Authored mechanics own outcomes. Optional AI can prepare cosmetic variations, interpret supported scene interactions, and narrate resolved events. It cannot grant arbitrary rewards or revise a resolved turn.
 
 ## Development and deployment

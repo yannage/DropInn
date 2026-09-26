@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createCharacterProfile } from '../lib/character';
 
 const mocks = vi.hoisted(() => ({ request: vi.fn(), auth: vi.fn(), list: vi.fn(), create: vi.fn(), identity: vi.fn(), play:vi.fn() }));
-vi.mock('../lib/dropinn/api', () => ({ localPlay: false, adventureRequest: mocks.request, subscribeAdventure: () => () => {} }));
+vi.mock('../lib/dropinn/api', () => ({ AdventureRequestError:class extends Error {constructor(message:string,public status:number){super(message);}}, localPlay: false, adventureRequest: mocks.request, subscribeAdventure: () => () => {} }));
 vi.mock('../lib/supabase/client', () => ({ ensureAnonymousUser: mocks.auth }));
 vi.mock('../lib/supabase/characters', () => ({ listSupabaseCharacters: mocks.list, upsertSupabaseCharacter: mocks.create, updateSupabaseHeroIdentity: mocks.identity }));
 
@@ -13,6 +13,7 @@ beforeEach(() => {
   vi.stubGlobal('window', { location: { search: '' } });
   vi.stubGlobal('localStorage', { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => storage.set(key, value) });
   mocks.request.mockImplementation(async(body)=>{
+    if(body.operation==='collection') return {backend:'supabase',collection:{earned:0,spent:0,hats:[],styles:[],discoveries:[]}};
     if(body.operation==='account') {
       const user=await mocks.auth.mock.results.at(-1)?.value;
       const heroes=await mocks.list();
@@ -22,6 +23,35 @@ beforeEach(() => {
   });
 });
 afterEach(() => vi.unstubAllGlobals());
+
+it('retries an uncertain craft with its saved command ID after reload and ignores stale collection balances',async()=>{
+  const hero=createCharacterProfile('Moss','wizard');
+  mocks.auth.mockResolvedValue({id:'current'});mocks.list.mockResolvedValue([hero]);
+  const original=mocks.request.getMockImplementation()!;
+  const commands:string[]=[];
+  let lost=true;
+  mocks.request.mockImplementation(async body=>{
+    if(body.operation==='collection') return {backend:'supabase',collection:{earned:3,spent:0,hats:['shepherd'],styles:[],discoveries:[]}};
+    if(body.operation==='craft') {
+      commands.push(body.commandId);
+      if(lost){lost=false;throw new TypeError('Response lost');}
+      return {backend:'supabase',collection:{earned:3,spent:3,hats:['shepherd'],styles:['shepherd-blue'],discoveries:[]}};
+    }
+    return original(body);
+  });
+  const {useAdventureStore:store}=await import('./adventureStore');
+  await store.getState().initialize();
+  await store.getState().craftStyle('shepherd-blue');
+  expect(store.getState().pendingCraft?.commandId).toBe(commands[0]);
+  vi.resetModules();
+  const {useAdventureStore:restored}=await import('./adventureStore');
+  await restored.getState().initialize();
+  await restored.getState().craftStyle('shepherd-blue');
+  expect(commands).toEqual([commands[0],commands[0]]);
+  expect(restored.getState().pendingCraft).toBeNull();
+  await restored.getState().refreshCollection();
+  expect(restored.getState().collection).toMatchObject({earned:3,spent:3,styles:['shepherd-blue']});
+});
 
 it('shows plain-object backend errors instead of hiding them behind a generic retry message', async () => {
   mocks.auth.mockResolvedValue({ id: 'current' });
@@ -60,8 +90,9 @@ it('retains the saved hero when a hosted customization write fails', async () =>
   mocks.identity.mockRejectedValue(new Error('Unable to save. Please retry.'));
   const { useAdventureStore: store } = await import('./adventureStore');
   await store.getState().initialize();
+  const before=store.getState().character;
   await store.getState().setHero('Changed', 'fighter');
-  expect(store.getState().character).toEqual(hero);
+  expect(store.getState().character).toEqual(before);
   expect(store.getState().error).toContain('Please retry');
 });
 

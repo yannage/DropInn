@@ -60,6 +60,7 @@ import { hatForKeepsake } from '../../lib/cosmetics';
 import { AccountPanel, SaveStatus } from './AccountPanel';
 import { localPlay } from '../../lib/dropinn/api';
 import { getSupabaseClient } from '../../lib/supabase/client';
+import { CollectionGoal, DiscoveryJournal } from './Collection';
 
 const roleCopy: Record<CharacterClassKey, string> = {
   wizard: 'Read the magic. Change the odds.',
@@ -108,7 +109,7 @@ function Modal({
       if (event.key !== 'Tab') return;
       const items = Array.from(
         ref.current?.querySelectorAll<HTMLElement>(
-          'button:not(:disabled), input, textarea, select, [tabindex="0"]',
+          'button:not(:disabled), input, textarea, select, summary, a[href], [tabindex="0"]',
         ) ?? [],
       );
       const first = items[0];
@@ -180,6 +181,7 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
       <p className="di-eyebrow">A little time, well spent</p>
       <h2>You made a difference.</h2>
       <p className="di-muted">Your visit to {recap.title}</p>
+      {!!recap.collectionCredits?.length && <p><CollectionGoal earned={recap.collectionCredits.length}/><small>Saved to your First tales collection.</small></p>}
       <div className="di-recap-stats">
         <div>
           <strong>{recap.actions}</strong>
@@ -478,6 +480,7 @@ function Lobby() {
   const [preparing, setPreparing] = useState(false);
   const [adventureId, setAdventureId] = useState('briar-glen');
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
+  const [journal, setJournal] = useState(false);
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
   const recentVisits = [...recaps].sort((a, b) => Number(unseen(b) > 0) - Number(unseen(a) > 0));
   const liveRooms = rooms.filter(
@@ -546,6 +549,10 @@ function Lobby() {
 
       <section className="di-story-library" aria-label="Choose an adventure">
         <h2>Choose your next story</h2>
+        <p>First tales · Four free adventures. One shared collection.</p>
+        <CollectionGoal />
+        <button type="button" className="di-button di-secondary" onClick={() => setJournal(true)}>Your discoveries</button>
+        {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal/></Modal>}
         <p className="di-mobile-story-hint">Swipe to browse stories</p>
         <div className="di-story-cards" role="group" aria-label="Story choices" tabIndex={0}>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
           <SceneArt scene={adventure.chapters[0].art} />

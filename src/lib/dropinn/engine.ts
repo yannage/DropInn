@@ -1,5 +1,6 @@
 import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import { normalizeHero } from '../cosmetics';
+import { chapterCredits } from './collection';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { adventureFor, chaptersFor } from './registry';
 import { rollSupport, supportText } from './teamwork';
@@ -85,7 +86,7 @@ export function createAdventure(character: CharacterProfile, userId: string, now
   const hero = normalizedCharacter(character);
   const roomCode = (code ?? Math.random().toString(36).slice(2, 8)).toUpperCase();
   const room: AdventureRoom = { version: 2, adventureId: adventure.id, adventureVersion: adventure.version, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: adventure.title,
-    mechanicsVersion: 1, status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
+    mechanicsVersion: 1, collectionVersion: 1, status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
@@ -478,5 +479,5 @@ export function getVisitRecap(room: AdventureRoom, userId: string): VisitRecap {
     highlights.push(moment.change?.text ?? moment.text);
     chapterHighlights[moment.chapter] = highlights.slice(-2);
   }
-  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights };
+  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights, collectionCredits: chapterCredits(room, userId) };
 }

@@ -40,6 +40,24 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it('collects chapter Thread once across snapshots, departure and reload without auto-equipping a crafted style',async()=>{
+    const {store,room}=await setup();
+    const userId=store.getState().userId;
+    room.revision++;
+    room.outcomes=[0,1,2].map(chapter=>({chapter,result:'mixed',text:'The party returns.',at:2000}));
+    room.events.push(...[0,1,2].map(chapter=>({id:`contribution-${chapter}`,chapter,kind:'action' as const,actorId:userId,text:'Protected.',contribution:true,at:1500,turn:chapter+1})));
+    room.players[userId].keepsakes=['Mara’s copper bell'];
+    await store.getState().syncRoom();await store.getState().syncRoom();
+    expect(store.getState().collection.earned).toBe(3);
+    await store.getState().leaveRoom();
+    await store.getState().craftStyle('shepherd-blue');
+    expect(store.getState().collection).toMatchObject({earned:3,spent:3,styles:['shepherd-blue']});
+    expect(store.getState().character?.equipment?.hatColor).not.toBe('shepherd-blue');
+    vi.resetModules();
+    const {useAdventureStore:restored}=await import('./adventureStore');
+    await restored.getState().initialize();
+    expect(restored.getState().collection).toMatchObject({earned:3,spent:3,styles:['shepherd-blue']});
+  });
   it('saves every appearance selection and an unequipped hat across reload', async () => {
     const { store } = await setup();
     const original = store.getState().character!;

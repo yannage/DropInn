@@ -1,4 +1,5 @@
 import type { HeroAppearance, HeroEquipment } from './cosmetics';
+import type { CosmeticUnlocks } from './dropinn/collection';
 
 export type TraitSet = {
   INT: number;
@@ -23,6 +24,8 @@ export interface CharacterProfile {
   accent: string;
   appearance?: HeroAppearance;
   equipment?: HeroEquipment;
+  /** Derived from owned account records by the server, never an identity-write input. */
+  cosmeticUnlocks?: CosmeticUnlocks;
 }
 
 export interface CharacterClassPreset {

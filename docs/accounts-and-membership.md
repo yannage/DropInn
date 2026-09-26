@@ -41,9 +41,9 @@ This workspace contains no hosted credentials or sending domain. Do not invent a
 
 ## Monetization roadmap
 
-Working hypothesis: a $5/month membership for up to five heroes, profile flair, and a supporter cosmetic collection. All shared playable stories remain free. Purchased cosmetic sets remain owned after cancellation. Cancellation can reduce active-slot access but never deletes a hero, receipt, or purchased item. No paid combat advantages, randomized purchases, or tradable inventory.
+The collection pilot now prioritizes one-off supporter bundles over a subscription: test $10 for two exclusive hat designs and their palettes, with permanent account ownership. All shared stories stay free; earned cosmetics receive comparable art attention. No Thread sales, paid power, randomized purchases, expiring digital packs, or tradable inventory. Billing remains deferred. Existing heroes remain available. See [the collection pilot and business defaults](collections.md).
 
-For global sales, prefer a merchant of record. Paddle is the initial candidate pending gaming onboarding and a low-price quote. Its published 5% + $0.50 fee would leave about $4.25 from a $5 transaction before other costs under that simple fee assumption; it invites custom pricing below $10. Compare Stripe Managed Payments at the billing milestone, including eligibility and all applicable fees. Sources: [Paddle](https://www.paddle.com/pricing), [Stripe Managed Payments](https://stripe.com/managed-payments).
+For global sales, prefer a merchant of record. Paddle remains a candidate pending gaming onboarding. Its published 5% + $0.50 fee would leave $9 from a $10 transaction before other costs under that simple fee assumption. Compare Stripe Managed Payments at the billing milestone, including eligibility and all applicable fees. Sources: [Paddle](https://www.paddle.com/pricing), [Stripe Managed Payments](https://stripe.com/managed-payments).
 
 Keep future payment-customer references, subscription state, purchase receipts, and permanent cosmetic grants separate. Provider webhooks must be authenticated, idempotent, and reconciled for delayed/out-of-order events. Never grant access from a checkout return URL or a local flag. Meter refunds/cancellation separately from permanent grants, and test entitlements before live sales. No provider SDK or billing schema is needed for the account release.
 
@@ -51,7 +51,7 @@ Keep future payment-customer references, subscription state, purchase receipts, 
 
 Feature an adventure weekly from a growing, reviewed library. This is an editorial rhythm, not a promise to create an entirely new story every week. Expand the [world catalog](world-catalog.md) with recurring original NPCs and locations. Keep stable IDs and versions; personal visit outcomes must not silently become world-wide canon.
 
-Use AI first as an authoring aid followed by human review and static publication. Existing authored fallback remains complete. Before introducing live generation, deduplicate shared narration by resolved event/version, set hard per-account and project budgets, cap input/output and latency, and measure cost per active player. Do not sell unlimited generation in a $5 membership. No AI budget or new external calls are enabled here.
+Use AI first as an authoring aid followed by human review and static publication. Existing authored fallback remains complete. Before introducing live generation, deduplicate shared narration by resolved event/version, set hard per-account and project budgets, cap input/output and latency, and measure cost per active player. Do not include unlimited live generation in a fixed-price supporter offering. No AI budget or new external calls are enabled here.
 
 Measure save failures, auth completion, guest-recovery success, repeat visits, chapter contributions/completion, and infrastructure cost per active player. Avoid logging credentials, OTPs, recovery proofs, or full private payloads. The current modular Netlify service and Supabase transactions remain the architecture until measured bottlenecks justify another service.
 

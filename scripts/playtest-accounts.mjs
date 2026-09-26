@@ -55,6 +55,7 @@ async function setup(){
      if(!u)return json({backend:'supabase',error:'Sign in first'},401);
      if(body.operation==='account'){if(offlineAccount)return json({error:'Account loading interrupted. Retry.'},503);return json({backend:'supabase',account:account(u)});}
      if(body.operation==='list')return json({backend:'supabase',rooms:[]});
+     if(body.operation==='collection')return json({backend:'supabase',collection:{earned:0,spent:0,hats:[],styles:[],discoveries:[]}});
      if(body.operation==='history')return json({backend:'supabase',recaps:[]});
      if(body.operation==='hero-save'){
        assert.equal(body.character.xp,undefined);assert.equal(body.character.inventory,undefined);

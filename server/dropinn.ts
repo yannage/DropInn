@@ -1,15 +1,16 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
-import { AccountError, handleAccount, ownedPlayers } from './accounts';
+import { AccountError, handleAccount, ownedPlayers, loadCollection, heroFromRow } from './accounts';
 import type { AccountOperation } from '../src/lib/dropinn/accounts';
 import WebSocket from 'ws';
 import { normalizeHero } from '../src/lib/cosmetics';
-import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterClassKey, type CharacterProfile } from '../src/lib/character';
+import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
 import { adventureFor } from '../src/lib/dropinn/registry';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText, type AIOptions, type AdventureVariation, type ServerEnv } from './ai';
 
 interface RequestBody {
+  recipeId?: string; commandId?: string;
   adventureId?: string;
   operation: AccountOperation | 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
   claimToken?: string;
@@ -35,19 +36,12 @@ function codeFrom(value: unknown): string {
   if (typeof value !== 'string' || !/^[A-Z0-9]{4,6}$/.test(value.trim().toUpperCase())) throw new RequestError('Enter a valid adventure code.');
   return value.trim().toUpperCase();
 }
-function characterFromRow(row: Record<string, unknown>): CharacterProfile {
-  const key = row.class_key as CharacterClassKey;
-  const base = createCharacterProfile(String(row.name), key);
-  return normalizeHero({ ...base, id: String(row.id), xp: Number(row.xp), level: Number(row.level), accent: heroAccent(row.accent, key),
-    appearance: row.appearance as CharacterProfile['appearance'], equipment: row.equipment as CharacterProfile['equipment'],
-    inventory: Array.isArray(row.inventory) ? row.inventory as string[] : [] });
-}
 function localCharacter(value: CharacterProfile | undefined): CharacterProfile {
   if (!value || typeof value.id !== 'string' || value.id.length > 100 || !CHARACTER_CLASS_PRESETS[value.classKey]) throw new RequestError('Choose a hero first.');
   const name = validatePlayerText(value.name, 18);
   const base = createCharacterProfile(name, value.classKey);
   return normalizeHero({ ...base, id: value.id, xp: Math.max(0, Number(value.xp) || 0), level: 3, accent: heroAccent(value.accent, value.classKey),
-    appearance: value.appearance, equipment: value.equipment,
+    appearance: value.appearance, equipment: value.equipment, cosmeticUnlocks: value.cosmeticUnlocks,
     inventory: Array.isArray(value.inventory) ? value.inventory.filter((item) => typeof item === 'string').slice(0, 100) : [] });
 }
 function membership(room: AdventureRoom, userId: string) {
@@ -188,7 +182,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
     if (error) throw new RequestError(error.code==='P0001' ? error.message : 'Your action could not be saved. Please retry.',error.code==='P0001'?409:503);
     return data as SaveResult;
   }
-  async function characterFor(body: RequestBody, userId: string): Promise<CharacterProfile> {
+  async function characterFor(body: RequestBody, userId: string, accountId: string): Promise<CharacterProfile> {
     if (local) return localCharacter(body.character);
     if (!body.characterId) throw new RequestError('Choose a saved hero first.');
     const { data, error } = await client().from('characters').select('*').eq('id', body.characterId).eq('user_id', userId).maybeSingle();
@@ -197,7 +191,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       throw new RequestError('Your saved hero could not be loaded. Please retry shortly.', 503);
     }
     if (!data) throw new RequestError('That hero is not available to your account.', 403);
-    return characterFromRow(data);
+    return heroFromRow(data,await loadCollection(client(),accountId));
   }
   async function heartbeat(code: string, userId: string) {
     if (local) { state.presence.set(`${code}:${userId}`, now()); return; }
@@ -261,7 +255,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new RequestError('Send a valid adventure request.');
       const authUser = await authenticate(request, body);
       await rateLimit(authUser.id, 'requests', 240);
-      if(['account','hero-save','hero-create','hero-select','claim-prepare','claim-redeem'].includes(body.operation)) {
+      if(['account','hero-save','hero-create','hero-select','claim-prepare','claim-redeem','collection','craft'].includes(body.operation)) {
         if(local) throw new RequestError('This preview saves heroes in this browser. Account sign-in requires the online game.',409);
         await rateLimit(authUser.id,'account',30);
         return reply(await handleAccount(client(),authUser,body,env));
@@ -312,7 +306,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
         if (body.variationId && selected.id !== 'briar-glen') throw new RequestError('Prepared tellings are available for Briar Glen only.');
         if (body.visibility !== undefined && !['public', 'private'].includes(body.visibility)) throw new RequestError('Choose a public or friend table.');
         await rateLimit(userId, 'join', 20);
-        const character = await characterFor(body, userId);
+        const character = await characterFor(body, userId, authUser.id);
         const command = { id: crypto.randomUUID(), type: 'join' as const, userId, character, inviteKey: typeof body.inviteKey === 'string' ? body.inviteKey : undefined };
         if (body.operation === 'join') {
           const code = codeFrom(body.roomCode);

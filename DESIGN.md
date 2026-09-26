@@ -46,6 +46,7 @@ Fighters protect and interrupt, rogues create openings, wizards reveal magical a
 - Human departures never require a replacement player to continue. No-human rooms park after finishing committed work.
 - Missing turns do not invent dialogue, spend Spotlight or make a major choice. Repeated inactivity releases the seat.
 - Heroes retain XP and keepsakes, but saved progression does not raise starting combat power. The hero used in an adventure stays pinned across rejoining.
+- The four adventures share the First tales cosmetic collection. New tables award one Thread per contributed chapter; three buy a chosen Shepherd-hat palette and six buy its feather trim. Unlocks belong to the account, have no expiry, and never change power. The wardrobe tracks one optional goal; the discovery journal records seen outcomes. [Pilot rules and rollout](docs/collections.md).
 - Objective and danger contributions scale with human count. Additional humans create more individual contributions without reducing chapters to a couple of rounds.
 - Old snapshots lacking intent finish their current turn under the old targeting rule and announce intent at the next choosing boundary. Omitted target kind means scene; omitted timing gives no bonus. Structured result/contribution fields extend existing room/event JSON and require no schema migration. Readers retain support for old rolled-action events.
 

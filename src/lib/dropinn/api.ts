@@ -2,9 +2,11 @@ import { getSupabaseClient } from '../supabase/client';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, RoomSummary, VisitRecap } from './types';
 import type { CharacterProfile } from '../character';
 import type { AccountOperation, AccountSnapshot } from './accounts';
+import type { CollectionSnapshot } from './collection';
 
 export const localPlay = import.meta.env.DEV && import.meta.env.VITE_DROPINN_BACKEND !== 'supabase';
 export interface AdventureResponse {
+  collection?: CollectionSnapshot;
   account?: AccountSnapshot;
   character?: CharacterProfile;
   claimToken?: string;
@@ -21,6 +23,8 @@ export interface AdventureResponse {
   error?: string;
 }
 export interface AdventureRequest {
+  recipeId?: string;
+  commandId?: string;
   adventureId?: string;
   visibility?: 'public' | 'private';
   inviteKey?: string;

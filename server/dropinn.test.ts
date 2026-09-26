@@ -424,6 +424,7 @@ describe('adventure service local command contract', () => {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
       if (url.pathname === '/auth/v1/user') return Response.json({ id: userId });
       if (url.pathname === '/rest/v1/rpc/dropinn_rate_limit') return Response.json(true);
+      if (url.pathname === '/rest/v1/rpc/dropinn_collection') return Response.json({earned:0,spent:0,hats:['reed'],styles:[],discoveries:[]});
       if (url.pathname === '/rest/v1/player_ownership') return Response.json(url.searchParams.get('select')==='account_id'?{account_id:'11111111-1111-4111-8111-111111111111'}:[{player_id:'11111111-1111-4111-8111-111111111111'}]);
       if (url.pathname === '/rest/v1/characters') return Response.json({ id: heroId, user_id: userId, name: 'Moss', class_key: 'rogue', level: 3, xp: 240,
         accent: '#6EE7B7', appearance, equipment: { hat: 'reed' }, inventory: ['A silver river reed'] });

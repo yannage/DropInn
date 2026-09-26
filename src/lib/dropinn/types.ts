@@ -1,4 +1,5 @@
 import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character';
+import type { ChapterCredit } from './collection';
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
 export type ActionApproach = 'quick' | 'heavy' | 'guarded' | 'soothe' | 'distract' | 'trail' | 'study' | 'mend';
@@ -131,6 +132,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  collectionVersion?: 1;
   /** New rooms opt into focused actions; old rooms keep their original rules. */
   mechanicsVersion?: 1;
   adventureId?: string;
@@ -204,6 +206,7 @@ export interface ChatMessage {
   at: number;
 }
 export interface VisitRecap {
+  collectionCredits?: ChapterCredit[];
   adventureId?: string;
   adventureVersion?: number;
   code: string;

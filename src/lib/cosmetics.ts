@@ -1,12 +1,17 @@
 import type { CharacterClassKey, CharacterProfile } from './character';
+import { HAT_STYLES, type CosmeticUnlocks } from './dropinn/collection';
 
 export interface HeroAppearance { body: string; eyes: string; nose: string; mouth: string }
-export interface HeroEquipment { hat: string | null }
+export interface HeroEquipment { hat: string | null; hatColor?: string | null; hatTrim?: string | null }
 export interface HeroCustomization { appearance: HeroAppearance; equipment: HeroEquipment }
 /** Assets share a 256px canvas. Placement is optional for externally supplied artwork. */
 export interface HeroArt { src: string; maskSrc?: string; x?: number; y?: number; width?: number; height?: number }
 export interface HeroPart { id: string; label: string; art: HeroArt }
 export interface HeroHat extends HeroPart { keepsake?: string; chapter?: string }
+export const SHEPHERD_STYLE_ART: Record<'color' | 'trim', HeroArt> = {
+  color: { src:'/heroes/hat-shepherd-outline.svg', maskSrc:'/heroes/hat-shepherd-fill.svg' },
+  trim: { src:'/heroes/hat-shepherd-feather.svg' },
+};
 const part = (category: string, id: string, label: string, tint = false): HeroPart => ({
   id, label, art: { src: `/heroes/${category}-${id}.svg`, ...(tint ? { maskSrc: `/heroes/${category}-${id}-fill.svg` } : {}) },
 });
@@ -55,10 +60,10 @@ export const HERO_HATS: HeroHat[] = [
   { ...part('hat', 'moonstone', 'Moonstone crown'), keepsake: 'The guardian’s moonstone', chapter: 'The chapel' },
 ];
 export const DEFAULT_APPEARANCE: HeroAppearance = { body: 'bean', eyes: 'dots', nose: 'button', mouth: 'smile' };
-export const ownsHat = (hat: HeroHat, inventory: readonly string[]) => !hat.keepsake || inventory.includes(hat.keepsake);
+export const ownsHat = (hat: HeroHat, inventory: readonly string[], unlocks?: CosmeticUnlocks) => !hat.keepsake || inventory.includes(hat.keepsake) || !!unlocks?.hats.includes(hat.id);
 export const hatForKeepsake = (keepsake: string) => HERO_HATS.find(hat => hat.keepsake === keepsake);
 
-export function normalizeCustomization(value: { appearance?: unknown; equipment?: unknown; classKey: CharacterClassKey; inventory?: readonly string[] }): HeroCustomization {
+export function normalizeCustomization(value: { appearance?: unknown; equipment?: unknown; classKey: CharacterClassKey; inventory?: readonly string[]; cosmeticUnlocks?: CosmeticUnlocks }): HeroCustomization {
   const input = value.appearance && typeof value.appearance === 'object' ? value.appearance as Record<string, unknown> : {};
   const appearance = { ...DEFAULT_APPEARANCE };
   for (const key of Object.keys(appearance) as (keyof HeroAppearance)[]) {
@@ -67,7 +72,13 @@ export function normalizeCustomization(value: { appearance?: unknown; equipment?
   const equipment = value.equipment && typeof value.equipment === 'object' ? value.equipment as Record<string, unknown> : {};
   const selected = equipment.hat === undefined ? value.classKey : equipment.hat;
   const hat = HERO_HATS.find(hat => hat.id === selected);
-  return { appearance, equipment: { hat: hat && ownsHat(hat, value.inventory ?? []) ? hat.id : null } };
+  const owned = hat && ownsHat(hat, value.inventory ?? [], value.cosmeticUnlocks);
+  const result: HeroEquipment = { hat: owned ? hat.id : null };
+  for (const [field, kind] of [['hatColor', 'color'], ['hatTrim', 'trim']] as const) {
+    if (equipment[field] !== undefined) result[field] = owned && HAT_STYLES.some(style => style.id === equipment[field]
+      && style.hat === hat.id && style.kind === kind && value.cosmeticUnlocks?.styles.includes(style.id)) ? equipment[field] as string : null;
+  }
+  return { appearance, equipment: result };
 }
 
 export function normalizeHero<T extends CharacterProfile>(hero: T): T & HeroCustomization {

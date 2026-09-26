@@ -181,6 +181,21 @@
       "file": "public/heroes/nose-beak.svg",
       "sha256": "c183f2b0f5ecdc913a977875cd044f9298465d353a781042841d52d46df8a773",
       "review": "Redrawn as a centered golden pointed beak with one connected seam; visually inspected with HeroAvatar at 256/64/48px on light and dark backgrounds."
+    },
+    {
+      "file": "public/heroes/hat-shepherd-outline.svg",
+      "sha256": "66de7adc76de1d3826acb9454672e14fd4c303c00290701250dd52c2499562e6",
+      "review": "Collection pilot: inspected actual renderer with blue palette and feather on all six bodies at 256/64/48px, light and dark backgrounds; inspected green/red/gold on Bean at the same sizes and in the wardrobe. Original hat and catalog IDs unchanged. Native SVG derivative, no image generation."
+    },
+    {
+      "file": "public/heroes/hat-shepherd-fill.svg",
+      "sha256": "7d7ad76615c73a5afc6ce71b5c817c74e48e779fc5329b8a6f971f4df6a7cbb5",
+      "review": "Collection pilot: inspected actual renderer with blue palette and feather on all six bodies at 256/64/48px, light and dark backgrounds; inspected green/red/gold on Bean at the same sizes and in the wardrobe. Original hat and catalog IDs unchanged. Native SVG derivative, no image generation."
+    },
+    {
+      "file": "public/heroes/hat-shepherd-feather.svg",
+      "sha256": "06d1e014366ad37f997ed4de879f80f2036dfe85a7deb0e2942765786b9808b3",
+      "review": "Collection pilot: inspected actual renderer with blue palette and feather on all six bodies at 256/64/48px, light and dark backgrounds; inspected green/red/gold on Bean at the same sizes and in the wardrobe. Original hat and catalog IDs unchanged. Native SVG derivative, no image generation."
     }
   ]
 }

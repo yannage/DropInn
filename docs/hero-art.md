@@ -39,6 +39,8 @@ Pencil-effect review: inspected the actual renderer's six bodies, eye and mouth 
 
 `appearance` stores body/eyes/nose/mouth IDs; `equipment.hat` stores a hat ID or explicit `null` for no hat. Missing fields on older heroes receive defaults. Invalid face IDs receive defaults; invalid or unowned hats are unequipped. The existing `accent` is the body color. There are no cosmetic stat modifiers.
 
+The First tales pilot adds optional `equipment.hatColor` and `equipment.hatTrim` IDs. The original Shepherd hat file remains unchanged. Its derived fill/outline pair supports four palettes; a separate full-canvas feather layer composes above it. The catalog exposes these auxiliary sources for the existing review tool. Account-derived `cosmeticUnlocks` supplies shared ownership; it is never accepted as authority from a hosted browser. See [collections](collections.md).
+
 All four class-themed hats are available to everyone. The other three are derived from exact existing keepsake strings in `inventory`, so existing players receive their unlocks automatically and repeated rewards cannot duplicate hats. Do not rename those strings without a compatibility migration. Earning a hat never equips it automatically.
 
 The draft only becomes the saved hero after Save succeeds. Appearance is pinned for an adventure, including rejoining it; edits between visits apply when entering a new adventure.

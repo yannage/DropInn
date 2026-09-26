@@ -4,7 +4,7 @@ import {validatedHero} from './accounts';
 import {createCharacterProfile} from '../src/lib/character';
 
 const owner='11111111-1111-4111-8111-111111111111',heroId='22222222-2222-4222-8222-222222222222';
-function harness({guest=false,missingSchema=false,revoked=false}={}) {
+function harness({guest=false,missingSchema=false,revoked=false,missingCollection=false,styles=[] as string[],hats=['reed']}={}) {
  const writes:{path:string;body:any}[]=[];
  const row={id:heroId,user_id:owner,name:'Moss',class_key:'wizard',xp:320,level:4,inventory:['A silver river reed'],appearance:{body:'round',eyes:'wide',nose:'none',mouth:'flat'},equipment:{hat:'reed'}};
  const handler=createDropinnHandler({local:false,env:{SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-only'},fetch:vi.fn(async(input,init)=>{
@@ -16,7 +16,9 @@ function harness({guest=false,missingSchema=false,revoked=false}={}) {
    if(url.pathname.endsWith('/characters'))return Response.json(url.searchParams.has('id')?row:[row]);
    if(url.pathname.endsWith('/player_accounts'))return Response.json({selected_character_id:heroId});
    if(url.pathname.endsWith('/dropinn_bootstrap_account'))return Response.json(null);
+   if(url.pathname.endsWith('/dropinn_collection'))return missingCollection?Response.json({code:'PGRST202',message:'Missing function'},{status:404}):Response.json({earned:0,spent:0,hats,styles,discoveries:[]});
    writes.push({path:url.pathname,body});
+   if(url.pathname.endsWith('/dropinn_craft'))return Response.json({earned:3,spent:3,hats:['shepherd'],styles:[body.p_recipe_id],discoveries:[]});
    if(url.pathname.endsWith('/dropinn_save_hero'))return Response.json({...row,name:body.p_hero.name,appearance:body.p_hero.appearance,equipment:body.p_hero.equipment});
    return Response.json(null);
  }) as typeof fetch});
@@ -24,6 +26,19 @@ function harness({guest=false,missingSchema=false,revoked=false}={}) {
  return {call,writes};
 }
 describe('server account authority',()=>{
+ it('reports a missing collection migration and validates account styles from stored entitlements',async()=>{
+   const missing=await harness({missingCollection:true}).call({operation:'collection'});
+   expect(missing.status).toBe(503);expect(missing.error).toContain('202609250001_collections.sql');
+   const {call}=harness({hats:['shepherd'],styles:['shepherd-blue']});
+   const result=await call({operation:'hero-save',character:{...createCharacterProfile('Moss','wizard'),id:heroId,cosmeticUnlocks:{hats:['moonstone'],styles:['shepherd-red']},equipment:{hat:'shepherd',hatColor:'shepherd-blue',hatTrim:'shepherd-feather'}}});
+   expect(result.status).toBe(200);expect(result.character.equipment).toEqual({hat:'shepherd',hatColor:'shepherd-blue',hatTrim:null});
+ });
+ it('crafts only for the authenticated account and rejects unknown recipes',async()=>{
+   const {call,writes}=harness();
+   expect((await call({operation:'craft',recipeId:'fake',commandId:'valid-craft'})).status).toBe(400);
+   await call({operation:'craft',recipeId:'shepherd-blue',commandId:'valid-craft',accountId:'forged',cost:0});
+   expect(writes.find(w=>w.path.endsWith('/dropinn_craft'))?.body).toEqual({p_account:owner,p_recipe_id:'shepherd-blue',p_command_id:'valid-craft'});
+ });
  it('bootstraps an owned account and reports unconfigured providers honestly',async()=>{
    const {call}=harness();const result=await call({operation:'account'});expect(result.status).toBe(200);expect(result.account).toMatchObject({id:owner,guest:false,identities:['email'],capabilities:{heroSlots:1,payments:false},providers:{google:false,email:false}});expect(result.account.heroes[0].character).toMatchObject({xp:320,equipment:{hat:'reed'}});
  });

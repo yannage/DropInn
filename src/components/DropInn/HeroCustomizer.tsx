@@ -5,6 +5,7 @@ import { CHARACTER_CLASS_PRESETS, HERO_COLORS, type CharacterClassKey, type Char
 import { HERO_HATS, HERO_PARTS, normalizeCustomization, ownsHat, type HeroAppearance } from '../../lib/cosmetics';
 import { useAdventureStore } from '../../store/adventureStore';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
+import { CollectionWardrobe } from './Collection';
 
 const labels: Record<keyof HeroAppearance, string> = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
 
@@ -19,9 +20,10 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
   const savingRef = useRef(saving);
   savingRef.current = saving;
   const loading = useAdventureStore(state => state.loading);
-  const preview = { ...draft, inventory: character.inventory };
+  const collection = useAdventureStore(state => state.collection);
+  const preview = { ...draft, inventory: character.inventory, cosmeticUnlocks: collection };
   const equipped = HERO_HATS.find(hat => hat.id === draft.equipment.hat);
-  const owned = HERO_HATS.filter(hat => ownsHat(hat, character.inventory)).length;
+  const owned = HERO_HATS.filter(hat => ownsHat(hat, character.inventory, collection)).length;
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -65,7 +67,7 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
           <aside className="di-builder-preview">
             <div className="di-portrait-paper"><span className="di-paper-note">Quite the adventurer.</span><HeroAvatar hero={preview} /><span className="di-paper-spark di-spark-one">✦</span><span className="di-paper-spark di-spark-two">✧</span></div>
             <h3>{draft.name.trim() || 'Wren'}</h3><p>{CHARACTER_CLASS_PRESETS[draft.classKey].label} · one of a kind</p>
-            <div className="di-equipped-slot"><span className="di-slot-art">{equipped ? <HeroHatPreview hat={equipped} color={draft.accent} /> : <HeroAvatar hero={preview} decorative />}</span><div><small>HAT SLOT</small><strong>{equipped?.label ?? 'A lovely bare head'}</strong></div></div>
+            <div className="di-equipped-slot"><span className="di-slot-art">{equipped ? <HeroHatPreview hat={equipped} color={draft.accent} hatColor={draft.equipment.hatColor} hatTrim={draft.equipment.hatTrim} /> : <HeroAvatar hero={preview} decorative />}</span><div><small>HAT SLOT</small><strong>{equipped?.label ?? 'A lovely bare head'}</strong></div></div>
             <p className="di-builder-caption">Big personality. Tiny feet.<br />Looks never change your abilities or rewards.</p>
           </aside>
           <section className="di-builder-options">
@@ -90,13 +92,14 @@ export function HeroCustomizer({ character, onClose }: { character: CharacterPro
                 <div className="di-wardrobe-heading"><h3>A hat for every little adventure.</h3><p>Four to start. Three with a story. Wear any hat, whatever your calling.</p></div>
                 <button className="di-bare-head" type="button" aria-pressed={draft.equipment.hat === null} onClick={() => setDraft({ ...draft, equipment: { hat: null } })}>No hat {draft.equipment.hat === null ? <Check size={17} /> : <span>Unequip</span>}</button>
                 <div className="di-hat-grid">{HERO_HATS.map(hat => {
-                  const unlocked = ownsHat(hat, character.inventory);
+                  const unlocked = ownsHat(hat, character.inventory, collection);
                   const selected = draft.equipment.hat === hat.id;
                   return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} className={unlocked ? '' : 'di-hat-locked'} onClick={() => setDraft({ ...draft, equipment: { hat: hat.id } })}>
                     <span className="di-hat-paper"><HeroHatPreview hat={hat} color={draft.accent} />{selected ? <Check size={18} /> : !unlocked ? <LockKeyhole size={16} /> : null}</span>
                     <strong>{hat.label}</strong><small>{selected ? 'Equipped' : unlocked ? hat.keepsake ? 'Earned · ready to wear' : 'Starter · ready to wear' : `Earn ${hat.keepsake} in ${hat.chapter}`}</small>
                   </button>;
                 })}</div>
+                <CollectionWardrobe hero={preview} onEquip={equipment => setDraft({ ...draft,equipment })} />
               </>}
             </div>
           </section>
