@@ -21,6 +21,8 @@ Server variables (no secret values belong in source control):
 
 The saved sandbox price is `pri_01m3e39y9dvqfcqtr7tx4bfwd1`; product `pro_01m3e385gz54pxza5ehgb7wngk`. The current API key expires December 25, 2026. Rotate it in Paddle and update Netlify before then.
 
+Sandbox rehearsal coupon `FIRSTTALE50` is discount `dsc_01m3f1rhhyf0f4em2c3b6dx41r`, 50% off only the supporter price, expiring October 3, 2026 at 14:00 UTC. It is not wired into Netlify: the existing sandbox API key lacks `discount.read`. Keep the sandbox launch variables unset until a matching key is available; this avoids showing $5 when the server cannot verify the coupon.
+
 Paddle default payment link: `https://playdropinn.com/checkout`.
 Webhook: `https://playdropinn.com/.netlify/functions/paddle-webhook`.
 Destination: `ntfset_01m3e5ddrx4fj8djjf6dq91xtn`, Platform events: `transaction.completed`, `transaction.updated`, `transaction.canceled`, `adjustment.created`, `adjustment.updated`.
