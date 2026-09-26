@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../server/payments', () => ({ handlePaddleWebhook: vi.fn(async () => new Response('ok')) }));
+vi.mock('./payments', () => ({ handlePaddleWebhook: vi.fn(async () => new Response('ok')) }));
 
-import { handlePaddleWebhook } from '../../server/payments';
-import sandboxWebhook from './paddle-webhook';
-import liveWebhook from './paddle-live-webhook';
+import { handlePaddleWebhook } from './payments';
+import sandboxWebhook from '../netlify/functions/paddle-webhook';
+import liveWebhook from '../netlify/functions/paddle-live-webhook';
 
 const request = new Request('https://playdropinn.com/.netlify/functions/paddle-webhook', { method: 'POST' });
 
