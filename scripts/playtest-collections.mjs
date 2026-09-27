@@ -42,7 +42,7 @@ async function finishAdventure(id) {
   observer=await observerContext.newPage();
   observer.on('pageerror',error=>errors.push(error.message));
   await observer.goto(`${origin}/?session=rewardobserver`);
-  await observer.getByRole('button',{name:'Play Now',exact:true}).waitFor();
+  await observer.locator('.di-lobby-play').waitFor();
   await observer.evaluate(async code=>{const {useAdventureStore:s}=await import('/src/store/adventureStore.ts');await s.getState().joinRoom(code);},(await state()).room.code);
  }
  let captured=false;
@@ -110,10 +110,12 @@ async function finishAdventure(id) {
 }
 try {
  await page.goto(`${origin}/?session=collectionqa`);
- await page.getByRole('button',{name:'Play Now',exact:true}).waitFor();
+ await page.locator('.di-lobby-play').waitFor();
+ await page.getByRole('button',{name:'Change story',exact:true}).click();
  const cards=page.getByRole('group',{name:'Story choices'});
  assert.equal(await cards.locator('article').first().getByText('Hat to unlock',{exact:false}).count(),3);
  assert.equal(await cards.getByText('+1 Thread per contributed chapter',{exact:true}).count(),4);
+ await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Customize hero from header',exact:true}).click();
  await page.getByRole('tab',{name:'Character',exact:true}).waitFor();
  await page.keyboard.press('Escape');
@@ -139,7 +141,7 @@ try {
  await page.getByRole('button',{name:'Wear Blue',exact:true}).click();
  await page.getByRole('button',{name:'Save hero',exact:true}).click();
  assert.equal((await state()).hero.equipment.hatColor,'shepherd-blue');
- await page.reload();await page.getByRole('button',{name:'Play Now',exact:true}).waitFor();
+ await page.reload();await page.locator('.di-lobby-play').waitFor();
  assert.equal((await state()).collection.spent,3);assert.equal((await state()).hero.equipment.hatColor,'shepherd-blue');
  note('Crafting spends once, does not auto-equip, and saved blue style survives reload');
  await page.setViewportSize({width:320,height:568});

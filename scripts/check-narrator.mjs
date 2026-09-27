@@ -14,6 +14,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
     window.SpeechSynthesisUtterance=class {constructor(text){this.text=text;}};
   });
   await page.reload();
+  await page.getByRole('button',{name:'Play with friends',exact:true}).click();
   await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
   await page.getByRole('region',{name:'Story narrator',exact:true}).waitFor();
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),0,'Speech is opt in');
@@ -108,6 +109,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
     };
   });
   await page.reload();
+  await page.getByRole('button',{name:'Play with friends',exact:true}).click();
   await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
   await page.getByRole('button',{name:'Enable narrator voice',exact:true}).click();
   await page.getByRole('button',{name:'Download natural voice',exact:true}).waitFor();
@@ -139,6 +141,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'device',collapsed:true,voice:'test-natural'})));
   await page.addInitScript(()=>{Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});Object.defineProperty(window,'AudioContext',{configurable:true,value:undefined});});
   await page.reload();
+  await page.getByRole('button',{name:'Play with friends',exact:true}).click();
   await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
   await page.getByRole('button',{name:'Show narrator subtitles',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Narrator voice unavailable',exact:true}).isDisabled(),true);

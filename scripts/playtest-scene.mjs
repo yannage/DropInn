@@ -68,7 +68,7 @@ async function setup(name, viewport) {
   });
   await page.goto(`${base}/?session=sceneqa${name.toLowerCase()}`);
   assert.equal(await page.evaluate(async () => (await import('/src/lib/dropinn/api.ts')).localPlay), true, 'The selected Vite server must run the local backend.');
-  await page.getByRole('button', { name: 'Start a friend table', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Play with friends', exact: true }).waitFor();
   return page;
 }
 async function state(page) {
@@ -95,10 +95,22 @@ async function readyNext(page) {
 async function select(page, token, targetId, kind = 'scene') {
   const back = page.getByRole('button', { name: 'Back to scene', exact: true });
   if (await back.isVisible() && await back.isEnabled()) await back.click();
+  const change = page.getByRole('button', { name: 'Change move', exact: true });
+  if (await change.isVisible() && await change.isEnabled()) await change.click();
+  const close = page.getByRole('button', { name: 'Close inspection', exact: true });
+  if (await close.isVisible()) await close.click();
+  await showTokens(page);
   const labels = { fight: 'Fight', influence: 'Influence', investigate: 'Investigate', assist: 'Help' };
   await page.getByRole('button', { name: `${labels[token]} token`, exact: true }).click();
   await page.locator(`[data-scene-target="${targetId}"][data-target-kind="${kind}"]`).click();
   await page.getByRole('button', { name: /Hold and release the die|Release with timing assistance/ }).waitFor({ state: 'visible' });
+}
+async function showTokens(page) {
+  const show = page.getByRole('button', { name: 'Show tokens', exact: true });
+  if (await show.isVisible()) await show.click();
+}
+async function guidance(page, expected) {
+  await page.locator(`.di-player-guidance[data-state="${expected}"]`).waitFor({ state: 'visible' });
 }
 async function pointerRelease(page, ms) {
   const before = records.length;
@@ -167,11 +179,13 @@ try {
   browser = await chromium.launch({ headless: true });
   const a = await setup('A', { width: 390, height: 844 });
   const b = await setup('B', { width: 390, height: 844 });
+  await a.getByRole('button', { name: 'Play with friends', exact: true }).click();
   await a.getByRole('button', { name: 'Start a friend table', exact: true }).click();
   await a.getByRole('main', { name: 'Adventure table' }).waitFor();
   await a.getByRole('button', { name: 'Invite', exact: true }).click();
   const invite = await a.getByRole('textbox', { name: 'Full invitation link' }).inputValue();
   await a.keyboard.press('Escape');
+  await b.getByRole('button', { name: 'Play with friends', exact: true }).click();
   await b.getByRole('textbox', { name: 'Adventure code or invitation link' }).fill(invite);
   await b.getByRole('button', { name: 'Join adventure by code' }).click();
   await b.getByRole('main', { name: 'Adventure table' }).waitFor();
@@ -179,35 +193,64 @@ try {
   const identities = [await state(a), await state(b)];
   assert.notEqual(identities[0].userId, identities[1].userId);
   assert.ok(identities[1].room.pendingJoins.includes(identities[1].userId));
+  await guidance(b, 'joining');
+  await b.locator('[data-scene-target="mara"]').click();
+  await b.getByRole('group', { name: 'Moves for this target' }).waitFor();
+  await guidance(b, 'joining');
+  assert.equal(records.length, 0, 'A player awaiting admission can inspect without submitting a move');
+  await b.keyboard.press('Escape');
+  await guidance(a, 'target');
+  await a.locator('.di-first-move-guide').waitFor({ state: 'visible' });
   const inspectedRevision = (await state(a)).room.revision;
+  const inspectCommands = records.length;
+  assert.equal(await a.getByRole('group', { name: 'Action tokens', exact: true }).count(), 0, 'Target-first play starts without the optional token hand');
   await a.locator('[data-scene-target="mara"]').click();
   await a.getByRole('group', {name:'Moves for this target'}).waitFor();
+  await guidance(a, 'inspecting');
   assert.match(await a.locator('.di-inspection-context').textContent(), /Mara|gate/);
   assert.equal(await a.getByRole('button', {name:'Roll now',exact:true}).count(), 0);
   assert.equal((await state(a)).room.revision, inspectedRevision);
+  assert.equal(records.length, inspectCommands, 'Inspecting a target sends no move');
   await layout(a, 'inspection');
   await a.keyboard.press('Escape');
   assert.equal(await a.evaluate(() => document.activeElement?.getAttribute('data-scene-target')), 'mara');
   await a.locator('[data-scene-target="tracks"]').click();
   await a.getByRole('button', {name:/^Investigate:/}).click();
   await a.getByRole('region', {name:'Action focus',exact:true}).waitFor();
+  await guidance(a, 'prepared');
   assert.match(await a.locator('.di-focus-context').textContent(), /Hoofprints/);
   note('inspect-first-context-and-keyboard-return');
   const initial = await pointerRelease(a, 800);
   assert.ok(initial.command.action.releaseMs >= 650 && initial.command.action.releaseMs <= 950);
-  await syncAll(); await readyNext(a);
+  await syncAll();
+  await guidance(a, 'reveal');
+  await a.locator('.di-your-consequence').waitFor({ state: 'visible' });
+  await a.locator('.di-first-move-guide').waitFor({ state: 'hidden' });
+  await readyNext(a);
+  await guidance(a, 'target');
+  await a.getByRole('button', { name: 'Action details and help', exact: true }).click();
+  await a.getByRole('button', { name: 'Replay first-move guide', exact: true }).click();
+  const actionHelp = a.getByRole('dialog', { name: 'Your action', exact: true });
+  if (await actionHelp.isVisible()) await a.keyboard.press('Escape');
+  await a.locator('.di-first-move-guide').waitFor({ state: 'visible' });
+  await a.getByRole('button', { name: 'Dismiss first-move guide', exact: true }).click();
+  await a.locator('.di-first-move-guide').waitFor({ state: 'hidden' });
   assert.equal((await state(a)).room.seats.filter(seat => seat.kind === 'human').length, 2);
+  note('guidance-follows-first-real-contribution-and-can-be-replayed');
   note('private-join-and-real-pointer-release', { releaseMs: initial.command.action.releaseMs });
 
   // Both humans act on one target in the same choosing turn.
   await select(a, 'investigate', 'tracks'); await select(b, 'assist', 'tracks');
   const sameTurn = (await state(a)).room.turn;
   await skip(a); await sync(b);
+  await guidance(a, 'committed');
   assert.equal(await b.locator('[data-scene-target="tracks"] .di-object-teamwork').textContent(), '+1 teamwork');
-  assert.match(await b.locator('.di-dock-beat').textContent(), /\+1 teamwork/);
+  assert.match(await b.locator('.di-scene-selection').textContent(), /\+1 teamwork/);
   await skip(b); await syncAll();
   const shared = (await state(a)).room;
   assert.equal(shared.phase, 'reveal');
+  await guidance(a, 'reveal');
+  await a.locator('.di-your-consequence').waitFor({ state: 'visible' });
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
   await a.locator('.di-round-sequence .di-round-recap').waitFor();
@@ -237,6 +280,19 @@ try {
   assert.ok(room.enemyIntent?.targetActorId);
   assert.deepEqual((await state(b)).room.enemyIntent, room.enemyIntent);
   await layout(a, 'river');
+
+  const heroInspectionBefore = records.length;
+  await a.locator(`[data-scene-target="${room.enemyIntent.targetActorId}"][data-target-kind="hero"]`).click();
+  const heroMoves = a.getByRole('group', { name: 'Moves for this hero', exact: true });
+  await heroMoves.waitFor();
+  await guidance(a, 'inspecting');
+  assert.equal(await a.getByRole('button', { name: 'Roll now', exact: true }).count(), 0, 'Inspecting a threatened hero does not prepare Protect');
+  assert.equal(records.length, heroInspectionBefore, 'Inspecting a threatened hero sends no move');
+  await heroMoves.getByRole('button', { name: /^Protect / }).click();
+  await guidance(a, 'prepared');
+  assert.equal(records.length, heroInspectionBefore, 'Choosing contextual Protect waits for the release');
+  await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
+  note('threatened-hero-inspection-then-contextual-protect');
 
   await select(a, 'fight', 'pack');
   await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
@@ -269,10 +325,17 @@ try {
 
   const wounded = room.seats.find(seat => seat.hp < seat.character.maxHp);
   assert.ok(wounded, 'The clash leaves a real wound to treat');
-  await select(a, 'assist', wounded.actorId, 'hero');
-  await a.getByRole('button', { name: /^Mend/ }).click();
+  const mendInspectionBefore = records.length;
+  await a.locator(`[data-scene-target="${wounded.actorId}"][data-target-kind="hero"]`).click();
+  await heroMoves.waitFor();
+  assert.equal(records.length, mendInspectionBefore, 'Inspecting a wound sends no move');
+  await heroMoves.getByRole('button', { name: /^Mend / }).click();
+  await guidance(a, 'prepared');
   await layout(a, 'mend-focus');
-  await pointerRelease(a, 800);
+  const mendMove = await pointerRelease(a, 800);
+  assert.equal(mendMove.command.action.targetKind, 'hero');
+  assert.equal(mendMove.command.action.targetId, wounded.actorId);
+  assert.equal(mendMove.command.action.approach, 'mend');
   await select(b, 'investigate', 'reeds');
   await b.getByRole('button', { name: /Study a weakness/ }).click();
   await skip(b); await syncAll();
@@ -306,9 +369,15 @@ try {
   await sleep(1250); assert.equal(records.length, beforeCancel);
   note('keyboard-focus-and-pointer-cancellation');
 
-  await select(a, 'assist', room.enemyIntent.targetActorId, 'hero');
+  await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
+  await a.locator(`[data-scene-target="${room.enemyIntent.targetActorId}"][data-target-kind="hero"]`).click();
+  await heroMoves.getByRole('button', { name: /^Protect / }).click();
+  await guidance(a, 'prepared');
   const protectGood = await pointerRelease(a, 800);
   assert.equal(protectGood.command.action.targetKind, 'hero');
+  assert.equal(protectGood.command.action.targetId, room.enemyIntent.targetActorId);
+  assert.equal(protectGood.command.action.token, 'assist');
+  assert.equal(protectGood.command.action.approach, undefined, 'Contextual Protect does not become Mend');
   await select(b, 'assist', room.enemyIntent.targetActorId, 'hero');
   die = b.getByRole('button', { name: 'Hold and release the die' });
   await die.focus(); await b.keyboard.down('Enter'); await sleep(100); await b.keyboard.up('Enter');
@@ -334,7 +403,8 @@ try {
   // Authored Spotlight: signed preview is reviewed, then timed at the shared dock.
   room = (await state(a)).room;
   const spentBefore = room.players[identities[0].userId].spotlightChapters.length;
-  await a.getByRole('button', { name: 'Spotlight idea' }).click();
+  await a.locator('[data-scene-target="reeds"][data-target-kind="scene"]').click();
+  await a.locator('.di-context-spotlight').click();
   await a.getByRole('button', { name: 'Hide in the reeds', exact: true }).click();
   await a.getByRole('button', { name: 'Ready this Spotlight', exact: true }).waitFor();
   const preview = (await state(a)).proposal;
@@ -364,6 +434,9 @@ try {
     await releaseButton.focus();
     await a.keyboard.down('Space'); await sleep(800); await a.keyboard.up('Space');
     await a.getByRole('button', { name: 'Checking your move…', exact: true }).waitFor();
+    await guidance(a, 'pending');
+    assert.match(await a.locator('.di-scene-selection').textContent(), /Retry keeps this exact move and release/);
+    assert.doesNotMatch(await a.locator('.di-scene-selection').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
     const pendingStage = await a.locator('.di-focus-stage').boundingBox();
     const pendingHero = await a.locator('.di-focus-player>.di-avatar').boundingBox();
     assert.ok(Math.abs(pendingStage.height - choosingStage.height) <= 1, 'Receipt checking keeps the encounter height stable');
@@ -375,6 +448,7 @@ try {
   assert.equal(records.length, uncertainBefore + 1, 'one timed move after receipt delay');
   const uncertain = records.at(-1);
   assert.ok(Number.isInteger(uncertain.command.action.releaseMs), 'Delayed receipt preserves a timed release');
+  assert.doesNotMatch(await a.locator('.di-scene-selection').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
   await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   const duplicate = records.at(-1);
@@ -388,6 +462,9 @@ try {
   faults.blockAReads = false; await sync(a);
   await a.getByRole('main', { name: 'Adventure table' }).waitFor();
   assert.equal((await state(a)).pendingMove, null);
+  await guidance(a, 'committed');
+  assert.equal(await a.locator('.di-scene-selection').count(), 0, 'A reload-confirmed move has no new-action instructions');
+  assert.doesNotMatch(await a.locator('.di-player-guidance').textContent(), /Tap (?:a target|something)/i);
   assert.equal((await state(a)).room.players[identities[0].userId].actions, contributionBefore);
   await select(b, 'assist', 'boat'); await skip(b); await syncAll();
   assert.equal((await state(a)).room.players[identities[0].userId].actions, contributionBefore + 1);
@@ -396,6 +473,7 @@ try {
 
   await playToChapter(a, identities, 2);
   await layout(a, 'chapel');
+  await showTokens(a);
   await a.getByRole('button', { name: 'Fight token', exact: true }).tap();
   await a.locator('[data-scene-target="gloamfang"][data-target-kind="scene"]').tap();
   await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
@@ -407,14 +485,17 @@ try {
 
   // Real pointer dragging uses the same accessible targets as tap placement.
   const dragBefore = records.length;
+  await showTokens(a);
   const hand = a.getByRole('button', { name: 'Help token', exact: true });
   const altar = a.locator('[data-scene-target="captives"][data-target-kind="scene"]');
-  let from = await hand.boundingBox(), to = await altar.boundingBox();
+  const fight = a.getByRole('button', { name: 'Fight token', exact: true });
+  let from = await fight.boundingBox(), to = await altar.boundingBox();
   await a.mouse.move(from.x + from.width / 2, from.y + from.height / 2); await a.mouse.down();
   await a.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 }); await a.mouse.up();
-  assert.equal(await altar.getAttribute('aria-pressed'), 'true');
-  const fight = a.getByRole('button', { name: 'Fight token', exact: true });
-  from = await fight.boundingBox();
+  assert.equal(await altar.getAttribute('aria-pressed'), 'false');
+  assert.equal(await a.getByRole('button', { name: 'Roll now', exact: true }).count(), 0, 'An invalid drop does not prepare a move');
+  assert.equal(records.length, dragBefore);
+  from = await hand.boundingBox();
   await a.mouse.move(from.x + from.width / 2, from.y + from.height / 2); await a.mouse.down();
   await a.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 }); await a.mouse.up();
   assert.equal(await altar.getAttribute('aria-pressed'), 'true'); assert.equal(records.length, dragBefore);
@@ -470,6 +551,19 @@ try {
     await layout(a, 'ringing-bell-focus');
     await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
     note('developed-bell-mobile-focus', { evidence: 'Client snapshot rendering only; reproduces the supplied long-title state' });
+    await a.evaluate(async snapshot => {
+      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      store.setState({ room: snapshot });
+    }, { ...renderBase, phase: 'choosing', commits: {}, deadline: clock() + 60_000,
+      seats: renderBase.seats.map(seat => seat.actorId === renderVictim ? { ...seat, leaving: true, hp: Math.max(0, seat.character.maxHp - 2) } : seat) });
+    const departingInspectionBefore = records.length;
+    await renderedHero.click();
+    await heroMoves.waitFor();
+    assert.equal(await heroMoves.getByRole('button', { name: /^Mend / }).count(), 0, 'A departing threatened hero cannot receive a new Mend');
+    assert.equal(await heroMoves.getByRole('button', { name: /^Protect / }).count(), 1, 'The frozen strike remains protectable until resolution');
+    assert.equal(records.length, departingInspectionBefore);
+    await a.keyboard.press('Escape');
+    note('snapshot-departing-hero-keeps-protect-without-mend', { evidence: 'Client snapshot rendering only' });
     await fixture([fixtureEvent('blocked', { result: { targetKind: 'hero', targetId: renderVictim, damage: 0, protection: 3, hp: 7 } })]);
     const threat = a.locator('.di-stage-threat');
     await a.waitForFunction(() => document.querySelector('.di-stage-threat strong')?.textContent === 'Attack blocked');
@@ -571,17 +665,20 @@ try {
   }
   assert.equal((await state(a)).room.status, 'completed');
   assert.equal((await state(b)).room.status, 'completed');
+  await guidance(a, 'completed');
   await layout(a, 'completed');
   note('three-chapter-browser-playthrough-completed');
   // Four humans: a fresh solo turn admits three late arrivals at its boundary.
   const four = [];
   for (const name of ['C', 'D', 'E', 'F']) four.push(await setup(name, { width:390, height:844 }));
+  await four[0].getByRole('button', { name: 'Play with friends', exact: true }).click();
   await four[0].getByRole('button', {name:'Start a friend table',exact:true}).click();
   await four[0].getByRole('main', {name:'Adventure table'}).waitFor();
   await four[0].getByRole('button', {name:'Invite',exact:true}).click();
   const fourInvite = await four[0].getByRole('textbox', {name:'Full invitation link'}).inputValue();
   await four[0].keyboard.press('Escape');
   for (const page of four.slice(1)) {
+    await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
     await page.getByRole('textbox', {name:'Adventure code or invitation link'}).fill(fourInvite);
     await page.getByRole('button', {name:'Join adventure by code'}).click();
     await page.getByRole('main', {name:'Adventure table'}).waitFor();

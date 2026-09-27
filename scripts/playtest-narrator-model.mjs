@@ -45,6 +45,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
   });
   try {
     await page.goto(`${base}/?session=voicecheck${name}${Date.now()}`);
+    await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
     await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();
     await page.getByRole('region', { name: 'Story narrator', exact: true }).waitFor();
     assert.equal(requests.length, 0, 'No model request before opt-in');
@@ -114,6 +115,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     assert.equal(requests.length, 0, `Cached model generates without external requests: ${JSON.stringify(requests)}`);
     assert.deepEqual(errors, []);
     // A real synthesis job is running/prefetched while the player commits a move.
+    await page.getByRole('button',{name:'Show tokens',exact:true}).click();
     await page.getByRole('button',{name:'Investigate token',exact:true}).click();
     await page.locator('[data-scene-target="tracks"][data-target-kind="scene"]').click();
     const response=page.waitForResponse(response=>response.url().endsWith('/api/dropinn')&&response.request().postDataJSON()?.command?.type==='act');

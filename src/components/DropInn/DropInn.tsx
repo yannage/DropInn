@@ -64,6 +64,7 @@ import { CollectionGoal, DiscoveryJournal } from './Collection';
 import { threadBalance } from '../../lib/dropinn/collection';
 import { CustomizeHeroContext, useCustomizeHero, NextLook, StoryRewards, type HeroCustomizerTarget } from './HeroProgression';
 import './mobile-layout.css';
+import './lobby-clarity.css';
 
 function HeroMark({
   hero,
@@ -434,36 +435,38 @@ export function DropInn() {
             <p>
               <b>01</b>
               <span>
-                <strong>Drop in.</strong> Pick a hero and press Play Now.
-                Companions fill empty seats, so you can always get started.
+                <strong>Drop in.</strong> Your hero is ready. Press Play to join a
+                table or start with companions. Work together toward the chapter’s goal.
               </span>
             </p>
             <p>
               <b>02</b>
               <span>
-                <strong>Make your move.</strong> Place a token on the scene, then hold
-                and release the die. Good timing adds +1. Everyone has 30 seconds; ready parties move sooner.
+                <strong>Choose a target, then a move.</strong> Tap something in the
+                scene to see how you can help. Choose a move and read what it will do.
               </span>
             </p>
             <p>
               <b>03</b>
               <span>
-                <strong>Try something unexpected.</strong> Once per chapter,
-                your Spotlight token turns a creative idea into an action.
-                Preview it before committing.
+                <strong>Hold, release, then watch.</strong> Hold the die and release
+                in the bright zone for a small bonus, or use Roll now. Everyone chooses
+                together within 30 seconds. Once you commit, wait for the party’s results.
               </span>
             </p>
             <p>
               <b>04</b>
               <span>
-                <strong>Leave when life calls.</strong> Your contribution and
-                rewards are saved. The story can keep going with your friends.
+                <strong>See what changed.</strong> Your party’s moves advance the
+                story. Choose again in the next round, or leave when life calls.
+                Your contribution and earned rewards are saved.
               </span>
             </p>
           </div>
           <p className="di-fine">
-            Miss a turn? You sit it out, or defend in combat. XP and keepsakes
-            remember your story; all heroes start on equal footing.
+            Once per chapter, Spotlight lets you preview a creative idea before
+            committing it. Miss a turn? You sit it out, or defend in combat.
+            All heroes start on equal footing.
           </p>
           <button
             className="di-button di-primary di-full"
@@ -483,6 +486,8 @@ function Lobby() {
     collection,
     rooms,
     loading,
+    error,
+    clearError,
     playNow,
     startFriendTable,
     joinRoom,
@@ -494,278 +499,153 @@ function Lobby() {
   const openHero = useCustomizeHero();
   const [preparing, setPreparing] = useState(false);
   const [adventureId, setAdventureId] = useState('briar-glen');
+  const [storyChooser, setStoryChooser] = useState(false);
+  const [friends, setFriends] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const [journal, setJournal] = useState(false);
+  const adventure = ADVENTURES.find(item => item.id === adventureId) ?? ADVENTURES[0];
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
   const recentVisits = [...recaps].sort((a, b) => Number(unseen(b) > 0) - Number(unseen(a) > 0));
-  const liveRooms = rooms.filter(
-    (item) => item.status !== 'completed' && item.openSeats > 0,
-  );
+  const liveRooms = rooms.filter(item => item.status !== 'completed' && item.openSeats > 0);
   const newTelling = async () => {
     setPreparing(true);
-    await prepareAdventure();
-    setPreparing(false);
+    try { await prepareAdventure(); } finally { setPreparing(false); }
   };
   return (
-    <main className="di-lobby di-shell">
-      <div className="di-arrival"><section className="di-welcome">
-        <div className="di-welcome-art">
-          <SceneArt />
-          <div className="di-welcome-art-fade" />
+    <main className="di-lobby di-shell di-lobby-clear">
+      <section className="di-lobby-entrance" aria-label="Start your adventure">
+        <div className="di-lobby-intro">
+          <div className="di-lobby-intro-copy">
+            <h1>A short adventure.<br /><em>Together.</em></h1>
+            <p className="di-lobby-explanation">Play a fantasy story together. Choose how your hero helps each round and work toward the party’s goal.</p>
+            <ol className="di-lobby-loop" aria-label="Each round">
+              <li><b>1</b><span>Pick a target</span></li>
+              <li><b>2</b><span>Choose a move</span></li>
+              <li><b>3</b><span>Hold &amp; release</span></li>
+              <li><b>4</b><span>See what changed</span></li>
+            </ol>
+          </div>
+          <div className="di-lobby-intro-art" aria-hidden="true"><SceneArt scene={adventure.chapters[0].art} /></div>
         </div>
-        <div className="di-welcome-copy">
-          <p className="di-eyebrow">
-            <span className="di-live-dot" /> The door’s always open
-          </p>
-          <h1>
-            <span className="di-welcome-desktop-title">
-            A little time.{' '}
-            <br />
-            <em>A great adventure.</em>
-            </span>
-            <span className="di-welcome-mobile-title">Your next adventure.</span>
-          </h1>
-          <p>
-            Step into a story. Make a little mischief.
-            <br className="di-desktop-break" /> Be someone’s unexpected hero.
-          </p>
-          <div className="di-welcome-actions"><button
-            className="di-button di-primary di-play"
-            disabled={loading}
-            onClick={() => void playNow(adventureId)}
-          >
-            {loading ? (
-              <LoaderCircle className="di-spin" size={20} />
-            ) : (
-              <TabletopArtwork kind="dice" />
-            )}{' '}
-            {loading
-              ? preparing
-                ? 'Preparing a new telling…'
-                : 'Opening your adventure…'
-              : 'Play Now'}
-            <ArrowRight size={20} />
-          </button>
-          <nav className="di-mobile-shortcuts" aria-label="Get ready to play">
-            <a href="#friend-table">Join friends <ArrowDown size={14} /></a>
-          </nav>
-          </div>
-          <div className="di-welcome-meta">
-            <span>
-              <Clock3 size={14} /> Got 5 minutes?
-            </span>
-            <i />
-            <span>No experience needed</span>
-          </div>
 
+        <div className="di-lobby-ready">
+          {character && <div className="di-lobby-ready-hero">
+            <div className="di-arrival-identity"><HeroAvatar hero={character} /><div><span className="di-lobby-ready-label">Your hero is ready</span><strong>{character.name}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label}</small></div></div>
+            <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => openHero()}>Customize hero</button>
+          </div>}
+          <div className="di-lobby-ready-story">
+            <div><span className="di-lobby-ready-label">Your story</span><strong>{adventure.title}</strong></div>
+            <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => setStoryChooser(true)}>Change story</button>
+          </div>
         </div>
-        <div className="di-location-stamp">
-          <span>Stories from</span>
-          <strong>Briar Glen</strong>
-          <div>Est. somewhere beyond the ordinary</div>
+
+        <div className="di-lobby-start">
+          <div className="di-lobby-start-actions">
+            <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id)}>
+              {loading ? <LoaderCircle className="di-spin" size={20} /> : <TabletopArtwork kind="dice" />}
+              <span>{loading ? preparing ? 'Preparing a new telling…' : 'Opening your adventure…' : `Play ${adventure.title}`}</span>
+              <ArrowRight size={18} />
+            </button>
+            <button type="button" className="di-button di-secondary di-lobby-friends" aria-haspopup="dialog" disabled={loading} onClick={() => { clearError(); setFriends(true); }}>
+              <Users size={18} /> Play with friends
+            </button>
+          </div>
+          <p className="di-lobby-start-note">Join players or start with companions. No group needed. Leave whenever.</p>
+          <p className="di-lobby-round-note">Everyone chooses together · 30 seconds per round · Ready parties move sooner</p>
         </div>
       </section>
 
-      {character && <section className="di-arrival-hero" aria-label="Your hero">
-        <div className="di-arrival-identity"><HeroAvatar hero={character}/><div><p className="di-eyebrow">Your hero</p><h2>{character.name}</h2><span>{CHARACTER_CLASS_PRESETS[character.classKey].label}</span></div></div>
-        <button type="button" className="di-button di-secondary di-full" aria-haspopup="dialog" onClick={() => openHero()}>Customize hero</button>
-        <span className="di-thread-goal">{threadBalance(collection)} Thread to spend</span>
-        <NextLook compact />
-      </section>}
-      </div>
-      <section className="di-story-library" aria-label="Choose an adventure">
-        <div className="di-library-heading"><h2>Choose a story</h2>
-        <button type="button" className="di-button di-secondary" aria-label="Your discoveries" onClick={() => setJournal(true)}>Discoveries</button></div>
-        <div className="di-library-description"><p>First tales · Four free adventures. One shared collection.</p><p>Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.</p>
-        <CollectionGoal /></div>
-        <p className="di-mobile-earning-rule">Earn hats + Thread as you play. Every outcome counts.</p>
-        {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal/></Modal>}
-        <p className="di-mobile-story-hint">Swipe to browse stories</p>
-        <div className="di-story-cards" role="group" aria-label="Story choices" tabIndex={0}>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
-          <SceneArt scene={adventure.chapters[0].art} />
-          <h3><button type="button" className="di-story-select" aria-label={`Select story: ${adventure.title}`} aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>{adventure.title}</button></h3><p className="di-story-pitch">{adventure.pitch}</p><StoryRewards collapsible adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
-          <div className="di-story-actions">
-          <button className="di-button di-primary" disabled={loading} onClick={() => void playNow(adventure.id)} aria-label={`Play ${adventure.title}`}>Play this story</button>
-          <button className="di-text-button" disabled={loading} onClick={() => void startFriendTable(adventure.id)} aria-label={`Start a friend table for ${adventure.title}`}>Start with friends</button>
-          </div>
-        </article>)}</div>
-        <NarratorDownload compact />
-      </section>
-      <SupporterShop />
+      <details className="di-lobby-story-options" key={adventure.id}>
+        <summary>About {adventure.title} &amp; rewards</summary>
+        <div className="di-lobby-story-details">
+          <p>{adventure.pitch}</p>
+          <p className="di-fine">Three chapters · 1–4 adventurers · Contribute for as long as you like</p>
+          <StoryRewards adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
+          {adventure.id === 'briar-glen' && <div className="di-lobby-new-telling">
+            <p>Try a fresh telling of this story with the same adventure rules.</p>
+            <button type="button" className="di-button di-secondary" disabled={loading} onClick={() => void newTelling()}>
+              <Sparkles size={16} /> {preparing ? 'Preparing…' : 'Start a new telling of Briar Glen'}
+            </button>
+          </div>}
+        </div>
+      </details>
+
       <div className="di-lobby-grid">
         <div className="di-lobby-main">
-          <div className="di-section-heading">
-            <div>
-              <p className="di-eyebrow">Find your next moment</p>
-              <h2>Adventures at the inn</h2>
+          <section className="di-lobby-live" aria-label="Public tables">
+            <div className="di-section-heading">
+              <div><p className="di-eyebrow">Join a story in progress</p><h2>Open tables</h2></div>
+              <span className="di-soft-tag"><span className="di-live-dot" />{liveRooms.length} open {liveRooms.length === 1 ? 'table' : 'tables'}</span>
             </div>
-            <span className="di-soft-tag">
-              <span className="di-live-dot" />
-              {liveRooms.length} open{' '}
-              {liveRooms.length === 1 ? 'table' : 'tables'}
-            </span>
-          </div>
-          {liveRooms.length > 0 && (
-            <div className="di-room-list">
-              {liveRooms.map((summary) => (
-                <RoomCard
-                  key={summary.code}
-                  summary={summary}
-                  disabled={loading}
-                  onJoin={() => void joinRoom(summary.code)}
-                />
-              ))}
-            </div>
-          )}
-          <article className="di-featured-adventure">
-            <div className="di-featured-art">
-              <SceneArt scene="chapel" />
-              <span className="di-art-tag">The Briar Glen story</span>
-            </div>
-            <div className="di-featured-copy">
-              <p className="di-eyebrow">A mystery in three little chapters</p>
-              <h3>
-                Something stirs
-                <br />
-                beyond the village.
-              </h3>
-              <p>
-                Livestock missing. Strange lights in the reeds. A chapel that
-                should have stayed quiet. The villagers could use someone like
-                you.
-              </p>
-              <div className="di-adventure-tags">
-                <span>
-                  <Users size={14} /> 1–4 adventurers
-                </span>
-                <span>
-                  <Clock3 size={14} /> 5–8 min / chapter
-                </span>
-              </div>
-              <div className="di-featured-actions">
-                <button
-                  className="di-button di-secondary"
-                  disabled={loading}
-                  onClick={() => void playNow('briar-glen')}
-                >
-                  {liveRooms.length ? 'Find me a seat' : 'Start the adventure'}
-                  <ArrowRight size={16} />
-                </button>
-                <button
-                  className="di-text-button"
-                  disabled={loading}
-                  onClick={() => void newTelling()}
-                  title="Prepare a fresh telling before starting a new table"
-                >
-                  <Sparkles size={14} />{' '}
-                  {preparing ? 'Preparing…' : 'New telling'}
-                </button>
-              </div>
-            </div>
-          </article>
-          <div className="di-three-promises">
-            <span>
-              <DoorOpen size={19} />
-              <strong>Come as you are</strong>
-              <small>A ready hero. An open seat.</small>
-            </span>
-            <span>
-              <Lightbulb size={19} />
-              <strong>Your ideas matter</strong>
-              <small>Change what happens next.</small>
-            </span>
-            <span>
-              <Heart size={19} />
-              <strong>Leave whenever</strong>
-              <small>Keep the story you helped tell.</small>
-            </span>
-          </div>
-          {recaps.length > 0 && (
-            <section className="di-recent">
-              <div className="di-section-heading">
-                <h2>Your recent visits</h2>
-                <BookOpen size={20} />
-              </div>
-              {recentVisits.slice(0, 4).map((visit, i) => (
-                <button
-                  className="di-visit"
-                  key={`${visit.code}-${i}`}
-                  onClick={() => setViewRecap(visit)}
-                >
-                  <span className="di-visit-icon">
-                    <BookOpen size={20} />
-                  </span>
-                  <span>
-                    <strong>{visit.title}</strong>
-                    {unseen(visit) > 0 && <span className="di-new-outcome"><Sparkles size={12} /> {unseen(visit)} unread chapter {unseen(visit) === 1 ? 'ending' : 'endings'}</span>}
-                    <small>
-                      {visit.actions}{' '}
-                      {visit.actions === 1 ? 'contribution' : 'contributions'} ·{' '}
-                      {visit.xp} XP ·{' '}
-                      {visit.outcomes.length
-                        ? `${visit.outcomes.length} chapter outcomes`
-                        : 'Story in progress'}
-                    </small>
-                  </span>
-                  <ArrowRight size={17} />
-                </button>
-              ))}
-            </section>
-          )}
-        </div>
+            {liveRooms.length > 0 ? <div className="di-room-list">
+              {liveRooms.map(summary => <RoomCard key={summary.code} summary={summary} disabled={loading} onJoin={() => void joinRoom(summary.code)} />)}
+            </div> : <p className="di-lobby-empty">No public tables have an open seat right now. Press Play above to begin with companions.</p>}
+          </section>
 
-        <aside className="di-lobby-aside">
-          <AccountPanel/>
-          <section className="di-join-card" id="friend-table">
-            <div className="di-friend-table-start">
-              <span className="di-eyebrow">Just your people</span>
-              <h3>Save a table for friends.</h3>
-              <p>Start with companions and invite up to three friends. Your table stays out of public discovery.</p>
-              <button type="button" className="di-button di-secondary di-full" disabled={loading} onClick={() => void startFriendTable(adventureId)}>
-                <Users size={17} /> Start a friend table
+          {recaps.length > 0 && <section className="di-recent">
+            <div className="di-section-heading"><h2>Your recent visits</h2><BookOpen size={20} /></div>
+            {recentVisits.slice(0, 4).map((visit, i) => <button className="di-visit" key={`${visit.code}-${i}`} onClick={() => setViewRecap(visit)}>
+              <span className="di-visit-icon"><BookOpen size={20} /></span>
+              <span><strong>{visit.title}</strong>
+                {unseen(visit) > 0 && <span className="di-new-outcome"><Sparkles size={12} /> {unseen(visit)} unread chapter {unseen(visit) === 1 ? 'ending' : 'endings'}</span>}
+                <small>{visit.actions} {visit.actions === 1 ? 'contribution' : 'contributions'} · {visit.xp} XP · {visit.outcomes.length ? `${visit.outcomes.length} chapter outcomes` : 'Story in progress'}</small>
+              </span><ArrowRight size={17} />
+            </button>)}
+          </section>}
+
+          <section className="di-lobby-collection" aria-label="Your collection">
+            <div className="di-section-heading"><h2>Your collection</h2><button type="button" className="di-lobby-change" aria-label="Your discoveries" aria-haspopup="dialog" onClick={() => setJournal(true)}>Discoveries</button></div>
+            <p>Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.</p>
+            <span className="di-thread-goal">{threadBalance(collection)} Thread to spend</span>
+            <CollectionGoal />
+            <NextLook compact />
+          </section>
+        </div>
+        <aside className="di-lobby-aside"><AccountPanel /></aside>
+      </div>
+      <NarratorDownload compact />
+      <SupporterShop />
+      <MerchTeaser />
+
+      {storyChooser && <Modal title="Choose a story" onClose={() => setStoryChooser(false)}>
+        <div className="di-lobby-story-picker">
+          <p className="di-eyebrow">Four free adventures</p><h2>Choose a story</h2>
+          <p>Choose what to play, then start when you’re ready.</p>
+          <div className="di-lobby-story-choices" role="group" aria-label="Story choices">
+            {ADVENTURES.map(item => <article key={item.id} className={item.id === adventure.id ? 'is-selected' : ''}>
+              <SceneArt scene={item.chapters[0].art} />
+              <div className="di-lobby-story-choice-copy"><h3>{item.title}</h3><p>{item.pitch}</p></div>
+              <button type="button" className="di-button di-secondary" aria-label={`Select story: ${item.title}`} aria-pressed={item.id === adventure.id} disabled={loading} onClick={() => { setAdventureId(item.id); setStoryChooser(false); }}>
+                {item.id === adventure.id ? <><Check size={16} /> Selected story</> : <>Choose this story <ArrowRight size={16} /></>}
               </button>
-              <small>Anyone you share the full invitation with can join.</small>
-            </div>
-            <span className="di-eyebrow">Friends saved you a seat?</span>
-            <h3>Follow them in.</h3>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (code.trim()) void joinRoom(code.trim());
-              }}
-            >
-              <label className="di-sr-only" htmlFor="room-code">
-                Adventure code or invitation link
-              </label>
-              <input
-                id="room-code"
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-                placeholder="Code or invitation link"
-                maxLength={2048}
-                autoCapitalize="none"
-                autoComplete="off"
-              />
-              <button
-                aria-label="Join adventure by code"
-                className="di-button di-secondary"
-                disabled={!code.trim() || loading}
-              >
-                <ArrowRight size={19} />
-              </button>
+              <details className="di-lobby-choice-rewards"><summary>View rewards</summary><StoryRewards adventureId={item.id} adventureVersion={item.version} collectionVersion={1} /></details>
+            </article>)}
+          </div>
+        </div>
+      </Modal>}
+
+      {friends && <Modal title="Play with friends" onClose={() => setFriends(false)}>
+        <div className="di-lobby-friend-options">
+          <p className="di-eyebrow">Just your people</p><h2>Play with friends</h2>
+          <section>
+            <h3>Start a private table</h3>
+            <p>Play {adventure.title} with companions, then invite up to three friends. Your table stays out of public discovery.</p>
+            <button type="button" className="di-button di-primary di-full" disabled={loading} onClick={() => void startFriendTable(adventure.id)}><Users size={17} />{loading ? 'Opening your table…' : 'Start a friend table'}</button>
+            <small>Anyone with the full invitation can join.</small>
+          </section>
+          <section>
+            <h3>Have an invitation?</h3>
+            <form onSubmit={event => { event.preventDefault(); if (code.trim()) void joinRoom(code.trim()); }}>
+              <label htmlFor="room-code">Adventure code or invitation link</label>
+              <input id="room-code" value={code} onChange={event => setCode(event.target.value)} placeholder="Code or invitation link" maxLength={2048} autoCapitalize="none" autoComplete="off" />
+              <button type="submit" className="di-button di-secondary" aria-label="Join adventure by code" disabled={!code.trim() || loading}>Join friends <ArrowRight size={17} /></button>
             </form>
           </section>
-          <blockquote className="di-innkeeper-note">
-            <span>From the innkeeper</span>“You don’t need a whole evening to
-            have a story worth telling.”
-            <Dices size={22} />
-          </blockquote>
-        </aside>
-      </div>
-      <MerchTeaser />
-      {viewRecap && (
-        <Recap recap={viewRecap} onClose={() => setViewRecap(null)} />
-      )}
+          {error && <p role="alert" className="di-lobby-friend-error">{error}</p>}
+        </div>
+      </Modal>}
+      {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal /></Modal>}
+      {viewRecap && <Recap recap={viewRecap} onClose={() => setViewRecap(null)} />}
     </main>
   );
 }

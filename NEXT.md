@@ -2,9 +2,18 @@
 
 ## Implemented baseline
 
-The default V2 app includes live discovery, Play Now, saved heroes, four-seat companion support, safe joining/leaving, timed simultaneous turns, contextual tokens, three authored Briar Glen chapters, signed Spotlight proposals, contribution recaps and durable reward handling. Optional AI adapters, chat, mute/report controls and the server-authoritative Supabase persistence path are in the repository. The prior prototype remains at `/?legacy=1`.
+The default V2 app includes live discovery, Play [selected story], saved heroes, four-seat companion support, safe joining/leaving, timed simultaneous turns, contextual moves, three authored Briar Glen chapters, signed Spotlight proposals, contribution recaps and durable reward handling. Optional AI adapters, chat, mute/report controls and the server-authoritative Supabase persistence path are in the repository. The prior prototype remains at `/?legacy=1`.
 
 The current scene-stage pass adds a fixed action dock, illustrated scene interactions, optional-reading drawers, announced combat intent, guaranteed Protect, timed release and persisted uncertain-move recovery. All three chapters use the new components and 17 new illustrations. Local tests, build and browser checks passed; see [scene playtest evidence](docs/scene-playtest.md) for the backend, scenarios and limitations. Hosted and human evidence remain separate.
+
+## Player clarity pass
+
+- [x] Put the game explanation, round loop, ready hero and one story-specific Play action at the entrance. Move story selection and friend admission into named dialogs; keep deeper options below.
+- [x] Make target inspection the default path, with contextual authored moves, persistent state guidance, a visible shared goal and hold/release as the primary commitment. Retain **Show tokens** and accessible alternatives.
+- [x] Add browser-local, dismissible/replayable first-move teaching and recorded personal consequences. Preserve server rules, deadlines, reward contracts and authored story content.
+- [x] Verify this working-tree version with 85 focused tests, production build, and local scene, mobile, adventure and collection browser suites. See [current clarity evidence](docs/player-clarity.md#local-verification).
+- [ ] Run the [uncoached player checks](docs/player-clarity.md) with newcomers, returning players and mid-round arrivals. Automated layout checks do not establish comprehension.
+- [ ] Verify this version after a separately authorized hosted rollout and on physical phones; these have not been completed by the clarity pass.
 
 ## Scene-stage acceptance and rollout
 
@@ -17,7 +26,7 @@ The local [game-feel pass and skill shortlist](docs/game-feel-direction.md) adds
 - [x] Verify late joins, departing threatened seats, old snapshots, parked/resumed rooms and later rewards in focused tests; private pending admission also passed browser integration. Existing JSON persistence needs no schema migration for these additions.
 - [ ] Check physical-device text scaling, screen readers, one-handed use and on-screen keyboards with the new stage.
 - [ ] Deploy through a separately authorized rollout, then run hosted API, independent-browser Realtime/reconnect and physical-phone checks. Prior hosted results apply to the older deployment.
-- [ ] Observe newcomers and experienced players: time the first meaningful action, count scrolling, ask what changed without opening the journal, and tune the 30-second turn/six-second reveal/650–950ms release window from observations.
+- [ ] Observe newcomers and experienced players: time the first meaningful action, count scrolling, ask what changed without opening the journal, and tune the 30-second turn, paced reveal and 650–950ms release window from observations.
 
 ## Prioritized task list
 
@@ -53,7 +62,7 @@ The local [game-feel pass and skill shortlist](docs/game-feel-direction.md) adds
 - [ ] Check one-handed controls, small screens, keyboard focus, and the on-screen keyboard during Spotlight/chat.
   - New stage checks passed at 390×844 and 320×568 for real pointer dragging, invalid drops, keyboard selection/timing, overflow and drawer focus. Physical-phone and on-screen-keyboard checks remain; see [current evidence](docs/scene-playtest.md).
 - [ ] Tune turn and result-reveal pacing using observed waiting time and missed turns.
-- [x] Introduce the action loop with a short first-move guide. The current stage uses one situation sentence, compatible target highlights and a fixed dock hint; extended catch-up lives in Story.
+- [x] Introduce the action loop during play with a dismissible first-move guide, suggested inspection targets and persistent state guidance in the contextual dock. The guide can be replayed from action help; extended catch-up lives in Story. Human comprehension remains unverified.
 
 ### 5. Give players a reason to return
 

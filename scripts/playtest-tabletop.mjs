@@ -15,15 +15,17 @@ try{
     const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});
     const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
     await page.goto(`${base}/?session=tabletopqa${width}`);
-    await page.getByRole('button',{name:'Start a friend table',exact:true}).waitFor();
+    await page.locator('.di-lobby-play').waitFor();
     if(width===1280)await page.screenshot({path:'output/playwright/tabletop-lobby-1280.png'});
+    await page.getByRole('button',{name:'Play with friends',exact:true}).click();
     const opened=page.waitForResponse(r=>r.url().endsWith('/api/dropinn') && r.request().postDataJSON()?.operation==='play');
     await page.getByRole('button',{name:'Start a friend table',exact:true}).click();
     assert.equal((await (await opened).json()).backend,'local');
     await page.getByRole('main',{name:'Adventure table'}).waitFor();
     await page.waitForFunction(()=>[...document.querySelectorAll('.di-tabletop-art img')].every(img=>img.complete && img.naturalWidth>0));
-    assert.equal(await page.locator('.di-scene-hand [aria-pressed=true]').count(),0,'No token is falsely selected before inspection');
-    await page.screenshot({path:`output/playwright/tabletop-hand-${width}.png`});
+    assert.equal(await page.getByRole('group',{name:'Action tokens',exact:true}).count(),0,'The optional token hand starts hidden');
+    await page.locator('.di-player-guidance[data-state="target"]').waitFor();
+    await page.screenshot({path:`output/playwright/tabletop-start-${width}.png`});
     await page.locator('[data-scene-target=mara]').click();
     await page.getByRole('group',{name:'Moves for this target'}).waitFor();
     await page.screenshot({path:`output/playwright/tabletop-inspect-${width}.png`});
@@ -51,6 +53,7 @@ try{
     // Asset failure must leave named, usable controls and a CSS paper fallback.
     await page.route('**/art/ui-*.webp',r=>r.abort());
     await page.reload();await page.getByRole('main',{name:'Adventure table'}).waitFor();
+    await page.getByRole('button',{name:'Show tokens',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('.di-scene-spark .di-tabletop-art svg'));
     assert.ok(await page.getByRole('button',{name:'Spotlight idea',exact:true}).isVisible());
     await page.getByRole('button',{name:'Fight token',exact:true}).click();

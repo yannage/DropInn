@@ -63,43 +63,53 @@ try {
     });
     try {
       await page.goto(`${base}/?session=mobileflow${width}`);
-      await page.getByRole('button', { name: 'Start a friend table', exact: true }).waitFor();
+      const play = page.locator('.di-lobby-play');
+      await play.waitFor();
       await fits(page, `lobby-${width}`);
-      for (const control of [page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Play Now', exact: true }), page.locator('.di-arrival-identity .di-avatar')]) {
+      for (const control of [page.locator('.di-lobby-explanation'), page.getByRole('list', { name: 'Each round', exact: true }), page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Change story', exact: true }), page.getByRole('button', { name: 'Play with friends', exact: true }), play, page.locator('.di-arrival-identity .di-avatar')]) {
         const box = await control.boundingBox();
-        assert.ok(box && box.y >= 0 && box.y + box.height <= height, 'Hero, customization and Play Now visible on first screen');
+        assert.ok(box && box.y >= 0 && box.y + box.height <= height, `Explanation, round loop, ready hero and start controls visible on first screen: ${await control.textContent()}`);
       }
-      if (width < 760) {
-        const firstStory = page.getByRole('group', { name: 'Story choices' }).locator('article').first();
-        const playBox = await firstStory.getByRole('button', { name: /^Play / }).boundingBox();
-        assert.ok(playBox && playBox.y + playBox.height <= height, 'First story Play button fits on the first phone screen');
-        const rewards = firstStory.locator('.di-reward-disclosure');
-        assert.equal(await rewards.getAttribute('open'), null, 'Secondary reward details start collapsed');
-        await rewards.locator('summary').focus();
-        await page.keyboard.press('Enter');
-        await rewards.getByText('Hat to unlock', { exact: false }).first().waitFor();
-        assert.equal(await rewards.getByText('Hat to unlock', { exact: false }).count(), 3);
-        await page.keyboard.press('Enter');
-        assert.equal(await rewards.getAttribute('open'), null, 'Reward details collapse with the keyboard');
-        assert.equal(await page.locator('.di-story-library .di-narrator-download').count(), 1, 'One shared narrator entry');
-        for (const control of [page.locator('.di-next-look-link'), rewards.locator('summary'), firstStory.getByRole('button', { name: /^Play / })]) {
-          const box = await control.boundingBox();
-          assert.ok(box.height >= 44, 'Compact layout preserves 44px tap targets');
-        }
-        await page.evaluate(() => window.scrollTo(0, 0));
-        const shortcuts = page.getByRole('navigation', { name: 'Get ready to play' });
-        const box = await shortcuts.boundingBox();
-        assert.ok(box.y + box.height <= height, 'Hero and friend shortcuts visible on first screen');
-        const cards = page.getByRole('group', { name: 'Story choices' });
-        assert.ok(await cards.evaluate(node => node.scrollWidth > node.clientWidth), 'Story cards scroll within their own row');
-        await cards.locator('article').last().getByRole('button', { name: /^Select story:/ }).click();
-        assert.ok(await cards.evaluate(node => node.scrollLeft > 0), 'Every story remains reachable');
-        await cards.locator('article').first().getByRole('button', { name: /^Select story:/ }).click();
-        await page.getByRole('link', { name: 'Join friends', exact: false }).click();
-        await page.getByRole('textbox', { name: 'Adventure code or invitation link' }).scrollIntoViewIfNeeded();
-        await fits(page, `friends-${width}`);
-        await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
-      } else await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
+      assert.match(await play.textContent(), /Play Briar Glen/);
+      assert.equal(await page.getByRole('group', { name: 'Story choices' }).count(), 0, 'Story choice stays behind Change story');
+      assert.equal(await page.locator('.di-narrator-download').count(), 1, 'One shared narrator entry');
+      for (const control of [page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Change story', exact: true }), page.getByRole('button', { name: 'Play with friends', exact: true }), play]) {
+        const box = await control.boundingBox();
+        assert.ok(box.width >= 44 && box.height >= 44, 'First-screen controls preserve 44px tap targets');
+      }
+      const changeStory = page.getByRole('button', { name: 'Change story', exact: true });
+      await changeStory.click();
+      const storyDialog = page.getByRole('dialog', { name: 'Choose a story', exact: true });
+      await storyDialog.waitFor();
+      await fits(page, `stories-${width}`);
+      const cards = page.getByRole('group', { name: 'Story choices' });
+      const storyNames = await cards.getByRole('button', { name: /^Select story:/ }).evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label').replace('Select story: ', '')));
+      assert.equal(storyNames.length, 4, 'All four stories are available');
+      const rewards = cards.locator('article').first().locator('.di-lobby-choice-rewards');
+      assert.equal(await rewards.getAttribute('open'), null, 'Secondary reward details start collapsed');
+      await rewards.locator('summary').focus();
+      await page.keyboard.press('Enter');
+      await rewards.getByText('Hat to unlock', { exact: false }).first().waitFor();
+      assert.equal(await rewards.getByText('Hat to unlock', { exact: false }).count(), 3);
+      await page.keyboard.press('Enter');
+      assert.equal(await rewards.getAttribute('open'), null, 'Reward details collapse with the keyboard');
+      await page.keyboard.press('Escape');
+      assert.equal(await changeStory.evaluate(node => document.activeElement === node), true, 'Closing story choices restores keyboard focus');
+      for (const title of [...storyNames.slice(1), storyNames[0]]) {
+        await changeStory.click();
+        await cards.getByRole('button', { name: `Select story: ${title}`, exact: true }).click();
+        await storyDialog.waitFor({ state: 'hidden' });
+        await page.getByRole('button', { name: `Play ${title}`, exact: true }).waitFor();
+        assert.equal(await page.getByRole('main', { name: 'Adventure table' }).count(), 0, 'Choosing a story does not start an adventure');
+      }
+      const friends = page.getByRole('button', { name: 'Play with friends', exact: true });
+      await friends.click();
+      await page.getByRole('dialog', { name: 'Play with friends', exact: true }).waitFor();
+      await page.getByRole('textbox', { name: 'Adventure code or invitation link' }).scrollIntoViewIfNeeded();
+      await fits(page, `friends-${width}`);
+      await page.keyboard.press('Escape');
+      assert.equal(await friends.evaluate(node => document.activeElement === node), true, 'Closing friend options restores keyboard focus');
+      await page.getByRole('button', { name: 'Customize hero', exact: true }).click();
       await page.getByRole('dialog').waitFor();
       await fits(page, `builder-${width}`);
       const name = page.getByRole('textbox', { name: 'Hero name optional' });
@@ -120,11 +130,17 @@ try {
       await page.getByRole('button', { name: 'How to play', exact: true }).click();
       await fits(page, `help-${width}`);
       await page.keyboard.press('Escape');
+      await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
       await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();
       await page.getByRole('main', { name: 'Adventure table' }).waitFor();
+      await page.locator('.di-player-guidance[data-state="target"]').waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('group', { name: 'Action tokens', exact: true }).count(), 0, 'Scene starts with target-first guidance');
       await fits(page, `scene-${width}`, true);
       for (const [button, title] of [['Party', 'Your party'], ['Chat', 'Table chat'], ['Invite', 'Invite a friend'], ['Action details and help', 'Your action'], ['Spotlight idea', 'A Spotlight idea']]) {
-        await page.getByRole('button', { name: button, exact: true }).tap();
+        if (button === 'Spotlight idea') {
+          await page.locator('[data-scene-target][data-target-kind="scene"]').first().tap();
+          await page.locator('.di-context-spotlight').tap();
+        } else await page.getByRole('button', { name: button, exact: true }).tap();
         await page.getByRole('dialog', { name: title, exact: true }).waitFor();
         await fits(page, `${button.split(' ')[0].toLowerCase()}-${width}`, true);
         if (button === 'Spotlight idea' && width < 760) {
@@ -140,7 +156,7 @@ try {
         await page.keyboard.press('Escape');
       }
       await page.getByRole('button', { name: 'Leave & save', exact: true }).click();
-      note(`Lobby, all story choices, hero save/reload, hats, help, account and five adventure drawers: ${width}×${height}`);
+      note(`First-screen explanation and ready hero, story/friend dialogs, all story selections, hero save/reload, hats, help, account, target-first guidance and five adventure drawers: ${width}×${height}`);
     } finally { await context.close(); }
   }
   assert.deepEqual(errors, []);

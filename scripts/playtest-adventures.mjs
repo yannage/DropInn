@@ -44,11 +44,15 @@ try {
         assert.equal(await page.evaluate(async () => (await import('/src/lib/dropinn/api.ts')).localPlay), true);
       }
       const [a,b] = pages;
-      await a.getByRole('button', { name: `Start a friend table for ${definition.title}`, exact: true }).click();
+      await a.getByRole('button', { name: 'Change story', exact: true }).click();
+      await a.getByRole('button', { name: `Select story: ${definition.title}`, exact: true }).click();
+      await a.getByRole('button', { name: 'Play with friends', exact: true }).click();
+      await a.getByRole('button', { name: 'Start a friend table', exact: true }).click();
       await a.getByRole('main', { name: 'Adventure table' }).waitFor();
       await a.getByRole('button', { name: 'Invite', exact: true }).click();
       const invitation = await a.getByRole('textbox', { name: 'Full invitation link' }).inputValue();
       await a.keyboard.press('Escape');
+      await b.getByRole('button', { name: 'Play with friends', exact: true }).click();
       await b.getByRole('textbox', { name: 'Adventure code or invitation link' }).fill(invitation);
       await b.getByRole('button', { name: 'Join adventure by code' }).click();
       await b.getByRole('main', { name: 'Adventure table' }).waitFor();
@@ -90,8 +94,8 @@ try {
           const current = await state(page);
           if (current.room.pendingJoins.includes(current.userId)) continue;
           const target = scene.branch && !room.storyBranch ? scene.branch.options[0].targetId : scene.targets[round % 4].id;
-          await page.getByRole('button', { name:'Help token',exact:true }).click();
           await page.locator(`[data-scene-target="${target}"]`).click();
+          await page.getByRole('group', { name: 'Moves for this target', exact: true }).getByRole('button', { name: /^Help:/ }).click();
           if (scene.branch && !room.storyBranch) {
             await page.getByRole('dialog', {name:'Choose your route'}).waitFor();
             assert.ok(await page.getByText(scene.branch.options[0].consequence,{exact:true}).isVisible());
