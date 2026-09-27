@@ -1,0 +1,97 @@
+.di-library-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.di-library-heading h2{margin:0}
+.di-mobile-earning-rule{display:none}
+.di-welcome-mobile-title{display:none}
+.di-story-select{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;cursor:pointer;min-height:44px}
+.di-story-select:focus-visible{outline:3px solid #358699;outline-offset:3px;border-radius:4px}
+.di-story-actions{display:flex;flex-direction:column;gap:6px}
+
+@media(max-width:759px){
+  .di-app .di-header{padding-top:7px;padding-bottom:7px}
+  .di-app .di-lobby{padding-top:10px}
+  .di-app .di-arrival{gap:8px}
+  .di-app .di-arrival .di-welcome{border:0;box-shadow:none;background:transparent;overflow:visible}
+  .di-app .di-arrival .di-welcome-copy{padding:0;background:transparent}
+  .di-app .di-arrival .di-welcome h1{font-size:24px;line-height:1.1;margin:0 0 8px}
+  .di-welcome-desktop-title{display:none}
+  .di-welcome-mobile-title{display:inline}
+  .di-app .di-arrival .di-welcome h1 br{display:none}
+  .di-app .di-welcome-actions{display:flex;align-items:stretch;gap:8px}
+  .di-app .di-welcome-actions>.di-play{flex:1;min-width:0;min-height:44px;padding:8px 10px;margin:0;gap:8px;font-size:14px;justify-content:center}
+  .di-app .di-welcome-actions .di-tabletop-art{width:26px;height:26px}
+  .di-app .di-welcome-actions .di-mobile-shortcuts{display:flex;flex:1;margin:0}
+  .di-app .di-welcome-actions .di-mobile-shortcuts a{padding:8px;font-size:13px;min-height:44px}
+
+  .di-app .di-arrival-hero{gap:0 8px;padding:6px 10px;box-shadow:2px 3px 0 #d8d6b2}
+  .di-app .di-arrival-identity>.di-avatar{width:52px;height:52px}
+  .di-app .di-arrival-identity .di-eyebrow{display:none}
+  .di-app .di-arrival-identity h2{font-size:21px;line-height:1.1}
+  .di-app .di-arrival-hero>.di-button{padding:7px 9px;min-height:44px}
+  .di-app .di-arrival-hero>.di-thread-goal{display:none}
+  .di-next-look-link{grid-column:1/-1;display:flex;align-items:center;gap:8px;width:100%;min-height:48px;margin-top:3px;padding:6px 0 2px;border:0;border-top:1px dashed #b9ac86;background:none;color:var(--di-ink);text-align:left;cursor:pointer}
+  .di-next-look-link>.di-hat-art{width:44px;height:30px;flex:none}
+  .di-next-look-link>span:nth-child(2){flex:1;min-width:0}
+  .di-next-look-link strong{display:block;font-size:12px;line-height:1.3}
+  .di-next-look-link small{display:block;font-size:11px;line-height:1.35;color:var(--di-muted)}
+  .di-next-look-link>span:last-child{font-size:24px}
+  .di-app .di-arrival-hero>.di-next-look{grid-column:1/-1;padding:4px 0;gap:8px}
+
+  .di-app .di-lobby .di-story-library{margin:10px 0;min-width:0}
+  .di-library-heading{gap:8px;margin:0}
+  .di-app .di-library-heading h2{font-size:22px;line-height:1.1}
+  .di-app .di-library-heading>.di-button{flex:none;min-height:44px;font-size:11px;padding:6px 8px;background:transparent;border:0;box-shadow:none;text-decoration:underline}
+  .di-library-description{display:none}
+  .di-app .di-mobile-earning-rule{display:block;font-size:12px;line-height:1.4;margin:0 0 5px;color:var(--di-muted)}
+  .di-app .di-mobile-story-hint{display:none}
+  .di-app .di-story-cards{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:92%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;gap:8px;padding:3px 3px 8px;align-items:start}
+  .di-app .di-story-cards>article{display:grid;grid-template-columns:60px minmax(0,1fr);gap:6px 10px;padding:10px;scroll-snap-align:start;min-width:0}
+  .di-app .di-story-cards>article>.di-scene-art{width:60px;height:60px;object-fit:cover;border-radius:8px;align-self:center}
+  .di-app .di-story-cards>article>h3{margin:0;align-self:center;font-size:21px;line-height:1.1}
+  .di-app .di-story-cards .di-story-select{margin:0;padding:0;width:100%;font:inherit;border:0;box-shadow:none;background:none;line-height:inherit}
+  .di-app .di-story-cards .di-story-pitch{grid-column:1/-1;font-size:12px;line-height:1.4;margin:0}
+  .di-reward-disclosure{grid-column:1/-1;border-top:1px dashed #b9ac86;border-bottom:1px dashed #b9ac86}
+  .di-reward-disclosure>summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:5px 0;cursor:pointer;list-style:none}
+  .di-reward-disclosure>summary::-webkit-details-marker{display:none}
+  .di-reward-disclosure>summary:after{content:'+';font-size:20px;margin-left:auto}
+  .di-reward-disclosure[open]>summary:after{content:'−'}
+  .di-reward-disclosure>summary>.di-hat-art{width:38px;height:26px;flex:none}
+  .di-reward-disclosure>summary strong{display:block;font-size:12px;line-height:1.3}
+  .di-reward-disclosure>summary small{display:block;font-size:11px;color:var(--di-muted)}
+  .di-reward-disclosure .di-story-rewards{border:0;margin:0;padding:4px 0 8px}
+  .di-app .di-story-actions{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  .di-app .di-story-actions>button{min-height:44px;margin:0;padding:7px;font-size:12px;line-height:1.2;justify-content:center}
+  .di-app .di-story-library>.di-narrator-download{margin-top:2px}
+  .di-app .di-lobby-grid{margin-top:18px;gap:18px}
+  .di-app .di-section-heading{margin-bottom:10px}
+  .di-app .di-featured-adventure{margin-top:14px}
+  .di-app .di-three-promises{gap:8px;margin:16px 0}
+
+  .di-app .di-builder-heading{padding:8px 12px}
+  .di-app .di-builder-heading .di-eyebrow{display:none}
+  .di-app .di-builder-heading h2{font-size:24px}
+  .di-app .di-builder-preview{grid-template-columns:60px minmax(0,1fr);padding:8px 12px;gap:2px 10px}
+  .di-app .di-builder-preview .di-portrait-paper{padding:5px 0 0;box-shadow:2px 2px 0 #8ca874}
+  .di-app .di-builder-preview h3{font-size:22px}
+  .di-app .di-builder-options{padding:10px 12px}
+  .di-app .di-builder-tabs{padding-bottom:6px;margin-bottom:8px}
+  .di-app .di-part-picker>div{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .di-app .di-part-picker button .di-avatar{height:52px}
+  .di-app .di-part-picker button span{font-size:11px;padding:4px 2px}
+  .di-app .di-hat-grid{gap:8px}
+  .di-app .di-wardrobe-heading h3{font-size:23px;line-height:1.2;margin:0}
+  .di-app .di-wardrobe-heading p{font-size:12px;line-height:1.4;margin:4px 0 8px}
+  .di-app .di-bare-head{margin:6px 0 10px;min-height:44px}
+  .di-app .di-hat-grid .di-hat-paper{height:68px}
+  .di-app .di-hat-grid strong{font-size:12px;margin:6px 7px 3px}
+  .di-app .di-hat-grid small{font-size:11px;line-height:1.35;margin:0 7px}
+  .di-app .di-collection{margin-top:16px;padding-top:12px}
+  .di-app .di-style-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+  .di-app .di-style-grid article{padding:8px}
+  .di-app .di-style-grid .di-hat-art{height:52px}
+  .di-app .di-style-grid h4{font-size:14px}
+  .di-app .di-style-grid p{font-size:12px;margin:3px 0 6px}
+  .di-app .di-style-grid button{font-size:12px;padding:6px;min-height:44px}
+}
+@media(max-width:375px){
+  .di-app .di-lobby .di-mobile-earning-rule{display:none}
+}

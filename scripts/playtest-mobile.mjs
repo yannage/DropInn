@@ -20,6 +20,11 @@ async function fits(page, label, stage = false) {
   await page.evaluate(async () => {
     await document.fonts.ready;
     await Promise.all([...document.images].filter(img => img.complete && img.naturalWidth).map(img => img.decode().catch(() => {})));
+    await Promise.all([...document.querySelectorAll('svg image')].map(async layer => {
+      const image = new Image();
+      image.src = layer.href.baseVal;
+      await image.decode();
+    }));
   });
   const geometry = await page.evaluate(() => {
     const dialog = document.querySelector('[role=dialog]');
@@ -65,14 +70,31 @@ try {
         assert.ok(box && box.y >= 0 && box.y + box.height <= height, 'Hero, customization and Play Now visible on first screen');
       }
       if (width < 760) {
+        const firstStory = page.getByRole('group', { name: 'Story choices' }).locator('article').first();
+        const playBox = await firstStory.getByRole('button', { name: /^Play / }).boundingBox();
+        assert.ok(playBox && playBox.y + playBox.height <= height, 'First story Play button fits on the first phone screen');
+        const rewards = firstStory.locator('.di-reward-disclosure');
+        assert.equal(await rewards.getAttribute('open'), null, 'Secondary reward details start collapsed');
+        await rewards.locator('summary').focus();
+        await page.keyboard.press('Enter');
+        await rewards.getByText('Hat to unlock', { exact: false }).first().waitFor();
+        assert.equal(await rewards.getByText('Hat to unlock', { exact: false }).count(), 3);
+        await page.keyboard.press('Enter');
+        assert.equal(await rewards.getAttribute('open'), null, 'Reward details collapse with the keyboard');
+        assert.equal(await page.locator('.di-story-library .di-narrator-download').count(), 1, 'One shared narrator entry');
+        for (const control of [page.locator('.di-next-look-link'), rewards.locator('summary'), firstStory.getByRole('button', { name: /^Play / })]) {
+          const box = await control.boundingBox();
+          assert.ok(box.height >= 44, 'Compact layout preserves 44px tap targets');
+        }
+        await page.evaluate(() => window.scrollTo(0, 0));
         const shortcuts = page.getByRole('navigation', { name: 'Get ready to play' });
         const box = await shortcuts.boundingBox();
         assert.ok(box.y + box.height <= height, 'Hero and friend shortcuts visible on first screen');
         const cards = page.getByRole('group', { name: 'Story choices' });
         assert.ok(await cards.evaluate(node => node.scrollWidth > node.clientWidth), 'Story cards scroll within their own row');
-        await cards.locator('article').last().getByRole('button', { name: 'Select story', exact: true }).click();
+        await cards.locator('article').last().getByRole('button', { name: /^Select story:/ }).click();
         assert.ok(await cards.evaluate(node => node.scrollLeft > 0), 'Every story remains reachable');
-        await cards.locator('article').first().getByRole('button', { name: 'Select story', exact: true }).click();
+        await cards.locator('article').first().getByRole('button', { name: /^Select story:/ }).click();
         await page.getByRole('link', { name: 'Join friends', exact: false }).click();
         await page.getByRole('textbox', { name: 'Adventure code or invitation link' }).scrollIntoViewIfNeeded();
         await fits(page, `friends-${width}`);

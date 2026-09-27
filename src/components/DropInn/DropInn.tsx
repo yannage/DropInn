@@ -63,6 +63,7 @@ import { getSupabaseClient } from '../../lib/supabase/client';
 import { CollectionGoal, DiscoveryJournal } from './Collection';
 import { threadBalance } from '../../lib/dropinn/collection';
 import { CustomizeHeroContext, useCustomizeHero, NextLook, StoryRewards, type HeroCustomizerTarget } from './HeroProgression';
+import './mobile-layout.css';
 
 function HeroMark({
   hero,
@@ -517,15 +518,18 @@ function Lobby() {
             <span className="di-live-dot" /> The door’s always open
           </p>
           <h1>
-            A little time.
+            <span className="di-welcome-desktop-title">
+            A little time.{' '}
             <br />
             <em>A great adventure.</em>
+            </span>
+            <span className="di-welcome-mobile-title">Your next adventure.</span>
           </h1>
           <p>
             Step into a story. Make a little mischief.
             <br className="di-desktop-break" /> Be someone’s unexpected hero.
           </p>
-          <button
+          <div className="di-welcome-actions"><button
             className="di-button di-primary di-play"
             disabled={loading}
             onClick={() => void playNow(adventureId)}
@@ -542,6 +546,10 @@ function Lobby() {
               : 'Play Now'}
             <ArrowRight size={20} />
           </button>
+          <nav className="di-mobile-shortcuts" aria-label="Get ready to play">
+            <a href="#friend-table">Join friends <ArrowDown size={14} /></a>
+          </nav>
+          </div>
           <div className="di-welcome-meta">
             <span>
               <Clock3 size={14} /> Got 5 minutes?
@@ -549,9 +557,7 @@ function Lobby() {
             <i />
             <span>No experience needed</span>
           </div>
-          <nav className="di-mobile-shortcuts" aria-label="Get ready to play">
-            <a href="#friend-table">Join friends <ArrowDown size={14} /></a>
-          </nav>
+
         </div>
         <div className="di-location-stamp">
           <span>Stories from</span>
@@ -568,20 +574,22 @@ function Lobby() {
       </section>}
       </div>
       <section className="di-story-library" aria-label="Choose an adventure">
-        <h2>Choose your next story</h2>
-        <p>First tales · Four free adventures. One shared collection.</p><p>Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.</p>
-        <CollectionGoal />
-        <button type="button" className="di-button di-secondary" onClick={() => setJournal(true)}>Your discoveries</button>
+        <div className="di-library-heading"><h2>Choose a story</h2>
+        <button type="button" className="di-button di-secondary" aria-label="Your discoveries" onClick={() => setJournal(true)}>Discoveries</button></div>
+        <div className="di-library-description"><p>First tales · Four free adventures. One shared collection.</p><p>Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.</p>
+        <CollectionGoal /></div>
+        <p className="di-mobile-earning-rule">Earn hats + Thread as you play. Every outcome counts.</p>
         {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal/></Modal>}
         <p className="di-mobile-story-hint">Swipe to browse stories</p>
         <div className="di-story-cards" role="group" aria-label="Story choices" tabIndex={0}>{ADVENTURES.map(adventure => <article key={adventure.id} className={adventure.id === adventureId ? 'is-selected' : ''}>
           <SceneArt scene={adventure.chapters[0].art} />
-          <h3>{adventure.title}</h3><p>{adventure.pitch}</p><StoryRewards adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
-          <button className="di-button di-secondary" aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>Select story</button>
+          <h3><button type="button" className="di-story-select" aria-label={`Select story: ${adventure.title}`} aria-pressed={adventure.id === adventureId} onClick={() => setAdventureId(adventure.id)}>{adventure.title}</button></h3><p className="di-story-pitch">{adventure.pitch}</p><StoryRewards collapsible adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
+          <div className="di-story-actions">
           <button className="di-button di-primary" disabled={loading} onClick={() => void playNow(adventure.id)} aria-label={`Play ${adventure.title}`}>Play this story</button>
           <button className="di-text-button" disabled={loading} onClick={() => void startFriendTable(adventure.id)} aria-label={`Start a friend table for ${adventure.title}`}>Start with friends</button>
-          <NarratorDownload />
+          </div>
         </article>)}</div>
+        <NarratorDownload compact />
       </section>
       <SupporterShop />
       <div className="di-lobby-grid">

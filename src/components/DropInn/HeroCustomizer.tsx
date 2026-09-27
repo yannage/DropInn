@@ -111,7 +111,7 @@ export function HeroCustomizer({ character, onClose, initialTarget = {} }: { cha
                   <HeroAvatar hero={{ ...preview, appearance: { ...draft.appearance, [key]: part.id }, equipment: { hat: null } }} decorative faceOnly={key !== 'body'} /><span>{part.label}</span>
                 </button>)}</div></fieldset>)}
               </> : <>
-                <div className="di-wardrobe-heading"><h3>A hat for every little adventure.</h3><p>Four to start. Three with a story. Wear any hat, whatever your calling.</p></div>
+                <div className="di-wardrobe-heading"><h3>Your hats</h3><p>Wear any hat, whatever your calling.</p></div>
                 <button className="di-bare-head" type="button" aria-pressed={draft.equipment.hat === null} onClick={() => setDraft({ ...draft, equipment: { hat: null } })}>No hat {draft.equipment.hat === null ? <Check size={17} /> : <span>Unequip</span>}</button>
                 <div className="di-hat-grid">{hats.map(hat => {
                   const unlocked = ownsHat(hat, character.inventory, collection);
