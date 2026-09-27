@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "created": "2026-09-27",
+  "method": "Vector adaptation of existing outlined logo; no new image generation",
+  "printful": {
+    "storeId": 18815493,
+    "productId": 475656463,
+    "fileId": 1074746942,
+    "catalogProductId": 586,
+    "technique": "embroidery",
+    "placement": "left chest",
+    "widthInches": 4,
+    "heightInches": 2.9,
+    "digitized": false
+  },
+  "files": [
+    {
+      "path": "design/brand/drop-inn-embroidery-v1/drop-inn-embroidery.svg",
+      "sha256": "94f59857189281446a51ceab5255a04cfa64be63d179eb848c2ff534a0bf9357"
+    },
+    {
+      "path": "design/brand/drop-inn-embroidery-v1/drop-inn-embroidery-4in-300ppi.png",
+      "sha256": "514685a9f3e73e9a42a07acd26a6e9f80a09171a32138b8519562fe80ac0fef3"
+    },
+    {
+      "path": "design/brand/drop-inn-logo-v1/source/lettering-paths.json",
+      "sha256": "644b27077fd3dd75e65c943950b3845eed6603b53f9f438d0ddd8e8dba28524d"
+    },
+    {
+      "path": "design/brand/drop-inn-embroidery-v1/mockups/unisex-garment-dyed-heavyweight-t-shirt-black-back-6ab96d6509f9c.png",
+      "sha256": "e62941624f07f1e3eb661b4c0b3b1fee1c144fccd8e43196cfcb5b3d233d80c2"
+    },
+    {
+      "path": "design/brand/drop-inn-embroidery-v1/mockups/unisex-garment-dyed-heavyweight-t-shirt-black-front-6ab96d6509ce6.png",
+      "sha256": "392b55ff734177d47d057608d90cada284a35644d158b96f408c673ddc558f5e"
+    },
+    {
+      "path": "design/brand/drop-inn-embroidery-v1/mockups/unisex-garment-dyed-heavyweight-t-shirt-black-front-6ab96d650a103.png",
+      "sha256": "90b55187b356309851e15ac8d8f9579e97c8dc3f3d6b590865e21e821c09c87b"
+    }
+  ]
+}

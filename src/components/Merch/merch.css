@@ -13,6 +13,11 @@
 .merch-intro h1 em { color:#52623c; }
 .merch-intro>p:last-child { color:#526052; font-size:16px; }
 .merch-product { display:grid; grid-template-columns:1.12fr 1fr; gap:clamp(28px,5vw,68px); align-items:start; }
+.merch-editions { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin:-15px 0 36px; }
+.merch-editions a { display:inline-flex; align-items:center; gap:12px; min-height:44px; padding:8px 16px; border:1px solid #b4b69a; border-radius:24px; background:#fffaf0; font-size:13px; }
+.merch-editions a:hover { background:#e8e5cc; }
+.merch-product { scroll-margin-top:24px; }
+.merch-product+.merch-product { margin-top:60px; padding-top:52px; border-top:1px solid #b4b69a; }
 .merch-gallery { min-width:0; }
 .merch-photo { position:relative; background:#fffdf7; border:2px solid #26322c; border-radius:44% 44% 8px 8px / 12% 12% 8px 8px; box-shadow:5px 6px 0 #d7ceb2; overflow:hidden; }
 .merch-photo>img { display:block; width:100%; height:auto; aspect-ratio:1; object-fit:contain; padding:20px 8px 8px; }
