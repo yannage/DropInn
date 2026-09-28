@@ -6,6 +6,17 @@ import { HeroAvatar } from './HeroAvatar';
 import { TargetArtwork } from './TargetArtwork';
 import './focused-action.css';
 
+// Reuse the human-scaled mechanical description so a compact card never
+// advertises solo progress at a multiplayer table.
+function compactApproachDetail(detail: string) {
+  return detail.split(' · ').filter(part => part !== 'no cover' && part !== 'no next-turn bonus' && part !== 'no progress')
+    .map(part => part.replace('blocks ', 'Win: block ').replace(' on a win', '')
+      .replace('ease danger by ', 'Danger −').replace('good release heals ', 'Good release: ')
+      .replace(' opening next turn', ' rolls next round').replace(' insight next turn', ' rolls next round'));
+}
+
+const compactAttackName: Record<string, string> = { quick: 'Quick', heavy: 'Heavy', guarded: 'Guarded' };
+
 export function FocusedActionStage({ room, action, actor, modifier, result }: {
   room: AdventureRoom; action: PlayerAction; actor: Seat; modifier: number; result?: StoryEvent;
 }) {
@@ -44,9 +55,11 @@ export function FocusedActionChoices({ room, action, locked, backLocked = locked
   return <div className="di-focus-choices">
     <button className="di-focus-back" disabled={backLocked} onClick={onBack} aria-label="Back to scene"><ArrowLeft size={16} /><span>Scene</span></button>
     <div role="group" aria-label="Choose an approach">
-      {canProtect && <button disabled={locked} aria-pressed={!action.approach} onClick={() => onChange({ ...action, approach: undefined })}><strong>Protect</strong><span>Block 2 · great release blocks 3</span></button>}
+      {canProtect && <button disabled={locked} aria-pressed={!action.approach} onClick={() => onChange({ ...action, approach: undefined })}><strong>Protect</strong><span className="di-approach-detail">Block 2 · great release blocks 3</span><span className="di-approach-compact"><span>Block 2</span><span>Good release: 3</span></span></button>}
       {options.map(option => <button key={option.id} aria-label={`${option.label}: ${approachDetail(room, option)}`} disabled={locked || (option.id === 'mend' && (!ally || ally.leaving || ally.hp >= ally.character.maxHp))} aria-pressed={action.approach === option.id} onClick={() => onChange({ ...action, approach: option.id })}>
-        <strong>{option.label}</strong><span>{approachDetail(room, option)}</span>
+        <strong><span className="di-approach-name">{option.label}</span><span className="di-approach-short" aria-hidden="true">{compactAttackName[option.id] ?? option.label}</span></strong>
+        <span className="di-approach-detail">{approachDetail(room, option)}</span>
+        <span className="di-approach-compact" aria-hidden="true">{compactApproachDetail(approachDetail(room, option)).map(part => <span key={part}>{part}</span>)}</span>
       </button>)}
     </div>
   </div>;

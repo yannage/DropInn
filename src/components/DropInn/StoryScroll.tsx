@@ -54,11 +54,15 @@ export function StoryScroll({ room, userId, mode, onMode, suspended, locked, sec
       const button = trigger.current; if (!button) return;
       const header = button.closest('header')!.getBoundingClientRect();
       const dock = document.querySelector('.di-scene-dock')?.getBoundingClientRect();
+      const toolbar = document.querySelector('.di-scene-tools')?.getBoundingClientRect();
       const width = window.innerWidth, height = window.innerHeight;
       const full = mode === 'full';
-      const w = full ? Math.min(720,width-16) : width < 760 ? width-16 : Math.min(440,Math.max(320,width*.35));
+      const besideScene = dock && dock.left > header.left + header.width * .4 && dock.top <= header.bottom + 8;
+      const availableWidth = besideScene ? dock.left - header.left - 16 : width - 16;
+      const availableBottom = besideScene ? toolbar?.top ?? height : dock?.top ?? height;
+      const w = full ? Math.min(720,width-16) : Math.min(availableWidth, width < 760 ? width-16 : Math.min(440,Math.max(320,width*.35)));
       const top = full ? 8 : header.bottom+4;
-      setBounds({left:full ? (width-w)/2 : Math.max(8,header.left+8),top,width:w,height:full ? height-16 : Math.max(100,Math.min(width<760 ? height*.28 : height*.65,(dock?.top ?? height)-top-8))});
+      setBounds({left:full ? (width-w)/2 : Math.max(8,header.left+8),top,width:w,height:full ? height-16 : Math.max(100,Math.min(width<760 ? height*.28 : height*.65,availableBottom-top-8))});
     };
     update(); window.addEventListener('resize',update);
     const observer = new ResizeObserver(update); const main = trigger.current?.closest('main'); if(main) observer.observe(main);

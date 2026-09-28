@@ -11,7 +11,8 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 - [x] Put the game explanation, round loop, ready hero and one story-specific Play action at the entrance. Move story selection and friend admission into named dialogs; keep deeper options below.
 - [x] Make target inspection the default path, with contextual authored moves, persistent state guidance, a visible shared goal and hold/release as the primary commitment. Retain **Show tokens** and accessible alternatives.
 - [x] Add browser-local, dismissible/replayable first-move teaching and recorded personal consequences. Preserve server rules, deadlines, reward contracts and authored story content.
-- [x] Verify this working-tree version with 85 focused tests, production build, and local scene, mobile, adventure and collection browser suites. See [current clarity evidence](docs/player-clarity.md#local-verification).
+- [x] Verify the initial onboarding pass with 85 focused tests, production build, and local scene, mobile, adventure and collection browser suites. See [initial clarity evidence](docs/player-clarity.md#local-verification).
+- [x] Improve scene/encounter readability, visible approach tradeoffs, landscape controls, recorded contribution feedback, fixed readiness and remembered story selection. The responsive follow-up passed 82 focused tests, production build, 96 scene checks, and local mobile/adventure suites. See [responsive verification](docs/player-clarity.md#responsive-pass-verification).
 - [ ] Run the [uncoached player checks](docs/player-clarity.md) with newcomers, returning players and mid-round arrivals. Automated layout checks do not establish comprehension.
 - [ ] Verify this version after a separately authorized hosted rollout and on physical phones; these have not been completed by the clarity pass.
 

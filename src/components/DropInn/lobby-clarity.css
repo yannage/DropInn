@@ -39,6 +39,11 @@
   line-height: 1.5;
 }
 
+.di-lobby-story-hook {
+  color: #3e6233;
+  font-weight: 600;
+}
+
 .di-lobby-intro-art {
   min-width: 0;
   overflow: hidden;

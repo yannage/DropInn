@@ -11,6 +11,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Default entry and legacy switch | `src/App.tsx` |
 | Discovery, hero builder, chat and recaps | `src/components/DropInn/DropInn.tsx` |
 | Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |
+| Compact scene cards, landscape dock and focused encounter layout | `src/components/DropInn/responsive-table.css`, `encounter-focus.css` |
 | Landing clarity, turn guidance and first-move teaching | `src/components/DropInn/lobby-clarity.css`, `src/lib/dropinn/playerGuidance.ts`, [clarity and uncoached checks](docs/player-clarity.md) |
 | Focused attacks, token approaches and opposed dice | `src/components/DropInn/FocusedAction.tsx`, `src/lib/dropinn/approaches.ts`, [mechanics and verification](docs/focused-actions.md) |
 | Inspect-first context, party recap and last-round journal | `src/lib/dropinn/roundSummary.ts`, `src/components/DropInn/RoundRecap.tsx`, [shared story presentation](docs/shared-round-story.md) |

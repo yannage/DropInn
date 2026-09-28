@@ -148,14 +148,23 @@ async function playToChapter(a, identities, chapter) {
   throw new Error(`Could not reach chapter ${chapter}`);
 }
 async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }, { width: 414, height: 770 }, { width: 390, height: 780 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1280, height: 900 }, ...(['river','battle-focus'].includes(label) ? [{ width: 740, height: 360 }] : []), ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }, { width: 414, height: 770 }, { width: 390, height: 780 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Finish finite visual transitions before measuring the same settled layout
+    // captured below; viewport changes can otherwise catch a translated target.
+    await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png`, animations:'disabled' });
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
-      regions: Object.fromEntries(['.di-scene-tools', '.di-focus-stage', '.di-focus-heading', '.di-focus-player', '.di-focus-opponent', '.di-focus-stakes', '.di-focus-control'].map(selector => [selector, document.querySelector(selector)?.getBoundingClientRect().toJSON()])),
-      targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height, top: r.top, bottom: r.bottom }; }),
+      regions: Object.fromEntries(['.di-scene-tools', '.di-scene-stage', '.di-focus-stage', '.di-focus-heading', '.di-focus-player', '.di-focus-opponent', '.di-focus-stakes', '.di-focus-choices', '.di-scene-selection', '.di-focus-control', '.di-round-advance', '.di-reveal-content'].map(selector => [selector, document.querySelector(selector)?.getBoundingClientRect().toJSON()])),
+      targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { id: node.getAttribute('data-scene-target'), kind: node.getAttribute('data-target-kind'), width: r.width, height: r.height, top: r.top, bottom: r.bottom, left: r.left, right: r.right }; }),
+      targetArt: [...document.querySelectorAll('.di-stage-targets .di-target-art')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
+      choiceBottom: Math.max(0, ...[...document.querySelectorAll('.di-focus-choices button')].map(node => node.getBoundingClientRect().bottom)),
+      selectionBottom: Math.max(0, ...[...document.querySelectorAll('.di-scene-selection>div>*')].map(node => node.getBoundingClientRect().bottom)),
       buttons: [...document.querySelectorAll('.di-theater button:not(:disabled)')].map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, width: r.width, height: r.height }; }) }));
     assert.ok(result.scrollHeight <= result.height + 1 && result.scrollWidth <= result.width, `${label} document overflow ${JSON.stringify(result)}`);
-    assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height), 'scene/hero target hit area');
+    assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height && target.left >= 0 && target.right <= result.width + 1), `${label}: scene/hero targets keep their full hit area inside the viewport ${JSON.stringify(result.targets)}`);
+    assert.ok(result.targets.every(target => target.bottom <= result.regions['.di-scene-stage'].bottom + 1), `${label}: scene targets stay above the dock`);
+    if (viewport.width === 320 && result.targetArt.length) assert.ok(result.targetArt.every(art => art.height >= 36), `${label}: target artwork stays recognizable on the small phone ${JSON.stringify(result.targetArt)}`);
     assert.ok(result.regions['.di-scene-tools'].bottom <= result.height + 1, `${label}/${viewport.width}: footer clipped by the app shell ${JSON.stringify(result.regions)}`);
     const stage = result.regions['.di-focus-stage'];
     if (stage) {
@@ -166,9 +175,56 @@ async function layout(page, label) {
       assert.ok(player.right <= opponent.left + 1, `${label}: hero stats overlap the opponent`);
       assert.ok(Math.max(player.bottom, opponent.bottom) <= stakes.top + 1 && stakes.bottom <= stage.bottom + 1, `${label}: threat message clipped or overlaps actors`);
       assert.ok(result.regions['.di-focus-control'].bottom <= result.regions['.di-scene-tools'].top + 1, `${label}: release controls overlap toolbar`);
+      const selection = result.regions['.di-scene-selection'], choices = result.regions['.di-focus-choices'], control = result.regions['.di-focus-control'];
+      assert.ok(Math.max(choices.bottom, result.choiceBottom) <= selection.top + 1, `${label}/${viewport.width}: approach cards overlap the selected move ${JSON.stringify({ choices, choiceBottom: result.choiceBottom, selection })}`);
+      assert.ok(Math.max(selection.bottom, result.selectionBottom) <= control.top + 1, `${label}/${viewport.width}: selected move overlaps the release control ${JSON.stringify({ selection, selectionBottom: result.selectionBottom, control })}`);
+      const comparisons = await page.getByRole('group', { name: 'Choose an approach' }).getByRole('button').evaluateAll(nodes => nodes.map(button => {
+        const buttonBounds = button.getBoundingClientRect();
+        const visible = [...button.querySelectorAll(':scope > span')].filter(node => {
+          const bounds = node.getBoundingClientRect();
+          return bounds.width >= 20 && bounds.height >= 9 && bounds.top >= buttonBounds.top - 1 && bounds.bottom <= buttonBounds.bottom + 1 && getComputedStyle(node).visibility !== 'hidden';
+        });
+        return { name: button.getAttribute('aria-label') || button.textContent, details: visible.map(node => node.textContent) };
+      }));
+      assert.ok(comparisons.length > 0 && comparisons.every(item => item.details.some(text => text?.trim())), `${label}/${viewport.width}: approach tradeoffs remain visible ${JSON.stringify(comparisons)}`);
     }
-    await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png`, animations:'disabled' });
+    const advance = result.regions['.di-round-advance'];
+    if (advance) {
+      assert.ok(advance.top >= 0 && advance.bottom <= result.regions['.di-scene-tools'].top + 1, `${label}: readiness control stays in view`);
+      assert.equal(await page.locator('.di-reveal-content .di-round-advance').count(), 0, 'Readiness is outside scrolling results');
+      const reading = page.locator('.di-reveal-content');
+      await reading.evaluate(node => { node.scrollTop = node.scrollHeight; });
+      const scrolled = await page.locator('.di-round-advance').boundingBox();
+      assert.ok(Math.abs(scrolled.y - advance.top) <= 1, 'Reading results does not move the next-round control');
+      await reading.evaluate(node => { node.scrollTop = 0; });
+    }
     note(`layout-${label}-${viewport.width}`, result);
+    if (label === 'river' && viewport.width === 844) {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      const story = page.getByRole('button', { name: 'Story', exact: true });
+      try {
+        await story.click();
+        await page.waitForFunction(() => {
+          const panel = document.querySelector('#adventure-story-scroll.is-compact');
+          return panel && getComputedStyle(panel).opacity === '1' && panel.getBoundingClientRect().height > 120;
+        });
+        const compact = await page.locator('#adventure-story-scroll').boundingBox();
+        const dock = await page.locator('.di-scene-dock').boundingBox();
+        assert.ok(compact.height > 120 && compact.x >= 0 && compact.x + compact.width <= dock.x + 1 && compact.y + compact.height <= result.regions['.di-scene-tools'].top + 1, 'Landscape compact story stays readable beside the action dock');
+        assert.ok(await page.locator('.di-scroll-reading').evaluate(node => node.clientHeight >= 44), 'Landscape story contains visible reading space');
+        await page.screenshot({ path: 'output/playwright/integration-landscape-story-compact.png', animations: 'disabled' });
+        await page.getByRole('button', { name: 'Expand story', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('#adventure-story-scroll.is-full')?.getBoundingClientRect().height >= innerHeight - 17);
+        const full = await page.getByRole('dialog', { name: 'Story & journal', exact: true }).boundingBox();
+        assert.ok(full.x >= 0 && full.y >= 0 && full.x + full.width <= viewport.width && full.y + full.height <= viewport.height, 'Landscape full story fits the viewport');
+        await page.screenshot({ path: 'output/playwright/integration-landscape-story-full.png', animations: 'disabled' });
+        await page.keyboard.press('Escape');
+        await page.keyboard.press('Escape');
+        assert.equal(await story.getAttribute('aria-expanded'), 'false');
+        assert.equal(await story.evaluate(node => node === document.activeElement), true);
+        note('landscape-story-compact-full-and-focus-return');
+      } finally { await page.emulateMedia({ reducedMotion: 'no-preference' }); }
+    }
   }
 }
 try {
@@ -256,6 +312,8 @@ try {
   await a.locator('.di-round-sequence .di-round-recap').waitFor();
   await a.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
   const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
+  assert.ok(!(await a.locator('.di-your-consequence').textContent()).includes(actualResult.text), 'The personal payoff does not repeat the complete party action sentence');
+  assert.equal(await a.locator('.di-your-consequence .di-payoff-benefits').count(), 1, 'The personal payoff foregrounds recorded effects');
   assert.ok((await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
   assert.match(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent(), /progress/);
   assert.equal(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap [data-kind=action]').count(), 2);
@@ -425,6 +483,7 @@ try {
   await a.getByRole('button', { name: /Heavy Blow/ }).click();
   faults.loseAResponses = 2;
   await a.setViewportSize({ width: 414, height: 770 });
+  await a.screenshot({ path: 'output/playwright/mobile-before-checking-receipt-414.png', animations: 'disabled' });
   const choosingStage = await a.locator('.di-focus-stage').boundingBox();
   let resumeAct;
   faults.pauseAAct = new Promise(resolve => { resumeAct = resolve; });
@@ -439,7 +498,7 @@ try {
     assert.doesNotMatch(await a.locator('.di-scene-selection').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
     const pendingStage = await a.locator('.di-focus-stage').boundingBox();
     const pendingHero = await a.locator('.di-focus-player>.di-avatar').boundingBox();
-    assert.ok(Math.abs(pendingStage.height - choosingStage.height) <= 1, 'Receipt checking keeps the encounter height stable');
+    assert.ok(Math.abs(pendingStage.height - choosingStage.height) <= 1, `Receipt checking keeps the encounter height stable: ${JSON.stringify({ choosingStage, pendingStage })}`);
     assert.ok(pendingHero.width >= 44 && pendingHero.height >= 44, 'Hero remains visible while checking receipt');
     await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
     note('pending-receipt-stable-scene-and-visible-hero');
@@ -725,15 +784,20 @@ try {
   for(const page of four) { await select(page,'assist',skipTarget.id); await skip(page); }
   await syncAll();
   assert.equal((await state(four[0])).room.phase,'reveal');
+  const revealRoom = (await state(four[0])).room;
+  const nextLabel = revealRoom.outcomes.some(outcome => outcome.chapter === revealRoom.chapter) ? 'Next chapter' : 'Next round';
+  await four[0].getByRole('button',{name:nextLabel,exact:true}).waitFor();
   await four[3].waitForFunction(async()=>{const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState();return s.room?.revealSkips?.includes(s.userId);});
   assert.equal((await state(four[3])).room.revealSkips.length,1,'setting off sends one automatic skip vote');
-  await four[0].getByRole('button',{name:'Skip result sequence',exact:true}).click();
+  await four[0].getByRole('button',{name:/^Next (round|chapter)$/}).click();
   await syncAll();
   assert.equal((await state(four[0])).room.phase,'reveal','one player cannot advance the whole table');
   assert.equal((await state(four[0])).room.revealSkips.length,2);
   assert.equal(await four[0].locator('.di-round-sequence').getAttribute('data-beat'),'full');
-  await four[1].getByRole('button',{name:'Skip result sequence',exact:true}).click();
-  await four[2].getByRole('button',{name:'Skip result sequence',exact:true}).click();
+  assert.equal(await four[0].getByRole('button',{name:/^Ready for the next (round|chapter)$/}).isDisabled(),true,'The accepted readiness vote stays visible');
+  assert.match(await four[0].locator('.di-round-advance-copy').textContent(), /Waiting for the party or timer/);
+  await four[1].getByRole('button',{name:/^Next (round|chapter)$/}).click();
+  await four[2].getByRole('button',{name:/^Next (round|chapter)$/}).click();
   await syncAll();
   for(const page of four) assert.equal((await state(page)).room.phase,'choosing');
   note('four-player-unanimous-skip-and-persistent-auto-skip-setting');

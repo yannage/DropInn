@@ -21,7 +21,7 @@ describe('player guidance follows the authoritative turn', () => {
     expect(guide(room, { inspectedId: 'tracks' })).toMatchObject({ state: 'inspecting', activeStep: 'move' });
     expect(guide(room, { selection: action })).toMatchObject({ state: 'prepared', activeStep: 'commit' });
     expect(guide(room, { selection: action }).title).toBe('Hold and release to commit');
-    expect(guide(room, { selection: action }).detail).toBe('Your move is ready. Release the die to send it; good timing adds a bonus.');
+    expect(guide(room, { selection: action }).detail).toBe('Release sends your move. The bright zone adds +1.');
     expect(guide(room, { selection: action, holding: true }).state).toBe('holding');
     expect(room.commits).toEqual({});
   });

@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { latestRound, roundCallouts } from '../../lib/dropinn/roundSummary';
-import { RoundRecap } from './RoundRecap';
+import { ResultBenefits, RoundRecap } from './RoundRecap';
 import { ChapterReward } from './ChapterReward';
-import { RoundSequence } from './RoundSequence';
+import { RoundAdvanceControl, RoundSequence } from './RoundSequence';
 import { InspectionBubble } from './InspectionBubble';
 import { Narrator } from './Narrator';
 import { StoryScroll, type StoryScrollMode } from './StoryScroll';
@@ -35,6 +35,8 @@ import './game-feel.css';
 import './shared-story.css';
 import './tabletop-art.css';
 import './player-guidance.css';
+import './encounter-focus.css';
+import './responsive-table.css';
 
 const TOKENS: { kind: IllustratedToken; label: string }[] = [
   { kind: 'fight', label: 'Fight' }, { kind: 'influence', label: 'Influence' },
@@ -347,10 +349,11 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
           <button aria-label="Action details and help" disabled={!!drag} onClick={() => setDrawer('details')}><Info size={20} /></button>
         </div></div>
         {coachVisible && <div className="di-first-move-guide"><ol aria-label="Your move, step by step">{[['target', 'Explore'], ['move', 'Choose'], ['commit', 'Release'], ['results', 'Results']].map(([step, label], index) => <li key={step} aria-current={guidance.activeStep === step ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol><button aria-label="Dismiss first-move guide" onClick={() => setGuide({ enabled: false })}><X size={16} /></button></div>}
+        {room.phase === 'reveal' && lastRound && <RoundAdvanceControl bypass={revealBypassed} skipped={skipVoted} skipping={skippingReveal} canVote={canSkipReveal} skipCount={revealVoters.filter(seat => room.revealSkips?.includes(seat.actorId)).length} playerCount={revealVoters.length} nextStep={room.status === 'completed' ? null : room.outcomes.some(outcome => outcome.chapter === room.chapter) ? 'chapter' : 'round'} onSkip={skipRound} />}
       </div>
       {room.phase === 'reveal' && lastRound ? <div className="di-reveal-content" tabIndex={0} role="region" aria-label="Round results">
-        {ownConsequence && <div className="di-your-consequence"><strong>Your move</strong><p>{ownConsequence.text}</p>{ownConsequence.consequence && ownConsequence.consequence !== ownConsequence.text && <span>{ownConsequence.consequence}</span>}</div>}
-        <RoundSequence summary={lastRound} now={now} bypass={revealBypassed} skipped={skipVoted} skipping={skippingReveal} canVote={canSkipReveal} skipCount={revealVoters.filter(seat => room.revealSkips?.includes(seat.actorId)).length} playerCount={revealVoters.length} onSkip={skipRound}/>{room.outcomes.some(outcome => outcome.chapter === room.chapter) && <ChapterReward room={room}/>}</div> : <>
+        {ownConsequence && <div className="di-your-consequence"><strong>Your contribution</strong>{ownConsequence.benefits.length > 0 ? <ResultBenefits benefits={ownConsequence.benefits} /> : <p>{ownConsequence.text}</p>}{ownConsequence.consequence && ownConsequence.consequence !== ownConsequence.text && ownConsequence.consequence !== ownConsequence.benefits.join(' · ') && <span>{ownConsequence.consequence}</span>}</div>}
+        <RoundSequence summary={lastRound} now={now} bypass={revealBypassed} skipped={skipVoted} skipping={skippingReveal} canVote={canSkipReveal} skipCount={revealVoters.filter(seat => room.revealSkips?.includes(seat.actorId)).length} playerCount={revealVoters.length} onSkip={skipRound} showAdvance={false}/>{room.outcomes.some(outcome => outcome.chapter === room.chapter) && <ChapterReward room={room}/>}</div> : <>
       {inspected && <div className="di-inspection-context"><div><strong>{inspected.name}</strong><p>{inspected.context ?? inspected.description}</p></div><button aria-label="Close inspection" onClick={() => dismissInspection(true)}><X size={18}/></button></div>}
       {inspectedHero && <div className="di-inspection-context"><div><strong>{inspectedHero.character.name}</strong><p>{intent?.targetActorId === inspectedHero.actorId ? `Faces ${intent.baseDamage} damage this round. Protect them or tend their wounds.` : `${inspectedHero.hp} / ${inspectedHero.character.maxHp} HP. Help them recover.`}</p></div><button aria-label="Close inspection" onClick={() => dismissInspection(true)}><X size={18}/></button></div>}
       {inspectedHero ? <div className="di-context-moves" role="group" aria-label="Moves for this hero">

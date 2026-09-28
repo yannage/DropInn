@@ -87,7 +87,7 @@ export function derivePlayerGuidance(input: PlayerGuidanceInput): PlayerGuidance
     : 'Your move is committed. Waiting for the party’s results.', 'wait');
   if (now >= room.deadline) return guidance('expired', 'Time to resolve', 'Choosing has ended. Waiting for the party’s results.', 'wait');
   if (holding) return guidance('holding', 'Finish your release', 'The bright zone adds a bonus. Missing it keeps your ordinary move.', 'commit');
-  if (selection) return guidance('prepared', 'Hold and release to commit', 'Your move is ready. Release the die to send it; good timing adds a bonus.', 'commit');
+  if (selection) return guidance('prepared', 'Hold and release to commit', 'Release sends your move. The bright zone adds +1.', 'commit');
   const scene = getScene(room);
   const inspected = scene.targets.find(target => target.id === inspectedId);
   if (inspected) return guidance('inspecting', 'Choose how to help', 'Choose a move below. Release the die to send it.', 'move');

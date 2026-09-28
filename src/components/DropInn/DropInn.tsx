@@ -41,7 +41,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
-import { ADVENTURES, chaptersFor } from '../../lib/dropinn/registry';
+import { ADVENTURES, DEFAULT_ADVENTURE, chaptersFor } from '../../lib/dropinn/registry';
 import {
   CHARACTER_CLASS_PRESETS,
   heroAccent,
@@ -480,6 +480,15 @@ export function DropInn() {
   );
 }
 
+const lobbyStoryKey = 'dropinn:lobby-story:v1';
+function initialLobbyStory(): string {
+  try {
+    const saved = localStorage.getItem(lobbyStoryKey);
+    if (saved && ADVENTURES.some(adventure => adventure.id === saved)) return saved;
+  } catch { /* A browser preference must never prevent entering an adventure. */ }
+  return DEFAULT_ADVENTURE;
+}
+
 function Lobby() {
   const {
     character,
@@ -498,12 +507,16 @@ function Lobby() {
   const [code, setCode] = useState('');
   const openHero = useCustomizeHero();
   const [preparing, setPreparing] = useState(false);
-  const [adventureId, setAdventureId] = useState('briar-glen');
+  const [adventureId, setAdventureId] = useState(initialLobbyStory);
   const [storyChooser, setStoryChooser] = useState(false);
   const [friends, setFriends] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const [journal, setJournal] = useState(false);
   const adventure = ADVENTURES.find(item => item.id === adventureId) ?? ADVENTURES[0];
+  useEffect(() => {
+    try { localStorage.setItem(lobbyStoryKey, adventure.id); }
+    catch { /* Story selection still works when browser storage is unavailable. */ }
+  }, [adventure.id]);
   const unseen = (visit: VisitRecap) => Math.max(0, visit.outcomes.length - (seenOutcomes[`${visit.code}:${visit.characterId}`] ?? 0));
   const recentVisits = [...recaps].sort((a, b) => Number(unseen(b) > 0) - Number(unseen(a) > 0));
   const liveRooms = rooms.filter(item => item.status !== 'completed' && item.openSeats > 0);
@@ -517,7 +530,7 @@ function Lobby() {
         <div className="di-lobby-intro">
           <div className="di-lobby-intro-copy">
             <h1>A short adventure.<br /><em>Together.</em></h1>
-            <p className="di-lobby-explanation">Play a fantasy story together. Choose how your hero helps each round and work toward the party’s goal.</p>
+            <p className="di-lobby-explanation">Play a fantasy story together. <span className="di-lobby-story-hook">{adventure.pitch}</span></p>
             <ol className="di-lobby-loop" aria-label="Each round">
               <li><b>1</b><span>Pick a target</span></li>
               <li><b>2</b><span>Choose a move</span></li>
