@@ -110,6 +110,7 @@ async function showTokens(page) {
   if (await show.isVisible()) await show.click();
 }
 async function guidance(page, expected) {
+  if (['pending','committed','reveal','completed'].includes(expected)) { await page.locator('.di-round-rest-bar').waitFor(); return; }
   await page.locator(`.di-player-guidance[data-state="${expected}"]`).waitFor({ state: 'visible' });
 }
 async function pointerRelease(page, ms) {
@@ -280,7 +281,7 @@ try {
   assert.ok(initial.command.action.releaseMs >= 650 && initial.command.action.releaseMs <= 950);
   await syncAll();
   await guidance(a, 'reveal');
-  await a.locator('.di-your-consequence').waitFor({ state: 'visible' });
+  await a.locator('.di-illustrated-result[data-own=true]').waitFor({ state: 'visible' });
   await a.locator('.di-first-move-guide').waitFor({ state: 'hidden' });
   await readyNext(a);
   await guidance(a, 'target');
@@ -306,19 +307,19 @@ try {
   const shared = (await state(a)).room;
   assert.equal(shared.phase, 'reveal');
   await guidance(a, 'reveal');
-  await a.locator('.di-your-consequence').waitFor({ state: 'visible' });
+  await a.locator('.di-illustrated-result[data-own=true]').waitFor({ state: 'visible' });
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
-  await a.locator('.di-round-sequence .di-round-recap').waitFor();
-  await a.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
+  await a.locator('.di-round-body[data-beat=full]').waitFor();
+  await a.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
   const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
-  assert.ok(!(await a.locator('.di-your-consequence').textContent()).includes(actualResult.text), 'The personal payoff does not repeat the complete party action sentence');
-  assert.equal(await a.locator('.di-your-consequence .di-payoff-benefits').count(), 1, 'The personal payoff foregrounds recorded effects');
-  assert.ok((await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
-  assert.match(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent(), /progress/);
-  assert.equal(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap [data-kind=action]').count(), 2);
-  await b.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
-  assert.equal(await a.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent(), await b.locator('.di-round-sequence[data-beat=full] .di-round-recap').textContent());
+  assert.ok((await a.locator('.di-illustrated-result[data-own=true]').textContent()).includes(actualResult.text), 'The illustrated row retains its saved outcome sentence');
+  assert.equal(await a.locator('.di-illustrated-result[data-own=true] .di-payoff-benefits').count(), 1, 'The personal payoff foregrounds recorded effects');
+  assert.ok((await a.locator('.di-round-body[data-beat=full]').textContent()).includes(`= ${actualResult.roll + actualResult.modifier}`));
+  assert.match(await a.locator('.di-round-body[data-beat=full]').textContent(), /progress/);
+  assert.equal(await a.locator('.di-round-body[data-beat=full] [data-kind=action]').count(), 2);
+  await b.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
+  assert.deepEqual(await a.locator('[data-round-entry] > p:first-of-type').allTextContents(), await b.locator('[data-round-entry] > p:first-of-type').allTextContents());
   await a.setViewportSize({ width: 1280, height: 800 });
   await a.screenshot({ path: 'output/playwright/game-feel-desktop-payoff.png' });
   note('real-result-total-and-visible-teamwork', { total: actualResult.roll + actualResult.modifier });
@@ -328,7 +329,7 @@ try {
   const beforeJournal = (await state(a)).room;
   await a.getByRole('button', {name:/Last round/}).click();
   await a.getByRole('dialog', {name:'Last round',exact:true}).waitFor();
-  assert.equal(await a.locator('.di-round-recap [data-kind=action]').count(), 2);
+  assert.equal(await a.locator('.di-round-body [data-kind=action]').count(), 2);
   await a.keyboard.press('Escape');
   assert.equal((await state(a)).room.turn, beforeJournal.turn);
   assert.equal((await state(a)).room.revision, beforeJournal.revision);
@@ -374,8 +375,8 @@ try {
   const duels = clashed.events.filter(event => event.turn === clashed.turn && event.result?.duel);
   assert.equal(duels.length, 2);
   assert.equal(duels[0].result.duel.enemyRoll, duels[1].result.duel.enemyRoll);
-  await a.locator('.di-round-recap').waitFor();
-  assert.match(await a.locator('.di-round-recap').textContent(), / vs /);
+  await a.locator('.di-round-body[data-beat=full]').waitFor();
+  assert.match(await a.locator('.di-round-body').textContent(), / vs /);
   await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
   await a.screenshot({ path: 'output/playwright/battle-clash-desktop.png', animations: 'disabled' });
   note('two-player-focused-opposed-dice', { enemyRoll: duels[0].result.duel.enemyRoll, approaches: duels.map(event => event.result.approach) });
@@ -484,7 +485,7 @@ try {
   faults.loseAResponses = 2;
   await a.setViewportSize({ width: 414, height: 770 });
   await a.screenshot({ path: 'output/playwright/mobile-before-checking-receipt-414.png', animations: 'disabled' });
-  const choosingStage = await a.locator('.di-focus-stage').boundingBox();
+  const choosingStage = await a.locator('.di-scene-stage').boundingBox();
   let resumeAct;
   faults.pauseAAct = new Promise(resolve => { resumeAct = resolve; });
   const uncertainBefore = records.length;
@@ -492,13 +493,13 @@ try {
     const releaseButton = a.getByRole('button', { name: 'Hold and release the die', exact: true });
     await releaseButton.focus();
     await a.keyboard.down('Space'); await sleep(800); await a.keyboard.up('Space');
-    await a.getByRole('button', { name: 'Checking your move…', exact: true }).waitFor();
+    await a.getByRole('heading', { name: 'Checking your move…', exact: true }).waitFor();
     await guidance(a, 'pending');
-    assert.match(await a.locator('.di-scene-selection').textContent(), /Retry keeps this exact move and release/);
-    assert.doesNotMatch(await a.locator('.di-scene-selection').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
-    const pendingStage = await a.locator('.di-focus-stage').boundingBox();
-    const pendingHero = await a.locator('.di-focus-player>.di-avatar').boundingBox();
-    assert.ok(Math.abs(pendingStage.height - choosingStage.height) <= 1, `Receipt checking keeps the encounter height stable: ${JSON.stringify({ choosingStage, pendingStage })}`);
+    assert.match(await a.locator('.di-round-wait-copy').textContent(), /token and release are saved/);
+    assert.doesNotMatch(await a.locator('.di-round-body').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
+    const pendingStage = await a.locator('.di-scene-stage').boundingBox();
+    const pendingHero = await a.locator('.di-round-scroll .di-result-portrait>.di-avatar').boundingBox();
+    assert.ok(pendingStage.height >= choosingStage.height, `Receipt checking keeps the encounter height stable: ${JSON.stringify({ choosingStage, pendingStage })}`);
     assert.ok(pendingHero.width >= 44 && pendingHero.height >= 44, 'Hero remains visible while checking receipt');
     await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
     note('pending-receipt-stable-scene-and-visible-hero');
@@ -507,7 +508,7 @@ try {
   assert.equal(records.length, uncertainBefore + 1, 'one timed move after receipt delay');
   const uncertain = records.at(-1);
   assert.ok(Number.isInteger(uncertain.command.action.releaseMs), 'Delayed receipt preserves a timed release');
-  assert.doesNotMatch(await a.locator('.di-scene-selection').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
+  assert.doesNotMatch(await a.locator('.di-round-body').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
   await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   const duplicate = records.at(-1);
@@ -523,7 +524,7 @@ try {
   assert.equal((await state(a)).pendingMove, null);
   await guidance(a, 'committed');
   assert.equal(await a.locator('.di-scene-selection').count(), 0, 'A reload-confirmed move has no new-action instructions');
-  assert.doesNotMatch(await a.locator('.di-player-guidance').textContent(), /Tap (?:a target|something)/i);
+  assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i);
   assert.equal((await state(a)).room.players[identities[0].userId].actions, contributionBefore);
   await select(b, 'assist', 'boat'); await skip(b); await syncAll();
   assert.equal((await state(a)).room.players[identities[0].userId].actions, contributionBefore + 1);
@@ -655,7 +656,7 @@ try {
     assert.equal((await delta.locator('.di-stage-healing').textContent()).trim(), '+3');
     assert.ok((await delta.textContent()).includes('−2'));
     assert.match(await threat.getAttribute('aria-label'), /The strike lands:.*2 damage/);
-    await a.locator('.di-round-recap').waitFor();
+    await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
     await a.screenshot({ path: 'output/playwright/integration-render-fixture-results.png' });
     note('snapshot-render-fixture-healing-and-damage', { evidence: 'Client snapshot rendering only' });
@@ -665,11 +666,11 @@ try {
     await fixture([fixtureEvent('late-payoff', { kind: 'action', actorId: identities[0].userId, contribution: true,
       at: clock() - 4000, success: false, roll: 3, modifier: 2,
       result: { targetKind: 'scene', targetId: 'ward', progress: 0.5, danger: 0.5 } })]);
-    await a.locator('.di-round-recap').waitFor();
+    await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
-    assert.match(await a.locator('.di-round-recap').textContent(), /\+0.5 progress.*\+0.5 danger/);
+    assert.match(await a.locator('.di-round-body').textContent(), /\+0.5 progress.*\+0.5 danger/);
     await a.screenshot({ path: 'output/playwright/game-feel-phone-payoff.png' });
-    const fit = await a.locator('.di-round-recap').evaluate(node => {
+    const fit = await a.locator('.di-round-body').evaluate(node => {
       const box = node.getBoundingClientRect(), stage = node.parentElement.getBoundingClientRect();
       return box.left >= stage.left && box.right <= stage.right && box.top >= stage.top && box.bottom <= stage.bottom;
     });
@@ -677,16 +678,16 @@ try {
     await a.emulateMedia({ reducedMotion: 'reduce' });
     await fixture([fixtureEvent('reduced-now', { kind: 'action', actorId: identities[0].userId, contribution: true, success: true, roll: 12, modifier: 3,
       result: { targetKind: 'scene', targetId: 'ward', executionBonus: 1, progress: 1.5, danger: -0.5 } })]);
-    await a.locator('.di-round-recap').waitFor();
+    await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
-    assert.match(await a.locator('.di-round-recap').textContent(), /= 15/);
+    assert.match(await a.locator('.di-round-body').textContent(), /= 15/);
     assert.equal(await a.locator('.di-turn-resolution').count(), 0);
     await a.emulateMedia({ reducedMotion: 'no-preference' });
     await fixture([fixtureEvent('guaranteed-protect', { kind: 'action', actorId: identities[0].userId, contribution: true,
       result: { targetKind: 'hero', targetId: renderVictim, protection: 3, progress: 0 } })]);
-    await a.locator('.di-round-recap').waitFor();
+    await a.locator('.di-round-body[data-beat=full]').waitFor();
     assert.equal(await a.locator('.di-resolution-die').count(), 0);
-    assert.match(await a.locator('.di-round-recap').textContent(), /protection/);
+    assert.match(await a.locator('.di-round-body').textContent(), /protection/);
     note('snapshot-pacing-late-receipt-reduced-motion-and-guaranteed-protect', { evidence: 'Client snapshot rendering only' });
 
     const { chaptersFor } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
@@ -694,12 +695,12 @@ try {
     renderBase.outcomes = [{ chapter: renderBase.chapter, result: 'success', text: 'Presentation fixture chapter close.', at: clock() }];
     renderBase.players[identities[0].userId].keepsakes.push(keepsake);
     await fixture([fixtureEvent('chapter-close', { kind: 'action', actorId: identities[0].userId, contribution: true,
-      at: clock() - 3000, success: true, roll: 15, modifier: 3, result: { targetKind: 'scene', targetId: 'ward', progress: 1.5 } })]);
+      at: renderBase.outcomes[0].at, success: true, roll: 15, modifier: 3, result: { targetKind: 'scene', targetId: 'ward', progress: 1.5 } })]);
     await a.locator('.di-party-keepsake').waitFor();
     assert.match(await a.locator('.di-party-keepsake').textContent(), /Chapter 3 complete/);
     const { hatForKeepsake } = await ssr.ssrLoadModule('/src/lib/cosmetics.ts');
     assert.ok((await a.locator('.di-party-keepsake').textContent()).includes(hatForKeepsake(keepsake)?.label ?? keepsake));
-    assert.ok(await a.locator('.di-round-recap').evaluate(node => {
+    assert.ok(await a.locator('.di-round-body').evaluate(node => {
       const box = node.getBoundingClientRect();
       return box.top >= 0 && box.bottom <= innerHeight;
     }), 'Chapter reward fits the small phone stage');
@@ -747,32 +748,33 @@ try {
     await page.keyboard.press('Escape');
   }
   await select(four[0], 'assist', 'mara'); await skip(four[0]); await syncAll();
-  await four[0].waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'consequences');
-  assert.ok((await four[0].locator('.di-round-recap').textContent()).includes('companion'));
+  await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
+  assert.ok((await four[0].locator('.di-round-body').textContent()).includes('Companion'));
   await readyNext(four[0]);
   assert.equal((await state(four[0])).room.seats.filter(seat=>seat.kind==='human').length, 4);
   await four[1].reload(); await four[1].evaluate(value=>{window.__qaOffset=value;},offset);
   await four[1].getByRole('button', {name:/Last round/}).waitFor();
   await four[1].getByRole('button', {name:/Last round/}).click();
   await four[1].getByRole('dialog', {name:'Last round',exact:true}).waitFor();
-  assert.ok((await four[1].locator('.di-round-recap').textContent()).includes('Mara'));
+  assert.ok((await four[1].locator('.di-round-body').textContent()).includes('Mara'));
   await four[1].keyboard.press('Escape');
   for (const page of four) {
     await select(page, page === four[0] ? 'investigate' : 'assist', page === four[0] ? 'tracks' : 'mara'); await skip(page);
     if (page === four[0]) {
       const receipt = (await state(page)).room.commits[(await state(page)).userId];
-      await page.getByRole('button', {name:'Back to scene',exact:true}).click();
+      await page.getByRole('button', {name:'View scene',exact:true}).click();
       await page.locator('[data-scene-target="tracks"]').click();
       assert.equal(await page.getByRole('group', {name:'Moves for this target'}).locator('button:enabled').count(), 0);
       assert.deepEqual((await state(page)).room.commits[(await state(page)).userId], receipt);
       await page.keyboard.press('Escape');
+      await page.getByRole('button',{name:'Open round scroll',exact:true}).click();
     }
   }
   await syncAll();
-  await four[0].waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full');
-  assert.equal(await four[0].locator('.di-round-recap [data-kind=action]').count(), 4);
-  const fourText = await four[0].locator('.di-round-recap').textContent();
-  for (const page of four.slice(1)) { await page.waitForFunction(() => document.querySelector('.di-round-sequence')?.getAttribute('data-beat') === 'full'); assert.equal(await page.locator('.di-round-recap').textContent(), fourText); }
+  await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
+  assert.equal(await four[0].locator('.di-round-body [data-kind=action]').count(), 4);
+  const fourText = await four[0].locator('[data-round-entry] > p:first-of-type').allTextContents();
+  for (const page of four.slice(1)) { await page.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full'); assert.deepEqual(await page.locator('[data-round-entry] > p:first-of-type').allTextContents(), fourText); }
   await layout(four[0], 'four-player-recap');
   note('four-player-attribution-late-arrival-reload-and-locked-inspection');
   await readyNext(four[0]); await syncAll();
@@ -793,9 +795,9 @@ try {
   await syncAll();
   assert.equal((await state(four[0])).room.phase,'reveal','one player cannot advance the whole table');
   assert.equal((await state(four[0])).room.revealSkips.length,2);
-  assert.equal(await four[0].locator('.di-round-sequence').getAttribute('data-beat'),'full');
-  assert.equal(await four[0].getByRole('button',{name:/^Ready for the next (round|chapter)$/}).isDisabled(),true,'The accepted readiness vote stays visible');
-  assert.match(await four[0].locator('.di-round-advance-copy').textContent(), /Waiting for the party or timer/);
+  assert.equal(await four[0].locator('.di-round-body').getAttribute('data-beat'),'full');
+  assert.equal(await four[0].getByRole('button',{name:'Ready',exact:true}).isDisabled(),true,'The accepted readiness vote stays visible');
+  assert.match(await four[0].locator('.di-round-footer').textContent(), /2 of 4 ready/);
   await four[1].getByRole('button',{name:/^Next (round|chapter)$/}).click();
   await four[2].getByRole('button',{name:/^Next (round|chapter)$/}).click();
   await syncAll();

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageCircle, Settings2, Volume2, VolumeX, X } from 'lucide-react';
 import type { AdventureRoom } from '../../lib/dropinn/types';
 import { captionDuration, narratorCaptions, narratorCue } from '../../lib/dropinn/narrator';
@@ -14,7 +15,16 @@ function readPreference() {
   catch { return narratorPreference(null); }
 }
 
-export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room: AdventureRoom; pacedTurns: boolean; onPacedTurns: (value: boolean) => void; suppressCue: boolean }) {
+export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, portalTarget }: { room: AdventureRoom; pacedTurns: boolean; onPacedTurns: (value: boolean) => void; suppressCue: boolean; portalTarget?: HTMLElement | null }) {
+  const inline = useRef<HTMLDivElement>(null);
+  const height = useRef(44);
+  useLayoutEffect(() => {
+    if (portalTarget || !inline.current) return;
+    const node = inline.current;
+    const observer = new ResizeObserver(() => { height.current = node.getBoundingClientRect().height; });
+    height.current = node.getBoundingClientRect().height;
+    observer.observe(node); return () => observer.disconnect();
+  }, [portalTarget]);
   const [preference, setPreference] = useState(readPreference);
   const pack = useSyncExternalStore(subscribeNarratorDownload, narratorDownloadSnapshot);
   const [enabled, setEnabled] = useState(false);
@@ -144,7 +154,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
     return () => clearTimeout(timer);
   }, [cue.id, cue.text, enabled, preference.engine, preference.voice, preference.speed, visibility, replay, suppressCue]);
 
-  return <section className={`di-narrator ${preference.collapsed ? 'is-collapsed' : ''}`} aria-label="Story narrator" onKeyDown={event => { if (event.key === 'Escape' && settings) { event.stopPropagation(); closeSettings(); } }}>
+  const content = <section className={`di-narrator ${preference.collapsed ? 'is-collapsed' : ''}`} aria-label="Story narrator" onKeyDown={event => { if (event.key === 'Escape' && settings) { event.preventDefault(); event.stopPropagation(); closeSettings(); } }}>
     <div className="di-narrator-line">
       <button className="di-narrator-caption" aria-label={preference.collapsed ? 'Show narrator subtitles' : 'Collapse narrator subtitles'} aria-describedby={preference.collapsed ? undefined : 'narrator-caption-text'} aria-expanded={!preference.collapsed} onClick={() => { setPreference({ ...preference, collapsed: !preference.collapsed }); setSettings(false); }}>
         {preference.collapsed ? <><MessageCircle size={18} /><span>Narrator</span></> : <><span className="di-narrator-label">The storyteller</span><span id="narrator-caption-text" className="di-narrator-words" key={`${cue.id}:${caption}`}>{caption}</span></>}
@@ -174,4 +184,5 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue }: { room
       </>}
     </div>}
   </section>;
+  return <div className="di-narrator-slot" ref={inline} style={portalTarget ? { height: height.current } : undefined}>{portalTarget ? createPortal(content, portalTarget) : content}</div>;
 }

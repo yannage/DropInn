@@ -70,6 +70,8 @@ export async function checkStoryScroll(page) {
 }
 
 export async function watchStoryWhileWaiting(page) {
+  const round = page.getByRole('button',{name:'View scene',exact:true});
+  if (await round.isVisible()) await round.click();
   await page.getByRole('button',{name:'Story',exact:true}).click(); await settle(page);
   await page.locator('.di-scroll-reading').evaluate(node=>{node.scrollTop=0;});
   await page.waitForTimeout(30);

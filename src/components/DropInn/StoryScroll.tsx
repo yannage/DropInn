@@ -9,7 +9,7 @@ import './story-scroll.css';
 
 export type StoryScrollMode = 'collapsed' | 'compact' | 'full';
 // All modes reuse the same source pixels. Only the length of the spindle changes.
-function ScrollRoller() {
+export function ScrollRoller() {
   return <span className="di-scroll-roller" aria-hidden="true">
     {['0 0 336 240', '336 0 1350 240', '1686 0 358 240'].map(viewBox =>
       <svg key={viewBox} viewBox={viewBox} preserveAspectRatio="none" focusable="false">

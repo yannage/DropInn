@@ -113,16 +113,12 @@ try {
       assert.equal(finished.storyBranch,definition.chapters[2].branch.options[0].id);
       assert.equal(finished.outcomes.length,3);
       assert.ok(finished.outcomes[2].text.includes(definition.branchEndings[finished.storyBranch]));
-      await a.getByRole('button',{name:'Collect your recap',exact:true}).waitFor();
-      const finale = await a.locator('.di-stage-finale').boundingBox();
-      assert.ok(finale && finale.y >= 0 && finale.y + finale.height <= 568);
-      const stageBounds = await a.locator('.di-scene-stage').boundingBox();
-      for (const [label, control] of [['Finale heading', a.locator('.di-stage-finale h2')], ['Collect recap button', a.getByRole('button', { name:'Collect your recap', exact:true })]]) {
-        const bounds = await control.boundingBox();
-        assert.ok(bounds && stageBounds && bounds.y >= stageBounds.y - 1 && bounds.y + bounds.height <= stageBounds.y + stageBounds.height + 1,
-          `${label} is clipped by the stage at 320×568: ${JSON.stringify({bounds,stageBounds})}`);
-      }
+      await a.getByRole('dialog',{name:'Round story',exact:true}).getByRole('button',{name:'Collect your recap',exact:true}).waitFor();
+      const recapControl = await a.getByRole('dialog',{name:'Round story',exact:true}).getByRole('button',{name:'Collect your recap',exact:true}).boundingBox();
+      const parchment = await a.locator('.di-round-scroll').boundingBox();
+      assert.ok(recapControl && parchment && recapControl.y>=parchment.y && recapControl.y+recapControl.height<=568, 'The fixed recap control fits the phone scroll');
       await a.screenshot({path:`output/playwright/${definition.id}-finale-320.png`});
+      await a.getByRole('button',{name:'View scene',exact:true}).click();
       await a.getByRole('button',{name:'Story',exact:true}).click();
       assert.ok(await a.getByText(finished.outcomes[2].text,{exact:true}).count());
       evidence.push({ adventure:definition.id, chapters:[...captured], branch:finished.storyBranch, reconnect:reloaded, completed:true });

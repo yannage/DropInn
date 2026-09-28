@@ -1,4 +1,4 @@
-import type { AdventureRoom, StoryEvent } from './types';
+import type { AdventureRoom, StoryEvent, TokenKind } from './types';
 import { resultBenefits } from './turnPresentation';
 
 export interface RoundEntry {
@@ -12,6 +12,7 @@ export interface RoundEntry {
   math?: string;
   targetId?: string;
   targetKind?: 'scene' | 'hero';
+  token?: TokenKind;
 }
 export interface RoundSummary {
   id: string;
@@ -36,7 +37,7 @@ function entry(event: StoryEvent): RoundEntry {
     text: event.text,
     consequence: event.success !== false && event.change ? `${event.change.title}. ${event.change.next}`
       : benefits.length ? benefits.join(' · ') : event.effect ?? '',
-    benefits, math, targetId: result?.targetId, targetKind: result?.targetKind,
+    benefits, math, targetId: result?.targetId, targetKind: result?.targetKind, token: result?.token,
   };
 }
 

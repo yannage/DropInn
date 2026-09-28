@@ -13,6 +13,7 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 - [x] Add browser-local, dismissible/replayable first-move teaching and recorded personal consequences. Preserve server rules, deadlines, reward contracts and authored story content.
 - [x] Verify the initial onboarding pass with 85 focused tests, production build, and local scene, mobile, adventure and collection browser suites. See [initial clarity evidence](docs/player-clarity.md#local-verification).
 - [x] Improve scene/encounter readability, visible approach tradeoffs, landscape controls, recorded contribution feedback, fixed readiness and remembered story selection. The responsive follow-up passed 82 focused tests, production build, 96 scene checks, and local mobile/adventure suites. See [responsive verification](docs/player-clarity.md#responsive-pass-verification).
+- [x] Replace the expanding result dock with an illustrated round parchment: immediate submission/waiting state, cumulative recorded results, actor/token/target artwork, optional dice details, separate Show all/readiness, and a compact scene status. See [round scroll behavior and local checks](docs/shared-round-story.md).
 - [ ] Run the [uncoached player checks](docs/player-clarity.md) with newcomers, returning players and mid-round arrivals. Automated layout checks do not establish comprehension.
 - [ ] Verify this version after a separately authorized hosted rollout and on physical phones; these have not been completed by the clarity pass.
 
