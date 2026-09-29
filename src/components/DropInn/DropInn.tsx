@@ -451,7 +451,7 @@ export function DropInn() {
               <span>
                 <strong>Hold, release, then watch.</strong> Hold the die and release
                 in the bright zone for a small bonus, or use Roll now. Everyone chooses
-                together within 30 seconds. Once you commit, wait for the party’s results.
+                together within 60 seconds. Once you commit, wait for the party’s results.
               </span>
             </p>
             <p>
@@ -564,7 +564,7 @@ function Lobby() {
             </button>
           </div>
           <p className="di-lobby-start-note">Join players or start with companions. No group needed. Leave whenever.</p>
-          <p className="di-lobby-round-note">Everyone chooses together · 30 seconds per round · Ready parties move sooner</p>
+          <p className="di-lobby-round-note">Everyone chooses together · 60 seconds per round · Ready parties move sooner</p>
         </div>
       </section>
 

@@ -8,7 +8,7 @@ import { getScene, developScene } from './scene';
 import { approachOption, turnInsight } from './approaches';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
-const ROUND_MS = 30_000;
+const ROUND_MS = 60_000;
 const REVEAL_MS = 10_000;
 const MAX_ROUNDS = 10;
 export const RELEASE_DURATION_MS = 1200;

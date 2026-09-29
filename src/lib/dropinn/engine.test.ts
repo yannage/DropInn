@@ -53,7 +53,7 @@ describe('shared reveal skipping', () => {
     const advanced = command(first, 'skip-reveal', 'bob', { expectedTurn: turn });
     expect(advanced.phase).toBe('choosing');
     expect(advanced.turn).toBe(turn + 1);
-    expect(advanced.deadline).toBe(advanced.updatedAt + 30_000);
+    expect(advanced.deadline).toBe(advanced.updatedAt + 60_000);
     expect(advanced.revealSkips).toEqual([]);
     expect(() => command(advanced, 'skip-reveal', 'alice', { expectedTurn: turn })).toThrow('ended');
   });
@@ -222,6 +222,15 @@ describe('announced threats, protection and timed release', () => {
 });
 
 describe('drop-in adventure creation and discovery', () => {
+  it('allows the extra thinking time and resolves at the sixty-second deadline', () => {
+    const room = initial();
+    expect(command(room, 'tick', 'alice', {}, room.updatedAt + 30_000)).toBe(room);
+    expect(command(room, 'tick', 'alice', {}, room.deadline - 1)).toBe(room);
+    expect(act(room, undefined, 'alice', room.deadline - 1).phase).toBe('reveal');
+    expect(command(room, 'tick', 'alice', {}, room.deadline).phase).toBe('reveal');
+    expect(() => act(room, undefined, 'alice', room.deadline)).toThrow('ended');
+  });
+
   it('preserves supported cosmetic colors while normalizing power and rejecting arbitrary styles', () => {
     const colored = { ...hero('Rose mage'), accent: '#F9A8D4', hp: 999, traits: { INT: 999, ATH: 999, CHA: 999, ING: 999 } };
     const room = createAdventure(colored, 'alice', 1000, 'COLORS');
@@ -236,7 +245,7 @@ describe('drop-in adventure creation and discovery', () => {
     const room = initial();
     expect(room.seats).toHaveLength(4);
     expect(new Set(room.seats.map(s => s.character.classKey)).size).toBe(4);
-    expect(room.deadline).toBe(31_000);
+    expect(room.deadline).toBe(61_000);
     expect(summarizeRoom(room)).toMatchObject({ humans: 1, companions: 3, openSeats: 3, chapter: 0, status: 'active' });
     expect(getCatchUp(room)).toContain(CHAPTERS[0].objective);
   });
@@ -332,7 +341,7 @@ describe('simultaneous turns and recovery', () => {
     expect(command(room, 'tick', 'alice', {}, room.revealUntil! - 1)).toBe(room);
     room = next(room);
     expect(room.turn).toBe(turn + 1);
-    expect(room.deadline - room.updatedAt).toBe(30_000);
+    expect(room.deadline - room.updatedAt).toBe(60_000);
   });
 
   it('accepts same-turn concurrent submissions from stale revisions without losing either action', () => {
@@ -423,7 +432,7 @@ describe('simultaneous turns and recovery', () => {
     expect(room.seats.find(s => s.actorId === 'alice')?.hp).toBe(hp);
     expect(room.players.alice.xp).toBe(xp);
     expect(room.players.alice.spotlightChapters).toEqual([0]);
-    expect(room.deadline - room.updatedAt).toBe(30_000);
+    expect(room.deadline - room.updatedAt).toBe(60_000);
     const repeat = proposal(room, 'cover');
     expect(() => act(room, { token: 'spotlight', targetId: repeat.targetId, proposal: repeat })).toThrow('returns next chapter');
   });

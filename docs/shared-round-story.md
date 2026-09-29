@@ -6,7 +6,7 @@ Implementation: 2026-09-21; illustrated scroll revision: 2026-09-27. Local verif
 
 The audience is a newcomer arriving alone or with friends for a short cooperative visit. The intended experience is narrative, discovery, and fellowship: understand the situation, inspect a useful target, choose an attempt, then recognize what each person contributed. This follows the [storytelling baseline](storytelling-guide.md) and the installed Game Design Fundamentals GDD and motivation worksheet at feature scale.
 
-The same 30-second choosing and up-to-ten-second reveal govern the loop. Inspection costs no resource. Submission opens a large parchment over the scene: Checking your move, then Waiting for the party, then This round. Recorded rows accumulate, with the first at 350ms and later rows at most 1200ms apart, compressed to finish by 5850ms. Show all reveals without voting; Next round/chapter reveals and uses the existing readiness vote. Turning off paced results still automatically votes. Reduced motion reveals immediately without voting. The next decision can refer back to Last round.
+The same 60-second choosing and up-to-ten-second reveal govern the loop. Inspection costs no resource. Submission opens a large parchment over the scene: Checking your move, then Waiting for the party, then This round. Recorded rows accumulate, with the first at 350ms and later rows at most 1200ms apart, compressed to finish by 5850ms. Show all reveals without voting; Next round/chapter reveals and uses the existing readiness vote. Turning off paced results still automatically votes. Reduced motion reveals immediately without voting. The next decision can refer back to Last round.
 
 | Motivation | Support | Observation still needed |
 | --- | --- | --- |
