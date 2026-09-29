@@ -15,3 +15,7 @@ For V2 feature verification across two players, reconnects, hero saves, or mobil
 For persisted fields, authentication/ownership, migrations, command/reward transactions, or Netlify/Supabase failures, use [dropinn-hosted-contract](.agents/skills/dropinn-hosted-contract/SKILL.md).
 
 For provider, prompt, creative-effect, or signed-preview evaluation, use [dropinn-spotlight-evaluation](.agents/skills/dropinn-spotlight-evaluation/SKILL.md). Live inference and hosted checks follow the current task's authorization; skill selection alone does not authorize external writes.
+
+## Living tabletop invariant
+
+**Show the consequence on the table before explaining it in history.** Keep the scene and four-token hand visible, commit only through the release controls, and open history explicitly. Follow [the game-feel contract](docs/game-feel-direction.md) for presentation timing, accessibility, confirmed-event playback and Briar Glen v2 combinations. Preserve pinned v1 rooms and retry payloads.

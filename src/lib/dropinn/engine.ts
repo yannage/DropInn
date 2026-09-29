@@ -2,7 +2,8 @@ import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import { normalizeHero } from '../cosmetics';
 import { chapterCredits } from './collection';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
-import { adventureFor, chaptersFor } from './registry';
+import { adventureFor, chaptersFor, currentAdventure } from './registry';
+import { combinationAvailable, combinationDefinition, combinationState, selectedPayoff } from './combinations';
 import { rollSupport, supportText } from './teamwork';
 import { getScene, developScene } from './scene';
 import { approachOption, turnInsight } from './approaches';
@@ -82,7 +83,7 @@ function releasePlayer(room: AdventureRoom, seat: Seat, now: number, inactive = 
 }
 
 export function createAdventure(character: CharacterProfile, userId: string, now: number, code?: string, adventureId?: string): AdventureRoom {
-  const adventure = adventureFor({ adventureId });
+  const adventure = currentAdventure(adventureId);
   const hero = normalizedCharacter(character);
   const roomCode = (code ?? Math.random().toString(36).slice(2, 8)).toUpperCase();
   const room: AdventureRoom = { version: 2, adventureId: adventure.id, adventureVersion: adventure.version, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: adventure.title,
@@ -150,6 +151,7 @@ function applyEffect(room: AdventureRoom, effect: CreativeEffect, now: number, s
 function validateAction(room: AdventureRoom, userId: string, action: PlayerAction) {
   const seat = room.seats.find(s => s.actorId === userId && s.kind === 'human' && !s.leaving);
   if (!seat) throw new Error('Your seat will open at the next turn.');
+  if (action.combination !== undefined && (!combinationAvailable(room, userId) || !selectedPayoff(room, action))) throw new Error('Choose an available scene combination.');
   if (action.approach !== undefined && !approachOption(room, action)) throw new Error('Choose an available approach for this action.');
   if (action.targetKind !== undefined && action.targetKind !== 'scene' && action.targetKind !== 'hero') throw new Error('Choose a scene target or the threatened hero.');
   if (action.releaseMs !== undefined && (!Number.isInteger(action.releaseMs) || action.releaseMs < 0 || action.releaseMs > RELEASE_DURATION_MS)) throw new Error('Release timing must be a whole number from 0 to 1200 milliseconds.');
@@ -212,6 +214,12 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
   const target = chapterOf(room).targets.find(t => t.id === action.targetId)!;
   const previousProgress = room.progress;
   const previousDanger = room.danger;
+  const payoff = selectedPayoff(room, action);
+  const prepared = combinationState(room);
+  let combination: import('./types').CombinationResult | undefined;
+  if (payoff && prepared) {
+    combination = { id: prepared.id, kind: 'payoff', label: payoff.label, sourceId: combinationDefinition(room)!.sourceId, actorId: prepared.actorId, actorName: prepared.actorName, payoffId: payoff.id };
+  }
   let effect = `The situation moves forward; danger increases by ${pointsLabel(share)}.`;
   if (success) {
     const points = approach?.progress ?? (action.token === 'assist' ? 2 : 3);
@@ -240,6 +248,21 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
     }
     if (room.chapter === 2 && action.targetId === 'gloamfang' && action.token === 'fight') flag(room, 'guardian-confronted');
   } else { room.progress += share; room.danger += share; }
+  if (success && payoff && combination) {
+    const extraProgress = Math.min((payoff.progress ?? 0) * share, Math.max(0, chapterOf(room).progressGoal - room.progress));
+    const reduction = Math.min(room.danger, (payoff.dangerReduction ?? 0) * share);
+    room.progress += extraProgress; room.danger -= reduction;
+    if (payoff.cover) flag(room, `cover:${room.turn}:3`);
+    Object.assign(combination, { progress: Number(extraProgress.toFixed(2)), dangerReduction: Number(reduction.toFixed(2)), cover: payoff.cover ?? 0 });
+    effect += ` ${payoff.label}, prepared by ${prepared!.actorName}: ${extraProgress ? `+${pointsLabel(extraProgress)} progress. ` : ''}${reduction ? `Danger −${pointsLabel(reduction)}. ` : ''}${payoff.cover ? '3 party cover; strongest cover wins.' : ''}`;
+  }
+  const setup = combinationDefinition(room);
+  if (success && setup && !prepared && action.targetId === setup.sourceId && setup.setupTokens.includes(action.token)) {
+    combination = { id: setup.id, kind: 'setup', label: setup.label, sourceId: setup.sourceId, actorId: seat.actorId, actorName: seat.character.name };
+    (room.combinations ??= []).push({ chapter: room.chapter, id: setup.id, actorId: seat.actorId, actorName: seat.character.name,
+      setupEventId: `${room.id}:${room.events.length}`, fromTurn: room.turn + 1, throughTurn: room.turn + 2, usedBy: [] });
+    effect += ` ${setup.label}: each hero can try one combination during the next two turns.`;
+  }
   effect = `${duel ? `Clash: ${roll} + ${modifier} = ${duel.playerTotal} versus enemy ${enemyRoll} + ${duel.enemyModifier} = ${duel.enemyTotal}. ${success ? 'You win.' : 'The enemy holds; ties favor the enemy.'} ` : ''}+${pointsLabel(room.progress - previousProgress)} objective progress. ${effect.trim()}${support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
   const text = action.token === 'spotlight' ? `${seat.character.name} tries: ${action.proposal!.label}. ${success ? 'It works!' : 'It proves difficult, but reveals the next step.'}` : `${seat.character.name} ${success ? 'succeeds' : 'finds a complication'}: ${(approach?.label ?? description.label).toLowerCase()} at ${target.name}.`;
   const change = success ? developScene(room, action) : undefined;
@@ -250,7 +273,7 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
       ...(action.approach ? { approach: action.approach } : {}), ...(duel ? { duel } : {}),
       ...(success && action.approach === 'study' ? { insight: 2 } : {}), ...(success && action.approach === 'distract' ? { opening: 1 } : {}),
       progress: Number((room.progress - previousProgress).toFixed(2)), danger: Number((room.danger - previousDanger).toFixed(2)),
-      protection: success && approach?.protection ? approach.protection : offersCover ? 2 : 0, changed: !!change }, ...(change ? { change } : {}) });
+      protection: Math.max(success && approach?.protection ? approach.protection : offersCover ? 2 : 0, success ? payoff?.cover ?? 0 : 0), changed: !!change, ...(combination ? { combination } : {}) }, ...(change ? { change } : {}) });
   const player = room.players[seat.actorId];
   player.actions += 1; player.xp += success ? 5 : 3;
   if (action.token === 'spotlight') player.spotlightChapters.push(room.chapter);
@@ -393,6 +416,7 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
     if (!command.action) throw new Error('Choose an action first.');
     validateAction(room, command.userId, command.action);
     room.commits[command.userId] = command.action;
+    if (command.action.combination) combinationState(room)!.usedBy.push(command.userId);
     if (humans(room).every(s => room.commits[s.actorId])) resolveRound(room, now);
   } else if (command.type === 'join') {
     if (room.visibility === 'private' && !room.players[command.userId]

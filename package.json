@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:round-scroll": "node scripts/playtest-round-scroll.mjs",
+    "test:living-table": "node scripts/playtest-living-table.mjs",
     "test:scene": "node scripts/playtest-scene.mjs",
     "test:adventures": "node scripts/playtest-adventures.mjs",
     "test:accounts": "node scripts/playtest-accounts.mjs",

@@ -18,6 +18,7 @@ export function resultBenefits(event: StoryEvent) {
   const result = event.result;
   if (!result) return [];
   return [
+    result.combination ? result.combination.kind === 'setup' ? `${result.combination.label} ready next turn` : `${result.combination.label} · prepared by ${result.combination.actorName}${event.success === false ? ' · attempt spent' : ''}` : '',
     result.progress ? `+${amount(result.progress)} progress` : '',
     result.danger ? `${result.danger > 0 ? '+' : '−'}${amount(Math.abs(result.danger))} danger` : '',
     result.protection ? `${amount(result.protection)} protection` : '',

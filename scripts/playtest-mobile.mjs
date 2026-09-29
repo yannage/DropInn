@@ -134,7 +134,7 @@ try {
       await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();
       await page.getByRole('main', { name: 'Adventure table' }).waitFor();
       await page.locator('.di-player-guidance[data-state="target"]').waitFor({ state: 'visible' });
-      assert.equal(await page.getByRole('group', { name: 'Action tokens', exact: true }).count(), 0, 'Scene starts with target-first guidance');
+      assert.equal(await page.getByRole('group', { name: 'Action tokens', exact: true }).count(), 1, 'Scene starts with the visible token hand');
       await fits(page, `scene-${width}`, true);
       for (const [button, title] of [['Party', 'Your party'], ['Chat', 'Table chat'], ['Invite', 'Invite a friend'], ['Action details and help', 'Your action'], ['Spotlight idea', 'A Spotlight idea']]) {
         if (button === 'Spotlight idea') {

@@ -95,7 +95,7 @@ export function derivePlayerGuidance(input: PlayerGuidanceInput): PlayerGuidance
   if (inspectedHero) return guidance('inspecting', 'Choose how to help', 'Choose a move below. Release the die to send it.', 'move');
   if (armedToken) return guidance('armed', `Place ${tokenLabels[armedToken]}`, 'Choose a highlighted target. You will commit your move afterward.', 'target');
   if (scene.branch && !room.storyBranch) return guidance('target', 'Inspect the routes', 'Compare the routes. Help votes for a route; other moves contribute without voting.', 'target');
-  return guidance('target', self.hp === 0 ? 'Choose where to Help' : 'Choose a target', self.hp === 0
+  return guidance('target', self.hp === 0 ? 'Choose where to Help' : 'Pick a piece. Make a difference.', self.hp === 0
     ? 'You can still Help. Inspect a highlighted target to choose a move.'
-    : 'Tap something in the scene to see what needs doing. Then choose how to help.', 'target');
+    : 'Drag or tap a token onto the scene. You can also inspect a target first.', 'target');
 }

@@ -1,6 +1,6 @@
 # DropInn
 
-A cooperative tabletop adventure for a spare five minutes. Join Briar Glen, play a token, change the scene, and leave whenever you need to. Empty seats are clearly labeled AI companions.
+A cooperative tabletop adventure for a spare five minutes. Pick up a piece, aim, commit, and watch the world react. Join an adventure and leave whenever you need to. Empty seats are clearly labeled AI companions.
 
 ## Run locally
 
@@ -19,11 +19,11 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 - **Make it yours:** choose from six hero colors with a live preview. Your saved color follows your badge into the shared table without changing starting power or earned rewards.
 - **Bring friends:** start a private friend table from the lobby. It is excluded from public discovery and Play Now. Share the full invitation link; new members cannot enter using its short code alone. Anyone holding the link can join and members may reshare it. Past members can return from their recap when a seat is available.
 - **Catch up:** the current situation and objective fit in a short scene panel.
-- **Contribute:** drag Fight, Influence, Investigate, or Assist coins onto cards on the felt table. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.
+- **Contribute:** drag Fight, Influence, Investigate, or Help pieces onto objects in the scene. Tapping and keyboard selection work too; review the effect before committing. Class traits and abilities matter.
 - **Feel the consequence:** successful interactions change scene cards and open new approaches. Your result shows the roll, what changed, and an opening for your next move.
 - **Improvise:** one Spotlight per chapter can propose cover, distraction, a discovery, or a rescue. The server validates the proposal; the player confirms it before spending anything.
 - **Borrow a spark:** tap an authored Spotlight suggestion for a supported attempt without typing or an AI connection. Edited ideas go through normal interpretation, and every attempt still requires confirmation and a roll.
-- **Keep moving:** simultaneous 30-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
+- **Keep moving:** simultaneous 60-second turns, early resolution when humans are ready, and brief result reveals. Missed turns do not invent dialogue or spend Spotlight.
 - **Play together:** see teammates' committed approaches and targets. Send a quick Cheers, Thanks, or Clever reaction; bubbles expire, respect mute, and never change game mechanics. Reactions have a four-second server cooldown and do not block submitting your move.
 - **Reconnect:** temporary connection failures keep your saved table bookmarked, show a retry indicator, and automatically fetch the latest turn when connectivity returns. Confirmed missing/inaccessible tables return you to the inn.
 - **Combine approaches:** different human tokens committed to the same target give each paired roll +1 teamwork, capped at one regardless of party size. Target cards show teammates' locked approaches; previews and results explain teamwork, insight, and distraction bonuses. Companions do not grant extra teamwork.
@@ -32,7 +32,11 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 
 Briar Glen has three bounded chapters: missing livestock, the riverside hunt, and the chapel. Every chapter has success, mixed, and setback closure. The room parks when no humans remain. Companions cannot advance an unattended story.
 
-Holding a coin grows it until it pops back to normal size. This is cosmetic: it never changes a roll, commits an action, or spends Spotlight. Table sounds are off by default and can be toggled beside the table. Reduced-motion preferences disable growth and decorative animation.
+The four action tokens are visible by default. Dragging or tapping prepares a move; hold and release the die to commit, or use Roll now/assisted timing. Heroes, tokens, dice, and confirmed consequences act on the shared stage. The round parchment opens only when requested; it preserves every result for reading at your own pace. Table sounds are opt-in. Reduced effects, disabled impact shake, and the system reduced-motion setting preserve the same information.
+
+New Briar Glen tables use adventure version 2. Preparing the gate, reeds, or bell opens a two-turn combination opportunity with an objective payoff or a safer alternative. Each human may attempt one payoff; a miss spends that attempt. Ordinary moves always remain available. Existing version 1 tables retain their rules.
+
+Our design rule: **show the consequence on the table before explaining it in history.** The [living tabletop contract](docs/game-feel-direction.md) covers interaction, effect budgets, combinations, compatibility, and verification.
 
 ## AI providers
 

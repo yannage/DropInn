@@ -32,7 +32,7 @@ const faults = { blockAReads: false, loseAResponses: 0 };
 const errors = [];
 const consoleErrors = [];
 const blockedOrigins = new Set();
-const note = (name, detail = {}) => { checks.push({ name, ...detail }); console.log(JSON.stringify({ name, ...detail })); };
+const note = (name, detail = {}) => { checks.push({ name, ...detail }); console.log(JSON.stringify(name === 'FAILED' ? { name, ...detail } : { name })); };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function service(payload) {
   const response = await handler(new Request(`${base}/api/dropinn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }));
@@ -81,7 +81,12 @@ async function sync(page) {
   await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   await page.evaluate(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().syncRoom());
 }
-async function syncAll() { for (const page of pages) await sync(page); }
+async function openRound(page) {
+  // Result-reading checks explicitly open history; normal play keeps the stage visible.
+  const button = page.getByRole('button', { name: 'Open round scroll', exact: true });
+  if (await button.isVisible() && !(await page.getByRole('dialog', { name: 'Round story' }).isVisible())) await button.click();
+}
+async function syncAll() { for (const page of pages) { await sync(page); if ((await state(page)).room?.phase === 'reveal') await openRound(page); } }
 async function advanceTo(time) {
   offset = Math.max(offset, time - Date.now());
   for (const page of pages) await page.evaluate(value => { window.__qaOffset = value; }, offset);
@@ -128,6 +133,7 @@ async function skip(page) {
   await page.getByRole('button', { name: 'Roll now', exact: true }).click();
   await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   assert.equal(records.length, before + 1);
+  await openRound(page);
   return records.at(-1);
 }
 async function directAct(who, room, action) {
@@ -257,10 +263,10 @@ try {
   assert.equal(records.length, 0, 'A player awaiting admission can inspect without submitting a move');
   await b.keyboard.press('Escape');
   await guidance(a, 'target');
-  await a.locator('.di-first-move-guide').waitFor({ state: 'visible' });
+  await a.getByRole('group', { name: 'Action tokens' }).waitFor();
   const inspectedRevision = (await state(a)).room.revision;
   const inspectCommands = records.length;
-  assert.equal(await a.getByRole('group', { name: 'Action tokens', exact: true }).count(), 0, 'Target-first play starts without the optional token hand');
+  assert.equal(await a.getByRole('group', { name: 'Action tokens', exact: true }).count(), 1, 'The tactile token hand is available immediately');
   await a.locator('[data-scene-target="mara"]').click();
   await a.getByRole('group', {name:'Moves for this target'}).waitFor();
   await guidance(a, 'inspecting');
@@ -273,9 +279,10 @@ try {
   assert.equal(await a.evaluate(() => document.activeElement?.getAttribute('data-scene-target')), 'mara');
   await a.locator('[data-scene-target="tracks"]').click();
   await a.getByRole('button', {name:/^Investigate:/}).click();
-  await a.getByRole('region', {name:'Action focus',exact:true}).waitFor();
+  await a.getByRole('group', {name:'Choose an approach'}).waitFor();
+  assert.equal(await a.locator('.di-stage-targets [data-scene-target]').count(),4,'Selection keeps every scene target visible');
   await guidance(a, 'prepared');
-  assert.match(await a.locator('.di-focus-context').textContent(), /Hoofprints/);
+  assert.ok(await a.locator('[data-scene-target=tracks]').isVisible());
   note('inspect-first-context-and-keyboard-return');
   const initial = await pointerRelease(a, 800);
   assert.ok(initial.command.action.releaseMs >= 650 && initial.command.action.releaseMs <= 950);
@@ -289,8 +296,10 @@ try {
   await a.getByRole('button', { name: 'Replay first-move guide', exact: true }).click();
   const actionHelp = a.getByRole('dialog', { name: 'Your action', exact: true });
   if (await actionHelp.isVisible()) await a.keyboard.press('Escape');
-  await a.locator('.di-first-move-guide').waitFor({ state: 'visible' });
+  await a.getByRole('group', { name: 'Action tokens' }).waitFor();
+  await a.getByRole('button', { name: 'Action details and help', exact: true }).click();
   await a.getByRole('button', { name: 'Dismiss first-move guide', exact: true }).click();
+  await a.keyboard.press('Escape');
   await a.locator('.di-first-move-guide').waitFor({ state: 'hidden' });
   assert.equal((await state(a)).room.seats.filter(seat => seat.kind === 'human').length, 2);
   note('guidance-follows-first-real-contribution-and-can-be-replayed');
@@ -310,7 +319,7 @@ try {
   await a.locator('.di-illustrated-result[data-own=true]').waitFor({ state: 'visible' });
   assert.equal((await state(b)).room.turn, sameTurn);
   assert.equal(shared.events.filter(event => event.turn === sameTurn && event.contribution && identities.some(identity => identity.userId === event.actorId)).length, 2);
-  await a.locator('.di-round-body[data-beat=full]').waitFor();
+  await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
   await a.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
   const actualResult = shared.events.find(event => event.turn === sameTurn && event.actorId === identities[0].userId && event.contribution);
   assert.ok((await a.locator('.di-illustrated-result[data-own=true]').textContent()).includes(actualResult.text), 'The illustrated row retains its saved outcome sentence');
@@ -354,7 +363,8 @@ try {
   note('threatened-hero-inspection-then-contextual-protect');
 
   await select(a, 'fight', 'pack');
-  await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
+  await a.getByRole('group', { name: 'Choose an approach' }).waitFor();
+  assert.equal(await a.locator('.di-stage-targets [data-scene-target]').count(), 4);
   assert.equal(await a.evaluate(() => document.activeElement?.getAttribute('aria-pressed')), 'true');
   await a.keyboard.press('Escape');
   assert.equal(await a.locator('.di-stage-targets [data-scene-target]').count(), 4);
@@ -362,8 +372,8 @@ try {
   assert.equal(await a.getByRole('group', { name: 'Choose an approach' }).getByRole('button').count(), 3);
   await layout(a, 'battle-focus');
   await a.setViewportSize({ width: 1280, height: 800 });
-  const opponentSize = await a.locator('.di-focus-opponent .di-target-art img').boundingBox();
-  assert.ok(opponentSize.width > 180 && opponentSize.height > 180, 'Enemy artwork fills the desktop encounter');
+  const opponentSize = await a.locator('[data-scene-target=pack] .di-target-art img').boundingBox();
+  assert.ok(opponentSize.width >= 64 && opponentSize.height >= 64, 'Enemy artwork stays legible on the shared stage');
   await a.screenshot({ path: 'output/playwright/battle-focus-desktop.png', animations: 'disabled' });
   await a.getByRole('button', { name: /Heavy Blow/ }).click();
   await skip(a);
@@ -375,7 +385,7 @@ try {
   const duels = clashed.events.filter(event => event.turn === clashed.turn && event.result?.duel);
   assert.equal(duels.length, 2);
   assert.equal(duels[0].result.duel.enemyRoll, duels[1].result.duel.enemyRoll);
-  await a.locator('.di-round-body[data-beat=full]').waitFor();
+  await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
   assert.match(await a.locator('.di-round-body').textContent(), / vs /);
   await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
   await a.screenshot({ path: 'output/playwright/battle-clash-desktop.png', animations: 'disabled' });
@@ -493,12 +503,12 @@ try {
     const releaseButton = a.getByRole('button', { name: 'Hold and release the die', exact: true });
     await releaseButton.focus();
     await a.keyboard.down('Space'); await sleep(800); await a.keyboard.up('Space');
-    await a.getByRole('heading', { name: 'Checking your move…', exact: true }).waitFor();
+    await a.locator('.di-round-rest-bar').waitFor();
     await guidance(a, 'pending');
-    assert.match(await a.locator('.di-round-wait-copy').textContent(), /token and release are saved/);
-    assert.doesNotMatch(await a.locator('.di-round-body').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
+    assert.equal(await a.locator('.di-round-scroll').count(),0,'Pending move keeps the scene visible');
+    assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
     const pendingStage = await a.locator('.di-scene-stage').boundingBox();
-    const pendingHero = await a.locator('.di-round-scroll .di-result-portrait>.di-avatar').boundingBox();
+    const pendingHero = await a.locator('.di-stage-party .di-avatar').first().boundingBox();
     assert.ok(pendingStage.height >= choosingStage.height, `Receipt checking keeps the encounter height stable: ${JSON.stringify({ choosingStage, pendingStage })}`);
     assert.ok(pendingHero.width >= 44 && pendingHero.height >= 44, 'Hero remains visible while checking receipt');
     await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
@@ -508,7 +518,7 @@ try {
   assert.equal(records.length, uncertainBefore + 1, 'one timed move after receipt delay');
   const uncertain = records.at(-1);
   assert.ok(Number.isInteger(uncertain.command.action.releaseMs), 'Delayed receipt preserves a timed release');
-  assert.doesNotMatch(await a.locator('.di-round-body').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
+  assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
   await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   const duplicate = records.at(-1);
@@ -536,7 +546,8 @@ try {
   await showTokens(a);
   await a.getByRole('button', { name: 'Fight token', exact: true }).tap();
   await a.locator('[data-scene-target="gloamfang"][data-target-kind="scene"]').tap();
-  await a.getByRole('region', { name: 'Battle focus', exact: true }).waitFor();
+  await a.getByRole('group', { name: 'Choose an approach' }).waitFor();
+  assert.equal(await a.locator('.di-stage-targets [data-scene-target]').count(), 4);
   await a.getByRole('button', { name: /Heavy Blow:/ }).tap();
   await a.getByRole('button', { name: /Quick Strike:/ }).tap();
   await layout(a, 'chapel-focus');
@@ -656,7 +667,7 @@ try {
     assert.equal((await delta.locator('.di-stage-healing').textContent()).trim(), '+3');
     assert.ok((await delta.textContent()).includes('−2'));
     assert.match(await threat.getAttribute('aria-label'), /The strike lands:.*2 damage/);
-    await a.locator('.di-round-body[data-beat=full]').waitFor();
+    await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
     await a.screenshot({ path: 'output/playwright/integration-render-fixture-results.png' });
     note('snapshot-render-fixture-healing-and-damage', { evidence: 'Client snapshot rendering only' });
@@ -666,7 +677,7 @@ try {
     await fixture([fixtureEvent('late-payoff', { kind: 'action', actorId: identities[0].userId, contribution: true,
       at: clock() - 4000, success: false, roll: 3, modifier: 2,
       result: { targetKind: 'scene', targetId: 'ward', progress: 0.5, danger: 0.5 } })]);
-    await a.locator('.di-round-body[data-beat=full]').waitFor();
+    await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
     assert.match(await a.locator('.di-round-body').textContent(), /\+0.5 progress.*\+0.5 danger/);
     await a.screenshot({ path: 'output/playwright/game-feel-phone-payoff.png' });
@@ -678,14 +689,14 @@ try {
     await a.emulateMedia({ reducedMotion: 'reduce' });
     await fixture([fixtureEvent('reduced-now', { kind: 'action', actorId: identities[0].userId, contribution: true, success: true, roll: 12, modifier: 3,
       result: { targetKind: 'scene', targetId: 'ward', executionBonus: 1, progress: 1.5, danger: -0.5 } })]);
-    await a.locator('.di-round-body[data-beat=full]').waitFor();
+    await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
     await a.waitForFunction(() => !document.querySelector('.di-turn-resolution'));
     assert.match(await a.locator('.di-round-body').textContent(), /= 15/);
     assert.equal(await a.locator('.di-turn-resolution').count(), 0);
     await a.emulateMedia({ reducedMotion: 'no-preference' });
     await fixture([fixtureEvent('guaranteed-protect', { kind: 'action', actorId: identities[0].userId, contribution: true,
       result: { targetKind: 'hero', targetId: renderVictim, protection: 3, progress: 0 } })]);
-    await a.locator('.di-round-body[data-beat=full]').waitFor();
+    await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
     assert.equal(await a.locator('.di-resolution-die').count(), 0);
     assert.match(await a.locator('.di-round-body').textContent(), /protection/);
     note('snapshot-pacing-late-receipt-reduced-motion-and-guaranteed-protect', { evidence: 'Client snapshot rendering only' });
@@ -748,7 +759,7 @@ try {
     await page.keyboard.press('Escape');
   }
   await select(four[0], 'assist', 'mara'); await skip(four[0]); await syncAll();
-  await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
+  await openRound(four[0]); await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
   assert.ok((await four[0].locator('.di-round-body').textContent()).includes('Companion'));
   await readyNext(four[0]);
   assert.equal((await state(four[0])).room.seats.filter(seat=>seat.kind==='human').length, 4);
@@ -771,10 +782,10 @@ try {
     }
   }
   await syncAll();
-  await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
+  await openRound(four[0]); await four[0].waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full');
   assert.equal(await four[0].locator('.di-round-body [data-kind=action]').count(), 4);
   const fourText = await four[0].locator('[data-round-entry] > p:first-of-type').allTextContents();
-  for (const page of four.slice(1)) { await page.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full'); assert.deepEqual(await page.locator('[data-round-entry] > p:first-of-type').allTextContents(), fourText); }
+  for (const page of four.slice(1)) { await openRound(page); await page.waitForFunction(() => document.querySelector('.di-round-body')?.getAttribute('data-beat') === 'full'); assert.deepEqual(await page.locator('[data-round-entry] > p:first-of-type').allTextContents(), fourText); }
   await layout(four[0], 'four-player-recap');
   note('four-player-attribution-late-arrival-reload-and-locked-inspection');
   await readyNext(four[0]); await syncAll();

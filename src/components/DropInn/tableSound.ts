@@ -1,10 +1,15 @@
 let enabled = false;
 try { enabled = localStorage.getItem('dropinn-table-sound') === 'on'; } catch { /* Optional preference. */ }
 let audio: AudioContext | undefined;
-type SoundKind = 'pick' | 'place' | 'pop' | 'roll' | 'bonus' | 'complication' | 'result';
+type SoundKind = 'pick' | 'place' | 'pop' | 'roll' | 'bonus' | 'complication' | 'result' | 'combo' | 'protect' | 'reward';
+let narrationActive = false;
+export const duckTableSound = (value: boolean) => { narrationActive = value; };
 type Layer = { at?: number; duration: number; volume: number; from: number; to?: number; wave?: OscillatorType; noise?: true };
 // Dry contacts for routine input; only resolved results get a little musical tail.
 const cues: Record<SoundKind, Layer[]> = {
+  combo: [{ duration: .08, volume: .035, from: 1800, noise: true }, { duration: .22, volume: .03, from: 392, to: 784 }, { at: .08, duration: .25, volume: .025, from: 988 }, { at: .16, duration: .25, volume: .02, from: 1175 }],
+  protect: [{ duration: .06, volume: .035, from: 650, noise: true }, { duration: .23, volume: .025, from: 196, to: 294 }],
+  reward: [{ duration: .3, volume: .023, from: 523 }, { at: .1, duration: .3, volume: .022, from: 659 }, { at: .2, duration: .35, volume: .022, from: 784 }, { at: .3, duration: .35, volume: .018, from: 1047 }],
   pick: [
     { duration: .035, volume: .018, from: 2300, noise: true },
     { at: .008, duration: .065, volume: .017, from: 530, to: 740, wave: 'triangle' },
@@ -85,7 +90,7 @@ function playLayer(context: AudioContext, layer: Layer, origin: number) {
     const gain = context.createGain();
     nodes.push(gain);
     gain.gain.setValueAtTime(0, at);
-    gain.gain.linearRampToValueAtTime(layer.volume, at + .004);
+    gain.gain.linearRampToValueAtTime(layer.volume * (narrationActive ? .3 : 1), at + .004);
     gain.gain.exponentialRampToValueAtTime(.0001, end - .004);
     gain.gain.linearRampToValueAtTime(0, end);
     gain.connect(context.destination);

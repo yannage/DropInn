@@ -8,6 +8,7 @@ import { narratorDownloaded, narratorDownloadSnapshot, narratorSize, refreshNarr
 import { NarratorDownload } from './NarratorDownload';
 import { NarratorPlayer } from '../../lib/dropinn/narratorPlayer';
 import './narrator.css';
+import { duckTableSound } from './tableSound';
 
 const preferenceKey = 'dropinn-narrator';
 function readPreference() {
@@ -28,6 +29,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, portalTa
   const [preference, setPreference] = useState(readPreference);
   const pack = useSyncExternalStore(subscribeNarratorDownload, narratorDownloadSnapshot);
   const [enabled, setEnabled] = useState(false);
+  useEffect(() => { duckTableSound(enabled); return () => duckTableSound(false); }, [enabled]);
   const [settings, setSettings] = useState(false);
   const [downloadChoice, setDownloadChoice] = useState(false);
   const [loading, setLoading] = useState(false);

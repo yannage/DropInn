@@ -17,7 +17,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('player guidance follows the authoritative turn', () => {
   it('teaches target, move, then commitment without treating preparation as a submitted action', () => {
     const room = fresh();
-    expect(guide(room)).toMatchObject({ state: 'target', activeStep: 'target', seconds: 30 });
+    expect(guide(room)).toMatchObject({ state: 'target', activeStep: 'target', seconds: 60 });
     expect(guide(room, { inspectedId: 'tracks' })).toMatchObject({ state: 'inspecting', activeStep: 'move' });
     expect(guide(room, { selection: action })).toMatchObject({ state: 'prepared', activeStep: 'commit' });
     expect(guide(room, { selection: action }).title).toBe('Hold and release to commit');

@@ -1,5 +1,7 @@
 # A shared story in each round
 
+> Current presentation (2026-09-29): the living tabletop supersedes the focused scene and automatic parchment described in this historical implementation record. Four tokens and the scene remain visible; approaches appear in the dock, committed tokens park at their targets, and confirmed consequences play on the stage. Open parchment explicitly for readable history. Timing, approach rules and exact retry semantics remain. See [the current game-feel contract](game-feel-direction.md).
+
 Implementation: 2026-09-21; illustrated scroll revision: 2026-09-27. Local verification results are recorded separately in `output/playwright`. This is an interface and authored-presentation change, not a new story, rule set, hosted release, or claim of measured comprehension.
 
 ## Design and motivation

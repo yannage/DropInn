@@ -13,7 +13,7 @@ describe('adventure selection contract', () => {
     for (const definition of ADVENTURES) {
       const opened = await call('play', { character: hero, adventureId: definition.id });
       expect(opened.status).toBe(200);
-      expect(opened.room).toMatchObject({ adventureId: definition.id, adventureVersion: 1, title: definition.title });
+      expect(opened.room).toMatchObject({ adventureId: definition.id, adventureVersion: definition.version, title: definition.title });
       codes.add(opened.room.code);
       const matched = await call('play', { character: hero, adventureId: definition.id }, 'player_two');
       expect(matched.room.code).toBe(opened.room.code);

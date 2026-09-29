@@ -20,7 +20,20 @@ export interface SceneTarget {
   development?: { name: string; description: string; artKey?: string; tokens?: TokenKind[]; context?: string; actionCues?: Partial<Record<TokenKind, string>> };
 }
 export interface SceneChange { title: string; text: string; next: string }
+export interface SceneCombination {
+  id: string; label: string; sourceId: string; setupTokens: TokenKind[];
+  payoffs: { id: string; label: string; targetId: string; token: TokenKind; progress?: number; dangerReduction?: number; cover?: number }[];
+}
+export interface CombinationState {
+  chapter: number; id: string; actorId: string; actorName: string; setupEventId: string;
+  fromTurn: number; throughTurn: number; usedBy: string[];
+}
+export interface CombinationResult {
+  id: string; kind: 'setup' | 'payoff'; label: string; sourceId: string; actorId: string; actorName: string;
+  payoffId?: string; progress?: number; dangerReduction?: number; cover?: number;
+}
 export interface ChapterDefinition {
+  combination?: SceneCombination;
   id: string;
   title: string;
   location: string;
@@ -51,6 +64,7 @@ export interface CreativeProposal {
   source: 'authored' | 'openai' | 'ollama';
 }
 export interface PlayerAction {
+  combination?: { id: string; payoffId: string };
   approach?: ActionApproach;
   token: TokenKind;
   targetId: string;
@@ -70,6 +84,7 @@ export interface EnemyIntent {
 }
 /** Presentation reads numeric outcomes, never guesses effects from story prose. */
 export interface ActionResult {
+  combination?: CombinationResult;
   approach?: ActionApproach;
   duel?: { enemyRoll: number; enemyModifier: number; enemyTotal: number; playerTotal: number };
   insight?: number;
@@ -132,6 +147,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  combinations?: CombinationState[];
   collectionVersion?: 1;
   /** New rooms opt into focused actions; old rooms keep their original rules. */
   mechanicsVersion?: 1;

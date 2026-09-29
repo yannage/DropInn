@@ -37,6 +37,21 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('optional table sound', () => {
+  it('ducks combination, protection and reward cues beneath narration and mutes them', async () => {
+    const { gains, sources } = audioHarness();
+    const sound = await import('./tableSound');
+    sound.setTableSound(true);
+    sound.playTableSound('combo');
+    const normal = gains[0].gain.linearRampToValueAtTime.mock.calls[0][0];
+    const start = gains.length;
+    sound.duckTableSound(true); sound.playTableSound('combo');
+    expect(gains[start].gain.linearRampToValueAtTime.mock.calls[0][0]).toBeCloseTo(normal * .3);
+    sound.playTableSound('protect'); sound.playTableSound('reward');
+    const count = sources.length;
+    sound.setTableSound(false); sound.playTableSound('combo'); sound.playTableSound('reward');
+    expect(sources).toHaveLength(count);
+    expect(sources.every(source => source.stop.mock.calls.length > 0)).toBe(true);
+  });
   it('stays silent by default and persists the explicit preference', async () => {
     const { construct } = audioHarness();
     const sound = await import('./tableSound');

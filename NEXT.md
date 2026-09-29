@@ -28,7 +28,7 @@ The local [game-feel pass and skill shortlist](docs/game-feel-direction.md) adds
 - [x] Verify late joins, departing threatened seats, old snapshots, parked/resumed rooms and later rewards in focused tests; private pending admission also passed browser integration. Existing JSON persistence needs no schema migration for these additions.
 - [ ] Check physical-device text scaling, screen readers, one-handed use and on-screen keyboards with the new stage.
 - [ ] Deploy through a separately authorized rollout, then run hosted API, independent-browser Realtime/reconnect and physical-phone checks. Prior hosted results apply to the older deployment.
-- [ ] Observe newcomers and experienced players: time the first meaningful action, count scrolling, ask what changed without opening the journal, and tune the 30-second turn, paced reveal and 650–950ms release window from observations.
+- [ ] Observe newcomers and experienced players: time the first meaningful action, count scrolling, ask what changed without opening the journal, and tune the 60-second turn, paced reveal and 650–950ms release window from observations.
 
 ## Prioritized task list
 
@@ -109,3 +109,10 @@ Aim for a first meaningful action within a minute, several visible contributions
 - Restart Vite after server-side changes because its local handler is cached. Restarting clears in-memory local rooms and chat, while browser hero data remains.
 - Keep credentials out of browser variables. Deployment and optional model configuration live in [server/DROPINN.md](server/DROPINN.md).
 - Tune the authored adventure before expanding generated content. Prepared variations currently alter title/atmosphere, not mechanics or chapter topology.
+
+## Living tabletop pass — September 2026
+
+- [x] Replace automatic focused scenes and round overlays with stage action, a visible token hand, dock approaches and explicitly opened history. This supersedes the earlier Show tokens/automatic parchment entries above.
+- [x] Implement Briar Glen v2 authored combinations, pinned version lookup, confirmed-event stage playback and bounded opt-in audio/visual feedback.
+- [ ] Compare baseline and revised play with humans; record move comprehension, visible consequence, combination discovery, payoff reasoning and desire for another turn. Listen to the mix separately.
+- [ ] Deploy the matching client and command service together after local review; hosted rollout is separate.

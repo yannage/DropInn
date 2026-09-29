@@ -7,7 +7,7 @@ import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
-import { adventureFor } from '../src/lib/dropinn/registry';
+import { adventureFor, currentAdventure } from '../src/lib/dropinn/registry';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText, type AIOptions, type AdventureVariation, type ServerEnv } from './ai';
 
 interface RequestBody {
@@ -308,7 +308,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       if (body.operation === 'play' || body.operation === 'join') {
         let selected;
-        try { selected = adventureFor({ adventureId: body.operation === 'play' ? body.adventureId : undefined }); }
+        try { selected = currentAdventure(body.operation === 'play' ? body.adventureId : undefined); }
         catch { throw new RequestError('Choose an available adventure.'); }
         if (body.variationId && selected.id !== 'briar-glen') throw new RequestError('Prepared tellings are available for Briar Glen only.');
         if (body.visibility !== undefined && !['public', 'private'].includes(body.visibility)) throw new RequestError('Choose a public or friend table.');

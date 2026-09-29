@@ -1,5 +1,7 @@
 # Focused actions: battle and token identity
 
+> Current presentation (2026-09-29): the living tabletop supersedes the focused scene and automatic parchment described in this historical implementation record. Four tokens and the scene remain visible; approaches appear in the dock, committed tokens park at their targets, and confirmed consequences play on the stage. Open parchment explicitly for readable history. Timing, approach rules and exact retry semantics remain. See [the current game-feel contract](game-feel-direction.md).
+
 Design and implementation, 2026-09-20. Uses the installed Game Design Fundamentals GDD and motivation worksheet structure, scaled to this feature. No adventure story is authored or changed here.
 
 ## Overview and core loop
