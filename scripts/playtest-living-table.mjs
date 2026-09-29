@@ -416,6 +416,7 @@ try {
       return at;
     },stress);
     await a.locator('.di-stage-effects[data-stage-event="qa-busy-0"]').waitFor();
+    await a.getByRole('button',{name:'Open round scroll',exact:true}).click();
     await a.getByRole('button',{name:'View scene',exact:true}).click();
     await a.locator(`[data-scene-target="${stress.userId}"][data-hero-play=true]`).click();
     await a.waitForFunction(()=>window.__busy?.events.length===9,{},{timeout:6500});

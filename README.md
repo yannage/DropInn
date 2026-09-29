@@ -32,7 +32,7 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 
 Briar Glen has three bounded chapters: missing livestock, the riverside hunt, and the chapel. Every chapter has success, mixed, and setback closure. The room parks when no humans remain. Companions cannot advance an unattended story.
 
-The four action tokens are visible by default. Dragging or tapping prepares a move; hold and release the die to commit, or use Roll now/assisted timing. Heroes, tokens, dice, and confirmed consequences act on the shared stage. The round parchment opens immediately when you commit; View scene returns to the table and keeps it dismissed for that round. You can reopen it to read every result at your own pace. Table sounds are opt-in. Reduced effects, disabled impact shake, and the system reduced-motion setting preserve the same information.
+The four action tokens are visible by default. Dragging or tapping prepares a move; hold and release the die to commit, or use Roll now/assisted timing. Heroes, tokens, dice, and confirmed consequences act on the shared stage. The round parchment opens automatically after a short pause to see your move land; View scene returns to the table and keeps it dismissed for that round. You can reopen it to read every result at your own pace. Table sounds are opt-in. Reduced effects, disabled impact shake, and the system reduced-motion setting preserve the same information.
 
 New Briar Glen tables use adventure version 2. Preparing the gate, reeds, or bell opens a two-turn combination opportunity with an objective payoff or a safer alternative. Each human may attempt one payoff; a miss spends that attempt. Ordinary moves always remain available. Existing version 1 tables retain their rules.
 

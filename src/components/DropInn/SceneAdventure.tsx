@@ -41,7 +41,7 @@ import { useTableContact, useLiveReducedMotion } from './TableContact';
 import { AimConnection, HeldToken, useHeroPlay } from './PlayfulTable';
 import { ChapterReward } from './ChapterReward';
 import { combinationAvailable, combinationDefinition, combinationState, combinationPreview, selectedPayoff } from '../../lib/dropinn/combinations';
-import { claimStageSound, stageEvents } from '../../lib/dropinn/stagePlayback';
+import { claimStageSound, stageEvents, roundScrollReadyAt } from '../../lib/dropinn/stagePlayback';
 function readEffectPreference(key: string) { try { return localStorage.getItem(key) === 'off'; } catch { return false; } }
 
 
@@ -158,9 +158,15 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const pending = pendingMove?.turn === room.turn ? pendingMove : null;
   const roundKey = `${room.id}:${room.chapter}:${room.turn}`;
   const roundRest = !!pending || committed || room.phase === 'reveal' || room.status === 'completed';
+  const restingSince = useRef({ key: '', at: 0 });
+  if (!roundRest) restingSince.current = { key: '', at: 0 };
+  else if (restingSince.current.key !== roundKey) restingSince.current = { key: roundKey, at: Date.now() };
+  const automaticScrollReady = reducedMotion || revealBypassed || now >= (
+    room.phase === 'reveal' || room.status === 'completed'
+      ? roundScrollReadyAt(room, userId) : restingSince.current.at + 1800);
   const historicalRound = drawer === 'round';
   const roundOpen = historicalRound || (roundRest && storyMode === 'collapsed'
-    && (manualRound === roundKey || dismissedRound !== roundKey));
+    && (manualRound === roundKey || (dismissedRound !== roundKey && automaticScrollReady)));
   const liveSummary = room.phase === 'reveal' || room.status === 'completed' ? lastRound : undefined;
   const closeRound = () => {
     if (historicalRound) { setDrawer(null); return; }

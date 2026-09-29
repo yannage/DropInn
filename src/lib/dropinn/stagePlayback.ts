@@ -16,6 +16,14 @@ export function stageTimeline(room: AdventureRoom) {
   return events.map((event, index) => ({ event, start: origin + 150 + index * spacing, duration }));
 }
 
+/** Let the player's confirmed hit settle before automatic history covers it. */
+export function roundScrollReadyAt(room: AdventureRoom, actorId: string) {
+  const timeline = stageTimeline(room);
+  const origin = timeline[0] ? timeline[0].start - 150 : room.updatedAt;
+  const own = timeline.find(beat => beat.event.actorId === actorId && beat.event.kind === 'action');
+  return Math.min(origin + 5850, Math.max(origin + 1800, own ? own.start + own.duration + 650 : origin + 1800));
+}
+
 /** Presentation only. Never feed this projection back to the command store. */
 export function stageProjection(room: AdventureRoom, before: AdventureRoom | undefined, now: number, immediate = false) {
   const timeline = stageTimeline(room);

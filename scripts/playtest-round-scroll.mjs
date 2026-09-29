@@ -138,8 +138,10 @@ try {
   await select(a,'investigate','tracks');
   assert.equal(await a.locator('.di-round-scroll').count(),0,'Selection is not submission');
   await skip(a); await syncAll();
+  assert.equal(await a.locator('.di-round-scroll').count(),0,'The confirmed hit remains visible before automatic history');
   await a.locator('.di-round-scroll').waitFor();
-  await a.getByRole('button',{name:'Show all',exact:true}).click();
+  const showAll = a.getByRole('button',{name:'Show all',exact:true});
+  if (await showAll.isVisible()) await showAll.click();
   assert.equal((await state(a)).room.revealSkips?.length ?? 0,0,'Show all does not vote');
   await readyNext(a);
   await a.waitForFunction(()=>!document.querySelector('.di-round-scroll'));
@@ -149,6 +151,7 @@ try {
   faults.pauseAAct=new Promise(resolve=>{resume=resolve;});
   await a.getByRole('button',{name:'Roll now',exact:true}).click();
   await a.locator('.di-round-rest-bar').waitFor();
+  assert.equal(await a.locator('.di-round-scroll').count(),0,'Submission has breathing room before waiting history');
   await a.locator('.di-round-scroll').waitFor();
   await a.getByRole('heading',{name:'Checking your move…',exact:true}).waitFor();
   const stageBefore=await a.locator('.di-scene-stage').boundingBox();

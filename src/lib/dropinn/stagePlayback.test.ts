@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from '../character';
 import { createAdventure } from './engine';
-import { claimStageSound, stageCaption, stageProjection, stageTimeline } from './stagePlayback';
+import { claimStageSound, roundScrollReadyAt, stageCaption, stageProjection, stageTimeline } from './stagePlayback';
 import type { AdventureRoom, StoryEvent } from './types';
 
 function fixture(count = 4) {
@@ -11,6 +11,20 @@ function fixture(count = 4) {
   return { room, before };
 }
 describe('stage playback', () => {
+  it('gives the confirmed hit breathing room before automatic history', () => {
+    const { room } = fixture(4);
+    room.events.forEach((event, index) => { event.actorId = `actor-${index}`; });
+    expect(roundScrollReadyAt(room, 'actor-0')).toBe(3800);
+    const last = stageTimeline(room)[3];
+    expect(roundScrollReadyAt(room, 'actor-3')).toBe(last.start + last.duration + 650);
+    expect(roundScrollReadyAt(room, 'spectator')).toBe(3800);
+    expect(roundScrollReadyAt(structuredClone(room), 'actor-3')).toBe(roundScrollReadyAt(room, 'actor-3'));
+  });
+  it('bounds late-player history opening within the existing reveal budget', () => {
+    const { room } = fixture(9);
+    room.events[8].actorId = 'last';
+    expect(roundScrollReadyAt(room, 'last')).toBeLessThanOrEqual(7850);
+  });
   it('makes a missed combination explicit instead of celebrating its label', () => {
     const {room}=fixture(1); const event=room.events[0]; event.success=false;
     event.result!.combination={id:'shelter',kind:'payoff',label:'Gather into shelter',sourceId:'gate',actorId:'a',actorName:'Ada'};
