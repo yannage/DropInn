@@ -6,7 +6,7 @@ import { createCharacterProfile } from '../character';
 import { createAdventure } from './engine';
 import { ADVENTURES } from './registry';
 import * as scenes from './scene';
-import { contextualActionLabel, derivePlayerGuidance, suggestedTargetIds, type PlayerGuidanceInput } from './playerGuidance';
+import { contextualActionLabel, derivePlayerGuidance, remainingTurnSeconds, suggestedTargetIds, type PlayerGuidanceInput } from './playerGuidance';
 import type { AdventureRoom, PlayerAction } from './types';
 
 const fresh = (adventureId?: string) => createAdventure(createCharacterProfile('Wren', 'wizard'), 'alice', 1000, 'GUIDE1', adventureId);
@@ -15,6 +15,16 @@ const guide = (room: AdventureRoom, local: Partial<PlayerGuidanceInput> = {}) =>
 afterEach(() => vi.restoreAllMocks());
 
 describe('player guidance follows the authoritative turn', () => {
+  it('caps a newly received countdown when the presentation clock is one tick behind', () => {
+    const room = fresh();
+    expect(remainingTurnSeconds(room, 900)).toBe(60);
+    room.phase = 'reveal'; room.revealUntil = 12000;
+    expect(remainingTurnSeconds(room, 1900)).toBe(10);
+    expect(remainingTurnSeconds(room, 2500)).toBe(10);
+    expect(remainingTurnSeconds(room, 3500)).toBe(9);
+    expect(remainingTurnSeconds(room, 12000)).toBe(0);
+    expect(remainingTurnSeconds(room, 13000)).toBe(0);
+  });
   it('teaches target, move, then commitment without treating preparation as a submitted action', () => {
     const room = fresh();
     expect(guide(room)).toMatchObject({ state: 'target', activeStep: 'target', seconds: 60 });

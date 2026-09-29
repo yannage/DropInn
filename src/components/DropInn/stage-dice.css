@@ -1,0 +1,19 @@
+.di-roll-tableau{position:absolute;display:flex;align-items:center;justify-content:center;gap:7px;transform:translateX(-50%);background:#fff4d6f5;border:2px solid #6c7046;border-radius:14px;box-shadow:0 4px 0 #26322c40;padding:6px 9px 14px;white-space:nowrap;min-width:105px;max-width:calc(100% - 12px);pointer-events:none}
+.di-roll-side{display:flex;align-items:center;gap:5px;min-width:0}
+.di-roll-face{display:grid;place-items:center;flex:none;width:34px;height:34px;border:2px solid #476c4c;border-radius:9px;background:#fffdf1;box-shadow:2px 3px 0 #476c4c50;color:#263b30;font-size:22px;line-height:1;transform:rotate(-5deg)}
+.is-enemy .di-roll-face{background:#f4d7c4;border-color:#965c47;color:#723d2d;box-shadow:2px 3px 0 #965c4740;transform:rotate(5deg)}
+.di-roll-calculation{display:flex;flex-direction:column;gap:1px;font-size:11px;color:#3c5743;min-width:29px}
+.di-roll-calculation small{font-size:10px}.di-roll-calculation strong{font-size:17px;line-height:18px}
+.di-roll-versus{color:#82674b;flex:none}
+.di-roll-verdict{position:absolute;bottom:-8px;background:#315d43;color:#fff7d9;border:1px solid #f8e3a3;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:800;line-height:12px;letter-spacing:.03em}
+.is-miss .di-roll-verdict{background:#84553f}
+.di-roll-tableau[data-roll-state=anticipating] .di-roll-face{animation:di-die-windup var(--die-windup,.3s) cubic-bezier(.2,.7,.4,1) both}
+.di-roll-tableau[data-roll-state=anticipating] .is-enemy .di-roll-face{animation-direction:reverse}
+.di-roll-tableau[data-roll-state=settled] .di-roll-face{animation:di-die-landing var(--die-land,.2s) cubic-bezier(.15,1.5,.5,1) var(--landing-delay) both}
+.di-roll-tableau[data-roll-state=settled] .di-roll-verdict{animation:di-verdict var(--die-land,.2s) ease-out var(--landing-delay) both}
+@keyframes di-die-windup{0%{transform:translateY(5px) rotate(-35deg) scale(.75)}45%{transform:translateY(-9px) rotate(12deg) scale(1.1)}100%{transform:translateY(-2px) rotate(-5deg) scale(1)}}
+@keyframes di-die-landing{0%{transform:translateY(-3px) scale(1.1,.85)}55%{transform:translateY(1px) scale(.94,1.08)}100%{transform:rotate(-5deg) scale(1)}}
+@keyframes di-verdict{from{opacity:0;transform:translateY(-3px) scale(.8)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.di-roll-tableau *{animation:none!important}}
+
+@container encounter (max-height:240px){.di-living-table .di-stage-caption{display:none}.di-roll-tableau{padding:3px 6px 10px}.di-roll-face{width:29px;height:29px;font-size:19px}.di-roll-calculation strong{font-size:14px}}

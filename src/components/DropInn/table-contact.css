@@ -1,0 +1,24 @@
+/* Stationary controls; the paint, illustrations and contact marks do the moving. */
+.di-living-table button:not(:disabled){-webkit-tap-highlight-color:transparent}
+.di-living-table :is(.di-focus-choices,.di-combo-choices,.di-context-moves,.di-rest-actions,.di-scene-tools,.di-stage-header) button{transition:background-color .14s ease,box-shadow .14s ease,filter .14s ease}
+.di-living-table :is(.di-focus-choices,.di-combo-choices,.di-context-moves) button:hover:not(:disabled){box-shadow:inset 0 0 0 2px #e4bd65,0 3px 0 #142f2540}
+.di-living-table button[data-tactile-press=true]{filter:brightness(.94);box-shadow:inset 0 2px 3px #18352830}
+.di-living-table button[data-tactile-press=true]>.di-target-art{transform:translateY(2px) scale(.95)}
+.di-living-table button[data-tactile-press=true]>.di-avatar{transform:translateY(2px) scale(.95)}
+.di-living-table button:focus-visible{outline:3px solid #c88b28;outline-offset:3px}
+.di-table-contact{position:fixed;width:0;height:0;z-index:10000;pointer-events:none;color:var(--contact-color);contain:layout style}
+.di-contact-ring{position:absolute;left:-17px;top:-17px;width:34px;height:34px;border:2px solid currentColor;border-radius:50%;box-shadow:0 0 0 2px #fff4d660;animation:di-contact-ring .36s ease-out both}
+.di-table-contact i{position:absolute;width:5px;height:8px;left:-2px;top:-4px;background:currentColor;border:1px solid #fff4d6;border-radius:2px;animation:di-contact-chip .38s cubic-bezier(.15,.65,.3,1) both}
+@keyframes di-contact-ring{from{transform:scale(.35);opacity:.8}to{transform:scale(1.35);opacity:0}}
+@keyframes di-contact-chip{0%{transform:rotate(var(--contact-angle)) translateY(-8px) scale(.8);opacity:1}100%{transform:rotate(var(--contact-angle)) translateY(-31px) scale(.25);opacity:0}}
+@media(prefers-reduced-motion:reduce){.di-table-contact{display:none}.di-living-table button[data-tactile-press=true]>.di-target-art,.di-living-table button[data-tactile-press=true]>.di-avatar{transform:none}}
+
+.di-living-table .di-scene-hand>button>.di-token-art{transition:transform .2s cubic-bezier(.2,1.5,.4,1)}
+.di-living-table[data-quiet=false] .di-scene-hand>button:hover:not(:disabled)>.di-token-art{transform:translateY(-5px) rotate(-5deg) scale(1.08)}
+.di-living-table .di-scene-hand>button[data-tactile-press=true]>.di-token-art{transform:translateY(2px) scale(.92, .86)}
+@media(prefers-reduced-motion:reduce){.di-living-table .di-scene-hand>button>.di-token-art{transform:none!important;transition:none}}
+
+/* Override the older whole-card hover/press rules as well as Motion's former wrappers. */
+.di-theater.di-living-table .di-scene-hand>button,
+.di-theater.di-living-table .di-scene-hand>button:not(:disabled):is(:hover,:active,.is-chosen){transform:none;transition:filter .15s,box-shadow .15s}
+.di-theater.di-living-table :is(.di-context-moves,.di-focus-choices>[role=group])>button:not(:disabled):active{translate:none}

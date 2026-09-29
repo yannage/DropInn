@@ -27,8 +27,8 @@
 .di-stage-dice{position:absolute;display:flex;align-items:center;gap:5px;transform:translateX(-50%);white-space:nowrap;animation:di-caption .2s both}
 .di-stage-dice b{display:grid;place-items:center;width:36px;height:36px;border:2px solid #26322c;background:#fff4d6;border-radius:10px;box-shadow:2px 3px #26322c45;font-size:20px;rotate:-7deg}
 .di-stage-dice span{font-size:12px;background:#fff4d6;border-radius:5px;padding:3px}
-.di-living-table [data-impact=fight]>.di-target-art{animation:di-target-recoil .5s .3s both}
-.di-living-table [data-impact=influence]>.di-target-art,.di-living-table [data-impact=assist]>.di-target-art,.di-living-table [data-impact=investigate]>.di-target-art{animation:di-target-answer .5s .3s both}
+.di-living-table [data-impact=fight]>.di-target-art{animation:di-target-recoil var(--target-motion,.5s) var(--target-contact,.3s) both}
+.di-living-table [data-impact=influence]>.di-target-art,.di-living-table [data-impact=assist]>.di-target-art,.di-living-table [data-impact=investigate]>.di-target-art{animation:di-target-answer var(--target-motion,.5s) var(--target-contact,.3s) both}
 @keyframes di-target-recoil{0%,100%{transform:none}25%{transform:translateX(8px) rotate(7deg) scale(.96)}55%{transform:translateX(-3px) rotate(-2deg)}}
 @keyframes di-target-answer{0%,100%{transform:none}40%{transform:translateY(-8px) rotate(-3deg) scale(1.06)}}
 .di-living-table .di-scene-hand>button>span{font-size:12px;color:#26322c;display:block}
@@ -55,14 +55,14 @@
 .di-combo-choices [aria-pressed=true]{border-color:#fac75a;box-shadow:inset 0 0 0 1px #3c6351;background:#ffe5a3}
 .di-stage-effects{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
 .di-action-thread{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.di-action-thread path{fill:none;stroke:#f5d278;stroke-width:3;stroke-dasharray:6 8;animation:di-thread .9s both}
+.di-action-thread path{fill:none;stroke:#f5d278;stroke-width:3;stroke-dasharray:6 8;animation:di-thread var(--beat-duration,.9s) both}
 .is-influence .di-action-thread path{stroke:#73c6ae}.is-investigate .di-action-thread path{stroke:#e9b74f}.is-assist .di-action-thread path{stroke:#8acb89}
 .di-flying-piece{position:absolute;width:40px;height:40px;filter:drop-shadow(0 4px 0 #26322c40);font-size:36px}
 .di-flying-piece .di-token-art{width:40px;height:40px}
 .di-acting-hero{position:absolute;width:56px;height:56px}.di-acting-hero .di-avatar{width:56px;height:56px}
-.di-impact{position:absolute}.di-impact i{position:absolute;font-style:normal;font-size:25px;color:#9e6320;text-shadow:1px 1px #fff4d6;animation:di-spark .55s .3s both;--distance:46px;transform-origin:0 0}
+.di-impact{position:absolute}.di-impact i{position:absolute;font-style:normal;font-size:25px;color:#9e6320;text-shadow:1px 1px #fff4d6;animation:di-spark var(--beat-tail,.55s) .3s both;--distance:46px;transform-origin:0 0}
 .is-strong .di-impact i{--distance:72px;font-size:31px}
-.di-impact.with-shake{animation:di-impact-shake .18s .3s both}
+.di-impact.with-shake{animation:di-impact-shake var(--beat-shake,.18s) .3s both}
 .di-stage-caption{position:absolute;left:50%;bottom:81px;transform:translateX(-50%);max-width:92%;width:max-content;z-index:9;background:#fff4d6;color:#26322c;border:2px solid #365e4b;border-radius:13px;padding:7px 13px;font-size:14px;font-weight:800;box-shadow:0 4px #26322c30;pointer-events:none;animation:di-caption .2s both;text-align:center}
 .di-stage-caption small{display:block;font-weight:400;font-size:11px}
 .di-stage-reward{position:absolute;inset:18% 12% auto;z-index:10;animation:di-caption .4s both}.di-stage-reward .di-chapter-reward{background:#fff4d6;border:2px solid #365e4b;border-radius:18px;padding:15px;box-shadow:0 8px #26322c25}
@@ -104,7 +104,7 @@
 }
 
 .di-stage-effects .di-stage-dice,.di-stage-effects .di-action-thread path{animation-delay:var(--beat-offset,0s)}
-.di-stage-effects .di-impact i,.di-stage-effects .di-impact.with-shake{animation-delay:calc(.3s + var(--beat-offset,0s))}
+.di-stage-effects .di-impact i,.di-stage-effects .di-impact.with-shake{animation-delay:calc(var(--beat-contact,.3s) + var(--beat-offset,0s))}
 
 .di-living-table .di-object-result{display:flex;gap:3px;align-items:center;width:max-content;max-width:100%;height:auto;min-height:24px;border-radius:9px;padding:2px 4px}.di-object-result small{display:flex;align-items:center;font-size:10px;line-height:12px}
 

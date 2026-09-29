@@ -1,0 +1,32 @@
+.di-aim-connection{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:hidden;color:#e4bc52}
+.di-aim-connection.is-fight{color:#dd8163}.di-aim-connection.is-influence{color:#62beba}.di-aim-connection.is-assist{color:#8bba66}.di-aim-connection.is-spotlight{color:#bf91d9}
+.di-aim-connection path{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round}
+.di-aim-connection .di-aim-shadow{stroke:#203c35;stroke-width:6;opacity:.35}
+.di-aim-thread{stroke-dasharray:5 9;animation:di-aim-flow .8s linear infinite}
+.di-aim-ring{fill:none;stroke:currentColor;stroke-width:3;stroke-dasharray:8 5;opacity:.8}
+.di-aim-center{fill:currentColor;stroke:#fff6dc;stroke-width:1}
+.di-aim-connection.is-searching{opacity:.45}
+.di-hero-play-caption{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff1b6;color:#345239;border:1px solid #5b774d;box-shadow:0 2px #304b3533;padding:3px 7px;border-radius:10px;font-size:11px;font-weight:800;white-space:nowrap;pointer-events:none;z-index:9;animation:di-hero-caption .15s ease-out}
+.di-stage-hero>.di-avatar.di-hero-hop{animation:di-hero-hop .65s cubic-bezier(.2,.8,.35,1) both;transform-origin:50% 90%}
+.di-stage-hero>.di-avatar.di-hero-twirl{animation:di-hero-twirl .8s cubic-bezier(.2,.7,.4,1) both;transform-origin:50% 80%}
+.di-stage-hero>.di-avatar.di-hero-bow{animation:di-hero-bow .8s ease-in-out both;transform-origin:50% 90%}
+.di-hero-play-hint{font-size:10px;color:#e8d79d;flex-basis:100%}
+@keyframes di-aim-flow{to{stroke-dashoffset:-28}}
+@keyframes di-hero-hop{0%,100%{transform:none}15%{transform:scale(1.15,.8)}45%{transform:translateY(-19px) rotate(-9deg) scale(.95,1.1)}75%{transform:translateY(0) scale(1.1,.9)}}
+@keyframes di-hero-twirl{0%,100%{transform:none}30%{transform:translateY(-10px) rotate(-15deg) scaleX(.4)}60%{transform:translateY(-10px) rotate(12deg) scaleX(-1)}85%{transform:rotate(-5deg) scaleX(.5)}}
+@keyframes di-hero-bow{0%,100%{transform:none}25%{transform:translateY(-6px) rotate(10deg)}55%{transform:scale(1.12,.68) rotate(-12deg)}80%{transform:scale(.96,1.04)}}
+@keyframes di-hero-caption{from{opacity:0;translate:0 5px}to{opacity:1;translate:0 0}}
+.di-living-table[data-quiet=true] .di-aim-thread{animation:none}
+@media(prefers-reduced-motion:reduce){.di-aim-thread,.di-stage-hero>.di-avatar,.di-hero-play-caption{animation:none!important}}
+
+.di-held-token-layer{position:fixed;inset:0;pointer-events:none;z-index:150}
+.di-held-token{position:absolute;width:62px;height:62px;transform:translate(-50%,-50%)}
+.di-held-piece{position:absolute;inset:0;display:grid;place-items:center;border:3px solid #42634a;border-radius:50%;background:#f9e7b2;box-shadow:inset 0 2px #fffbe3,0 4px 0 #8a784c;transform-origin:50% 70%;transition:background .12s,border-color .12s}
+.di-held-piece .di-token-art{width:46px;height:46px}.di-held-piece img{width:100%;height:100%;object-fit:contain}
+.di-held-shadow{position:absolute;inset:10px 1px -10px;background:#233b3340;border-radius:50%;transform:scale(.9,.65);filter:blur(3px)}
+.di-held-token.is-over .di-held-piece{background:#fff4c5;border-color:#f1cb65;box-shadow:inset 0 2px #fffbe3,0 4px 0 #687145,0 0 0 3px #315d49}
+.di-aim-caption{position:absolute;transform:translateX(-50%);width:max-content;max-width:184px;padding:5px 9px;border-radius:10px;background:#244d40f5;border:1px solid #e7cf8c;color:#fff4d6;text-align:center;box-shadow:0 3px #203a3430}
+.di-aim-caption small{display:block;font-size:10px;line-height:13px}.di-aim-caption strong{display:block;font-size:12px;line-height:15px;max-width:165px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.di-aim-caption.is-over{background:#fff1b6;color:#304d35;border-color:#527449}
+.di-living-table .di-scene-hand>button.is-lifted>.di-token-art{opacity:.22;transform:scale(.85)!important}
+.di-living-table .di-scene-hand>button.is-lifted{box-shadow:inset 0 2px 4px #142f2540;background:#e3d7b7}

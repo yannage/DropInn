@@ -9,14 +9,18 @@ export function stageEvents(room: AdventureRoom) {
 export function stageTimeline(room: AdventureRoom) {
   const events = stageEvents(room);
   const origin = events[0]?.at ?? room.updatedAt;
-  return events.map((event, index) => ({ event, start: origin + 150 + index * Math.min(1050, 4700 / Math.max(1, events.length - 1)), duration: 900 }));
+  const spacing = Math.min(1050, 4700 / Math.max(1, events.length - 1));
+  // Busy rounds compress the whole beat, not just its start: overlapping windows
+  // made `find` keep an earlier event active while later consequences disappeared.
+  const duration = Math.min(900, spacing);
+  return events.map((event, index) => ({ event, start: origin + 150 + index * spacing, duration }));
 }
 
 /** Presentation only. Never feed this projection back to the command store. */
 export function stageProjection(room: AdventureRoom, before: AdventureRoom | undefined, now: number, immediate = false) {
   const timeline = stageTimeline(room);
   const canAnimate = !immediate && room.phase === 'reveal' && before?.id === room.id && before.turn === room.turn && before.chapter === room.chapter;
-  const landed = timeline.filter(beat => !canAnimate || now >= beat.start + 300).map(beat => beat.event);
+  const landed = timeline.filter(beat => !canAnimate || now >= beat.start + beat.duration / 3).map(beat => beat.event);
   const active = canAnimate ? timeline.find(beat => now >= beat.start && now < beat.start + beat.duration) : undefined;
   const settled = !canAnimate || timeline.every(beat => now >= beat.start + beat.duration);
   if (!canAnimate || settled) return { scene: getScene(room), seats: room.seats, progress: room.progress, danger: room.danger, active, landed, settled };

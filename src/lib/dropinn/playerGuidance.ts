@@ -5,6 +5,12 @@ import type { AdventureRoom, PlayerAction, TokenKind } from './types';
 export type PlayerGuidanceState = 'completed' | 'parked' | 'joining' | 'unseated' | 'leaving'
   | 'reveal' | 'pending' | 'committed' | 'expired' | 'holding' | 'prepared' | 'inspecting' | 'armed' | 'target';
 export type PlayerGuidanceStep = 'target' | 'move' | 'commit' | 'wait' | 'results' | null;
+
+/** A new snapshot can arrive between clock ticks; never display a longer turn. */
+export function remainingTurnSeconds(room: AdventureRoom, now: number) {
+  const boundary = (room.phase === 'reveal' ? room.revealUntil : room.deadline) ?? room.deadline;
+  return Math.min(room.phase === 'reveal' ? 10 : 60, Math.max(0, Math.ceil((boundary - now) / 1000)));
+}
 export interface PlayerGuidance {
   state: PlayerGuidanceState;
   title: string;
@@ -59,8 +65,7 @@ export function suggestedTargetIds(room: AdventureRoom, userId: string): string[
 /** Presentation only: the authoritative room still owns admission, deadlines, and commitment. */
 export function derivePlayerGuidance(input: PlayerGuidanceInput): PlayerGuidance {
   const { room, userId, now, selection, inspectedId, pending, armedToken, holding } = input;
-  const boundary = (room.phase === 'reveal' ? room.revealUntil : room.deadline) ?? room.deadline;
-  const seconds = Math.max(0, Math.ceil((boundary - now) / 1000));
+  const seconds = remainingTurnSeconds(room, now);
   const guidance = (state: PlayerGuidanceState, title: string, detail: string, activeStep: PlayerGuidanceStep,
     remaining: number | null = seconds): PlayerGuidance => ({ state, title, detail, seconds: remaining, activeStep });
   if (room.status === 'completed') return guidance('completed', 'Adventure complete', 'Collect your recap and bring this hero to another adventure.', null, null);

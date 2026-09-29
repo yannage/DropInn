@@ -138,8 +138,7 @@ try {
   await select(a,'investigate','tracks');
   assert.equal(await a.locator('.di-round-scroll').count(),0,'Selection is not submission');
   await skip(a); await syncAll();
-  assert.equal(await a.locator('.di-round-scroll').count(),0,'Resolution keeps the scene visible');
-  await a.getByRole('button',{name:'Open round scroll'}).click();
+  await a.locator('.di-round-scroll').waitFor();
   await a.getByRole('button',{name:'Show all',exact:true}).click();
   assert.equal((await state(a)).room.revealSkips?.length ?? 0,0,'Show all does not vote');
   await readyNext(a);
@@ -150,7 +149,8 @@ try {
   faults.pauseAAct=new Promise(resolve=>{resume=resolve;});
   await a.getByRole('button',{name:'Roll now',exact:true}).click();
   await a.locator('.di-round-rest-bar').waitFor();
-  assert.equal(await a.locator('.di-round-scroll').count(),0,'Pending move stays on the stage');
+  await a.locator('.di-round-scroll').waitFor();
+  await a.getByRole('heading',{name:'Checking your move…',exact:true}).waitFor();
   const stageBefore=await a.locator('.di-scene-stage').boundingBox();
   await a.keyboard.press('Escape');
   const stageAfter=await a.locator('.di-scene-stage').boundingBox();
@@ -203,12 +203,11 @@ try {
   note('keyboard-history-and-return-to-play');
   await select(a,'assist','tracks'); faults.loseAResponses=1;
   await skip(a); const lost=records.at(-1);
-  await a.getByRole('button',{name:'Retry same move',exact:true}).click();
+  await a.getByRole('dialog',{name:'Round story',exact:true}).getByRole('button',{name:'Retry same move',exact:true}).click();
   await a.waitForFunction(async()=>!(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   assert.equal(records.at(-1).command.id,lost.command.id); assert.deepEqual(records.at(-1).command.action,lost.command.action);
   faults.blockAReads=false; await syncAll();
-  await a.locator('.di-round-rest-bar').getByText('Waiting for the party',{exact:true}).waitFor();
-  await a.getByRole('button',{name:'Open round scroll'}).click();
+  await a.getByRole('heading',{name:'Waiting for the party',exact:true}).waitFor();
   await select(b,'assist','tracks'); await skip(b); await syncAll();
   await a.emulateMedia({reducedMotion:'reduce'}); await a.locator('.di-round-body[data-beat=full]').waitFor();
   assert.equal((await state(a)).room.revealSkips?.length??0,0);

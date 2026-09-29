@@ -30,6 +30,19 @@ describe('stage playback', () => {
     expect(stageProjection(room, before, 7850).settled).toBe(true);
     expect(stageProjection(room, before, 7850).progress).toBe(room.progress);
   });
+  it.each([7, 9, 30])('gives every event its own anticipation, impact and settling beat in a busy %i-event round', count => {
+    const { room, before } = fixture(count);
+    const beats = stageTimeline(room);
+    for (const [index, beat] of beats.entries()) {
+      const anticipation = stageProjection(room, before, beat.start + beat.duration / 6);
+      expect(anticipation.active?.event.id).toBe(beat.event.id);
+      expect(anticipation.landed.some(event => event.id === beat.event.id)).toBe(false);
+      const impact = stageProjection(room, before, beat.start + beat.duration / 2);
+      expect(impact.active?.event.id).toBe(beat.event.id);
+      expect(impact.landed.some(event => event.id === beat.event.id)).toBe(true);
+      if (index) expect(beats[index - 1].start + beats[index - 1].duration).toBeLessThanOrEqual(beat.start + .00001);
+    }
+  });
   it('shows final state on reload, reduced motion, and a mismatched chapter or turn', () => {
     const { room, before } = fixture();
     for (const cached of [undefined, { ...before, turn: 0 }, { ...before, chapter: 1 }]) expect(stageProjection(room, cached, 2100).progress).toBe(4);

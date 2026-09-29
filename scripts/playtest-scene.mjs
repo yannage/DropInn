@@ -82,7 +82,7 @@ async function sync(page) {
   await page.evaluate(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().syncRoom());
 }
 async function openRound(page) {
-  // Result-reading checks explicitly open history; normal play keeps the stage visible.
+  // Reopen history if this round was previously dismissed.
   const button = page.getByRole('button', { name: 'Open round scroll', exact: true });
   if (await button.isVisible() && !(await page.getByRole('dialog', { name: 'Round story' }).isVisible())) await button.click();
 }
@@ -505,7 +505,8 @@ try {
     await a.keyboard.down('Space'); await sleep(800); await a.keyboard.up('Space');
     await a.locator('.di-round-rest-bar').waitFor();
     await guidance(a, 'pending');
-    assert.equal(await a.locator('.di-round-scroll').count(),0,'Pending move keeps the scene visible');
+    await a.locator('.di-round-scroll').waitFor();
+    await a.getByRole('button',{name:'View scene',exact:true}).click();
     assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
     const pendingStage = await a.locator('.di-scene-stage').boundingBox();
     const pendingHero = await a.locator('.di-stage-party .di-avatar').first().boundingBox();
@@ -600,7 +601,11 @@ try {
   const renderBase = structuredClone((await state(a)).room);
   renderBase.revision += 100_000;
   renderBase.revealUntil = clock() + 60_000;
-  const renderVictim = renderBase.enemyIntent.targetActorId;
+  // Keep the departure fixture on another hero: departing self is locked and
+  // tapping self intentionally plays the local hero toy instead of inspecting.
+  const renderSelf = (await state(a)).userId;
+  const renderVictim = renderBase.seats.find(seat => seat.actorId !== renderSelf && seat.kind === 'human').actorId;
+  renderBase.enemyIntent.targetActorId = renderVictim;
   const renderedHero = a.locator(`[data-scene-target="${renderVictim}"][data-target-kind="hero"]`);
   const fixtureEvent = (id, details) => ({ id: `qa-render-${id}`, turn: renderBase.turn, chapter: renderBase.chapter, at: clock(), kind: 'consequence', text: `Presentation fixture ${id}`, ...details });
   await a.waitForFunction(async () => { const store = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState(); return !store.syncing && !store.loading; });

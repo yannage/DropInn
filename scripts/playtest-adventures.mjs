@@ -113,7 +113,7 @@ try {
       assert.equal(finished.storyBranch,definition.chapters[2].branch.options[0].id);
       assert.equal(finished.outcomes.length,3);
       assert.ok(finished.outcomes[2].text.includes(definition.branchEndings[finished.storyBranch]));
-      await a.getByRole('button',{name:'Open round scroll',exact:true}).click();
+      if (!await a.locator('.di-round-scroll').isVisible()) await a.getByRole('button',{name:'Open round scroll',exact:true}).click();
       await a.getByRole('dialog',{name:'Round story',exact:true}).getByRole('button',{name:'Collect your recap',exact:true}).waitFor();
       const recapControl = await a.getByRole('dialog',{name:'Round story',exact:true}).getByRole('button',{name:'Collect your recap',exact:true}).boundingBox();
       const parchment = await a.locator('.di-round-scroll').boundingBox();

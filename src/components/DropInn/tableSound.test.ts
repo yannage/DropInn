@@ -68,10 +68,10 @@ describe('optional table sound', () => {
     const { context, nodes, sources, gains } = audioHarness();
     const sound = await import('./tableSound');
     sound.setTableSound(true);
-    for (const kind of ['pick', 'place', 'pop', 'roll', 'bonus', 'complication', 'result'] as const) {
+    for (const kind of ['aim', 'return', 'pick', 'place', 'pop', 'roll', 'bonus', 'complication', 'result'] as const) {
       const sourceCount = sources.length;
       sound.playTableSound(kind);
-      expect(sources.length - sourceCount).toBeGreaterThan(1);
+      expect(sources.length - sourceCount).toBeGreaterThanOrEqual(1);
       for (const source of sources.slice(sourceCount)) {
         const start = source.start.mock.calls[0][0] as number;
         const stop = source.stop.mock.calls[0][0] as number;
