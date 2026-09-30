@@ -91,10 +91,12 @@ function Modal({
   title,
   onClose,
   children,
+  className,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
@@ -146,7 +148,7 @@ function Modal({
       }}
     >
       <div
-        className="di-modal"
+        className={`di-modal${className ? ` ${className}` : ''}`}
         ref={ref}
         role="dialog"
         aria-modal="true"
@@ -665,7 +667,7 @@ function Lobby() {
         </div>
       </Modal>}
       {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal /></Modal>}
-      {passOpen && <Modal title={STORY_PASS.name} onClose={() => setPassOpen(false)}><StoryPassPanel onPlay={id => { setPassOpen(false); void playNow(id); }} /></Modal>}
+      {passOpen && <Modal title={STORY_PASS.name} className="di-modal--pass" onClose={() => setPassOpen(false)}><StoryPassPanel onPlay={id => { setPassOpen(false); void playNow(id); }} /></Modal>}
       {viewRecap && <Recap recap={viewRecap} onClose={() => setViewRecap(null)} />}
     </main>
   );

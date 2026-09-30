@@ -1,9 +1,86 @@
 .di-pass-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:12px 16px;margin:0 0 12px;border:2px solid #ad824d;border-radius:14px;background:#f7e8c9;color:#293a2c}
 .di-pass-summary div{display:grid;gap:2px}.di-pass-count{display:none}.di-pass-summary strong{font-size:1.05rem}.di-pass-summary span{font-size:.86rem}.di-pass-summary progress{width:100%;height:12px;accent-color:#698549}.di-pass-summary button{grid-column:2;grid-row:1 / span 3;min-height:44px;padding:8px 14px;border:1px solid #475a3d;border-radius:9px;background:#fff7e7;color:#263a2d;font-weight:700;cursor:pointer}
-.di-story-pass{display:grid;gap:14px;max-width:780px;text-align:left;padding:12px}.di-story-pass h2,.di-story-pass h3,.di-story-pass p{margin:0}.di-story-pass h3{margin-top:8px}.di-pass-status{display:grid;gap:6px;background:#f8edcf;border-radius:12px;padding:14px}.di-pass-status progress{width:100%;height:16px;accent-color:#698549}
-.di-pass-stories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.di-pass-stories button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;min-height:58px;padding:10px;background:#fff8e8;border:1px solid #c6a779;border-radius:10px;color:#283c30;cursor:pointer}.di-pass-stories span{font-size:.78rem;white-space:nowrap}
-.di-pass-quests,.di-pass-rewards{list-style:none;margin:0;padding:0;display:grid;gap:6px}.di-pass-quests li,.di-pass-rewards li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;background:#fff9ec;border:1px solid #ddcba5;border-radius:9px}.di-pass-quests strong,.di-pass-rewards small{font-size:.8rem;text-align:right}.di-pass-rewards li b{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:#d7b97e}.di-pass-rewards li>span:not(.di-pass-reward-preview){flex:1}.di-pass-reward-preview{display:grid;place-items:center;flex:none;width:48px;height:48px;background:#f2e5cb;border-radius:8px}.di-pass-reward-preview svg{width:100%;height:100%}.di-pass-title-preview{font-size:28px;color:#a87945}.di-pass-jump{justify-self:start}
-.di-pass-supporter{padding:14px;border:2px solid #b78b5c;border-radius:12px;background:#fff0d6}.di-pass-terms{display:flex;align-items:start;gap:9px}.di-pass-terms input{width:20px;height:20px;flex:none}.di-pass-buy{display:flex;flex-wrap:wrap;gap:8px}.di-pass-buy button{flex:1;min-width:180px;white-space:normal;min-height:44px}.di-story-pass [role="alert"]{color:#8b2424}.di-story-pass [role="status"]{color:#245c38}
-@media(max-width:600px){.di-pass-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:6px 9px;margin-bottom:5px}.di-pass-summary div{grid-column:1;grid-row:1;display:flex;align-items:center;gap:6px;min-width:0}.di-pass-summary strong{font-size:.79rem;white-space:nowrap}.di-pass-summary .di-pass-long{display:none}.di-pass-summary div>span{display:none}.di-pass-summary .di-pass-count{display:inline;font-size:.67rem;white-space:nowrap}.di-pass-summary button{grid-column:2;grid-row:1 / span 2;min-height:44px;font-size:.7rem;padding:3px 6px}.di-pass-summary progress{grid-column:1;grid-row:2;height:7px}.di-pass-summary>span{display:none}.di-pass-stories{grid-template-columns:1fr}.di-pass-quests li{align-items:start;flex-direction:column}.di-pass-quests strong{text-align:left}}
-@media(max-width:375px) and (max-height:650px){.di-pass-summary{display:none}}
+
+.di-modal--pass{width:min(980px,100%);padding:24px;max-height:calc(100dvh - 32px)}
+.di-modal--pass .di-modal-close{position:sticky;top:0;z-index:3;display:grid;place-items:center;width:44px;height:44px;margin:-14px -14px -30px auto;background:#fff8e9;border:1px solid #9a835f;border-radius:50%}
+.di-story-pass{display:grid;gap:20px;max-width:none;padding:0;text-align:left;color:#283b2f}
+.di-story-pass h2,.di-story-pass h3,.di-story-pass p{margin:0}
+.di-story-pass h2{font-size:clamp(1.7rem,3.3vw,2.5rem);line-height:1.08;margin:3px 0 9px}
+.di-story-pass h3{font-size:1.35rem;line-height:1.2}
+.di-story-pass .di-eyebrow{font-size:.72rem;line-height:1.4;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#75633d}
+.di-pass-intro{padding:6px 50px 0 4px}
+.di-pass-intro>p:not(.di-eyebrow){max-width:63ch;line-height:1.5}
+.di-pass-how{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.di-pass-how span{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:100px;background:#eaf0dc;font-size:.85rem;font-weight:700}
+.di-pass-how b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#5c7848;color:#fff;font-size:.76rem}
+
+.di-pass-status{display:grid;gap:9px;padding:17px 18px;background:#f3e7c6;border:1px solid #bb9e69;border-radius:14px}
+.di-pass-status-top,.di-pass-status-bottom{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.di-pass-status-top strong{font-size:1.4rem;white-space:nowrap}.di-pass-status-top small{font-size:.8rem;font-weight:600}
+.di-pass-tier{font-weight:800}.di-pass-status progress{width:100%;height:14px;accent-color:#5d7d47}
+.di-pass-status-bottom{font-size:.84rem}.di-pass-status-bottom span:first-child{font-weight:800;white-space:nowrap}
+.di-pass-status p{font-size:.84rem;line-height:1.4}
+.di-pass-status .di-pass-next-quest{display:flex;flex-wrap:wrap;gap:3px 9px;padding-top:9px;border-top:1px solid #cdb784}
+.di-pass-next-quest strong{white-space:nowrap}.di-pass-next-quest span{flex:1;min-width:175px}
+.di-pass-offer-link{justify-self:start;min-height:38px;padding:0;border:0;background:none;color:#245a40;text-decoration:underline;text-underline-offset:3px;font-weight:800;cursor:pointer}
+
+.di-pass-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,290px);align-items:start;gap:24px}
+.di-pass-main{display:grid;gap:28px;min-width:0}
+.di-pass-section-heading{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:13px}
+.di-pass-section-heading>span{font-size:.8rem;font-weight:700;color:#6c624c;white-space:nowrap}
+.di-pass-timeline{position:relative;display:grid;gap:9px;list-style:none;margin:0;padding:0}
+.di-pass-timeline::before{content:"";position:absolute;z-index:0;top:20px;bottom:20px;left:17px;width:3px;border-radius:3px;background:linear-gradient(#74945d 0 45%,#c9b894 75%)}
+.di-pass-timeline li{position:relative;z-index:1;display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;gap:12px;min-width:0}
+.di-pass-marker{display:grid;place-items:center;width:36px;height:36px;border:2px solid #a78b58;border-radius:50%;background:#fff9ed;color:#58482d;font-size:.83rem;font-weight:900}
+.di-pass-earned .di-pass-marker{border-color:#597448;background:#597448;color:#fff}
+.di-pass-ready .di-pass-marker{border-color:#ad7c31;background:#f8dfa1}
+.di-pass-next .di-pass-marker{border-color:#456c4d;background:#fffef8;box-shadow:0 0 0 4px #dbe9c8}
+.di-pass-finale .di-pass-marker{border-color:#9c573c;background:#aa6141;color:#fff}
+.di-pass-reward-card{display:flex;align-items:center;gap:12px;min-width:0;min-height:72px;padding:10px 13px;border:1px solid #d8c5a4;border-radius:12px;background:#fffaf0}
+.di-pass-earned .di-pass-reward-card{background:#f1f5e7;border-color:#a9bc8e}
+.di-pass-ready .di-pass-reward-card{background:#fff1ce;border-color:#c69b52}
+.di-pass-next .di-pass-reward-card{border:2px solid #64864f;background:#f8fcef}
+.di-pass-finale .di-pass-reward-card{background:#fff0df;border-color:#af704e}
+.di-pass-reward-preview{display:grid;place-items:center;flex:none;width:48px;height:48px;background:#f2e5cb;border-radius:9px}
+.di-pass-reward-preview svg{width:100%;height:100%}.di-pass-title-preview{font-size:28px;color:#a87945}
+.di-pass-reward-copy{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;min-width:0;flex:1}
+.di-pass-reward-type{grid-column:1;color:#6d654e;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.di-pass-reward-copy strong{grid-column:1;font-size:1rem;line-height:1.3}
+.di-pass-reward-state{grid-column:2;grid-row:1 / span 2;max-width:130px;text-align:right;font-size:.78rem;font-weight:800;line-height:1.25;color:#514a37}
+.di-pass-earned .di-pass-reward-state{color:#37613c}.di-pass-ready .di-pass-reward-state{color:#86591d}.di-pass-next .di-pass-reward-state{color:#306447}
+
+.di-pass-stories-section>p{margin:0 0 13px;line-height:1.45}
+.di-pass-stories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.di-pass-stories button{display:grid;gap:6px;align-content:start;min-height:116px;padding:12px;text-align:left;background:#fff9ec;border:1px solid #bca477;border-radius:10px;color:#283c30;cursor:pointer}
+.di-pass-stories button:hover,.di-pass-stories button:focus-visible{border-color:#4c7654;box-shadow:0 0 0 2px #d9e9cd}
+.di-pass-stories button strong{line-height:1.25}.di-pass-stories button small{font-size:.75rem;line-height:1.4;color:#5b5848}.di-pass-stories button>span{align-self:end;color:#245a40;font-size:.82rem;font-weight:800}
+.di-pass-quest-details{margin-top:14px;border:1px solid #c8b58e;border-radius:10px;background:#fff8ea}
+.di-pass-quest-details summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:10px 14px;cursor:pointer;font-weight:800}
+.di-pass-quest-details summary::before{content:"▸";margin-right:3px;color:#526f44}.di-pass-quest-details[open] summary::before{content:"▾"}
+.di-pass-quest-details summary span{margin-left:auto;font-size:.78rem;font-weight:600;color:#615b4a}
+.di-pass-quests{list-style:none;margin:0;padding:0 12px 12px;display:grid;gap:5px}
+.di-pass-quests li{display:flex;justify-content:space-between;align-items:start;gap:10px;padding:8px 9px;border-radius:7px;background:#fffdf6;font-size:.85rem;line-height:1.35}
+.di-pass-quests strong{flex:none;font-size:.75rem;text-align:right;color:#536f42}
+
+.di-pass-side{position:sticky;top:0;min-width:0}.di-pass-offer{display:grid;gap:12px;padding:16px;border:2px solid #ad824d;border-radius:14px;background:#fff4dd}
+.di-pass-offer>p{font-size:.85rem;line-height:1.45}.di-pass-offer h3{font-size:1.4rem}
+.di-pass-options{display:grid;gap:9px}.di-pass-option{display:grid;gap:8px;padding:12px;border:1px solid #c4ac7b;border-radius:10px;background:#fffbf1}
+.di-pass-option-super{border-color:#9d794c;background:#fdf0d8}.di-pass-option>div{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.di-pass-option strong{font-size:1rem}.di-pass-option b{font-size:1.25rem}
+.di-pass-option p{font-size:.8rem;line-height:1.4}.di-pass-option button{width:100%;min-height:44px;white-space:normal}
+.di-pass-terms{display:flex;align-items:start;gap:9px;font-size:.8rem;line-height:1.4}.di-pass-terms input{width:20px;height:20px;flex:none;margin:0}
+.di-pass-sandbox{padding:9px;border-radius:8px;background:#e9f1dc}.di-pass-sale-date{color:#59523e}
+.di-pass-offer .di-fine{font-size:.75rem;line-height:1.4}.di-pass-owned{font-weight:700}
+.di-pass-restore{min-height:44px;padding:8px 11px;border:1px solid #56704b;border-radius:8px;background:#e8f0dd;color:#254633;font-weight:700;cursor:pointer}
+.di-story-pass [role="alert"]{color:#8b2424}.di-story-pass [role="status"]{color:#245c38}
+
+@media(max-width:760px){.di-pass-layout{grid-template-columns:1fr}.di-pass-side{position:static}.di-pass-stories{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .di-pass-summary{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:6px 9px;margin-bottom:5px}.di-pass-summary div{grid-column:1;grid-row:1;display:flex;align-items:center;gap:6px;min-width:0}.di-pass-summary strong{font-size:.79rem;white-space:nowrap}.di-pass-summary .di-pass-long{display:none}.di-pass-summary div>span{display:none}.di-pass-summary .di-pass-count{display:inline;font-size:.67rem;white-space:nowrap}.di-pass-summary button{grid-column:2;grid-row:1 / span 2;min-height:44px;font-size:.7rem;padding:3px 6px}.di-pass-summary progress{grid-column:1;grid-row:2;height:7px}.di-pass-summary>span{display:none}
+  .di-modal-shade:has(>.di-modal--pass){padding:0}.di-modal--pass{width:100%;max-width:none;max-height:100dvh;min-height:100dvh;padding:18px 14px;border:0;border-radius:0}.di-modal--pass .di-modal-close{margin:-10px -6px -33px auto}
+  .di-story-pass{gap:18px}.di-pass-intro{padding-right:42px}.di-pass-intro>p:not(.di-eyebrow){font-size:.9rem}.di-pass-how{gap:6px}.di-pass-how span{font-size:.72rem;padding:5px 7px}.di-pass-how b{width:19px;height:19px}
+  .di-pass-status{padding:13px}.di-pass-status-top strong{font-size:1.15rem}.di-pass-status-bottom{align-items:start;flex-direction:column;gap:3px}.di-pass-section-heading{align-items:start;flex-direction:column;gap:3px}.di-pass-stories{grid-template-columns:1fr}.di-pass-stories button{min-height:96px}
+  .di-pass-reward-card{padding:9px;gap:9px}.di-pass-reward-preview{width:44px;height:44px}.di-pass-reward-copy{grid-template-columns:1fr}.di-pass-reward-state{grid-column:1;grid-row:3;max-width:none;text-align:left;margin-top:2px}.di-pass-quests li{flex-direction:column;gap:2px}.di-pass-quests strong{text-align:left}
+}
+@media(max-width:360px){.di-pass-intro .di-eyebrow{max-width:185px}}
+@media(max-width:375px) and (max-height:650px){.di-pass-how{display:none}}
 @media(min-width:376px) and (max-width:600px){.di-app .di-header nav{gap:4px}}
