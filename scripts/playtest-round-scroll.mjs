@@ -227,6 +227,23 @@ try {
   await a.getByRole('button',{name:'Roll now',exact:true}).waitFor();
   assert.match((await state(a)).error,/rejected/);
   note('definitive-rejection-restores-prepared-move');
+  await a.emulateMedia({reducedMotion:'no-preference'});
+  await a.getByRole('button',{name:'Story settings',exact:true}).click();
+  await a.getByRole('checkbox',{name:/Pace turn results/}).uncheck();
+  await a.keyboard.press('Escape');
+  const release = a.getByRole('button',{name:'Hold and release the die',exact:true});
+  const releaseBox = await release.boundingBox();
+  await a.mouse.move(releaseBox.x + releaseBox.width / 2, releaseBox.y + releaseBox.height / 2);
+  await a.mouse.down(); await sleep(700); await a.mouse.up();
+  await a.locator('.di-release-flight').waitFor();
+  assert.equal(await a.locator('.di-round-scroll').count(),0,'Fast pacing cannot cover the release animation');
+  await sleep(1000);
+  assert.equal(await a.locator('.di-release-flight').count(),1,'Release visibly plays beyond the first second');
+  assert.equal(await a.locator('.di-round-scroll').count(),0);
+  await a.screenshot({path:'output/playwright/release-before-scroll-390.png'});
+  await a.locator('.di-release-flight').waitFor({state:'detached'});
+  await a.locator('.di-round-scroll').waitFor();
+  note('pointer-release-animation-before-scroll-even-with-fast-pacing');
   assert.deepEqual(errors,[]); assert.equal(externalCalls,0);
 } catch(error) {
   note('FAILED',{message:error.message,stack:error.stack}); process.exitCode=1;

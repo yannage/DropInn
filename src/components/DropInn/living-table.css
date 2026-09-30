@@ -136,3 +136,8 @@
  .di-living-table .di-scene-dock.has-action .di-dock-choices{display:block;min-height:0;overflow-y:auto;overscroll-behavior:contain;flex:1}
  .di-living-table .di-scene-dock.has-action .di-focus-control{position:static;flex:0 0 auto}
 }
+
+/* Local release feedback survives the timing button unmounting; never a roll result. */
+.di-release-flight{position:absolute;z-index:12;pointer-events:none;width:72px;margin-left:-36px;margin-top:-36px;text-align:center;filter:drop-shadow(0 6px 6px #30251355)}
+.di-release-flight .di-token-art,.di-release-flight .di-token-art img{width:72px;height:72px}
+.di-release-flight>span{display:block;width:120px;margin-left:-24px;margin-top:8px;background:#fff5d9;color:#344b41;border:2px solid #b79560;border-radius:12px;padding:5px;font-size:12px;font-weight:800}

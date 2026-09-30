@@ -101,6 +101,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const joining = room.pendingJoins.includes(userId);
   const committed = Boolean(room.commits[userId]);
   const [now, setNow] = useState(Date.now());
+  const [releaseBeat, setReleaseBeat] = useState<{ at: number; key: string; token: IllustratedToken; x: number; y: number } | null>(null);
   const [pacedTurns, setPacedTurns] = useState(initialPacedTurns);
   const [localSkipId, setLocalSkipId] = useState('');
   const autoSkipAttempt = useRef('');
@@ -124,16 +125,17 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const reducedMotion = useLiveReducedMotion();
   const lastRound = useMemo(() => latestRound(room), [room.id, room.events, room.outcomes, room.turn, room.chapter, room.phase]);
   const skipVoted = room.revealSkips?.includes(userId) ?? false;
+  const releaseBusy = !!releaseBeat && releaseBeat.key === `${room.id}:${room.chapter}:${room.turn}` && now < releaseBeat.at + (reducedMotion ? 800 : 2400);
   const revealBypassed = !pacedTurns || skipVoted || (lastRound !== undefined && localSkipId === lastRound.id);
   const partyPayoff = room.phase === 'reveal' && (!lastRound || reducedMotion || revealBypassed || now - lastRound.at >= 1100);
   const revealVoters = room.seats.filter(seat => seat.kind === 'human' && !seat.leaving);
   const canSkipReveal = room.status === 'active' && room.phase === 'reveal' && revealVoters.some(seat => seat.actorId === userId);
   useEffect(() => {
-    if (pacedTurns || !canSkipReveal || skipVoted || skippingReveal || !lastRound) return;
+    if (releaseBusy || pacedTurns || !canSkipReveal || skipVoted || skippingReveal || !lastRound) return;
     if (autoSkipAttempt.current === lastRound.id) return;
     autoSkipAttempt.current = lastRound.id;
     void skipReveal();
-  }, [pacedTurns, canSkipReveal, skipVoted, skippingReveal, lastRound?.id, skipReveal]);
+  }, [releaseBusy, pacedTurns, canSkipReveal, skipVoted, skippingReveal, lastRound?.id, skipReveal]);
   const [holding, setHolding] = useState(false);
   const [idea, setIdea] = useState('');
   const [spotlightTarget, setSpotlightTarget] = useState(scene.targets[0]?.id ?? '');
@@ -161,9 +163,9 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const restingSince = useRef({ key: '', at: 0 });
   if (!roundRest) restingSince.current = { key: '', at: 0 };
   else if (restingSince.current.key !== roundKey) restingSince.current = { key: roundKey, at: Date.now() };
-  const automaticScrollReady = reducedMotion || revealBypassed || now >= (
+  const automaticScrollReady = !releaseBusy && (reducedMotion || revealBypassed || now >= (
     room.phase === 'reveal' || room.status === 'completed'
-      ? roundScrollReadyAt(room, userId) : restingSince.current.at + 1800);
+      ? roundScrollReadyAt(room, userId) : restingSince.current.at + 1800));
   const historicalRound = drawer === 'round';
   const roundOpen = historicalRound || (roundRest && storyMode === 'collapsed'
     && (manualRound === roundKey || (dismissedRound !== roundKey && automaticScrollReady)));
@@ -304,6 +306,10 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const dragLabel = drag?.over ? contextualActionLabel(room, { token: drag.kind, targetId: drag.over, targetKind: dragHero ? 'hero' : 'scene', ...(dragHero && drag.over !== intent?.targetActorId ? { approach: 'mend' as const } : {}) }) : undefined;
   const commit = (releaseMs?: number) => {
     if (!selection || !canAct) return;
+    const bounds = stage.current?.getBoundingClientRect();
+    const piece = Array.from(stage.current?.querySelectorAll<HTMLElement>('[data-scene-target]') ?? []).find(node => node.dataset.sceneTarget === selection.targetId)?.getBoundingClientRect();
+    if (bounds && piece && selection.token !== 'spotlight') setReleaseBeat({ at: Date.now(), key: roundKey, token: selection.token,
+      x: piece.x + piece.width / 2 - bounds.x, y: piece.y + piece.height / 2 - bounds.y });
     void commitAction({ ...selection, ...(releaseMs === undefined ? {} : { releaseMs }) });
   };
   const branchOption = branchOpen && selection?.token === 'assist' ? scene.branch?.options.find(option => option.targetId === selection.targetId && selection.targetKind !== 'hero') : undefined;
@@ -352,6 +358,13 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     <div className="di-stage-objective"><strong><span className="di-goal-label">Your shared goal</span>{room.status === 'completed' ? 'You made a little legend.' : visualScene.objective}</strong><Narrator key={room.id} room={room} pacedTurns={pacedTurns} onPacedTurns={setPacedTurns} suppressCue={room.phase === 'reveal' && revealBypassed} portalTarget={roundOpen ? narratorHost : null} /><div className="di-objective-progress"><div className="di-chapter-meter"><span>Chapter progress <b>{Number(playback.progress.toFixed(1))} / {scene.progressGoal}</b></span><div role="progressbar" aria-label="Chapter progress" aria-valuenow={Math.round(Math.min(100, playback.progress / scene.progressGoal * 100))} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.min(100, playback.progress / scene.progressGoal * 100)}%` }} /></div></div><span className="di-danger-details" aria-label={`Danger ${playback.danger}`}><Flame size={12} />Danger {Number(playback.danger.toFixed(1))}</span></div></div>
     <div className={`di-scene-stage di-stage-${scene.art} ${scene.combat ? 'di-stage-combat' : ''} ${room.phase === 'reveal' ? 'is-resolving' : ''} ${holding ? 'is-charging' : ''} `} ref={stage} onClick={event => { if (inspected && !(event.target as HTMLElement).closest('[data-scene-target],button')) dismissInspection(); }}>
       <SceneStageArt chapter={room.chapter} art={scene.art} />
+      {releaseBusy && releaseBeat && <div className="di-release-flight" key={releaseBeat.at} style={{ left: releaseBeat.x, top: releaseBeat.y }} role="status" aria-label="Move released">
+        <motion.div initial={reducedMotion ? false : { y: 70, scale: .65, rotate: -20 }}
+          animate={reducedMotion ? {} : { y: [70, -55, -55, 0, 0], scale: [.65, 1.25, 1.25, .88, 1], rotate: [-20, 12, -12, 0, 0] }}
+          transition={{ duration: 2.1, times: [0, .3, .5, .78, 1], ease: 'easeInOut' }}>
+          <TokenArtwork token={releaseBeat.token} />
+        </motion.div><span>Move released</span>
+      </div>}
       <>
       {threatPath && <svg className="di-threat-link" aria-hidden="true" viewBox={`0 0 ${threatPath.width} ${threatPath.height}`}><defs><marker id="stage-threat-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b44e35" /></marker></defs><path d={threatPath.path} fill="none" stroke="#b44e35" strokeWidth="2.5" strokeDasharray="5 6" markerEnd="url(#stage-threat-arrow)" /></svg>}
       <div className="di-stage-party" aria-label="Heroes at the table">
