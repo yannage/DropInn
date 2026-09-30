@@ -17,6 +17,7 @@ function harness({guest=false,missingSchema=false,revoked=false,missingCollectio
    if(url.pathname.endsWith('/player_accounts'))return Response.json({selected_character_id:heroId});
    if(url.pathname.endsWith('/dropinn_bootstrap_account'))return Response.json(null);
    if(url.pathname.endsWith('/dropinn_collection'))return missingCollection?Response.json({code:'PGRST202',message:'Missing function'},{status:404}):Response.json({earned:0,spent:0,hats,styles,discoveries:[]});
+   if(url.pathname.endsWith('/dropinn_story_pass_credits'))return Response.json([]);
    writes.push({path:url.pathname,body});
    if(url.pathname.endsWith('/dropinn_craft'))return Response.json({earned:3,spent:3,hats:['shepherd'],styles:[body.p_recipe_id],discoveries:[]});
    if(url.pathname.endsWith('/dropinn_save_hero'))return Response.json({...row,name:body.p_hero.name,appearance:body.p_hero.appearance,equipment:body.p_hero.equipment});
@@ -50,6 +51,19 @@ describe('server account authority',()=>{
    const {call,writes}=harness();const result=await call({operation:'hero-save',character:{...createCharacterProfile('Pip','fighter'),id:heroId,user_id:'forged',xp:9999,inventory:['The guardian’s moonstone'],equipment:{hat:'moonstone'}}});
    expect(result.status).toBe(200);const saved=writes.find(w=>w.path.endsWith('/dropinn_save_hero'))!.body;
    expect(saved.p_account).toBe(owner);expect(saved.p_hero).toMatchObject({xp:320,inventory:['A silver river reed'],equipment:{hat:null},hp:14});expect(saved.p_hero).not.toHaveProperty('user_id');
+ });
+ it('strips forged pass appearance, shoes, title, border and color on save',async()=>{
+   const {call,writes}=harness();
+   const base=createCharacterProfile('Yani','wizard');
+   const result=await call({operation:'hero-save',character:{...base,id:heroId,accent:'#6E82C7',
+     cosmeticUnlocks:{hats:['pilot-cap'],styles:[],items:['eyes:starry','shoes:ruby','title:tale-seeker','frame:inn-border']},
+     appearance:{body:'bean',eyes:'starry',nose:'button',mouth:'smile',hair:'wayward-curls'},
+     equipment:{hat:'pilot-cap',shoes:'ruby',title:'tale-seeker',frame:'inn-border'}}});
+   expect(result.status).toBe(200);
+   const saved=writes.find(w=>w.path.endsWith('/dropinn_save_hero'))!.body.p_hero;
+   expect(saved.accent).toBe('#A78BFA');
+   expect(saved.appearance).toMatchObject({eyes:'dots',hair:null});
+   expect(saved.equipment).toMatchObject({hat:null,shoes:null,title:null,frame:null});
  });
  it.each(['bad-id','__proto__'])('rejects malformed hero identifiers %s',async id=>{const {call}=harness();expect((await call({operation:'hero-save',character:{id}})).status).toBe(400);});
  it('issues an opaque guest proof and stores only its hash',async()=>{

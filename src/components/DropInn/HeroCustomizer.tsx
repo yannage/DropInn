@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, LockKeyhole, X } from 'lucide-react';
-import { CHARACTER_CLASS_PRESETS, HERO_COLORS, type CharacterClassKey, type CharacterProfile } from '../../lib/character';
-import { HERO_HATS, HERO_PARTS, normalizeCustomization, ownsHat, type HeroAppearance } from '../../lib/cosmetics';
+import { CHARACTER_CLASS_PRESETS, HERO_COLORS, MOONLIT_BLUE, type CharacterClassKey, type CharacterProfile } from '../../lib/character';
+import { HERO_HATS, HERO_HAIR, HERO_SHOES, HERO_PARTS, normalizeCustomization, ownsHat, displayHeroName } from '../../lib/cosmetics';
+import { PASS_TITLES } from '../../lib/dropinn/storyPass';
 import { useAdventureStore } from '../../store/adventureStore';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { CollectionWardrobe } from './Collection';
@@ -10,7 +11,7 @@ import { collectionUnlocks } from '../../lib/dropinn/collection';
 import type { HeroCustomizerTarget } from './HeroProgression';
 import { SUPPORTER_STYLES } from '../../lib/dropinn/payments';
 
-const labels: Record<keyof HeroAppearance, string> = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' };
+const labels = { body: 'Body', eyes: 'Eyes', nose: 'Nose', mouth: 'Mouth' } as const;
 
 export function HeroCustomizer({ character, onClose, initialTarget = {} }: { character: CharacterProfile; onClose: () => void; initialTarget?: HeroCustomizerTarget }) {
   const [draft, setDraft] = useState(() => ({ ...character, ...normalizeCustomization(character) }));
@@ -88,7 +89,7 @@ export function HeroCustomizer({ character, onClose, initialTarget = {} }: { cha
         <div className="di-builder-workspace">
           <aside className="di-builder-preview">
             <div className="di-portrait-paper"><span className="di-paper-note">Quite the adventurer.</span><HeroAvatar hero={preview} /><span className="di-paper-spark di-spark-one">✦</span><span className="di-paper-spark di-spark-two">✧</span></div>
-            <h3>{draft.name.trim() || 'Wren'}</h3><p>{CHARACTER_CLASS_PRESETS[draft.classKey].label} · one of a kind</p>
+            <h3>{displayHeroName(draft) || 'Wren'}</h3><p>{CHARACTER_CLASS_PRESETS[draft.classKey].label} · one of a kind</p>
             <div className="di-equipped-slot"><span className="di-slot-art">{equipped ? <HeroHatPreview hat={equipped} color={draft.accent} hatColor={draft.equipment.hatColor} hatTrim={draft.equipment.hatTrim} /> : <HeroAvatar hero={preview} decorative />}</span><div><small>HAT SLOT</small><strong>{equipped?.label ?? 'A lovely bare head'}</strong></div></div>
             <p className="di-builder-caption">Big personality. Tiny feet.<br />Looks never change your abilities or rewards.</p>
           </aside>
@@ -106,26 +107,31 @@ export function HeroCustomizer({ character, onClose, initialTarget = {} }: { cha
                 <div className="di-builder-identity"><label htmlFor="builder-name">Hero name <small>optional</small></label><input id="builder-name" value={draft.name} maxLength={18} placeholder="Wren" onChange={event => setDraft({ ...draft, name: event.target.value })} />
                   <fieldset><legend>Your calling</legend><div className="di-builder-class-grid">{(Object.keys(CHARACTER_CLASS_PRESETS) as CharacterClassKey[]).map(key => <button key={key} type="button" aria-pressed={draft.classKey === key} onClick={() => setDraft({ ...draft, classKey: key })}>{CHARACTER_CLASS_PRESETS[key].label}</button>)}</div></fieldset>
                 </div>
-                <fieldset className="di-builder-colors"><legend>A splash of color</legend><div>{HERO_COLORS.map(color => <button type="button" key={color.value} aria-label={`${color.name} body color`} aria-pressed={draft.accent === color.value} onClick={() => setDraft({ ...draft, accent: color.value })}><span style={{ background: color.value }}>{draft.accent === color.value && <Check size={17} />}</span><small>{color.name}</small></button>)}</div></fieldset>
-                {(Object.keys(HERO_PARTS) as (keyof HeroAppearance)[]).map(key => <fieldset className="di-part-picker" key={key}><legend>{labels[key]}</legend><div>{HERO_PARTS[key].map(part => <button type="button" key={part.id} aria-pressed={draft.appearance[key] === part.id} onClick={() => setDraft({ ...draft, appearance: { ...draft.appearance, [key]: part.id } })}>
-                  <HeroAvatar hero={{ ...preview, appearance: { ...draft.appearance, [key]: part.id }, equipment: { hat: null } }} decorative faceOnly={key !== 'body'} /><span>{part.label}</span>
+                <fieldset className="di-builder-colors"><legend>A splash of color</legend><div>{[...HERO_COLORS,MOONLIT_BLUE].map(color => {const unlocked=color.value!==MOONLIT_BLUE.value || collection.items?.includes('color:moonlit-blue');return <button type="button" key={color.value} disabled={!unlocked} aria-label={`${color.name} body color${unlocked?'':' locked'}`} aria-pressed={draft.accent === color.value} onClick={() => setDraft({ ...draft, accent: color.value })}><span style={{ background: color.value }}>{draft.accent === color.value && <Check size={17} />}</span><small>{color.name}{!unlocked?' · Story Pass':''}</small></button>;})}</div></fieldset>
+                <fieldset className="di-part-picker"><legend>Hair</legend><div><button type="button" aria-pressed={!draft.appearance.hair} onClick={() => setDraft({...draft,appearance:{...draft.appearance,hair:null}})}>No hair</button>{HERO_HAIR.map(part=>{const unlocked=!part.unlockId || collection.items?.includes(part.unlockId);return <button type="button" key={part.id} disabled={!unlocked} aria-pressed={draft.appearance.hair===part.id} onClick={()=>setDraft({...draft,appearance:{...draft.appearance,hair:part.id}})}><HeroAvatar hero={{...preview,appearance:{...draft.appearance,hair:part.id},equipment:{...draft.equipment,hat:null}}} decorative faceOnly/><span>{part.label}{!unlocked?' · Story Pass':''}</span></button>;})}</div></fieldset>
+                {(Object.keys(HERO_PARTS) as (keyof typeof HERO_PARTS)[]).map(key => <fieldset className="di-part-picker" key={key}><legend>{labels[key]}</legend><div>{HERO_PARTS[key].map(part => <button type="button" key={part.id} disabled={!!part.unlockId && !collection.items?.includes(part.unlockId)} aria-pressed={draft.appearance[key] === part.id} onClick={() => setDraft({ ...draft, appearance: { ...draft.appearance, [key]: part.id } })}>
+                  <HeroAvatar hero={{ ...preview, appearance: { ...draft.appearance, [key]: part.id }, equipment: { ...draft.equipment,hat: null } }} decorative faceOnly={key !== 'body'} /><span>{part.label}{part.unlockId&&!collection.items?.includes(part.unlockId)?' · Story Pass':''}</span>
                 </button>)}</div></fieldset>)}
               </> : <>
                 <div className="di-wardrobe-heading"><h3>Your hats</h3><p>Wear any hat, whatever your calling.</p></div>
-                <button className="di-bare-head" type="button" aria-pressed={draft.equipment.hat === null} onClick={() => setDraft({ ...draft, equipment: { hat: null } })}>No hat {draft.equipment.hat === null ? <Check size={17} /> : <span>Unequip</span>}</button>
+                <button className="di-bare-head" type="button" aria-pressed={draft.equipment.hat === null} onClick={() => setDraft({ ...draft, equipment: { ...draft.equipment,hat: null,hatColor:null,hatTrim:null } })}>No hat {draft.equipment.hat === null ? <Check size={17} /> : <span>Unequip</span>}</button>
                 <div className="di-hat-grid">{hats.map(hat => {
                   const unlocked = ownsHat(hat, character.inventory, collection);
                   const selected = draft.equipment.hat === hat.id;
-                  return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} data-cosmetic-id={hat.id} className={`${unlocked ? '' : 'di-hat-locked'} ${initialTarget.hatId === hat.id && !initialTarget.styleId ? 'di-cosmetic-highlight' : ''}`} onClick={() => setDraft({ ...draft, equipment: { hat: hat.id } })}>
+                  return <button type="button" key={hat.id} disabled={!unlocked} aria-pressed={selected} data-cosmetic-id={hat.id} className={`${unlocked ? '' : 'di-hat-locked'} ${initialTarget.hatId === hat.id && !initialTarget.styleId ? 'di-cosmetic-highlight' : ''}`} onClick={() => setDraft({ ...draft, equipment: { ...draft.equipment,hat: hat.id,hatColor:null,hatTrim:null } })}>
                     <span className="di-hat-paper"><HeroHatPreview hat={hat} color={draft.accent} />{selected ? <Check size={18} /> : !unlocked ? <LockKeyhole size={16} /> : null}</span>
                     <strong>{hat.label}</strong><small>{selected ? 'Equipped' : unlocked ? hat.supporter ? 'Supporter · ready to wear' : hat.keepsake ? 'Earned · ready to wear' : 'Starter · ready to wear' : hat.supporter ? 'Optional supporter pack' : `Earn ${hat.keepsake} in ${hat.chapter}`}</small>
                   </button>;
                 })}</div>
                 {equipped?.supporter && ownsHat(equipped, character.inventory, collection) && <fieldset className="di-builder-colors"><legend>{equipped.label} palettes</legend><div>
-                  <button type="button" aria-pressed={!draft.equipment.hatColor} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:null}})}>Original color</button>
-                  {SUPPORTER_STYLES.filter(style => style.hat === equipped.id && collection.styles.includes(style.id)).map(style => <button key={style.id} type="button" aria-pressed={draft.equipment.hatColor===style.id} onClick={() => setDraft({...draft,equipment:{hat:equipped.id,hatColor:style.id}})}><span style={{background:style.color}}/><small>{style.label}</small></button>)}
+                  <button type="button" aria-pressed={!draft.equipment.hatColor} onClick={() => setDraft({...draft,equipment:{...draft.equipment,hat:equipped.id,hatColor:null}})}>Original color</button>
+                  {SUPPORTER_STYLES.filter(style => style.hat === equipped.id && collection.styles.includes(style.id)).map(style => <button key={style.id} type="button" aria-pressed={draft.equipment.hatColor===style.id} onClick={() => setDraft({...draft,equipment:{...draft.equipment,hat:equipped.id,hatColor:style.id}})}><span style={{background:style.color}}/><small>{style.label}</small></button>)}
                 </div></fieldset>}
                 <CollectionWardrobe highlightStyleId={initialTarget.styleId} hero={preview} onEquip={equipment => setDraft({ ...draft,equipment })} />
+                <fieldset className="di-part-picker"><legend>Shoes</legend><div><button type="button" aria-pressed={!draft.equipment.shoes} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,shoes:null,shoeColor:null}})}>Classic boots</button>{HERO_SHOES.map(part=>{const unlocked=!!part.unlockId&&collection.items?.includes(part.unlockId);return <button type="button" key={part.id} disabled={!unlocked} aria-pressed={draft.equipment.shoes===part.id} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,shoes:part.id,shoeColor:null}})}><HeroAvatar hero={{...preview,equipment:{...draft.equipment,shoes:part.id}}} decorative/><span>{part.label}{!unlocked?' · Story Pass':''}</span></button>;})}</div></fieldset>
+                {draft.equipment.shoes==='ruby' && collection.items?.includes('shoes:ruby-sparkle') && <fieldset className="di-builder-colors"><legend>Sparkling Ruby Shoes colors</legend><div><button type="button" onClick={()=>setDraft({...draft,equipment:{...draft.equipment,shoeColor:null}})}>Original red</button>{HERO_COLORS.map(color=><button type="button" key={color.value} aria-pressed={draft.equipment.shoeColor===color.value} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,shoeColor:color.value}})}><span style={{background:color.value}}/><small>{color.name}</small></button>)}</div></fieldset>}
+                <fieldset className="di-part-picker"><legend>Title</legend><div><button type="button" aria-pressed={!draft.equipment.title} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,title:null}})}>No title</button>{PASS_TITLES.map(title=><button type="button" key={title.id} disabled={!collection.items?.includes(`title:${title.id}`)} aria-pressed={draft.equipment.title===title.id} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,title:title.id}})}>{title.label}{!collection.items?.includes(`title:${title.id}`)?' · Story Pass':''}</button>)}</div></fieldset>
+                {collection.items?.includes('frame:inn-border') && <fieldset className="di-builder-colors"><legend>Avatar border</legend><div><button type="button" onClick={()=>setDraft({...draft,equipment:{...draft.equipment,frame:null,frameColor:null}})}>No border</button>{HERO_COLORS.map(color=><button type="button" key={color.value} aria-pressed={draft.equipment.frame==='inn-border'&&draft.equipment.frameColor===color.value} onClick={()=>setDraft({...draft,equipment:{...draft.equipment,frame:'inn-border',frameColor:color.value}})}><span style={{background:color.value}}/><small>{color.name}</small></button>)}</div></fieldset>}
               </>}
             </div>
           </section>

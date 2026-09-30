@@ -1,5 +1,6 @@
 import type { AdventureRoom } from './types';
 import type { PaidCollection } from './payments';
+import { storyPassProgress, type PassProgress } from './storyPass';
 
 export const STARTER_PACK = {
   id: 'first-tales', name: 'First tales',
@@ -22,17 +23,19 @@ export interface Discovery {
   text: string;
 }
 export interface ChapterCredit extends Discovery { roomId: string; at: number }
-export interface CosmeticUnlocks { hats: string[]; styles: string[] }
+export interface CosmeticUnlocks { hats: string[]; styles: string[]; items?: string[] }
 export interface CollectionSnapshot extends CosmeticUnlocks {
   paid?: PaidCollection;
+  pass?: PassProgress;
   earned: number;
   spent: number;
   discoveries: Discovery[];
 }
 export const emptyCollection = (): CollectionSnapshot => ({ earned: 0, spent: 0, hats: [], styles: [], discoveries: [] });
 export const collectionUnlocks = (collection: CollectionSnapshot): CosmeticUnlocks => ({
-  hats: [...new Set([...collection.hats, ...(collection.paid?.hats ?? [])])],
+  hats: [...new Set([...collection.hats, ...(collection.paid?.hats ?? []), ...(collection.pass?.hats ?? [])])],
   styles: [...new Set([...collection.styles, ...(collection.paid?.styles ?? [])])],
+  items: collection.pass?.items ?? [],
 });
 export const threadBalance = (collection: CollectionSnapshot) => Math.max(0, collection.earned - collection.spent);
 export const discoveryKey = (entry: Discovery) => `${entry.adventureId}:${entry.adventureVersion}:${entry.chapter}:${entry.outcome}:${entry.endingId}`;
@@ -40,7 +43,11 @@ export const creditKey = (entry: ChapterCredit) => `${entry.roomId}:${entry.chap
 /** Cumulative snapshots may arrive out of order during a craft or a reward refresh. */
 export function mergeCollection(a: CollectionSnapshot, b: CollectionSnapshot): CollectionSnapshot {
   const paid = !a.paid || (b.paid && (a.paid.environment !== b.paid.environment || b.paid.revision >= a.paid.revision)) ? b.paid : a.paid;
+  const tier = paid?.bundles.includes('first-tales-super') || (paid?.bundles.includes('first-tales-standard') && paid?.bundles.includes('first-tales-upgrade')) ? 'super'
+    : paid?.bundles.includes('first-tales-standard') ? 'standard' : 'free';
+  const pass = a.pass || b.pass ? storyPassProgress([...(a.pass?.credits ?? []), ...(b.pass?.credits ?? [])], tier) : undefined;
   return { ...(paid ? { paid } : {}), earned: Math.max(a.earned, b.earned), spent: Math.max(a.spent, b.spent),
+    ...(pass ? { pass } : {}),
     hats: [...new Set([...a.hats, ...b.hats])], styles: [...new Set([...a.styles, ...b.styles])],
     discoveries: [...new Map([...a.discoveries, ...b.discoveries].map(d => [discoveryKey(d), d])).values()] };
 }

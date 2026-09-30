@@ -6,6 +6,7 @@ import { googleSignIn, sendEmailCode, verifyEmailCode, hasGuestRecovery, returnT
 import { getErrorMessage } from '../../lib/errors';
 import { SceneDrawer } from './SceneAdventure';
 import { HeroAvatar } from './HeroAvatar';
+import { displayHeroName } from '../../lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS } from '../../lib/character';
 import './account.css';
 
@@ -70,7 +71,7 @@ export function AccountPanel() {
             <p>Signed in{state.account?.email?` as ${state.account.email}`:''}. Connected: {state.account?.identities.join(', ') || 'verified account'}.</p>
             {state.account?.providers.google && !state.account.identities.includes('google') && <button className="di-button di-secondary" disabled={locked} onClick={()=>void run(()=>googleSignIn(false))}>Connect Google to this account</button>}
             <fieldset><legend>Your saved heroes</legend>{state.account?.heroes.map(({character})=><button className="di-account-hero" key={character.id} disabled={locked} aria-pressed={state.character?.id===character.id} onClick={()=>void run(()=>state.selectHero(character.id))}>
-              <HeroAvatar hero={character} decorative/><span><strong>{character.name}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label} · {character.xp} XP{state.character?.id===character.id?' · Selected':''}</small></span>
+              <HeroAvatar hero={character} decorative/><span><strong>{displayHeroName(character)}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label} · {character.xp} XP{state.character?.id===character.id?' · Selected':''}</small></span>
             </button>)}</fieldset>
             {(state.account?.heroes.length ?? 0)>1 && <p>Recovered heroes are preserved. Choose your hero between visits.</p>}
             <button className="di-button di-secondary" disabled={locked} onClick={()=>void run(()=>state.signOut())}>Sign out on this browser</button>

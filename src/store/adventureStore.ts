@@ -11,6 +11,7 @@ import { getLevelForXp } from '../lib/progression';
 import { parseInvitation } from '../lib/dropinn/invites';
 import { normalizeHero, HERO_HATS, type HeroCustomization } from '../lib/cosmetics';
 import { HAT_STYLES, emptyCollection, mergeCollection, craftCollection, creditKey, collectionUnlocks, type CollectionSnapshot } from '../lib/dropinn/collection';
+import { storyPassProgress } from '../lib/dropinn/storyPass';
 import { newlyEarnedHats } from '../lib/dropinn/rewardPresentation';
 import { getErrorMessage } from '../lib/errors';
 
@@ -220,7 +221,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       });
       const hats = HERO_HATS.filter(hat => hat.keepsake && [saved.character.inventory, ...recaps.map(recap => recap.keepsakes)].some(items => items.includes(hat.keepsake!))).map(hat => hat.id);
       saved.collectionReceipts = [...keys];
-      acceptCollection({ ...get().collection, earned: get().collection.earned + incoming.length, hats, discoveries: incoming });
+      const pass = storyPassProgress([...(get().collection.pass?.credits ?? []), ...recaps.flatMap(recap => recap.collectionCredits ?? [])], 'free');
+      acceptCollection({ ...get().collection, earned: get().collection.earned + incoming.length, hats, discoveries: incoming, pass });
     }
     for (const recap of recaps) {
       if (recap.characterId !== get().character?.id) continue;
@@ -529,7 +531,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       if (get().room || get().restoringCode) throw new Error('Change your hero between visits.');
       const current = get().character!;
       const preset = CHARACTER_CLASS_PRESETS[classKey];
-      let character: CharacterProfile = normalizeHero({ ...current, ...customization, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey) });
+      let character: CharacterProfile = normalizeHero({ ...current, ...customization, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey, current.cosmeticUnlocks?.items) });
       set({saveStatus:'saving',saveError:null});
       try {if (!localPlay) character = await updateSupabaseHeroIdentity(get().userId, character);}
       catch(error){set({saveStatus:'failed',saveError:getErrorMessage(error,'Your hero could not be saved. Please retry.')});throw error;}

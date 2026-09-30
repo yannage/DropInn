@@ -72,9 +72,11 @@ export const HERO_COLORS = [
   { name: 'Sky', value: '#7DD3FC' },
   { name: 'Rose', value: '#F9A8D4' },
 ] as const;
+export const MOONLIT_BLUE = { name: 'Moonlit Blue', value: '#6E82C7' } as const;
 
-export function heroAccent(value: unknown, classKey: CharacterClassKey): string {
-  return HERO_COLORS.find(color => color.value === value)?.value ?? CHARACTER_CLASS_PRESETS[classKey].accent;
+export function heroAccent(value: unknown, classKey: CharacterClassKey, items: readonly string[] = []): string {
+  return HERO_COLORS.find(color => color.value === value)?.value
+    ?? (items.includes('color:moonlit-blue') && value === MOONLIT_BLUE.value ? MOONLIT_BLUE.value : CHARACTER_CLASS_PRESETS[classKey].accent);
 }
 
 export const getCharacterInitial = (name: string) => name.trim().charAt(0).toUpperCase() || '?';

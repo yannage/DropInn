@@ -2,7 +2,7 @@
   "style": "Expressive primitive native hero layers",
   "method": "Native SVG path editing; no raster generation for modular hero layers",
   "canvas": "256×256, original face and hat anchors, paired identical body silhouette masks",
-  "review": "Style consistency pass: reviewed all six bodies, seven eye expressions, and six mouths with the actual HeroAvatar renderer on light/dark backgrounds, including 64px and 48px previews. Reviewed all body/hat and body/color combinations. Unified limb outlines, hand construction, and boots; removed wrist overlaps; rounded and differentiated mouth and eye expressions. Canvas anchors and catalog IDs preserved. This pass changes native SVG assets only.",
+  "review": "Style consistency pass: reviewed all six bodies, seven eye expressions, and six mouths with the actual HeroAvatar renderer on light/dark backgrounds, including 64px and 48px previews. Reviewed all body/hat and body/color combinations. Unified limb outlines, hand construction, and boots; removed wrist overlaps; rounded and differentiated mouth and eye expressions. Canvas anchors and catalog IDs preserved. This pass changes native SVG assets only. Story Pass additions: rendered the six-body contact sheet and inspected representative hair, crown, cap and Ruby Shoes compositions at 256/64/48px on light and dark backgrounds.",
   "assets": [
     {
       "file": "public/heroes/body-bean-fill.svg",
@@ -226,6 +226,106 @@
       "file": "public/heroes/hat-lantern-outline.svg",
       "sha256": "be7b628acc71a3afda2643f5aa8338e2c9a48715a2d06282e1e58fb1b21e1fb0",
       "review": "2026-09-26: inspected both hats and all four palettes across all six bodies on light/dark backgrounds at 256px, 64px and 48px using HeroAvatar contact sheets. No clipping or alignment issues."
+    },
+    {
+      "file": "public/heroes/eyes-starry.svg",
+      "sha256": "41cde833648fe24e98e7233415b477baf637b1d07f47ab34052c3d7b110635ec",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/nose-rosy-button.svg",
+      "sha256": "b0901396fdd1567a116467779572f6a6d87a2a883d428e051b0ec2d89d441581",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/mouth-victorious.svg",
+      "sha256": "421e647ce0b6c2044686a2639d8969392c61b53a44453b9d2e5e3b517d33fc61",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hair-tidy-tuft.svg",
+      "sha256": "9a6bee308d5d4616021f44b2cf3f14036509c7ea02a114ea4b31d5c0a7115034",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hair-soft-fringe.svg",
+      "sha256": "210fca3a2909d2747b5c0e587b964b10b7bab9e4ebaa4397e0ca4091708338fb",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hair-wayward-curls.svg",
+      "sha256": "561940ed5a1d44c39667af29b1d41b2edce59e62f14495252d331c4c9a263f28",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hair-cloud-tuft.svg",
+      "sha256": "09641e543c95e8415b96b05d016aa952c521ccfa86d3087360d799bffe2416a8",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/shoes-trail-boots.svg",
+      "sha256": "4fc21cde5c76bbe480a66d6a99d4a0a141fc71b97d812f0c66c9fc9525ef1cc0",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/shoes-ruby.svg",
+      "sha256": "1360253d9b02b63c2fcb1caba701b8cb6f85361c8b39c5b626a1669a50294340",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/shoes-ruby-outline.svg",
+      "sha256": "be2bb5bc5a76ab07ff74a85e688fc1b951ba939034fc8dffd5d81bc1651ab13c",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/shoes-ruby-fill.svg",
+      "sha256": "c933eba66c187bf98b3c2731be5885ee0ad71b04ec31aea9bc033fcb74c654b1",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hat-pilot-cap.svg",
+      "sha256": "6086673e0b1887d292fa34629ec2b11b225294ae5fc9ac1f26e7aa6455bf5506",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hat-breakfast-nightcap.svg",
+      "sha256": "ac2587a6d81a4db55b02bf09d709059baf03db52637d9c1e38781a69d9f60d5e",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/hat-apple-blossom-crown.svg",
+      "sha256": "146171518f3a8982f406debabc7ed7ec04ab806beceed32a952ebee963a52e8d",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-bean-bare.svg",
+      "sha256": "aa71958aeb8474b60086a1e11c770c3e31db4f1fef416807fcf4bbab0ec4b812",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-round-bare.svg",
+      "sha256": "f491cc11d155aa3d5812e042115b7d361e2ab49b29630564f434eba69fa7ea9b",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-squish-bare.svg",
+      "sha256": "dbcabd5d5fe39003a71fd8ccc25bb68f9cc797ee778e7b7727a65b1ed7311635",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-pear-bare.svg",
+      "sha256": "36a43c06b036085142a2e9f830ecf540b737386bcb593cb991a596e3bb9f6b25",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-puff-bare.svg",
+      "sha256": "31fd8f92d24e90d41a1a5f9f81313955fe8fd38a1531c908e144f1a8eafdb58e",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/body-lanky-bare.svg",
+      "sha256": "973a927fe2439e122132f844c8c3acbf52f304ada713163b7845d955acfb99da",
+      "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
     }
   ]
 }

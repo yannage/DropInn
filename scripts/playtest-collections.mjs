@@ -64,7 +64,7 @@ async function finishAdventure(id) {
   }
   if(!captured && current.room.outcomes.length) {
    captured=true;
-   const reward=page.locator('.di-party-keepsake');
+   const reward=page.locator('.di-party-keepsake').first();
    await reward.waitFor();assert.match(await reward.innerText(),/\+1 Thread/);
    await page.screenshot({path:`output/playwright/collection-reward-${id}.png`});
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1 || document.documentElement.scrollHeight>innerHeight+1);
@@ -74,7 +74,7 @@ async function finishAdventure(id) {
     const observed=await observer.evaluate(async()=>{const {useAdventureStore:s}=await import('/src/store/adventureStore.ts');const v=s.getState();return {earned:v.collection.earned,hats:v.collection.hats,outcomes:v.room.outcomes.length};});
     assert.equal(observed.earned,0);assert.deepEqual(observed.hats,[]);
     assert.equal(observed.outcomes,current.room.outcomes.length,'Both browsers agree on chapter completion');
-    assert.doesNotMatch(await observer.locator('.di-party-keepsake').innerText(),/\+1 Thread|New hat unlocked|In your collection/);
+    assert.doesNotMatch(await observer.locator('.di-party-keepsake').first().innerText(),/\+1 Thread|New hat unlocked|In your collection/);
     await observerContext.close();observer=null;
     note('Two browser contexts share the chapter result; only the contributor receives a personal cosmetic reward');
    }

@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import type { CharacterProfile } from '../../lib/character';
 import { heroAccent } from '../../lib/character';
-import { HERO_HATS, HERO_PARTS, ALL_HAT_STYLES, SHEPHERD_STYLE_ART, normalizeCustomization, type HeroArt, type HeroAppearance, type HeroHat } from '../../lib/cosmetics';
+import { HERO_HATS, HERO_HAIR, HERO_SHOES, HERO_PARTS, ALL_HAT_STYLES, SHEPHERD_STYLE_ART, normalizeCustomization, displayHeroName, type HeroArt, type HeroHat } from '../../lib/cosmetics';
 
 export type AvatarHero = Pick<CharacterProfile, 'name' | 'classKey' | 'accent'> & Partial<Pick<CharacterProfile, 'appearance' | 'equipment' | 'inventory' | 'cosmeticUnlocks'>>;
 
@@ -43,14 +43,24 @@ function HatLayer({hat,hatColor,hatTrim,id,color}:{hat:HeroHat;hatColor?:string|
 export function HeroAvatar({ hero, className = '', decorative = false, faceOnly = false }: { hero: AvatarHero; className?: string; decorative?: boolean; faceOnly?: boolean }) {
   const id = useId().replace(/:/g, '');
   const { appearance, equipment } = normalizeCustomization(hero);
-  const parts = (Object.keys(appearance) as (keyof HeroAppearance)[]).map(key => HERO_PARTS[key].find(part => part.id === appearance[key])!);
+  const parts = (['body','eyes','nose','mouth'] as const).map(key => HERO_PARTS[key].find(part => part.id === appearance[key])!);
   const hat = HERO_HATS.find(hat => hat.id === equipment.hat);
-  return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${hero.name || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
+  const hair = HERO_HAIR.find(part => part.id === appearance.hair);
+  const shoes = HERO_SHOES.find(part => part.id === equipment.shoes);
+  const accent = heroAccent(hero.accent, hero.classKey, hero.cosmeticUnlocks?.items);
+  return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${displayHeroName({name:hero.name,equipment:hero.equipment}) || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
     <PencilEdges id={`${id}-pencil`} />
     <g filter={`url(#${id}-pencil)`}>
-      {parts.map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={heroAccent(hero.accent, hero.classKey)} maskId={`${id}-${index}`} />)}
-      {hat && <HatLayer hat={hat} hatColor={equipment.hatColor} hatTrim={equipment.hatTrim} id={`${id}-hat`} color={heroAccent(hero.accent,hero.classKey)}/>}
+      <ArtLayer art={shoes ? { ...parts[0].art, src: `/heroes/body-${appearance.body}-bare.svg` } : parts[0].art} color={accent} maskId={`${id}-body`} />
+      {shoes && (shoes.id === 'ruby' && equipment.shoeColor
+        ? <ArtLayer art={{src:'/heroes/shoes-ruby-outline.svg',maskSrc:'/heroes/shoes-ruby-fill.svg'}} color={equipment.shoeColor} maskId={`${id}-shoes`}/>
+        : <ArtLayer art={shoes.art} color={accent} maskId={`${id}-shoes`}/>)}
+      {hair && <ArtLayer art={hair.art} color={accent} maskId={`${id}-hair`}/>}
+      {parts.slice(1).map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={accent} maskId={`${id}-${index}`} />)}
+      {hat && <HatLayer hat={hat} hatColor={equipment.hatColor} hatTrim={equipment.hatTrim} id={`${id}-hat`} color={accent}/>}
+      {shoes?.id === 'ruby' && equipment.shoeColor && <g fill="#fff2b0" stroke="#080907" strokeWidth="1.5"><path d="M74 217 l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/><path d="M177 217 l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g>}
     </g>
+    {!faceOnly && equipment.frame === 'inn-border' && <rect x="5" y="5" width="246" height="246" rx="34" fill="none" stroke={equipment.frameColor ?? '#e2bd60'} strokeWidth="8" aria-hidden="true"/>}
   </svg>;
 }
 

@@ -27,7 +27,7 @@ describe('cosmetic reward presentation', () => {
     const briar = storyRewards({ adventureId: 'briar-glen' }, collection, undefined, 1);
     expect(briar.hats.map(entry => [entry.hat.id, entry.owned])).toEqual([['shepherd', true], ['reed', false], ['moonstone', false]]);
     expect(storyRewards({ adventureId: 'briar-glen' }, collection, 1, 1).hats.map(entry => entry.hat.id)).toEqual(['reed']);
-    expect(storyRewards({ adventureId: 'last-flight-teacup' }, collection, undefined, 1)).toEqual({ hats: [], earnsThread: true });
+    expect(storyRewards({ adventureId: 'last-flight-teacup' }, collection, undefined, 1)).toMatchObject({ hats: [{hat:expect.objectContaining({id:'pilot-cap'}),owned:false}], earnsThread: true });
     const room = createAdventure(createCharacterProfile('Wren', 'wizard'), 'alice', 1000, 'REWARD');
     expect(summarizeRoom(room).collectionVersion).toBe(1);
     delete room.collectionVersion;

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><mask id="outside"><rect width="256" height="256" fill="white"/><path d="M86 104 Q84 92 96 86 L108 87 Q120 78 131 84 Q151 78 163 92 L168 107 Q165 125 179 147 L179 155 Q192 177 180 193 L174 193 Q169 207 147 205 L135 208 Q115 202 102 207 Q81 206 75 190 L69 187 Q59 167 72 145 Q71 126 81 116Z" fill="black" stroke="black" stroke-width="3"/></mask><mask id="arm-ends"><rect width="256" height="256" fill="white"/><path d="M86 104 Q84 92 96 86 L108 87 Q120 78 131 84 Q151 78 163 92 L168 107 Q165 125 179 147 L179 155 Q192 177 180 193 L174 193 Q169 207 147 205 L135 208 Q115 202 102 207 Q81 206 75 190 L69 187 Q59 167 72 145 Q71 126 81 116Z" fill="black" stroke="black" stroke-width="3"/><g transform="translate(37 179) rotate(-65)"><path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="black" stroke="black" stroke-width="2"/></g><g transform="translate(215 126) rotate(10)"><path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 Q-1 14 -8 6Z" fill="black" stroke="black" stroke-width="2"/></g></mask></defs>
+<g mask="url(#arm-ends)">
+  <path d="M80 151 Q61 151 48 176 L39 179 L39 190 Q57 195 67 174 L82 167Z" fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M172 151 Q194 152 204 129 L211 126 L220 137 Q207 164 177 169Z" fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 199 Q91 216 85 228 L99 232 Q112 217 114 202Z M144 202 Q148 215 149 229 L163 229 Q167 214 160 199Z" fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+</g>
+<g mask="url(#outside)">
+  <g transform="translate(37 179) rotate(-65)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 " fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(215 126) rotate(10)">  <path d="M-8 6 Q-14 4 -14 -1 Q-14 -5 -10 -4 L-5 -1 L-6 -10 Q-6 -15 -2 -15 Q2 -15 2 -9 L3 -5 L7 -11 Q10 -15 13 -12 Q16 -9 12 -4 L9 1 Q17 -2 17 3 Q17 8 8 11 " fill="none" stroke="#080907" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+</g>
+  <path d="M86 104 Q84 92 96 86 L108 87 Q120 78 131 84 Q151 78 163 92 L168 107 Q165 125 179 147 L179 155 Q192 177 180 193 L174 193 Q169 207 147 205 L135 208 Q115 202 102 207 Q81 206 75 190 L69 187 Q59 167 72 145 Q71 126 81 116Z" fill="none" stroke="#080907" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

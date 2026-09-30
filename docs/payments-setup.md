@@ -1,6 +1,24 @@
 # DropInn Paddle payments
 
-The sandbox integration is implemented for a one-time $10 USD supporter pack: Travelling teacup and Lamplighter’s hat, each with two extra palettes. It grants account-wide cosmetics, never power or story access. Google/email sign-in is required; anonymous guests cannot buy.
+## First Tales Story Pass (current checkout)
+
+Four stories are free. The optional $5 Story Pass unlocks cosmetics as verified quests advance; the $10 Super Supporter purchase immediately grants the first two track rewards and an avatar border, and adds later title and shoe variants. A standard owner can upgrade for $5. This is a one-time purchase, not a subscription, and has no gameplay power. Progress earned before purchase counts. New standard and direct Super Supporter sales open only during the 56 days after `STORY_PASS_LAUNCH_AT`; owners can finish afterward, and standard owners can upgrade afterward.
+
+Apply `supabase/migrations/202609300001_story_pass_progress.sql` and `202609300002_story_pass_payments.sql` before enabling the new checkout. Existing supporter orders and entitlement checks remain supported. Configure the three one-time, USD, non-subscription Paddle prices separately for sandbox and production, then set these server-only variables in the selected environment:
+
+| Variable | Purpose |
+| --- | --- |
+| `PADDLE_PASS_STANDARD_PRICE_ID` / `PADDLE_LIVE_PASS_STANDARD_PRICE_ID` | $5 standard pass |
+| `PADDLE_PASS_SUPER_PRICE_ID` / `PADDLE_LIVE_PASS_SUPER_PRICE_ID` | $10 direct Super Supporter pass |
+| `PADDLE_PASS_UPGRADE_PRICE_ID` / `PADDLE_LIVE_PASS_UPGRADE_PRICE_ID` | $5 standard-to-Super upgrade |
+| `STORY_PASS_LAUNCH_AT` | RFC 3339 UTC start of the 56-day new-sales window |
+| `DROPINN_PAYMENTS_ENABLED` | Keep `0` until product, price, webhook, migration and checkout checks are complete |
+
+The matching Paddle API key, client token and webhook secret are also required. The server validates product, price, currency, amount, environment and transaction status before granting items. Price IDs and launch time are intentionally unset in this working tree, so it does not open sales. Use `node scripts/test-database.mjs <fresh-postgres-container>` for the migration, ownership, upgrade, refund and RLS checks, plus unit/build and browser checks. Confirm a real sandbox checkout and restore flow before a separately authorized live rollout.
+
+## Legacy supporter pack
+
+The earlier sandbox integration sold a one-time $10 USD supporter pack: Travelling teacup and Lamplighter’s hat, each with two extra palettes. Existing orders remain restorable, but this is no longer the new-purchase focus. Google/email sign-in is required for either purchase; anonymous guests cannot buy.
 
 ## Configuration
 

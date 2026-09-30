@@ -224,6 +224,8 @@ export interface ChatMessage {
 }
 export interface VisitRecap {
   collectionCredits?: ChapterCredit[];
+  heroName?: string;
+  heroTitle?: string | null;
   adventureId?: string;
   adventureVersion?: number;
   code: string;

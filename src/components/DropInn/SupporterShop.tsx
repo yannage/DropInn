@@ -11,7 +11,6 @@ export function SupporterShop() {
   const { account, collection, room, refreshCollection } = useAdventureStore();
   const config = account?.payments;
   const sandbox = config?.environment === 'sandbox';
-  const visible = !!config && (!sandbox || new URLSearchParams(location.search).get('payments') === 'sandbox' || location.pathname === '/checkout');
   const [order, setOrder] = useState<Purchase | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -23,6 +22,9 @@ export function SupporterShop() {
   const owned = collection.paid?.environment === config?.environment && collection.paid?.bundles.includes(SUPPORTER_BUNDLE.id);
   const eligible = !!account && !account.guest;
   const storageKey = `dropinn-purchase:${config?.environment}:${account?.id}:${SUPPORTER_BUNDLE.id}`;
+  let hasPending = false;
+  try { hasPending = !!localStorage.getItem(storageKey); } catch { /* Restore remains available to owners. */ }
+  const visible = !!config && !!(owned || hasPending) && (!sandbox || new URLSearchParams(location.search).get('payments') === 'sandbox' || location.pathname === '/checkout');
   const offerActive = !!config?.launchOffer && now < Date.parse(config.launchOffer.endsAt);
   const pending = order?.status === 'ready' || order?.status === 'creating';
   const launchPrice = pending ? order.launchDiscounted : offerActive;

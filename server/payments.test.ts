@@ -56,40 +56,38 @@ describe('payment authority',()=>{
   expect(paymentConfig({...offerEnv,PADDLE_LAUNCH_ENDS_AT:start})?.enabled).toBe(false);
   expect(paymentConfig({...offerEnv,PADDLE_LAUNCH_STARTS_AT:new Date(Date.now()+120_000).toISOString(),PADDLE_LAUNCH_ENDS_AT:new Date(Date.now()+180_000).toISOString()})?.launchOffer).toBeUndefined();
  });
- it('pins the verified launch discount before creating a checkout transaction',async()=>{
-  const discountId=`dsc_${'c'.repeat(26)}`;
-  const endsAt=new Date(Date.now()+60_000).toISOString();
-  const offerEnv={...env,PADDLE_LAUNCH_DISCOUNT_ID:discountId,PADDLE_LAUNCH_STARTS_AT:new Date(Date.now()-60_000).toISOString(),PADDLE_LAUNCH_ENDS_AT:endsAt};
+ it('creates a fixed-price Story Pass transaction without a client-selected amount',async()=>{
+  const offerEnv={...env,STORY_PASS_LAUNCH_AT:new Date(Date.now()-60_000).toISOString(),
+   PADDLE_PASS_STANDARD_PRICE_ID:order.price_id,PADDLE_PASS_SUPER_PRICE_ID:`pri_${'c'.repeat(26)}`,
+   PADDLE_PASS_UPGRADE_PRICE_ID:`pri_${'d'.repeat(26)}`};
   const owner=order.player_id;
-  const prepared={...order,transaction_id:null,status:'creating' as const};
+  const prepared={...order,bundle_id:'first-tales-standard',transaction_id:null,status:'creating' as const};
   let persisted=prepared;
   const db={
     from:(table:string)=>{
       if(table==='player_ownership') return {select:()=>({eq:async()=>({data:[{player_id:owner,account_id:owner}],error:null})})};
-      if(table==='payment_orders') return {update:(patch:{discount_id:string})=>({eq:()=>({eq:()=>({is:()=>({select:()=>({single:async()=>{persisted={...prepared,discount_id:patch.discount_id};return {data:persisted,error:null};}})})})})})};
       throw new Error(`Unexpected table ${table}`);
     },
-    rpc:vi.fn(async(name:string,args:any)=>name==='dropinn_payment_begin'
+    rpc:vi.fn(async(name:string,args:any)=>name==='dropinn_payment_begin_pass'
       ? {data:{order:prepared,create:true},error:null}
       : {data:{...persisted,transaction_id:order.transaction_id,status:args.p_status},error:null}),
   };
   const requests:string[]=[];
   const fetcher=vi.fn<typeof fetch>(async(input,init)=>{
     const path=new URL(String(input)).pathname;requests.push(path);
-    if(path.startsWith('/prices/')) return new Response(JSON.stringify({data:{status:'active',billing_cycle:null,trial_period:null,unit_price:{amount:'1000',currency_code:'USD'}}}));
-    if(path.startsWith('/discounts/')) return new Response(JSON.stringify({data:{status:'active',type:'percentage',amount:'50',recur:false,enabled_for_checkout:true,restrict_to:[order.price_id],expires_at:endsAt}}));
+    if(path.startsWith('/prices/')) return new Response(JSON.stringify({data:{status:'active',billing_cycle:null,trial_period:null,unit_price:{amount:'500',currency_code:'USD'}}}));
     if(path==='/transactions') {
       const payload=JSON.parse(String(init?.body));
-      expect(payload.discount_id).toBe(discountId);
-      expect(persisted.discount_id).toBe(discountId);
-      return new Response(JSON.stringify({data:{...transaction(),status:'ready',discount_id:discountId}}));
+      expect(payload.discount_id).toBeUndefined();
+      expect(payload.items).toEqual([{price_id:order.price_id,quantity:1}]);
+      return new Response(JSON.stringify({data:{...transaction(),status:'ready',custom_data:{dropinn_order_id:order.id,dropinn_bundle_id:prepared.bundle_id,dropinn_bundle_version:1},items:[{quantity:1,price:{id:order.price_id,billing_cycle:null,unit_price:{amount:'500',currency_code:'USD'}}}]}}));
     }
     throw new Error(`Unexpected request ${path}`);
   });
   const result=await handlePayment(db as unknown as SupabaseClient,{id:owner,email:'buyer@example.com',is_anonymous:false} as User,
-    {operation:'checkout',commandId:order.request_id,bundleId:order.bundle_id,expectLaunchOffer:true},offerEnv,fetcher);
-  expect(result.purchase).toMatchObject({status:'ready',launchDiscounted:true,transactionId:order.transaction_id});
-  expect(requests).toEqual([`/prices/${order.price_id}`,`/discounts/${discountId}`,'/transactions']);
+    {operation:'checkout',commandId:order.request_id,bundleId:prepared.bundle_id},offerEnv,fetcher);
+  expect(result.purchase).toMatchObject({status:'ready',launchDiscounted:false,transactionId:order.transaction_id});
+  expect(requests).toEqual([`/prices/${order.price_id}`,'/transactions']);
  });
  it('rejects unsigned callbacks before touching the database or provider',async()=>{
   const fetcher=vi.fn();const result=await handlePaddleWebhook(new Request('https://example.test/webhook',{method:'POST',body:JSON.stringify({data:transaction()})}),env,{fetch:fetcher});

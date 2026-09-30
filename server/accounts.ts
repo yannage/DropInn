@@ -4,6 +4,7 @@ import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCh
 import { normalizeHero } from '../src/lib/cosmetics';
 import { FREE_ACCOUNT_CAPABILITIES, type AccountSnapshot } from '../src/lib/dropinn/accounts';
 import { HAT_STYLES, collectionUnlocks, type CollectionSnapshot } from '../src/lib/dropinn/collection';
+import { storyPassProgress } from '../src/lib/dropinn/storyPass';
 import { paymentConfig, paymentEnvironment } from './payments';
 
 export class AccountError extends Error { constructor(message:string, public status=400){super(message);} }
@@ -32,11 +33,17 @@ export async function loadCollection(db:SupabaseClient, accountId:string, env:Re
     if (!paid.data || !Number.isSafeInteger(paid.data.revision) || !Array.isArray(paid.data.hats) || !Array.isArray(paid.data.styles)) throw new AccountError('Paid collection could not be loaded.',503);
     collection.paid = paid.data;
   }
+  const passCredits = await db.rpc('dropinn_story_pass_credits', { p_account: accountId });
+  if (passCredits.error) throw new AccountError('Story Pass progress needs the 202609300001_story_pass_progress.sql database update.', 503);
+  if (!Array.isArray(passCredits.data)) throw new AccountError('Story Pass progress could not be loaded.', 503);
+  const tier = collection.paid?.bundles.includes('first-tales-super') || (collection.paid?.bundles.includes('first-tales-standard') && collection.paid?.bundles.includes('first-tales-upgrade')) ? 'super'
+    : collection.paid?.bundles.includes('first-tales-standard') ? 'standard' : 'free';
+  collection.pass = storyPassProgress(passCredits.data, tier);
   return collection;
 }
 export function heroFromRow(row:Record<string,any>, collection?:CollectionSnapshot):CharacterProfile {
   const base=createCharacterProfile(row.name,row.class_key);
-  return normalizeHero({...base,id:row.id,xp:row.xp,level:row.level,inventory:row.inventory ?? [],accent:heroAccent(row.accent,row.class_key),appearance:row.appearance,equipment:row.equipment,
+  return normalizeHero({...base,id:row.id,xp:row.xp,level:row.level,inventory:row.inventory ?? [],accent:heroAccent(row.accent,row.class_key,collection?.pass?.items),appearance:row.appearance,equipment:row.equipment,
     cosmeticUnlocks:collection ? collectionUnlocks(collection) : undefined});
 }
 export function validatedHero(input:unknown, existing?:CharacterProfile):CharacterProfile {
@@ -46,7 +53,7 @@ export function validatedHero(input:unknown, existing?:CharacterProfile):Charact
   if(!name) throw new AccountError('Give your hero a name.');
   return normalizeHero({...createCharacterProfile(name,value.classKey),id:value.id,
     inventory:existing?.inventory ?? [],xp:existing?.xp ?? 240,level:existing?.level ?? 3,
-    accent:heroAccent(value.accent,value.classKey),appearance:value.appearance,equipment:value.equipment,cosmeticUnlocks:existing?.cosmeticUnlocks});
+    accent:heroAccent(value.accent,value.classKey,existing?.cosmeticUnlocks?.items),appearance:value.appearance,equipment:value.equipment,cosmeticUnlocks:existing?.cosmeticUnlocks});
 }
 export async function ownedPlayers(db:SupabaseClient, accountId:string):Promise<string[]> {
   const {data,error}=await db.from('player_ownership').select('player_id').eq('account_id',accountId);checked(error);

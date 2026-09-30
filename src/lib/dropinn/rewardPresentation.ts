@@ -1,5 +1,5 @@
 import { HERO_HATS, hatForKeepsake } from '../cosmetics';
-import { HAT_STYLES, STARTER_PACK, threadBalance, type CollectionSnapshot } from './collection';
+import { HAT_STYLES, STARTER_PACK, collectionUnlocks, threadBalance, type CollectionSnapshot } from './collection';
 import { chaptersFor } from './registry';
 import type { VisitRecap } from './types';
 
@@ -19,7 +19,7 @@ export function storyRewards(identity: { adventureId?: string; adventureVersion?
   const hats = chapters.flatMap((entry, index) => {
     if (chapter !== undefined && index !== chapter) return [];
     const hat = hatForKeepsake(entry.keepsake);
-    return hat ? [{ hat, chapter: entry.title, owned: collection.hats.includes(hat.id) }] : [];
+    return hat ? [{ hat, chapter: entry.title, owned: collectionUnlocks(collection).hats.includes(hat.id) }] : [];
   });
   return { hats, earnsThread: collectionVersion === 1 && STARTER_PACK.adventures.some(id => id === (identity.adventureId ?? 'briar-glen')) };
 }

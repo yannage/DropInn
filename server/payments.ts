@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 import WebSocket from 'ws';
 import { SUPPORTER_BUNDLE, type PaymentConfig, type PaymentEnvironment, type Purchase } from '../src/lib/dropinn/payments';
+import { STORY_PASS_PRODUCTS, passSale } from '../src/lib/dropinn/storyPass';
 
 type Env = Record<string, string | undefined>;
 type Fetch = typeof globalThis.fetch;
@@ -29,6 +30,11 @@ function launchOffer(env: Env, now = Date.now()) {
   }
   return { id: id!, startsAt, endsAt, active: startsAt <= now && now < endsAt };
 }
+function passPrice(env: Env, id: string) {
+  const name = id === 'first-tales-standard' ? 'PASS_STANDARD_PRICE_ID'
+    : id === 'first-tales-super' ? 'PASS_SUPER_PRICE_ID' : 'PASS_UPGRADE_PRICE_ID';
+  return paddleValue(env, name) ?? '';
+}
 export function paymentConfig(env: Env): PaymentConfig | undefined {
   if (!env.PADDLE_ENVIRONMENT) return;
   const environment = paymentEnvironment(env);
@@ -39,7 +45,13 @@ export function paymentConfig(env: Env): PaymentConfig | undefined {
   const configured = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_')
     && !!paddleValue(env, 'API_KEY') && !!paddleValue(env, 'WEBHOOK_SECRET')
     && /^pri_[a-z0-9]{26}$/.test(paddleValue(env, 'SUPPORTER_PRICE_ID') ?? '') && offerValid;
-  return { environment, enabled: configured && env.DROPINN_PAYMENTS_ENABLED === '1', clientToken: configured ? token : '',
+  const passPricesValid = STORY_PASS_PRODUCTS.every(product => /^pri_[a-z0-9]{26}$/.test(passPrice(env, product.id)));
+  const passPaymentsReady = token.startsWith(environment === 'sandbox' ? 'test_' : 'live_')
+    && !!paddleValue(env, 'API_KEY') && !!paddleValue(env, 'WEBHOOK_SECRET') && passPricesValid
+    && env.DROPINN_PAYMENTS_ENABLED === '1';
+  const sale = passSale(env.STORY_PASS_LAUNCH_AT);
+  return { environment, enabled: (configured || passPaymentsReady) && env.DROPINN_PAYMENTS_ENABLED === '1', clientToken: configured || passPaymentsReady ? token : '',
+    storyPass: { startsAt: sale.startsAt, endsAt: sale.endsAt, salesOpen: passPaymentsReady && sale.open, upgradesOpen: passPaymentsReady },
     ...(offer?.active ? { launchOffer: { endsAt: new Date(offer.endsAt).toISOString(), percent: 50 as const } } : {}) };
 }
 function settings(env: Env) {
@@ -69,11 +81,12 @@ async function paddle(env: Env, path: string, init: RequestInit = {}, fetcher: F
 }
 export function validateTransaction(order: Order, transaction: any): Purchase['status'] {
   const item = transaction?.items?.[0];
+  const amount = STORY_PASS_PRODUCTS.find(p => p.id === order.bundle_id)?.amount ?? SUPPORTER_BUNDLE.amount;
   if (!txnId(transaction?.id) || transaction.custom_data?.dropinn_order_id !== order.id
     || transaction.custom_data?.dropinn_bundle_id !== order.bundle_id || transaction.custom_data?.dropinn_bundle_version !== order.bundle_version
     || transaction.items.length !== 1 || item?.quantity !== 1 || item.price?.id !== order.price_id
     || item.price.billing_cycle != null || transaction.subscription_id != null || (transaction.discount_id ?? null) !== (order.discount_id ?? null)
-    || item.price.unit_price?.amount !== String(SUPPORTER_BUNDLE.amount) || item.price.unit_price?.currency_code !== 'USD'
+    || item.price.unit_price?.amount !== String(amount) || item.price.unit_price?.currency_code !== 'USD'
     || transaction.currency_code !== 'USD' || transaction.collection_mode !== 'automatic') {
     throw new PaymentError('The payment does not match this purchase. Contact support with your purchase reference.', 409);
   }
@@ -136,6 +149,7 @@ export async function handlePayment(db: SupabaseClient, user: User, body: { oper
   let order: Order | null;
   if (body.operation === 'payment-status') {
     let query = db.from('payment_orders').select('*').in('player_id', owners.map(o => o.player_id)).eq('environment', environment);
+    if (body.bundleId) query = query.eq('bundle_id', body.bundleId);
     if (body.orderId) {
       if (!uuid(body.orderId)) throw new PaymentError('Choose a valid purchase reference.');
       query = query.eq('id', body.orderId);
@@ -144,33 +158,28 @@ export async function handlePayment(db: SupabaseClient, user: User, body: { oper
     if (!order && body.orderId) throw new PaymentError('That purchase is not available to your account.', 404);
     return { purchase: order ? purchase(await reconcileOrder(db, env, order, fetcher)) : null };
   }
-  if (!paymentConfig(env)?.enabled) throw new PaymentError('New purchases are currently unavailable.', 503);
-  if (body.bundleId !== SUPPORTER_BUNDLE.id || !uuid(body.commandId)) throw new PaymentError('Choose a valid bundle and purchase identifier.');
-  const offer = launchOffer(env);
-  if (body.expectLaunchOffer && !offer?.active) throw new PaymentError('The launch price just ended. Refresh to see the current price before buying.', 409);
-  const priceId = paddleValue(env, 'SUPPORTER_PRICE_ID') ?? '';
-  if (!/^pri_[a-z0-9]{26}$/.test(priceId)) throw new PaymentError('The supporter pack price is not configured.', 503);
+  const product = STORY_PASS_PRODUCTS.find(p => p.id === body.bundleId);
+  if (!product || !uuid(body.commandId)) throw new PaymentError('Choose a valid Story Pass and purchase identifier.');
+  const config = paymentConfig(env);
+  if (!config?.enabled) throw new PaymentError('Story Pass checkout is currently unavailable.', 503);
+  if (!(product.id === 'first-tales-upgrade' ? config.storyPass?.upgradesOpen : config.storyPass?.salesOpen)) {
+    const existing = checked(await db.from('payment_orders').select('*').in('player_id', owners.map(o => o.player_id))
+      .eq('environment', environment).eq('request_id', body.commandId).eq('bundle_id', product.id).maybeSingle()) as Order | null;
+    if (existing) return { purchase: purchase(await reconcileOrder(db, env, existing, fetcher)) };
+    throw new PaymentError('New Story Pass purchases are currently unavailable.', 503);
+  }
+  if (body.expectLaunchOffer) throw new PaymentError('Refresh to see the current Story Pass price before buying.', 409);
+  const priceId = passPrice(env, product.id);
+  if (!/^pri_[a-z0-9]{26}$/.test(priceId)) throw new PaymentError('The Story Pass price is not configured.', 503);
   const price = (await paddle(env, `/prices/${priceId}`, {}, fetcher)).data;
   if (price.status !== 'active' || price.billing_cycle != null || price.trial_period != null
-    || price.unit_price?.amount !== '1000' || price.unit_price.currency_code !== 'USD') throw new PaymentError('The supporter pack price needs review before checkout.', 503);
-  if (offer?.active) {
-    const discount = (await paddle(env, `/discounts/${offer.id}`, {}, fetcher)).data;
-    if (discount.status !== 'active' || discount.type !== 'percentage' || Number(discount.amount) !== 50
-      || discount.recur !== false || discount.enabled_for_checkout !== true
-      || !Array.isArray(discount.restrict_to) || discount.restrict_to.length !== 1 || discount.restrict_to[0] !== priceId
-      || !Number.isFinite(Date.parse(discount.expires_at ?? '')) || Math.abs(Date.parse(discount.expires_at) - offer.endsAt) > 1000) {
-      throw new PaymentError('The launch discount needs review before checkout.', 503);
-    }
-  }
-  const receipt = checked(await db.rpc('dropinn_payment_begin', { p_account: user.id, p_environment: environment, p_request_id: body.commandId, p_price_id: priceId }));
+    || price.unit_price?.amount !== String(product.amount) || price.unit_price.currency_code !== 'USD') throw new PaymentError('The Story Pass price needs review before checkout.', 503);
+  const receipt = checked(await db.rpc('dropinn_payment_begin_pass', { p_account: user.id, p_environment: environment,
+    p_request_id: body.commandId, p_bundle_id: product.id, p_price_id: priceId }));
   order = receipt.order as Order;
   if (!receipt.create) {
     if (body.expectLaunchOffer && !order.discount_id) throw new PaymentError('An earlier checkout has the regular price. Check that purchase before buying.', 409);
     return { purchase: purchase(await reconcileOrder(db, env, order, fetcher)) };
-  }
-  if (offer?.active) {
-    order = checked(await db.from('payment_orders').update({ discount_id: offer.id }).eq('id', order.id)
-      .eq('status', 'creating').is('transaction_id', null).select('*').single()) as Order;
   }
   const observedAt = new Date().toISOString();
   let result;

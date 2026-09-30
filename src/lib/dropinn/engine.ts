@@ -33,7 +33,7 @@ const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | '
 function normalizedCharacter(character: CharacterProfile): CharacterProfile {
   const preset = CHARACTER_CLASS_PRESETS[character.classKey];
   if (!preset || !character.id || !character.name?.trim()) throw new Error('Choose a hero before joining.');
-  return normalizeHero({ ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: heroAccent(character.accent, character.classKey), spotlightTokens: 1, inventory: [...character.inventory] });
+  return normalizeHero({ ...character, name: character.name.trim().slice(0, 18), traits: { ...preset.traits }, hp: preset.hp, maxHp: preset.hp, accent: heroAccent(character.accent, character.classKey, character.cosmeticUnlocks?.items), spotlightTokens: 1, inventory: [...character.inventory] });
 }
 
 function companion(index: number, usedClasses: Set<CharacterClassKey>): Seat {
@@ -503,5 +503,5 @@ export function getVisitRecap(room: AdventureRoom, userId: string): VisitRecap {
     highlights.push(moment.change?.text ?? moment.text);
     chapterHighlights[moment.chapter] = highlights.slice(-2);
   }
-  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights, collectionCredits: chapterCredits(room, userId) };
+  return { adventureId: room.adventureId, adventureVersion: room.adventureVersion, code: room.code, title: room.variation?.title ?? room.title, characterId: player?.character.id ?? '', heroName:player?.character.name,heroTitle:player?.character.equipment?.title, actions: player?.actions ?? 0, xp: player?.xp ?? 0, keepsakes: [...(player?.keepsakes ?? [])], highlights: [...(player?.highlights ?? [])], outcomes: [...room.outcomes], chapterHighlights, collectionCredits: chapterCredits(room, userId) };
 }

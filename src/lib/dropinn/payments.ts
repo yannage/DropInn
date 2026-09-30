@@ -24,6 +24,7 @@ export interface PaymentConfig {
   enabled: boolean;
   clientToken: string;
   launchOffer?: { endsAt: string; percent: 50 };
+  storyPass?: { startsAt: string | null; endsAt: string | null; salesOpen: boolean; upgradesOpen: boolean };
 }
 export interface Purchase {
   id: string;

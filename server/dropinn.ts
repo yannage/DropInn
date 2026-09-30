@@ -42,7 +42,7 @@ function localCharacter(value: CharacterProfile | undefined): CharacterProfile {
   if (!value || typeof value.id !== 'string' || value.id.length > 100 || !CHARACTER_CLASS_PRESETS[value.classKey]) throw new RequestError('Choose a hero first.');
   const name = validatePlayerText(value.name, 18);
   const base = createCharacterProfile(name, value.classKey);
-  return normalizeHero({ ...base, id: value.id, xp: Math.max(0, Number(value.xp) || 0), level: 3, accent: heroAccent(value.accent, value.classKey),
+  return normalizeHero({ ...base, id: value.id, xp: Math.max(0, Number(value.xp) || 0), level: 3, accent: heroAccent(value.accent, value.classKey, value.cosmeticUnlocks?.items),
     appearance: value.appearance, equipment: value.equipment, cosmeticUnlocks: value.cosmeticUnlocks,
     inventory: Array.isArray(value.inventory) ? value.inventory.filter((item) => typeof item === 'string').slice(0, 100) : [] });
 }

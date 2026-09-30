@@ -1,6 +1,8 @@
 import { TabletopArtwork } from './TabletopArtwork';
 import { NarratorDownload } from './NarratorDownload';
 import { SupporterShop } from './SupporterShop';
+import { StoryPassSummary, StoryPassPanel } from './StoryPass';
+import { STORY_PASS } from '../../lib/dropinn/storyPass';
 import { MerchTeaser } from '../Merch/Merch';
 import './tabletop-art.css';
 import {
@@ -56,7 +58,7 @@ import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
 import { HeroAvatar, HeroHatPreview, type AvatarHero } from './HeroAvatar';
 import { HeroCustomizer } from './HeroCustomizer';
-import { hatForKeepsake } from '../../lib/cosmetics';
+import { hatForKeepsake, displayHeroName } from '../../lib/cosmetics';
 import { AccountPanel, SaveStatus } from './AccountPanel';
 import { localPlay } from '../../lib/dropinn/api';
 import { getSupabaseClient } from '../../lib/supabase/client';
@@ -73,7 +75,7 @@ function HeroMark({
   hero: AvatarHero;
   small?: boolean;
 }) {
-  const accent = heroAccent(hero.accent, hero.classKey);
+  const accent = heroAccent(hero.accent, hero.classKey, hero.cosmeticUnlocks?.items);
   return (
     <span
       className={`di-hero-mark ${small ? 'di-small' : ''} di-class-${hero.classKey}`}
@@ -181,8 +183,9 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
       </span>
       <p className="di-eyebrow">A little time, well spent</p>
       <h2>You made a difference.</h2>
-      <p className="di-muted">Your visit to {recap.title}</p>
+      <p className="di-muted">{recap.heroName ? `${displayHeroName({name:recap.heroName,equipment:{hat:null,title:recap.heroTitle}})} · ` : 'Your visit to '}{recap.title}</p>
       {!!recap.collectionCredits?.length && <p><CollectionGoal earned={recap.collectionCredits.length}/><small>Saved to your First tales collection.</small></p>}
+      {!!recap.collectionCredits?.length && <p className="di-muted">Story Pass progress: {useAdventureStore.getState().collection.pass?.points ?? 0}/1000 points. Open Story Pass in the lobby to see your quests and new looks.</p>}
       {(rewardHats.length > 0 || !!recap.collectionCredits?.length) && <section className="di-recap-rewards" aria-label="Your cosmetic rewards">
         {rewardHats.map(hat => <div className="di-recap-hat" key={hat.id}><HeroHatPreview hat={hat}/><div><small>{newHats.includes(hat.id) ? 'New hat unlocked' : 'In your collection'}</small><strong>{hat.label}</strong><button type="button" onClick={() => { onClose(); openHero({ tab: 'hats', hatId: hat.id }); }}>View your hat</button></div></div>)}
         <CustomizeHeroContext.Provider value={target => { onClose(); openHero(target); }}><NextLook /></CustomizeHeroContext.Provider>
@@ -363,6 +366,7 @@ export function DropInn() {
         </a>
         <span className="di-header-tag">Small moments. Legendary stories.</span>
         <nav aria-label="Main navigation">
+          <button type="button" className="di-nav-link" onClick={() => window.dispatchEvent(new Event('dropinn-open-story-pass'))}>Tales Pass</button>
           {!room && <a className="di-nav-link di-merch-nav" href="/merch">Merch</a>}
           <button
             className="di-nav-link"
@@ -375,7 +379,7 @@ export function DropInn() {
           {character && (
             <button type="button" className="di-header-hero" aria-label="Customize hero from header" onClick={() => openHero()}>
               <HeroMark hero={character} small />
-              <span>{character.name}</span>
+              <span>{displayHeroName(character)}</span>
             </button>
           )}
         </nav>
@@ -512,6 +516,8 @@ function Lobby() {
   const [friends, setFriends] = useState(false);
   const [viewRecap, setViewRecap] = useState<VisitRecap | null>(null);
   const [journal, setJournal] = useState(false);
+  const [passOpen, setPassOpen] = useState(false);
+  useEffect(() => { const open = () => setPassOpen(true); window.addEventListener('dropinn-open-story-pass', open); return () => window.removeEventListener('dropinn-open-story-pass', open); }, []);
   const adventure = ADVENTURES.find(item => item.id === adventureId) ?? ADVENTURES[0];
   useEffect(() => {
     try { localStorage.setItem(lobbyStoryKey, adventure.id); }
@@ -526,6 +532,7 @@ function Lobby() {
   };
   return (
     <main className="di-lobby di-shell di-lobby-clear">
+      <StoryPassSummary onOpen={() => setPassOpen(true)} />
       <section className="di-lobby-entrance" aria-label="Start your adventure">
         <div className="di-lobby-intro">
           <div className="di-lobby-intro-copy">
@@ -543,7 +550,7 @@ function Lobby() {
 
         <div className="di-lobby-ready">
           {character && <div className="di-lobby-ready-hero">
-            <div className="di-arrival-identity"><HeroAvatar hero={character} /><div><span className="di-lobby-ready-label">Your hero is ready</span><strong>{character.name}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label}</small></div></div>
+            <div className="di-arrival-identity"><HeroAvatar hero={character} /><div><span className="di-lobby-ready-label">Your hero is ready</span><strong>{displayHeroName(character)}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label}</small></div></div>
             <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => openHero()}>Customize hero</button>
           </div>}
           <div className="di-lobby-ready-story">
@@ -658,6 +665,7 @@ function Lobby() {
         </div>
       </Modal>}
       {journal && <Modal title="Your discoveries" onClose={() => setJournal(false)}><DiscoveryJournal /></Modal>}
+      {passOpen && <Modal title={STORY_PASS.name} onClose={() => setPassOpen(false)}><StoryPassPanel onPlay={id => { setPassOpen(false); void playNow(id); }} /></Modal>}
       {viewRecap && <Recap recap={viewRecap} onClose={() => setViewRecap(null)} />}
     </main>
   );
