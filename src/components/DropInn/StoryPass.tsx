@@ -10,6 +10,7 @@ import './story-pass.css';
 
 const productLabel = { 'first-tales-standard': '$5 Story Pass', 'first-tales-super': '$10 Super Supporter', 'first-tales-upgrade': '$5 Super Supporter upgrade' } as const;
 type Product = keyof typeof productLabel;
+const passProducts: Product[] = ['first-tales-upgrade', 'first-tales-super', 'first-tales-standard'];
 const previewItems = [...PASS_REWARDS.map(reward=>reward.id),'frame:inn-border','title:inn-patron','title:gilded-taleweaver','shoes:ruby-sparkle'];
 function PassRewardPreview({id}:{id:string}) {
   if (id.startsWith('title:')) return <span className="di-pass-reward-preview di-pass-title-preview" aria-hidden="true">✦</span>;
@@ -50,16 +51,22 @@ export function StoryPassPanel({ onPlay }: { onPlay: (id: string) => void }) {
   async function check(orderId?: string, bundleId?: Product) {
     if (!eligible) return;
     const accountId = account?.id;
-    const response = await adventureRequest({ operation: 'payment-status', orderId, bundleId });
+    const purchases = orderId || bundleId
+      ? [(await adventureRequest({ operation: 'payment-status', orderId, bundleId })).purchase]
+      : (await Promise.all(passProducts.map(product => adventureRequest({ operation: 'payment-status', bundleId: product })))).map(response => response.purchase);
+    const purchase = purchases.find(value => value && ['ready', 'creating'].includes(value.status))
+      ?? purchases.find(value => value?.status === 'completed')
+      ?? purchases.find(Boolean) ?? null;
     if (identity.current !== accountId) return;
-    setOrder(response.purchase ?? null);
+    setOrder(purchase);
     await refreshCollection();
-    if (response.purchase?.status === 'completed') {
+    if (purchase?.status === 'completed') {
       setMessage('Confirmed. Your earned Story Pass rewards are now in your wardrobe.');
-      localStorage.removeItem(storage(response.purchase.bundleId as Product));
-    } else if (response.purchase?.status === 'refunded' || response.purchase?.status === 'disputed') {
+      localStorage.removeItem(storage(purchase.bundleId as Product));
+    } else if (purchase?.status === 'refunded' || purchase?.status === 'disputed') {
       setMessage('This purchase needs review. Your earned story progress is saved.');
-    } else if (response.purchase) setMessage('Payment is being checked. Resume the same checkout or check again.');
+    } else if (purchase) setMessage('Payment is being checked. Resume the same checkout or check again.');
+    else setMessage('No Story Pass purchase found. Your quest progress is saved.');
   }
   async function buy(product: Product) {
     if (!eligible) { window.dispatchEvent(new Event('dropinn-open-account')); return; }

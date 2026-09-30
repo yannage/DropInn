@@ -14,7 +14,9 @@ Apply `supabase/migrations/202609300001_story_pass_progress.sql` and `2026093000
 | `STORY_PASS_LAUNCH_AT` | RFC 3339 UTC start of the 56-day new-sales window |
 | `DROPINN_PAYMENTS_ENABLED` | Keep `0` until product, price, webhook, migration and checkout checks are complete |
 
-The matching Paddle API key, client token and webhook secret are also required. The server validates product, price, currency, amount, environment and transaction status before granting items. Price IDs and launch time are intentionally unset in this working tree, so it does not open sales. Use `node scripts/test-database.mjs <fresh-postgres-container>` for the migration, ownership, upgrade, refund and RLS checks, plus unit/build and browser checks. Confirm a real sandbox checkout and restore flow before a separately authorized live rollout.
+The matching Paddle API key, client token and webhook secret are also required. The server validates product, price, currency, amount, environment and transaction status before granting items. Use `node scripts/test-database.mjs <fresh-postgres-container>` for the migration, ownership, upgrade, refund and RLS checks, plus unit/build and browser checks. Confirm a sandbox checkout and restore flow before a separately authorized live rollout.
+
+On September 30, 2026, both Story Pass migrations were applied to the hosted Supabase project after checking its daily backup. The Paddle **sandbox** catalog has active one-time USD prices: standard `pri_01m3sxzatqrw3v92967bd5h991` ($5), direct Super Supporter `pri_01m3sy0jg4m9zkx5w04m20bxg7` ($10), and standard-to-Super upgrade `pri_01m3sy15f2bme93dac1xa1p2mh` ($5). Netlify has these as `PADDLE_PASS_*` variables, with `STORY_PASS_LAUNCH_AT=2026-09-30T19:57:00Z`. This sandbox window ends November 25, 2026 at 19:57 UTC. The public deployment still selects Paddle sandbox; these are test-mode prices and cannot take real payments. Live prices and a live launch remain separate.
 
 ## Legacy supporter pack
 
