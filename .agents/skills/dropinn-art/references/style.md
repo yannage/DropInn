@@ -1,3 +1,7 @@
+Current hero task: the user approved [style A and the hero raster workflow](hero-raster-queue.md). Convert customizable hero parts only. Original game sheep/wolves are supporting style anchors. This supersedes the mistaken NPC redraw scope and screenshot-primary instructions below.
+
+Current authority: [the user MS Paint screenshot direction](user-mouse-drawing-direction.md) and its four image references supersede conflicting guidance below, including forced squat proportions, uniformly heavy pixel outlines, and nearest-neighbor enlargement.
+
 # DropInn's MS painter direction
 
 Use `assets/sheep.png` as the primary creature reference, with `assets/mara.png` and `assets/gate.png` for people and props. `assets/sheep-expressive.png` is the richer alternative, not the default. These are original built-in image-generator outputs, not images from the local Qwen preset.
@@ -40,3 +44,5 @@ Action tokens use four generated cutouts: coral crossed swords, teal speech bubb
 Customizable heroes retain native SVG layers with heavy near-black outlines and flat fills. Following feedback that limbs and faces felt too linear, the bodies now use hand-shaped uneven curves, distinct gestures, mitten hands and bent legs with oversized boots. Four eye expressions and four nose choices include side-eye and a little snout. All 24 files, including the three matching body masks, preserve the 256×256 canvas and existing saved IDs. This keeps future supplied parts replaceable and body colors functional.
 
 The user explicitly requested subtle background texture. `public/art/paper-cork.png` is the exception to the no-texture rule for foreground art: pale paper with sparse low-contrast blocky flecks, repeated behind the app at 640px and softened by a cream wash. Keep cards and controls opaque and readable. No black outlines, realistic lighting or conspicuous stains in the background. Generation prompts and the resource list are in [tokens-paper-prompts.json](tokens-paper-prompts.json).
+
+

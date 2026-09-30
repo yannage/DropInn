@@ -74,7 +74,6 @@ let syncInFlight = false;
 let listInFlight = false;
 let unsubscribe: (() => void) | null = null;
 let viewEpoch = 0;
-let narrationKey = '';
 let proposalSequence = 0;
 const mergeMessages = (current: ChatMessage[], incoming: ChatMessage[]) => [...new Map([...current, ...incoming].map(message => [message.id, message])).values()]
   .sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)).slice(-60);
@@ -268,14 +267,6 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     set({ room, syncError: null, restoringCode: null, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
     const participant = room.players[get().userId];
     if (participant) await collectReceipts([getVisitRecap(room, get().userId)], false, current?.id === room.id);
-    if (room.phase === 'reveal' && narrationKey !== `${room.code}:${room.turn}`) {
-      narrationKey = `${room.code}:${room.turn}`;
-      void request({ operation: 'narrate', roomCode: room.code }).then(result => {
-        if (viewEpoch === epoch && get().room?.code === room.code && get().room?.turn === room.turn && result.narration) {
-          set({ narration: { text: result.narration, catchUp: result.catchUp || '', turn: room.turn } });
-        }
-      }).catch(() => { /* Authored result is already visible. */ });
-    }
   };
   const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string, adventureId?: string) => {
     await ensureHostedHero();

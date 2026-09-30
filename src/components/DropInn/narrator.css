@@ -18,3 +18,4 @@
 @media(prefers-reduced-motion:reduce){.di-narrator-words{animation:none}}
 
 .di-narrator-slot{display:flow-root}
+.di-theater .di-narrator-voice{gap:2px}.di-narrator-voice>span{font-size:10px;font-weight:700}

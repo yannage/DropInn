@@ -28,7 +28,7 @@ Run `node scripts/evaluate-ai.mjs --provider ollama` for an opt-in live evaluati
 
 Set an optional server-only `DROPINN_SIGNING_SECRET` (a long random secret) to sign creative proposals. Otherwise the service-role secret is used. Signed proposals bind the full validated effect to a player, room, target, and turn; modifying any field invalidates them. Rotation invalidates outstanding previews without affecting played actions.
 
-`prepare` creates a cosmetic telling before play; `play` can consume its `variationId`. `propose` interprets a creative action, which still requires a player commit and the normal game roll. `narrate` is a separate read-only request after a resolution; the client displays authored outcomes immediately and ignores replies for another turn. Generated narration is presentation only.
+`prepare` creates a cosmetic telling before play; `play` can consume its `variationId`. `propose` interprets a creative action, which still requires a player commit and the normal game roll. `narrate` remains an optional read-only endpoint for explicit integrations after a resolution. The browser storyteller uses authored and confirmed event text locally, and the default client does not request server-generated narration or spend model tokens on it. Generated narration from explicit API callers is presentation only.
 
 ## Operations
 

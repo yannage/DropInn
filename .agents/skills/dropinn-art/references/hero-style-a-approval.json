@@ -1,0 +1,10 @@
+{
+  "selected": "A",
+  "approval": "User: A is the best option",
+  "generator": "Codex built-in image_gen",
+  "original": "C:/Users/Yanni/.codex/generated_images/01a0f422-9b18-7a41-9f62-a7a737dda266/exec-915c0259-a53e-499b-81e7-556c6d8981b4.png",
+  "sha256": "606E532D410FB2FCFA76625BCD15B77CDF82C4A70759B17BD582B307AFE56E8A",
+  "prompt": "Create ONE controlled variant of the blue hero in the FIRST reference (the accepted direction). Preserve its blue bean body, cream crooked hat, pink nose, mismatched pale eyes, tiny brown shoes, outstretched arms, pose, palette and framing. The SECOND and THIRD references (in-game sheep and wolves) define the coarse primitive MS Paint mouse-drawn style. Thick irregular black raster contours, flat broad fills, awkward asymmetry, sparse detail. Keep the same character; only apply the specified small adjustment. Transparent square PNG, entire silhouette with clear margin. No text or letter label in the art, no UI, scene, shading, glossy finish or smooth vector cleanup. Variant adjustment: Closest to the accepted draft: preserve its exact proportions and face. Only make black contours slightly less uniformly heavy, with a few natural uneven joins. Retain coarse jagged raster edges.",
+  "scope": "Customizable hero SVG parts to raster; no NPC or creature redraws",
+  "reference": ".agents/skills/dropinn-art/assets/hero-style-a.png"
+}

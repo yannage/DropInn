@@ -9,11 +9,13 @@ import { fileURLToPath } from 'node:url';
 // or inference. Only its injected clock advances between completed turn boundaries.
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--help') {
-  console.log('Usage: npm run test:scene -- [--base-url http://localhost:5198]\nStart the local Vite development server first. Requires Playwright Chromium.');
+  console.log('Usage: npm run test:scene -- [--narrator-only] [--base-url http://localhost:5198]\nStart the local Vite development server first. Requires Playwright Chromium.');
   process.exit(0);
 }
-if (args.length && (args.length !== 2 || args[0] !== '--base-url')) throw new Error('Use --base-url http://localhost:5198, or omit it for that default.');
-const origin = new URL(args[1] ?? 'http://localhost:5198');
+const narratorOnly = args.includes('--narrator-only');
+const connectionArgs = args.filter(arg => arg !== '--narrator-only');
+if (args.filter(arg => arg === '--narrator-only').length > 1 || (connectionArgs.length && (connectionArgs.length !== 2 || connectionArgs[0] !== '--base-url'))) throw new Error('Use [--narrator-only] [--base-url http://localhost:5198], or omit the URL for that default.');
+const origin = new URL(connectionArgs[1] ?? 'http://localhost:5198');
 if (origin.protocol !== 'http:' || !['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname)
   || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
   throw new Error('Scene playtests require a plain HTTP loopback origin, without credentials, path, query, or fragment.');
@@ -77,8 +79,14 @@ async function state(page) {
     return { userId: store.userId, character: store.character, room: store.room, pendingMove: store.pendingMove, loading: store.loading, proposal: store.proposal, error: store.error, restoringCode: store.restoringCode };
   });
 }
+async function waitForStore(page, predicate, options) {
+  // Playwright checks immediate truthiness. An async predicate is a truthy
+  // Promise, so import first and then poll the live store synchronously.
+  await page.evaluate(async () => { window.__qaAdventureStore = (await import('/src/store/adventureStore.ts')).useAdventureStore; });
+  await page.waitForFunction(predicate, undefined, options);
+}
 async function sync(page) {
-  await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(page, () => !window.__qaAdventureStore.getState().loading);
   await page.evaluate(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().syncRoom());
 }
 async function openRound(page) {
@@ -95,7 +103,7 @@ async function advanceTo(time) {
 async function readyNext(page) {
   let room = (await state(page)).room;
   if (room.phase === 'reveal' && room.status !== 'completed') await advanceTo(room.revealUntil + 1);
-  await page.waitForFunction(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room?.phase === 'choosing');
+  await waitForStore(page, () => window.__qaAdventureStore.getState().room?.phase === 'choosing');
 }
 async function select(page, token, targetId, kind = 'scene') {
   const back = page.getByRole('button', { name: 'Back to scene', exact: true });
@@ -124,14 +132,14 @@ async function pointerRelease(page, ms) {
   const rect = await button.boundingBox(); assert.ok(rect);
   await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
   await page.mouse.down(); await sleep(ms); await page.mouse.up();
-  await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(page, () => !window.__qaAdventureStore.getState().loading);
   assert.equal(records.length, before + 1, 'one act per pointer gesture');
   return records.at(-1);
 }
 async function skip(page) {
   const before = records.length;
   await page.getByRole('button', { name: 'Roll now', exact: true }).click();
-  await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(page, () => !window.__qaAdventureStore.getState().loading);
   assert.equal(records.length, before + 1);
   await openRound(page);
   return records.at(-1);
@@ -240,6 +248,7 @@ try {
   ({ getScene } = await ssr.ssrLoadModule('/src/lib/dropinn/scene.ts'));
   handler = createDropinnHandler({ local: true, env: {}, now: clock, fetch: async () => { externalCalls++; throw new Error('External calls disabled for QA'); } });
   browser = await chromium.launch({ headless: true });
+  if (!narratorOnly) {
   const a = await setup('A', { width: 390, height: 844 });
   const b = await setup('B', { width: 390, height: 844 });
   await a.getByRole('button', { name: 'Play with friends', exact: true }).click();
@@ -252,7 +261,7 @@ try {
   await b.getByRole('textbox', { name: 'Adventure code or invitation link' }).fill(invite);
   await b.getByRole('button', { name: 'Join adventure by code' }).click();
   await b.getByRole('main', { name: 'Adventure table' }).waitFor();
-  await b.waitForFunction(async () => !!(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room);
+  await waitForStore(b, () => !!window.__qaAdventureStore.getState().room);
   const identities = [await state(a), await state(b)];
   assert.notEqual(identities[0].userId, identities[1].userId);
   assert.ok(identities[1].room.pendingJoins.includes(identities[1].userId));
@@ -450,7 +459,7 @@ try {
   await select(b, 'assist', room.enemyIntent.targetActorId, 'hero');
   die = b.getByRole('button', { name: 'Hold and release the die' });
   await die.focus(); await b.keyboard.down('Enter'); await sleep(100); await b.keyboard.up('Enter');
-  await b.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(b, () => !window.__qaAdventureStore.getState().loading);
   await syncAll();
   const protectedRoom = (await state(a)).room;
   const guards = protectedRoom.events.filter(event => event.turn === room.turn && event.result?.targetKind === 'hero' && event.contribution);
@@ -515,17 +524,17 @@ try {
     await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
     note('pending-receipt-stable-scene-and-visible-hero');
   } finally { resumeAct(); faults.pauseAAct = null; }
-  await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(a, () => !window.__qaAdventureStore.getState().loading);
   assert.equal(records.length, uncertainBefore + 1, 'one timed move after receipt delay');
   const uncertain = records.at(-1);
   assert.ok(Number.isInteger(uncertain.command.action.releaseMs), 'Delayed receipt preserves a timed release');
   assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i, 'Uncertain delivery keeps the sent move visible');
   await a.getByRole('button', { name: 'Retry same move', exact: true }).click();
-  await a.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+  await waitForStore(a, () => !window.__qaAdventureStore.getState().loading);
   const duplicate = records.at(-1);
   assert.equal(duplicate.command.id, uncertain.command.id); assert.deepEqual(duplicate.command.action, uncertain.command.action);
   await a.reload();
-  await a.waitForFunction(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().ready);
+  await waitForStore(a, () => window.__qaAdventureStore.getState().ready);
   const cached = await a.evaluate(() => JSON.parse(localStorage.getItem('dropinn-v2-player-sceneqaa')));
   assert.equal(cached.pendingAction.commandId, uncertain.command.id); assert.deepEqual(cached.pendingAction.action, uncertain.command.action);
   assert.equal(cached.pendingAction.action.approach, 'heavy');
@@ -608,7 +617,7 @@ try {
   renderBase.enemyIntent.targetActorId = renderVictim;
   const renderedHero = a.locator(`[data-scene-target="${renderVictim}"][data-target-kind="hero"]`);
   const fixtureEvent = (id, details) => ({ id: `qa-render-${id}`, turn: renderBase.turn, chapter: renderBase.chapter, at: clock(), kind: 'consequence', text: `Presentation fixture ${id}`, ...details });
-  await a.waitForFunction(async () => { const store = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState(); return !store.syncing && !store.loading; });
+  await waitForStore(a, () => { const store = window.__qaAdventureStore.getState(); return !store.syncing && !store.loading; });
   await a.evaluate(async () => {
     const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
     window.__qaRenderRestore = { room: store.getState().room, syncRoom: store.getState().syncRoom };
@@ -805,7 +814,7 @@ try {
   const revealRoom = (await state(four[0])).room;
   const nextLabel = revealRoom.outcomes.some(outcome => outcome.chapter === revealRoom.chapter) ? 'Next chapter' : 'Next round';
   await four[0].getByRole('button',{name:nextLabel,exact:true}).waitFor();
-  await four[3].waitForFunction(async()=>{const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState();return s.room?.revealSkips?.includes(s.userId);});
+  await waitForStore(four[3],()=>{const s=window.__qaAdventureStore.getState();return s.room?.revealSkips?.includes(s.userId);});
   assert.equal((await state(four[3])).room.revealSkips.length,1,'setting off sends one automatic skip vote');
   await four[0].getByRole('button',{name:/^Next (round|chapter)$/}).click();
   await syncAll();
@@ -819,6 +828,7 @@ try {
   await syncAll();
   for(const page of four) assert.equal((await state(page)).room.phase,'choosing');
   note('four-player-unanimous-skip-and-persistent-auto-skip-setting');
+  }
   const narratorPage=await setup('Narrator',{width:390,height:844});
   await checkNarrator({page:narratorPage,select,skip,state,sync,readyNext,note});
   assert.equal(externalCalls, 0); assert.deepEqual(errors, []);
@@ -833,11 +843,11 @@ try {
     const leave = page.getByRole('button', { name: 'Leave & save', exact: true });
     if (await leave.isVisible().catch(() => false)) {
       await leave.click({ timeout: 2000 }).catch(() => {});
-      await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room, null, { timeout: 2000 }).catch(() => {});
+      await waitForStore(page, () => !window.__qaAdventureStore.getState().room, { timeout: 2000 }).catch(() => {});
     }
   }
   try {
-    await writeFile('output/playwright/scene-integration-results.json', JSON.stringify({ fixture: 'Real local handler and browser gestures with injected clock; separately labeled final client-snapshot presentation fixtures; no hosted or model calls', base, checks, errors, consoleErrors, externalCalls, blockedOrigins: [...blockedOrigins] }, null, 2));
+    await writeFile(`output/playwright/${narratorOnly ? 'scene-narrator' : 'scene-integration'}-results.json`, JSON.stringify({ fixture: 'Real local handler and browser gestures with injected clock; separately labeled final client-snapshot presentation fixtures; no hosted or model calls', mode: narratorOnly ? 'narrator' : 'full', base, checks, errors, consoleErrors, externalCalls, blockedOrigins: [...blockedOrigins] }, null, 2));
   } finally {
     await browser?.close().catch(() => {});
     await ssr?.close().catch(() => {});

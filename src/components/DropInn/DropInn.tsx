@@ -1,5 +1,4 @@
 import { TabletopArtwork } from './TabletopArtwork';
-import { NarratorDownload } from './NarratorDownload';
 import { SupporterShop } from './SupporterShop';
 import { StoryPassSummary, StoryPassPanel } from './StoryPass';
 import { STORY_PASS } from '../../lib/dropinn/storyPass';
@@ -625,7 +624,6 @@ function Lobby() {
         </div>
         <aside className="di-lobby-aside"><AccountPanel /></aside>
       </div>
-      <NarratorDownload compact />
       <SupporterShop />
       <MerchTeaser />
 

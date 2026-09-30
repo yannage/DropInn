@@ -25,14 +25,25 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.text().includes('[Kitten]')) console.error(name, message.text().slice(0, 500)); });
   await page.addInitScript(() => {
-    window.__narratorModel = { messages: [], firstAudio: null, started: performance.now() };
+    if (!localStorage.getItem('dropinn-narrator')) localStorage.setItem('dropinn-narrator', JSON.stringify({ engine: 'natural', naturalVoice: 'Bella', speed: 1 }));
+    window.__narratorModel = { messages: [], playback: [], firstAudio: null, started: performance.now() };
+    if (typeof AudioBufferSourceNode !== 'undefined') {
+      const start = AudioBufferSourceNode.prototype.start;
+      AudioBufferSourceNode.prototype.start = function (...args) {
+        const result = start.apply(this, args);
+        window.__narratorModel.playback.push({ at: performance.now(), duration: this.buffer?.duration });
+        return result;
+      };
+    }
     const OriginalWorker = window.Worker;
     window.Worker = class extends OriginalWorker {
       constructor(...args) {
         super(...args);
+        this.narratorRequests = new Map();
         this.addEventListener('error', event => { window.__narratorModel.messages.push({ type: 'error', message: event.message }); });
         this.addEventListener('message', ({ data }) => {
-          const record = { type: data.type, at: performance.now(), id: data.id, message: data.message };
+          const request = this.narratorRequests.get(data.id);
+          const record = { type: data.type, at: performance.now(), id: data.id, message: data.message, voice: request?.voice ?? 'Bella', text: request?.text };
           if (data.type === 'audio') {
             record.duration = data.samples.length / data.sampleRate;
             record.peak = data.samples.reduce((peak, value) => Math.max(peak, Math.abs(value)), 0);
@@ -40,6 +51,10 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
           }
           window.__narratorModel.messages.push(record);
         });
+      }
+      postMessage(message, ...args) {
+        if (message?.type === 'generate') this.narratorRequests.set(message.id, message);
+        return super.postMessage(message, ...args);
       }
     };
   });
@@ -51,7 +66,8 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     assert.equal(requests.length, 0, 'No model request before opt-in');
     const hasAudio = await page.evaluate(() => typeof AudioContext !== 'undefined');
     if (!hasAudio) {
-      assert.equal(await page.getByRole('button',{name:'Narrator voice unavailable',exact:true}).isDisabled(),true);
+      // This Windows WebKit build cannot verify browser audio playback.
+      // Its native speech API may still exist, so do not assume the whole button is disabled.
       if (!base.endsWith(':5198')) {
         console.log(JSON.stringify({browser:name,playback:'Unavailable: this browser build has no AudioContext; physical Safari remains unverified.'}));
         continue;
@@ -70,7 +86,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
         await page.waitForFunction(()=>window.__narratorModel.messages.some(item=>item.type==='audio'||item.type==='error'),{},{timeout:210000});
         const messages=await page.evaluate(()=>{window.__qaWorker?.terminate();return window.__narratorModel.messages.filter(item=>item.type!=='progress');});
         if(expectAudio) assert.ok(messages.some(item=>item.type==='audio'&&item.peak>0.01),JSON.stringify(messages));
-        else assert.ok(messages.some(item=>item.type==='error'&&item.message.includes('download')),JSON.stringify(messages));
+        else assert.ok(messages.some(item=>item.type==='error'&&/download|load|ready/i.test(item.message)),JSON.stringify(messages));
         return messages;
       };
       const initial=await runWorker(true);
@@ -83,20 +99,21 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
       console.log(JSON.stringify(report));
       continue;
     }
-    await page.getByRole('button', { name: 'Enable narrator voice', exact: true }).click();
-    await page.getByRole('button', { name: 'Download natural voice', exact: true }).waitFor();
-    assert.equal(requests.length, 0, 'No model request before download consent');
     const started = Date.now();
-    await page.getByRole('button', { name: 'Download natural voice', exact: true }).click();
-    await page.waitForFunction(() => window.__narratorModel.messages.some(item => item.type === 'audio' || item.type === 'error') || document.querySelector('.di-narrator-error'), { }, { timeout: 210000 });
+    await page.getByRole('button', { name: 'Enable narrator voice', exact: true }).click();
+    await page.waitForFunction(() => window.__narratorModel.playback.length > 0 || window.__narratorModel.messages.some(item => item.type === 'error')
+      || [...document.querySelectorAll('button')].some(button => button.textContent === 'Retry voice'), { }, { timeout: 210000 });
     const record = await page.evaluate(() => window.__narratorModel);
     const failure = record.messages.find(item => item.type === 'error');
     assert.equal(failure, undefined, failure?.message);
     assert.ok(record.messages.some(item => item.type === 'audio' && item.peak > 0.01), await page.locator('.di-narrator-error').allTextContents());
+    assert.ok(record.playback.length > 0, 'One Listen click generates and starts natural audio');
     assert.ok(requests.every(request=>request.method==='GET'),'Model network uses static downloads only');
     const elapsed = Date.now() - started;
-    await page.getByRole('button', { name: 'Close story settings', exact: true }).click();
     await page.getByRole('button', { name: 'Mute narrator', exact: true }).click();
+    await page.getByRole('button', { name: 'Story settings', exact: true }).click();
+    assert.equal(await page.getByRole('combobox', { name: 'Storyteller', exact: true }).locator('option').count(), 8, 'All eight natural voices share this pack');
+    await page.getByRole('button', { name: 'Close story settings', exact: true }).click();
     await page.screenshot({ path: `output/playwright/narrator-bella-${name}.png` });
     const { samples, sampleRate } = record.firstAudio;
     const wav = Buffer.alloc(44 + samples.length * 2);
@@ -109,13 +126,15 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     assert.equal(requests.length, 0);
     const cachedStart = Date.now();
     await page.getByRole('button', { name: 'Enable narrator voice', exact: true }).click();
-    await page.waitForFunction(() => window.__narratorModel.messages.some(item => item.type === 'audio' || item.type === 'error'), {}, { timeout: 45000 });
+    await page.waitForFunction(() => window.__narratorModel.playback.length > 0 || window.__narratorModel.messages.some(item => item.type === 'error'), {}, { timeout: 45000 });
+    const cachedMs = Date.now() - cachedStart;
     const cached = await page.evaluate(() => window.__narratorModel.messages.filter(item=>item.type!=='progress'));
     assert.ok(cached.some(item => item.type === 'audio'), JSON.stringify(cached));
     assert.equal(requests.length, 0, `Cached model generates without external requests: ${JSON.stringify(requests)}`);
     assert.deepEqual(errors, []);
     // A real synthesis job is running/prefetched while the player commits a move.
-    await page.getByRole('button',{name:'Show tokens',exact:true}).click();
+    const showTokens = page.getByRole('button',{name:'Show tokens',exact:true});
+    if (await showTokens.isVisible()) await showTokens.click();
     await page.getByRole('button',{name:'Investigate token',exact:true}).click();
     await page.locator('[data-scene-target="tracks"][data-target-kind="scene"]').click();
     const response=page.waitForResponse(response=>response.url().endsWith('/api/dropinn')&&response.request().postDataJSON()?.command?.type==='act');
@@ -123,7 +142,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
     await page.getByRole('button',{name:'Roll now',exact:true}).click();
     assert.equal((await response).status(),200);
     const actionMs=Date.now()-actionStarted;
-    const report = { browser: name, initialMs: elapsed, cachedMs: cached.find(item=>item.type==='audio').at, actionMs, audio: record.messages.filter(item => item.type !== 'progress'), cached, errors };
+    const report = { browser: name, initialMs: elapsed, cachedMs, actionMs, playback: record.playback, audio: record.messages.filter(item => item.type !== 'progress'), cached, errors, physicalPhone: 'Not tested' };
     await writeFile(`output/playwright/narrator-model-${name}.json`, JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report));
     await page.getByRole('button', { name: 'Leave & save', exact: true }).click();

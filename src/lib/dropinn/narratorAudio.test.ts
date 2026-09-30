@@ -7,10 +7,12 @@ vi.mock('./narratorDownload', () => ({ createNarratorWorker: vi.fn(), cancelNarr
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe('natural narrator input and preferences', () => {
   it('migrates old preferences without losing a device voice or enabling autoplay', () => {
-    expect(narratorPreference('{"voice":"old","collapsed":true}')).toEqual({ voice: 'old', collapsed: true, engine: 'natural', speed: 1 });
-    expect(narratorPreference('null').engine).toBe('natural');
+    expect(narratorPreference('{"voice":"old","collapsed":true}')).toEqual({ voice: 'old', collapsed: true, engine: 'auto', speed: 1, naturalVoice: 'Bella' });
+    expect(narratorPreference('null').engine).toBe('auto');
     expect(narratorPreference('invalid').collapsed).toBe(false);
     expect(narratorPreference('{"engine":"device"}').engine).toBe('device');
+    expect(narratorPreference('{"engine":"natural","naturalVoice":"Bruno"}').naturalVoice).toBe('Bruno');
+    expect(narratorPreference('{"naturalVoice":"invalid"}').naturalVoice).toBe('Bella');
   });
   it('restores speed and safely bounds invalid preferences', () => {
     expect(narratorPreference('{"speed":1.5}').speed).toBe(1.5);
@@ -26,6 +28,13 @@ describe('natural narrator input and preferences', () => {
     expect(segments.join(' ')).toBe(text);
     expect(segments[0]).toContain('muddy tracks.');
     expect(segments[0].length).toBeGreaterThan(88);
+  });
+  it('starts long passages at a breath boundary without dropping text', () => {
+    const text = 'The river curves around the village, carrying fallen leaves past the ruined chapel, while Yanni and Wren follow the silver tracks through the mud and listen for the distant bell ringing out across the valley.';
+    const chunks = narratorSentences(text);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks[0].length).toBeLessThanOrEqual(180);
+    expect(chunks.join(' ')).toBe(text);
   });
   it('splits oversized clauses without losing words', () => {
     const text = 'Wren watches the river, while Mara carefully checks the old tracks and the broken silver ward.';
@@ -83,7 +92,7 @@ describe('worker lifecycle', () => {
     const worker = new WorkerStub(), player = new NarratorPlayer(worker.prepare), caption = vi.fn();
     const init = player.initialize(true); await Promise.resolve(); worker.reply({ id: 1, type: 'ready' }); await init;
     const play = player.play(['Old cue.'], 0, 'natural', '', caption, 1.5);
-    expect(worker.messages).toContainEqual({ type: 'generate', id: 2, text: 'Old cue.', speed: 1.5 });
+    expect(worker.messages).toContainEqual({ type: 'generate', id: 2, text: 'Old cue.', speed: 1.5, voice: 'Bella' });
     player.stop(); worker.reply({ id: 2, type: 'audio', samples: new Float32Array(24), sampleRate: 24000 });
     await play; expect(caption).not.toHaveBeenCalled();
     expect(worker.messages).toContainEqual({ type: 'cancel', id: 2 }); player.dispose();

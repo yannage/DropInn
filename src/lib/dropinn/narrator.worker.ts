@@ -1,19 +1,26 @@
 import * as ort from 'onnxruntime-web/wasm';
 import { phonemize } from 'phonemizer';
-import { bellaVoice, kittenText, kittenTokens } from './kittenInput';
+import { kittenVoice, kittenText, kittenTokens } from './kittenInput';
 import { narratorSpeed, splitNarratorClause, type NarratorRequest, type NarratorResponse } from './narratorAudio';
 import type { NarratorAssets } from './narratorModel';
+import { narratorNaturalVoice, narratorNaturalVoiceProfile, narratorNaturalVoices, type NarratorNaturalVoice } from './narratorVoices';
 
 const send = (message: NarratorResponse, transfer: Transferable[] = []) => self.postMessage(message, { transfer });
 let session: ort.InferenceSession | undefined;
-let voice: Float32Array;
-let speed = 0.8;
+let voices: ArrayBuffer;
+const embeddings = new Map<NarratorNaturalVoice, Float32Array>();
+
+function voiceEmbedding(selected: NarratorNaturalVoice): Float32Array {
+  let voice = embeddings.get(selected);
+  if (!voice) { voice = kittenVoice(voices, selected); embeddings.set(selected, voice); }
+  return voice;
+}
 
 async function initialize(assets: NarratorAssets) {
   const config = JSON.parse(new TextDecoder().decode(assets.config));
-  if (config.voice_aliases?.Bella !== 'expr-voice-2-f' || config.speed_priors?.['expr-voice-2-f'] !== 0.8) throw Error('Unexpected Nano voice configuration.');
-  voice = bellaVoice(assets.voices);
-  speed = config.speed_priors['expr-voice-2-f'];
+  if (narratorNaturalVoices.some(voice => config?.voice_aliases?.[voice.id] !== voice.embedding || config?.speed_priors?.[voice.embedding] !== voice.speedPrior)) throw Error('Unexpected Nano voice configuration.');
+  voices = assets.voices;
+  voiceEmbedding('Bella');
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.initTimeout = 10000;
   ort.env.wasm.proxy = false;
@@ -26,21 +33,22 @@ async function initialize(assets: NarratorAssets) {
   } finally { URL.revokeObjectURL(moduleUrl); }
 }
 
-async function generate(input: string, rate: number): Promise<Float32Array> {
+async function generate(input: string, rate: number, selected: NarratorNaturalVoice): Promise<Float32Array> {
   const text = kittenText(input);
   if (!text) throw Error('There is no text to read.');
   const tokens = kittenTokens((await phonemize(text, 'en-us')).join(' '));
   if (text.length > 300 || tokens.length > 400) {
     const [left, right] = splitNarratorClause(input);
-    const a = await generate(left, rate), b = await generate(right, rate);
+    const a = await generate(left, rate, selected), b = await generate(right, rate, selected);
     const combined = new Float32Array(a.length + 2400 + b.length);
     combined.set(a); combined.set(b, a.length + 2400); return combined;
   }
+  const voice = voiceEmbedding(selected);
   const row = Math.min(Array.from(text).length, voice.length / 256 - 1);
   const inputs = {
     input_ids: new ort.Tensor('int64', tokens, [1, tokens.length]),
     style: new ort.Tensor('float32', voice.slice(row * 256, (row + 1) * 256), [1, 256]),
-    speed: new ort.Tensor('float32', [speed * rate], [1]),
+    speed: new ort.Tensor('float32', [narratorNaturalVoiceProfile(selected).speedPrior * rate], [1]),
   };
   const output = await session!.run(inputs);
   try {
@@ -64,7 +72,7 @@ self.onmessage = (event: MessageEvent<NarratorRequest | { type: 'cancel'; id: nu
         send({ id: request.id, type: 'ready' });
       } else {
         if (!session) throw Error('The narrator is not ready.');
-        const samples = await generate(request.text, narratorSpeed(request.speed));
+        const samples = await generate(request.text, narratorSpeed(request.speed), narratorNaturalVoice(request.voice));
         if (!canceled.delete(request.id)) send({ id: request.id, type: 'audio', samples, sampleRate: 24000 }, [samples.buffer as ArrayBuffer]);
       }
     } catch (error) { send({ id: request.id, type: 'error', message: error instanceof Error ? error.message : 'Narrator unavailable.' }); }

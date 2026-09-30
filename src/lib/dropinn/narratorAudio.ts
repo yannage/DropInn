@@ -1,7 +1,8 @@
 import type { NarratorAssets } from './narratorModel';
+import { narratorNaturalVoice } from './narratorVoices';
 
-export type NarratorEngine = 'natural' | 'device';
-export interface NarratorPreference { collapsed: boolean; voice: string; engine: NarratorEngine; speed: number }
+export type NarratorEngine = 'auto' | 'natural' | 'device';
+export interface NarratorPreference { collapsed: boolean; voice: string; engine: NarratorEngine; speed: number; naturalVoice: string }
 /** Relative to the voice's original pace. Reject malformed saved values. */
 export function narratorSpeed(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(0.75, Math.min(2, value)) : 1;
@@ -9,11 +10,11 @@ export function narratorSpeed(value: unknown): number {
 export function narratorPreference(raw: string | null): NarratorPreference {
   try {
     const saved = JSON.parse(raw ?? '{}') ?? {};
-    return { collapsed: saved.collapsed === true, voice: typeof saved.voice === 'string' ? saved.voice : '', engine: saved.engine === 'device' ? 'device' : 'natural', speed: narratorSpeed(saved.speed) };
-  } catch { return { collapsed: false, voice: '', engine: 'natural', speed: 1 }; }
+    return { collapsed: saved.collapsed === true, voice: typeof saved.voice === 'string' ? saved.voice : '', engine: saved.engine === 'device' || saved.engine === 'natural' ? saved.engine : 'auto', speed: narratorSpeed(saved.speed), naturalVoice: narratorNaturalVoice(saved.naturalVoice) };
+  } catch { return { collapsed: false, voice: '', engine: 'auto', speed: 1, naturalVoice: 'Bella' }; }
 }
 
-export type NarratorRequest = { id: number; type: 'init'; assets?: NarratorAssets } | { id: number; type: 'generate'; text: string; speed?: number };
+export type NarratorRequest = { id: number; type: 'init'; assets?: NarratorAssets } | { id: number; type: 'generate'; text: string; speed?: number; voice?: string };
 export type NarratorResponse = { id: number; type: 'ready' } | { id: number; type: 'progress'; loaded: number; total: number }
   | { id: number; type: 'audio'; samples: Float32Array; sampleRate: number } | { id: number; type: 'error'; message: string };
 
@@ -29,9 +30,20 @@ export function narratorSentences(text: string): string[] {
       if (sentences.length && /\b(?:Dr|Mr|Mrs|Ms|St|Capt|Prof)\.$/i.test(sentences[sentences.length - 1])) sentences[sentences.length - 1] += ` ${part}`;
       else sentences.push(part);
     }
-    return sentences;
+    return sentences.flatMap(speechChunks);
   }
-  return normalized.match(/[^.!?]+(?:[.!?]+[”"’']*|$)/g)?.map(part => part.trim()) ?? [normalized];
+  return (normalized.match(/[^.!?]+(?:[.!?]+[”"’']*|$)/g)?.map(part => part.trim()) ?? [normalized]).flatMap(speechChunks);
+}
+
+/** Start speaking a long sentence before synthesizing its entire paragraph.
+ * Prefer real breath boundaries; retain every word and original punctuation. */
+function speechChunks(text: string): string[] {
+  if (text.length <= 180) return [text];
+  const breaks = Array.from(text.matchAll(/[,;:—–]\s+|\s+(?=(?:and|but|while|because)\s)/g), match => match.index! + match[0].length)
+    .filter(index => index >= 65 && index <= 180);
+  const spaces = Array.from(text.matchAll(/\s+/g), match => match.index!).filter(index => index >= 65 && index <= 180);
+  const cut = breaks[breaks.length - 1] ?? spaces[spaces.length - 1];
+  return cut ? [text.slice(0, cut).trim(), ...speechChunks(text.slice(cut).trim())] : [text];
 }
 
 /** Used only after actual tokenization exceeds the model limit. Never drop text. */

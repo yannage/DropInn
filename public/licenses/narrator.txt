@@ -1,12 +1,12 @@
 DropInn natural narrator — third-party notices
 
-KittenTTS Nano 0.8 int8 model and Bella voice: Apache-2.0
+KittenTTS Nano 0.8 int8 model and eight bundled voices: Apache-2.0
 https://github.com/KittenML/KittenTTS
 https://huggingface.co/KittenML/kitten-tts-nano-0.8-int8/tree/84781d74e29ee25217551556398b42f80593a813
 The text-cleaner vocabulary and inference conventions in kittenInput.ts and
 narrator.worker.ts are adapted from KittenML's onnx_model.py (Apache-2.0).
 DropInn modifications: browser worker, cached assets, bounded input chunks,
-Unicode tokenization, and Bella-only NPY validation. Upstream packages unmodified.
+Unicode tokenization, and selected-voice NPY validation. Upstream packages unmodified.
 
 Phonemizer.js 1.2.1: Apache-2.0
 https://github.com/xenova/phonemizer.js

@@ -40,6 +40,34 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it.each(['resolved move', 'synchronized reveal', 'joined reveal'] as const)('keeps %s narration local without requesting generated text', async source => {
+    const { store, room } = await setup();
+    const { reduceAdventure } = await import('../lib/dropinn/engine');
+    const { narratorCue } = await import('../lib/dropinn/narrator');
+    const userId = store.getState().userId;
+    const action = { token: 'investigate' as const, targetId: 'tracks' };
+    let serverRoom = room;
+    mocks.request.mockClear();
+    mocks.request.mockImplementation(async payload => {
+      if (payload.operation === 'command') serverRoom = reduceAdventure(serverRoom, payload.command, 2000);
+      return { backend: 'local', room: structuredClone(serverRoom), messages: [] };
+    });
+    if (source === 'resolved move') await store.getState().commitAction(action);
+    else {
+      serverRoom = reduceAdventure(room, { id: 'confirmed-move', type: 'act', userId, expectedTurn: room.turn, action }, 2000);
+      if (source === 'synchronized reveal') await store.getState().syncRoom();
+      else await store.getState().joinRoom(room.code);
+    }
+    await store.getState().syncRoom(); await store.getState().syncRoom();
+    const accepted = store.getState().room!;
+    expect(store.getState().error).toBeNull();
+    expect(accepted.phase).toBe('reveal');
+    expect(accepted.events).toContainEqual(expect.objectContaining({ kind: 'action', actorId: userId }));
+    expect(narratorCue(accepted).text.length).toBeGreaterThan(0);
+    expect(mocks.request.mock.calls.map(([payload]) => payload.operation)).not.toContain('narrate');
+    expect(store.getState().narration).toBeNull();
+  });
+
   it('collects chapter Thread once across snapshots, departure and reload without auto-equipping a crafted style',async()=>{
     const {store,room}=await setup();
     const userId=store.getState().userId;
