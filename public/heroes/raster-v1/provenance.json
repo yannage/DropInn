@@ -1,6 +1,6 @@
 {
-  "method": "Aligned full-canvas PNG exports; blue-key torso tint separation; original native Bean limbs and boots rasterized into matching detail, bare and mask layers.",
-  "limitations": "Five supplied masters only. Bean limbs and boots retain native geometry. Other catalog choices remain SVG.",
+  "method": "Full-canvas aligned raster exports from style A image_gen masters, with matching tint detail/mask and footwear-free derivatives. Catalog IDs preserved.",
+  "limitations": "Bean retains native limbs and boots around its supplied raster torso. Crooked nose, Little beak and Crooked smirk use native raster exports after generation failures; No nose is an empty native raster. Original SVGs are retained as source history.",
   "sources": [
     {
       "name": "body-bean",
@@ -36,6 +36,296 @@
       "sha256": "a0999a3c4746f1d339bc4b2523384d8e6b3d3d4b86b1d76865737531315cb4c4",
       "generator": "Codex built-in image_gen",
       "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: a crooked cream wizard hat with brim only, on the complete shared square canvas. Match approved Style A whimsical MS Paint language: flat cream fill, thick irregular black raster contour, awkward asymmetry, sparse detail. Place the hat brim around y85-100 on a 256x256 canvas, leaving the face and body absent. Do not add eyes, nose, mouth, hair, body, arms, hands, legs, shoes, shadows, text, background, or extra layers. Output a clean transparent PNG component-master, not a finished character or flattened composite."
+    },
+    {
+      "name": "body-round",
+      "path": "output/ms-painter/jobs/hero-raster-body-round/r001/attempt-1/image.png",
+      "sha256": "a993bf73417b8315360e593730a717bd79bed6acdc860af57a09f1a4409d9016",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2 (the blank Round body production template), keeping its exact full square canvas placement, silhouette size, arm pose, hand and boot positions. Render this ONE isolated modular body component in image 1's approved coarse MS Paint raster style: blunt irregular black contour with subtle jagged steps, flat bright blue body and limbs, flat brown boots, awkward charming asymmetry, no gradients or shading. Body is wide and round, hands droop outward down by its sides. Include the arms, hands, short legs and brown boots shown in image 2. Do NOT copy any face or hat from image 1: no eyes, nose, mouth, hair, hat, text, ground or background. The upper third stays empty transparent. Bottom of boots at about 95% canvas height, hands inside 8–92% canvas width. Preserve real alpha transparency. This is a body-only master for separate independently customizable face and wardrobe layers. Image 1 is style reference only; image 2 is precise part geometry and alignment. Output one square transparent PNG."
+    },
+    {
+      "name": "body-squish",
+      "path": "output/ms-painter/jobs/hero-raster-body-squish/r001/attempt-1/image.png",
+      "sha256": "de6e1683a1e38a71a147de52efeb5cc2415cac7819311bd137d84deb6b741d78",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero body / squish modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Include the complete blue body, arms, hands, short legs and brown boots shown in image 2. NO eyes, nose, mouth, hair or hat. Upper third remains empty transparent. Boots end near 95% canvas height. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "body-pear",
+      "path": "output/ms-painter/jobs/hero-raster-body-pear/r001/attempt-1/image.png",
+      "sha256": "98fd939be356cca5ab68dd08551b619a816d5988868de152196122b7f07f3052",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero body / pear modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Include the complete blue body, arms, hands, short legs and brown boots shown in image 2. NO eyes, nose, mouth, hair or hat. Upper third remains empty transparent. Boots end near 95% canvas height. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "body-puff",
+      "path": "output/ms-painter/jobs/hero-raster-body-puff/r001/attempt-1/image.png",
+      "sha256": "c3c04baf99cd996f0343d7e835d483b38f80c82d23450905b8ec8e90ac351202",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero body / puff modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Include the complete blue body, arms, hands, short legs and brown boots shown in image 2. NO eyes, nose, mouth, hair or hat. Upper third remains empty transparent. Boots end near 95% canvas height. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "body-lanky",
+      "path": "output/ms-painter/jobs/hero-raster-body-lanky/r001/attempt-1/image.png",
+      "sha256": "fffb870b86be6ffcac7466ca99a010b600a26c97d86a0e539f7cf69583d46132",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero body / lanky modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Include the complete blue body, arms, hands, short legs and brown boots shown in image 2. NO eyes, nose, mouth, hair or hat. Upper third remains empty transparent. Boots end near 95% canvas height. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-wide",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-wide/r001/attempt-1/image.png",
+      "sha256": "68fab52deb636ad47d4bc39cc846d49459d3379ec47e91c6a1b8df12e603f562",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / wide modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / wide piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-sleepy",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-sleepy/r001/attempt-1/image.png",
+      "sha256": "51eb9c88191f5fc161ec164b413c64c1a793073b0561dec76015e06070b39c19",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / sleepy modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / sleepy piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-side-eye",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-side-eye/r001/attempt-1/image.png",
+      "sha256": "1c47ee221d3b5d7d4ddd570a08bc6c445e9f91213cddb7d99d3e41d3e10643c4",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / side-eye modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / side-eye piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-happy",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-happy/r001/attempt-1/image.png",
+      "sha256": "956192ab2cae3b207a73f230c5cee1d01e6e87e7d78ee0523ed25c07158bccd3",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / happy modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / happy piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-wink",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-wink/r001/attempt-1/image.png",
+      "sha256": "6b3b8d4fa02cd69cb1ee92080c80c9bdc6017e45f20f783d0d036a8d0a9b6a23",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / wink modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / wink piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-worried",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-worried/r001/attempt-1/image.png",
+      "sha256": "280e6a2f3db2deb07db48c5b443343ae2fd7fd6deb701776a04533d471c16ef0",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / worried modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / worried piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "eyes-starry",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-starry/r001/attempt-1/image.png",
+      "sha256": "5bcc64383ceeef74cfdcf784c6059085b838e072b1b37ca5f859b26ea42a7160",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero eyes / starry modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero eyes / starry piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "nose-snout",
+      "path": "output/ms-painter/jobs/hero-raster-nose-snout/r001/attempt-1/image.png",
+      "sha256": "5646859bd2ca552d766293761f39fc9ccbf2d94b7494bf8cf8a3868dea688b23",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero nose / snout modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero nose / snout piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "nose-freckles",
+      "path": "output/ms-painter/jobs/hero-raster-nose-freckles/r001/attempt-1/image.png",
+      "sha256": "05bdedd6a43dd84115f65177d3352c3b49b70a1d972cfa170fcc41973474d8a6",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero nose / freckles modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero nose / freckles piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "nose-rosy-button",
+      "path": "output/ms-painter/jobs/hero-raster-nose-rosy-button/r001/attempt-1/image.png",
+      "sha256": "b18ca793830d2d4c10c0c38489b2b4f65a57f0649e7ca3743a8aedf631e63b83",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero nose / rosy-button modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero nose / rosy-button piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "mouth-smile",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-smile/r001/attempt-1/image.png",
+      "sha256": "3a772779b5b638ff3393dd52458f8294bf5be083951d9bd1b35850db759e3729",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero mouth / smile modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero mouth / smile piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "mouth-flat",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-flat/r001/attempt-1/image.png",
+      "sha256": "3268e92fb5b6649d976f385d5a0b838812d19d22682bab1db30f2144cb404f8a",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero mouth / flat modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero mouth / flat piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "mouth-toothy",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-toothy/r001/attempt-1/image.png",
+      "sha256": "d1b243f345359021d3f7dcf597c4c92c42e5257e2635ab0c3a311e4809f67f62",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero mouth / toothy modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero mouth / toothy piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "mouth-tongue",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-tongue/r001/attempt-1/image.png",
+      "sha256": "1772410d79e139455925d9ccc7f61f496801a477d48ea00603ac7c2d88f9da56",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero mouth / tongue modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero mouth / tongue piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "mouth-victorious",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-victorious/r001/attempt-1/image.png",
+      "sha256": "d9a9039632362fb42bbc74787c07cd2f760d7fa555aa838335063626b6808f90",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero mouth / victorious modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero mouth / victorious piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hair-tidy-tuft",
+      "path": "output/ms-painter/jobs/hero-raster-hair-tidy-tuft/r001/attempt-1/image.png",
+      "sha256": "4dc6f5c3d4cd6fed1794f3cda4ed14aac27ea76e6afb220f6c4ebcd59329318e",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hair / tidy-tuft modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hair / tidy-tuft piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hair-soft-fringe",
+      "path": "output/ms-painter/jobs/hero-raster-hair-soft-fringe/r001/attempt-1/image.png",
+      "sha256": "ae24ecf8a60c351da264f39ab7a4d81dbf4eee6823736f45217a316f8dce34da",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hair / soft-fringe modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hair / soft-fringe piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hair-wayward-curls",
+      "path": "output/ms-painter/jobs/hero-raster-hair-wayward-curls/r001/attempt-1/image.png",
+      "sha256": "1f9d2032f7a718e0173af32892a31fdf3bfcc8ea090c6867b3de443fc73adaf7",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hair / wayward-curls modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hair / wayward-curls piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hair-cloud-tuft",
+      "path": "output/ms-painter/jobs/hero-raster-hair-cloud-tuft/r001/attempt-1/image.png",
+      "sha256": "1de7d2c1095e9ded7399b4ebb483dee3814e8070ce5f5af6bace821f6d470e05",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hair / cloud-tuft modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hair / cloud-tuft piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-fighter",
+      "path": "output/ms-painter/jobs/hero-raster-hat-fighter/r001/attempt-1/image.png",
+      "sha256": "5ff3bb0bf8a6f1926f0e52a67e4a1799ce916c94bb33f4fa2cfd13fc758db425",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / fighter modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / fighter piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-rogue",
+      "path": "output/ms-painter/jobs/hero-raster-hat-rogue/r001/attempt-1/image.png",
+      "sha256": "d018cedd258b94bf9daa570dca435b9558b369356ebdb8fd6452a430c2172567",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / rogue modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / rogue piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-cleric",
+      "path": "output/ms-painter/jobs/hero-raster-hat-cleric/r001/attempt-1/image.png",
+      "sha256": "283589a64df5701b2b025646b42f4390a4d01957926dae4d392d8641f06c1553",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / cleric modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / cleric piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-shepherd",
+      "path": "output/ms-painter/jobs/hero-raster-hat-shepherd/r001/attempt-1/image.png",
+      "sha256": "443a0802086a834ca9258dd3644b1ebbd123d6d49693acb8b6315fe13a1c9e71",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / shepherd modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / shepherd piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-reed",
+      "path": "output/ms-painter/jobs/hero-raster-hat-reed/r001/attempt-1/image.png",
+      "sha256": "3a8b8bc77d67c54d44a8ce30ab4b55fe3994777798ddfb514aa5927a1873b283",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / reed modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / reed piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-moonstone",
+      "path": "output/ms-painter/jobs/hero-raster-hat-moonstone/r001/attempt-1/image.png",
+      "sha256": "6b91106410f1ddb9c227fbd23c415ac97baae687dd65eecc048338464e929a10",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / moonstone modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / moonstone piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-teacup",
+      "path": "output/ms-painter/jobs/hero-raster-hat-teacup/r001/attempt-1/image.png",
+      "sha256": "2661ea1bb8be067e7e4a906e608f3de294842c00294f6a95cb35126b5674e7bd",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / teacup modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / teacup piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-lantern",
+      "path": "output/ms-painter/jobs/hero-raster-hat-lantern/r001/attempt-1/image.png",
+      "sha256": "ced7e3c0c2430f21f6c584bc26cdd9003035cc6de3d6eebd060d5dc509b822c2",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / lantern modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / lantern piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-pilot-cap",
+      "path": "output/ms-painter/jobs/hero-raster-hat-pilot-cap/r001/attempt-1/image.png",
+      "sha256": "87d5fa2a46baabe5834b5d254205c405cd6c6402ad924fa433abd8f0221afb86",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / pilot-cap modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / pilot-cap piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-breakfast-nightcap",
+      "path": "output/ms-painter/jobs/hero-raster-hat-breakfast-nightcap/r001/attempt-1/image.png",
+      "sha256": "2ebe9d00af9b6233b386e66f5b2b146573913c072b62330005b6c1d80cf47d85",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / breakfast-nightcap modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / breakfast-nightcap piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-apple-blossom-crown",
+      "path": "output/ms-painter/jobs/hero-raster-hat-apple-blossom-crown/r001/attempt-1/image.png",
+      "sha256": "b780737cabebe48e4f6a2bd2104f6339331dee393ca2d6b0c3d631a255af6b26",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / apple-blossom-crown modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / apple-blossom-crown piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "hat-shepherd-feather",
+      "path": "output/ms-painter/jobs/hero-raster-hat-shepherd-feather/r001/attempt-1/image.png",
+      "sha256": "765aae150e3f301acbea495966c93b36609586b51fc4ffd3e09890097fc10970",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero hat / shepherd-feather modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero hat / shepherd-feather piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "shoes-trail-boots",
+      "path": "output/ms-painter/jobs/hero-raster-shoes-trail-boots/r001/attempt-1/image.png",
+      "sha256": "4cb0799ea7d16ee46ab0e97d5018f37743f1b81a089c12d8176f333c2e4f13aa",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero shoes / trail-boots modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero shoes / trail-boots piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "shoes-ruby",
+      "path": "output/ms-painter/jobs/hero-raster-shoes-ruby/r001/attempt-1/image.png",
+      "sha256": "978561aa2a8cb22e678c8961270b8f5789b7ffd9fb3cc3e27bd3915903916ec9",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Edit image 2, the precise Hero shoes / ruby modular hero layer, in the coarse MS Paint raster style of image 1. Image 1 supplies only style; never copy its other character parts. Image 2 supplies the exact subject, expression, color identity, silhouette, proportions, pose and placement. Keep the full square transparent canvas and exact position/scale from image 2: this layer must align with other independent pieces. Blunt irregular black outlines with small jagged steps, slightly varying weight, clumsy charming asymmetry, broad restrained flat fills, simple details. Match reference A closely, not a smooth mascot or elaborate wobbly cartoon. No gradients, shading, drop shadows, texture, guides, text, background or extra parts. Render ONLY the isolated Hero shoes / ruby piece shown in image 2. Do not add any surrounding body, face, limbs, hair or other costume pieces. Preserve transparent gaps. Output a single square PNG with real alpha transparency; do not crop, zoom, trim or recenter."
+    },
+    {
+      "name": "nose-triangle",
+      "path": "public/heroes/nose-triangle.svg",
+      "sha256": "03a9b6c35ec8efc5cc8f11ce13a4203c87cd0c3f21082704b35843d00a0d2447",
+      "generator": "native-svg-rasterization"
+    },
+    {
+      "name": "nose-beak",
+      "path": "public/heroes/nose-beak.svg",
+      "sha256": "c183f2b0f5ecdc913a977875cd044f9298465d353a781042841d52d46df8a773",
+      "generator": "native-svg-rasterization"
+    },
+    {
+      "name": "mouth-smirk",
+      "path": "public/heroes/mouth-smirk.svg",
+      "sha256": "c0e1dad1c6cade8feabc9047019d3f75d27537bfd7496313d1eb4894cf247b6a",
+      "generator": "native-svg-rasterization"
+    },
+    {
+      "name": "nose-none",
+      "path": "public/heroes/nose-none.svg",
+      "sha256": "6683d975bc261e94c9ebc0e5d66ebaa4989c0fd3a2835117cb6934dd2b827796",
+      "generator": "native-svg-rasterization"
     }
   ],
   "placements": [
@@ -163,6 +453,956 @@
         -15.43283582089552,
         -17.214659685863875
       ]
+    },
+    {
+      "name": "body-round",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        114,
+        458,
+        1163,
+        1203
+      ],
+      "anchors": [
+        21,
+        88,
+        236,
+        244
+      ],
+      "transform": [
+        0.2049571020019066,
+        0.20939597315436242,
+        -2.3651096282173505,
+        -7.9033557046979865
+      ]
+    },
+    {
+      "name": "body-squish",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        186,
+        515,
+        1194,
+        1214
+      ],
+      "anchors": [
+        37,
+        96,
+        245,
+        244
+      ],
+      "transform": [
+        0.20634920634920634,
+        0.2117310443490701,
+        -1.3809523809523796,
+        -13.041487839771108
+      ]
+    },
+    {
+      "name": "body-pear",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        101,
+        403,
+        1154,
+        1209
+      ],
+      "anchors": [
+        19,
+        79,
+        240,
+        244
+      ],
+      "transform": [
+        0.20987654320987653,
+        0.20471464019851116,
+        -2.197530864197528,
+        -3.5
+      ]
+    },
+    {
+      "name": "body-puff",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        121,
+        406,
+        1147,
+        1219
+      ],
+      "anchors": [
+        24,
+        78,
+        237,
+        244
+      ],
+      "transform": [
+        0.20760233918128654,
+        0.20418204182041821,
+        -1.1198830409356724,
+        -4.897908979089792
+      ]
+    },
+    {
+      "name": "body-lanky",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        122,
+        388,
+        1130,
+        1208
+      ],
+      "anchors": [
+        26,
+        80,
+        231,
+        244
+      ],
+      "transform": [
+        0.20337301587301587,
+        0.2,
+        1.1884920634920633,
+        2.3999999999999915
+      ]
+    },
+    {
+      "name": "eyes-wide",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        389,
+        559,
+        866,
+        762
+      ],
+      "anchors": [
+        76,
+        109,
+        181,
+        154
+      ],
+      "transform": [
+        0.22012578616352202,
+        0.22167487684729065,
+        -9.628930817610069,
+        -14.916256157635473
+      ]
+    },
+    {
+      "name": "eyes-sleepy",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        386,
+        590,
+        872,
+        697
+      ],
+      "anchors": [
+        78,
+        128,
+        178,
+        151
+      ],
+      "transform": [
+        0.205761316872428,
+        0.21495327102803738,
+        -1.4238683127572074,
+        1.1775700934579447
+      ]
+    },
+    {
+      "name": "eyes-side-eye",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        385,
+        503,
+        860,
+        742
+      ],
+      "anchors": [
+        77,
+        102,
+        178,
+        152
+      ],
+      "transform": [
+        0.21263157894736842,
+        0.20920502092050208,
+        -4.863157894736844,
+        -3.2301255230125463
+      ]
+    },
+    {
+      "name": "eyes-happy",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        401,
+        580,
+        853,
+        662
+      ],
+      "anchors": [
+        78,
+        123,
+        178,
+        139
+      ],
+      "transform": [
+        0.22123893805309736,
+        0.1951219512195122,
+        -10.716814159292042,
+        9.829268292682926
+      ]
+    },
+    {
+      "name": "eyes-wink",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        404,
+        543,
+        845,
+        729
+      ],
+      "anchors": [
+        77,
+        111,
+        173,
+        151
+      ],
+      "transform": [
+        0.21768707482993196,
+        0.21505376344086022,
+        -10.945578231292515,
+        -5.774193548387103
+      ]
+    },
+    {
+      "name": "eyes-worried",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        350,
+        521,
+        909,
+        784
+      ],
+      "anchors": [
+        77,
+        103,
+        178,
+        152
+      ],
+      "transform": [
+        0.1806797853309481,
+        0.18631178707224336,
+        13.762075134168164,
+        5.93155893536121
+      ]
+    },
+    {
+      "name": "eyes-starry",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        382,
+        548,
+        874,
+        736
+      ],
+      "anchors": [
+        83,
+        118,
+        172,
+        147
+      ],
+      "transform": [
+        0.18089430894308944,
+        0.15425531914893617,
+        13.89837398373983,
+        33.46808510638297
+      ]
+    },
+    {
+      "name": "nose-snout",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        541,
+        574,
+        713,
+        678
+      ],
+      "anchors": [
+        111,
+        144,
+        145,
+        164
+      ],
+      "transform": [
+        0.19767441860465115,
+        0.19230769230769232,
+        4.058139534883722,
+        33.61538461538461
+      ]
+    },
+    {
+      "name": "nose-freckles",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        535,
+        585,
+        723,
+        662
+      ],
+      "anchors": [
+        111,
+        141,
+        148,
+        161
+      ],
+      "transform": [
+        0.19680851063829788,
+        0.2597402597402597,
+        5.707446808510639,
+        -10.948051948051926
+      ]
+    },
+    {
+      "name": "nose-rosy-button",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        564,
+        588,
+        688,
+        671
+      ],
+      "anchors": [
+        117,
+        141,
+        139,
+        157
+      ],
+      "transform": [
+        0.1774193548387097,
+        0.1927710843373494,
+        16.935483870967744,
+        27.65060240963855
+      ]
+    },
+    {
+      "name": "mouth-smile",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        503,
+        653,
+        740,
+        756
+      ],
+      "anchors": [
+        103,
+        163,
+        150,
+        181
+      ],
+      "transform": [
+        0.19831223628691982,
+        0.17475728155339806,
+        3.248945147679322,
+        48.88349514563106
+      ]
+    },
+    {
+      "name": "mouth-flat",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        529,
+        682,
+        726,
+        713
+      ],
+      "anchors": [
+        107,
+        171,
+        149,
+        177
+      ],
+      "transform": [
+        0.2131979695431472,
+        0.1935483870967742,
+        -5.781725888324871,
+        39
+      ]
+    },
+    {
+      "name": "mouth-toothy",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        518,
+        655,
+        736,
+        767
+      ],
+      "anchors": [
+        104,
+        163,
+        150,
+        186
+      ],
+      "transform": [
+        0.21100917431192662,
+        0.20535714285714285,
+        -5.302752293577981,
+        28.491071428571445
+      ]
+    },
+    {
+      "name": "mouth-tongue",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        531,
+        661,
+        724,
+        788
+      ],
+      "anchors": [
+        106,
+        164,
+        149,
+        189
+      ],
+      "transform": [
+        0.22279792746113988,
+        0.1968503937007874,
+        -12.305699481865275,
+        33.881889763779526
+      ]
+    },
+    {
+      "name": "mouth-victorious",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        499,
+        660,
+        755,
+        795
+      ],
+      "anchors": [
+        103,
+        165,
+        154,
+        187
+      ],
+      "transform": [
+        0.19921875,
+        0.16296296296296298,
+        3.58984375,
+        57.44444444444443
+      ]
+    },
+    {
+      "name": "hair-tidy-tuft",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        423,
+        498,
+        831,
+        663
+      ],
+      "anchors": [
+        88,
+        75,
+        164,
+        109
+      ],
+      "transform": [
+        0.18627450980392157,
+        0.20606060606060606,
+        9.205882352941174,
+        -27.61818181818181
+      ]
+    },
+    {
+      "name": "hair-soft-fringe",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        438,
+        486,
+        816,
+        643
+      ],
+      "anchors": [
+        83,
+        76,
+        167,
+        114
+      ],
+      "transform": [
+        0.2222222222222222,
+        0.24203821656050956,
+        -14.333333333333329,
+        -41.63057324840764
+      ]
+    },
+    {
+      "name": "hair-wayward-curls",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        385,
+        457,
+        873,
+        711
+      ],
+      "anchors": [
+        75,
+        65,
+        178,
+        119
+      ],
+      "transform": [
+        0.21106557377049182,
+        0.2125984251968504,
+        -6.260245901639351,
+        -32.15748031496064
+      ]
+    },
+    {
+      "name": "hair-cloud-tuft",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        363,
+        477,
+        899,
+        730
+      ],
+      "anchors": [
+        79,
+        68,
+        174,
+        115
+      ],
+      "transform": [
+        0.17723880597014927,
+        0.1857707509881423,
+        14.662313432835816,
+        -20.612648221343875
+      ]
+    },
+    {
+      "name": "hat-fighter",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        396,
+        147,
+        930,
+        527
+      ],
+      "anchors": [
+        74,
+        22,
+        196,
+        113
+      ],
+      "transform": [
+        0.22846441947565543,
+        0.2394736842105263,
+        -16.471910112359552,
+        -13.202631578947368
+      ]
+    },
+    {
+      "name": "hat-rogue",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        387,
+        332,
+        1020,
+        634
+      ],
+      "anchors": [
+        73,
+        50,
+        210,
+        115
+      ],
+      "transform": [
+        0.21642969984202212,
+        0.2152317880794702,
+        -10.758293838862556,
+        -21.456953642384107
+      ]
+    },
+    {
+      "name": "hat-cleric",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        366,
+        306,
+        886,
+        610
+      ],
+      "anchors": [
+        76,
+        41,
+        178,
+        101
+      ],
+      "transform": [
+        0.19615384615384615,
+        0.19736842105263158,
+        4.207692307692312,
+        -19.394736842105267
+      ]
+    },
+    {
+      "name": "hat-shepherd",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        320,
+        304,
+        955,
+        609
+      ],
+      "anchors": [
+        57,
+        47,
+        200,
+        116
+      ],
+      "transform": [
+        0.2251968503937008,
+        0.2262295081967213,
+        -15.062992125984252,
+        -21.773770491803276
+      ]
+    },
+    {
+      "name": "hat-reed",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        274,
+        281,
+        982,
+        634
+      ],
+      "anchors": [
+        66,
+        26,
+        189,
+        102
+      ],
+      "transform": [
+        0.17372881355932204,
+        0.21529745042492918,
+        18.398305084745758,
+        -34.4985835694051
+      ]
+    },
+    {
+      "name": "hat-moonstone",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        386,
+        284,
+        869,
+        492
+      ],
+      "anchors": [
+        75,
+        52,
+        182,
+        103
+      ],
+      "transform": [
+        0.22153209109730848,
+        0.24519230769230768,
+        -10.511387163561068,
+        -17.634615384615387
+      ]
+    },
+    {
+      "name": "hat-teacup",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        260,
+        67,
+        1005,
+        577
+      ],
+      "anchors": [
+        56,
+        11,
+        200,
+        107
+      ],
+      "transform": [
+        0.19328859060402684,
+        0.18823529411764706,
+        5.744966442953022,
+        -1.6117647058823525
+      ]
+    },
+    {
+      "name": "hat-lantern",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        251,
+        433,
+        1066,
+        812
+      ],
+      "anchors": [
+        52,
+        30,
+        207,
+        106
+      ],
+      "transform": [
+        0.1901840490797546,
+        0.20052770448548812,
+        4.263803680981589,
+        -56.82849604221636
+      ]
+    },
+    {
+      "name": "hat-pilot-cap",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        373,
+        425,
+        881,
+        691
+      ],
+      "anchors": [
+        81,
+        65,
+        174,
+        110
+      ],
+      "transform": [
+        0.1830708661417323,
+        0.16917293233082706,
+        12.714566929133852,
+        -6.898496240601503
+      ]
+    },
+    {
+      "name": "hat-breakfast-nightcap",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        447,
+        427,
+        941,
+        685
+      ],
+      "anchors": [
+        92,
+        58,
+        192,
+        112
+      ],
+      "transform": [
+        0.20242914979757085,
+        0.20930232558139536,
+        1.514170040485837,
+        -31.372093023255815
+      ]
+    },
+    {
+      "name": "hat-apple-blossom-crown",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        331,
+        511,
+        915,
+        706
+      ],
+      "anchors": [
+        83,
+        83,
+        176,
+        114
+      ],
+      "transform": [
+        0.15924657534246575,
+        0.15897435897435896,
+        30.289383561643838,
+        1.764102564102572
+      ]
+    },
+    {
+      "name": "hat-shepherd-feather",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        763,
+        154,
+        992,
+        499
+      ],
+      "anchors": [
+        155,
+        25,
+        199,
+        89
+      ],
+      "transform": [
+        0.19213973799126638,
+        0.1855072463768116,
+        8.397379912663752,
+        -3.568115942028985
+      ]
+    },
+    {
+      "name": "shoes-trail-boots",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        282,
+        1058,
+        972,
+        1218
+      ],
+      "anchors": [
+        61,
+        217,
+        193,
+        245
+      ],
+      "transform": [
+        0.19130434782608696,
+        0.175,
+        7.052173913043475,
+        31.850000000000023
+      ]
+    },
+    {
+      "name": "shoes-ruby",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        236,
+        1032,
+        1017,
+        1196
+      ],
+      "anchors": [
+        61,
+        219,
+        192,
+        245
+      ],
+      "transform": [
+        0.1677336747759283,
+        0.15853658536585366,
+        21.414852752880925,
+        55.39024390243901
+      ]
     }
   ],
   "assets": [
@@ -193,6 +1433,270 @@
     {
       "file": "public/heroes/raster-v1/body-bean-fill.png",
       "sha256": "c07afb0bd5ae3f8a2a303a101a647007bcce55e549eb15f67ee7bb26d12c6939"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-round.png",
+      "sha256": "95739e3f995fc3ee94479b889ebcc863b473ceeb50a2a6cb97bcf58683c76293"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-round-fill.png",
+      "sha256": "533a95a6e9194256372c13effa6f650425113328a572cb4d78daf7b398cb1a6a"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-round-bare.png",
+      "sha256": "0854f10e66a93629e045a5cd2197f405dde4409c00f821b4f1d47f6fba4f81db"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-round-bare-fill.png",
+      "sha256": "b75ab27ec7d0d4ad5b390085e59aa8ac5d2ecea4c35dee9cb856f3dd20eb6ae5"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-squish.png",
+      "sha256": "811c95f1d8bead5cb0cd2b8dd5052dd2c0ebd79da747900344ccbe7f19f05920"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-squish-fill.png",
+      "sha256": "a120bc122e6bedd157a882770f59568621df5460d0dd0ee8efb29268a20c5cec"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-squish-bare.png",
+      "sha256": "46cee6cab422603ad09b3b99078086704963fcf5ccf84185fc5b9738a958e8cb"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-squish-bare-fill.png",
+      "sha256": "9c368e47c9371a93ec7e92b1fbb6b464bb95306ea1fe3896e912ca8b601e5ab7"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-pear.png",
+      "sha256": "da74ece6b679648321ad773c8ab41e73e4e4ba7f34fc7ca32735161db1052117"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-pear-fill.png",
+      "sha256": "d8654aefc355450d67606a504460c1bf694b3d28a2e74f9a641718c72ae6270c"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-pear-bare.png",
+      "sha256": "71e5ebed38ddd5c2d868511dedeb638a34597026ba3fc0f275c88239b6a314f9"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-pear-bare-fill.png",
+      "sha256": "af2cbd0167880694deba7049a05cd337aaa9b801e40b93398996dab05ffcc7c6"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-puff.png",
+      "sha256": "e3a701dd610369e68201c799beb6b92c9e8066896ddbf0a64ece75baab389125"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-puff-fill.png",
+      "sha256": "d19cca57dc7196ff03e8758e8656ced3b919777f0a867c140257a4bf359efa03"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-puff-bare.png",
+      "sha256": "2c296e4bedf39fb7ba104cfe29f4d63035ce54d29f40957aad1be1b522b2dc04"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-puff-bare-fill.png",
+      "sha256": "c7ac9637fdc197bba37a82e1bbd6b618be8d80db8f523171d9db487a8d1751b8"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-lanky.png",
+      "sha256": "6f369335ce67f73c064f28cf3407972a75ef71228999a066b2f69913911937af"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-lanky-fill.png",
+      "sha256": "2657b18b11af6349d0cb23c8295994541e7acbe4a5506cd7c890bd850f7fce09"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-lanky-bare.png",
+      "sha256": "7246fe01f5def1d491a1ff76e44568090c60df04b4412664bfab1d38442016be"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-lanky-bare-fill.png",
+      "sha256": "8084992c8d24532ccbd2a35c9a2865b82df04c6d199b701a5a9774e96e78bc36"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-wide.png",
+      "sha256": "593d86f86b74fa1a2337a41963e43a026353fce75e3e012b8e3f00cb05c0b7f8"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-sleepy.png",
+      "sha256": "22cfa78dfb676f52eeb42b8b4197c26ccb1bb5eb1aeca66be313213649767ec5"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-side-eye.png",
+      "sha256": "542d3e511fed8e81ad05b8b5b129941b30b60f46af892640ba85ca33e2dee5ee"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-happy.png",
+      "sha256": "ce66d68b98267e866a0a55b633b362f42a7dbe79c78d72be5b09688b68ef5fdf"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-wink.png",
+      "sha256": "df84011a0cee8a04e17a4726608d0d7d374053eb1460a384008cccb20ce46188"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-worried.png",
+      "sha256": "0caf7a8e792172493464ef1bbb2bcc981dabb1073186b334792c8589108885ca"
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-starry.png",
+      "sha256": "7839ebe64b948ccda6f087ec064ccda214c63ace401f077aae71b6a8c8d16e37"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-snout.png",
+      "sha256": "22bf6f7a1fa52d6d9b664d1a20a5c904c48b63db320ff04d4835b58adfbab33b"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-freckles.png",
+      "sha256": "f4722a7d176c0c46f46e0c62eb95db36e4349f6c456a2f387b55b7e0e156f35e"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-rosy-button.png",
+      "sha256": "ed020c4de7261732f5bbafc33135e5515073a5043fb7cbb2bf1653da930e68dc"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-smile.png",
+      "sha256": "0d958bd66d62f0a0cd5bc5bd7db3dfa9b02acc130988c10d7463838347681fef"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-flat.png",
+      "sha256": "669f604a65e4329ac04832ad71460f71be15d49d06b9f8bd785fb2c6d75a5969"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-toothy.png",
+      "sha256": "cb32e2940132e534d5206054067c85c8601e6c9327b8595e3aa36cdad56aa7d6"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-tongue.png",
+      "sha256": "cc4d0e9f39e908506a9d61f92a7e51805b4d48812d9450ed259e49134515adc0"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-victorious.png",
+      "sha256": "49a662388362dee64e5ce45d61dc2248969e129a8a4fc0e40ae7fa9a7fa82cab"
+    },
+    {
+      "file": "public/heroes/raster-v1/hair-tidy-tuft.png",
+      "sha256": "dd5270f213d66c77646d453ca5e024d4c12c145f0c3064b449c1b88adfc26c29"
+    },
+    {
+      "file": "public/heroes/raster-v1/hair-soft-fringe.png",
+      "sha256": "52cc9a70d5c8699afa4af48abfe0a994d0dbee7ea49e69b22c847b1ea8efa6ad"
+    },
+    {
+      "file": "public/heroes/raster-v1/hair-wayward-curls.png",
+      "sha256": "0a3920e6706bd25e57b3554e09d87a6cae5a3ef1faa27a366c62af661d438c1f"
+    },
+    {
+      "file": "public/heroes/raster-v1/hair-cloud-tuft.png",
+      "sha256": "e04a2e4ba1eef7f3fed09239d00f0013fca16a0efd90c3b8c3af8b37d27cf746"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-fighter.png",
+      "sha256": "8592e271a240d72ddfc22a5db287b8520958618061bd41be3274d900d9d48c3d"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-rogue.png",
+      "sha256": "e7b38c20a4c6ad7bfcc18024d3d1f60ea172ba7ae4ba0a51eac39cd037d8a446"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-cleric.png",
+      "sha256": "0780cb54702998fab981da3604c811c745d7b60779295de22ad7dba661bb9409"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-shepherd.png",
+      "sha256": "5d1dd44b222702781cb3cf53a31f5e7ffed4ffcdd56809ea9d236542433e306a"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-shepherd-outline.png",
+      "sha256": "9804e69af41501cecccb32baa6262bc35e14e632f278e15dcbeef6fdf8faa027"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-shepherd-fill.png",
+      "sha256": "7329ed4b7f0821c3386664c5595409fd9e099aa5f894d83f982a242587760beb"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-reed.png",
+      "sha256": "d5016d0b5ae9a82a69b978c9fccecdb4463daea3cb5051f0a9741a0b29cf60bc"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-moonstone.png",
+      "sha256": "4773f8a96c8009143ed691304093daf838fb9e63cc9c8e25ce855de2d70d7dcf"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-teacup.png",
+      "sha256": "fa6c0f6bfde2e43d96854e14e8323c685c531f61e4e674f34cf80fc8f889fd17"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-teacup-outline.png",
+      "sha256": "d501b4e2322c0823dfc0884ab439dcd80982271c035adfbe8808380a2b287f32"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-teacup-fill.png",
+      "sha256": "484792d2202eac4100c767533d196fb935da2bafa03e784ff5cb43c528a04184"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-lantern.png",
+      "sha256": "a5321d83ed4d2e93f58857a0bf94c53af5167929cbd6e7ffa99bd21cc55b26c7"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-lantern-outline.png",
+      "sha256": "04e0e8024c01377e44466dbacea3a4a660057a796cfc4f48632f79c402cfbf39"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-lantern-fill.png",
+      "sha256": "b5634846e2c2c3f878af81c9eaf2f0204a35a70ffb2c6dcfe5f0c004cce8ac02"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-pilot-cap.png",
+      "sha256": "a8c5ca246cd3c6830fa3c7ae69ca9062218c22e5035244aaed04124442302e5e"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-breakfast-nightcap.png",
+      "sha256": "a8a1e1d6c0b928f0c630213d45ac0ca645ba607a60d38ada5ce42038332e9c70"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-apple-blossom-crown.png",
+      "sha256": "ed239c9524ddfdcf6f536f9436e305999c378780d3459f2ebc98ac757677a184"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-shepherd-feather.png",
+      "sha256": "36f19a415fe40455d86276f96b5443cac12cc5d3c7885463a94d34f0896b7c08"
+    },
+    {
+      "file": "public/heroes/raster-v1/shoes-trail-boots.png",
+      "sha256": "4527f5bf65edadcd42dfb0689a1bb18a68545f6ae7f948d48a89241916406ae4"
+    },
+    {
+      "file": "public/heroes/raster-v1/shoes-ruby.png",
+      "sha256": "32b22a87521d716e917fb076bcd6311d6e23e2325479a49e7be43a2cbb49071f"
+    },
+    {
+      "file": "public/heroes/raster-v1/shoes-ruby-outline.png",
+      "sha256": "18ee9dc4fda721bf7cf9694a4013f42b475b9115d6a3a1f97dccb584a1aa7543"
+    },
+    {
+      "file": "public/heroes/raster-v1/shoes-ruby-fill.png",
+      "sha256": "3f1e7dbebc41b149444303d2b9f2e04e887b0920c2c1517e9a7802fc0e0e1eeb"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-triangle.png",
+      "sha256": "9530b1c2acc08692ffa250f0239d6a63f1d00e6287a1cd05b5d8095f4387c25f"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-beak.png",
+      "sha256": "75385f96fd34aa5ad82a1b6fd0f98c0f984895eb32e12a47316f461e00b49eb7"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-smirk.png",
+      "sha256": "d9adb0109ee4001b5ffde9d4d7183fcbbfd65b4120b9598846d52eeb534af92d"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-none.png",
+      "sha256": "e53a7aa3ecb3b0ae8bbff9d2716c0a84a407a70285ab3834c517303be405b794"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean-bare-fill.png",
+      "sha256": "b4a81f5494d70ab2fff3304f07473ce120a30646e699156a16ee709f6b886bce"
     }
   ]
 }

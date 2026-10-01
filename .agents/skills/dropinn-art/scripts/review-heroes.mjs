@@ -16,12 +16,12 @@ function inside(path) {
   return full;
 }
 try {
-  const { HERO_PARTS, HERO_HATS, HERO_HAIR, HERO_SHOES, DEFAULT_APPEARANCE, SHEPHERD_STYLE_ART, ALL_HAT_STYLES } = await runtime.ssrLoadModule('/src/lib/cosmetics.ts');
+  const { HERO_PARTS, HERO_HATS, HERO_HAIR, HERO_SHOES, DEFAULT_APPEARANCE, SHEPHERD_STYLE_ART, RUBY_SHOE_PALETTE_ART, ALL_HAT_STYLES } = await runtime.ssrLoadModule('/src/lib/cosmetics.ts');
   const { HERO_COLORS } = await runtime.ssrLoadModule('/src/lib/character.ts');
   const { HeroAvatar } = await runtime.ssrLoadModule('/src/components/DropInn/HeroAvatar.tsx');
   const manifest = JSON.parse(await readFile(new URL('../references/native-hero-art.json', import.meta.url), 'utf8'));
   const catalog = [...Object.values(HERO_PARTS).flat(), ...HERO_HAIR, ...HERO_SHOES, ...HERO_HATS];
-  const extra = [...HERO_PARTS.body.map(body => body.art.bareSrc).filter(Boolean),'/heroes/shoes-ruby-outline.svg','/heroes/shoes-ruby-fill.svg'];
+  const extra = [...HERO_PARTS.body.flatMap(body => [body.art.bareSrc, body.art.bareMaskSrc]).filter(Boolean), RUBY_SHOE_PALETTE_ART.src, RUBY_SHOE_PALETTE_ART.maskSrc];
   const sources = [...new Set([...catalog.map(part=>part.art),...Object.values(SHEPHERD_STYLE_ART),...HERO_HATS.map(hat=>hat.paletteArt).filter(Boolean)].flatMap(art => [art.src,art.maskSrc].filter(Boolean)).concat(extra))];
   const encoded = new Map();
   for (const source of sources) {
@@ -61,6 +61,7 @@ try {
   for (const body of HERO_PARTS.body) for (const hair of HERO_HAIR) for (const hat of [null,HERO_HATS.find(h=>h.id==='moonstone')]) add(`${body.label} / ${hair.label} / ${hat?.label ?? 'bare head'}`, { ...DEFAULT_APPEARANCE,body:body.id,hair:hair.id },hat?.id ?? null);
   for (const body of HERO_PARTS.body) for (const shoes of HERO_SHOES) examples.push({label:`${body.label} / ${shoes.label}`,hero:{name:'Shoes preview',classKey:'wizard',accent:HERO_COLORS[0].value,inventory,appearance:{...DEFAULT_APPEARANCE,body:body.id},cosmeticUnlocks:{hats:HERO_HATS.map(h=>h.id),styles:ALL_HAT_STYLES.map(s=>s.id),items:unlockedItems},equipment:{hat:null,shoes:shoes.id}}});
   for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) add(`${body.label} / ${color.name}`, { ...DEFAULT_APPEARANCE, body: body.id }, null, color.value);
+  for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) examples.push({label:`Ruby palette / ${body.label} / ${color.name}`,hero:{name:'Shoe palette',classKey:'wizard',accent:HERO_COLORS[0].value,appearance:{...DEFAULT_APPEARANCE,body:body.id},cosmeticUnlocks:{hats:[],styles:[],items:[...unlockedItems,'shoes:ruby-sparkle']},equipment:{hat:null,shoes:'ruby',shoeColor:color.value}}});
   // One render tree ensures useId-generated mask IDs are unique across the sheet.
   let markup = renderToStaticMarkup(React.createElement('main', null, examples.map(({ label, hero }) => React.createElement('section', { key: label },
     React.createElement('h2', null, label),

@@ -9,22 +9,21 @@ export interface HeroEquipment { hat: string | null; hatColor?: string | null; h
   shoes?: string | null; shoeColor?: string | null; title?: string | null; frame?: string | null; frameColor?: string | null }
 export interface HeroCustomization { appearance: HeroAppearance; equipment: HeroEquipment }
 /** Assets share a 256px canvas. Placement is optional for externally supplied artwork. */
-export interface HeroArt { src: string; maskSrc?: string; bareSrc?: string; x?: number; y?: number; width?: number; height?: number }
+export interface HeroArt { src: string; maskSrc?: string; bareSrc?: string; bareMaskSrc?: string; x?: number; y?: number; width?: number; height?: number }
 export interface HeroPart { id: string; label: string; art: HeroArt; unlockId?: string }
 export interface HeroHat extends HeroPart { keepsake?: string; chapter?: string; supporter?: boolean; paletteArt?: HeroArt }
 export const ALL_HAT_STYLES = [...HAT_STYLES, ...SUPPORTER_STYLES];
 export const SHEPHERD_STYLE_ART: Record<'color' | 'trim', HeroArt> = {
-  color: { src:'/heroes/hat-shepherd-outline.svg', maskSrc:'/heroes/hat-shepherd-fill.svg' },
-  trim: { src:'/heroes/hat-shepherd-feather.svg' },
+  color: { src:'/heroes/raster-v1/hat-shepherd-outline.png', maskSrc:'/heroes/raster-v1/hat-shepherd-fill.png' },
+  trim: { src:'/heroes/raster-v1/hat-shepherd-feather.png' },
 };
-const RASTER_PARTS = new Set(['body-bean', 'eyes-dots', 'nose-button', 'mouth-open', 'hat-wizard']);
+export const RUBY_SHOE_PALETTE_ART: HeroArt = { src:'/heroes/raster-v1/shoes-ruby-outline.png', maskSrc:'/heroes/raster-v1/shoes-ruby-fill.png' };
 const part = (category: string, id: string, label: string, tint = false): HeroPart => {
   const key = `${category}-${id}`;
-  const base = RASTER_PARTS.has(key) ? `/heroes/raster-v1/${key}` : `/heroes/${key}`;
-  const extension = RASTER_PARTS.has(key) ? 'png' : 'svg';
-  return { id, label, art: { src: `${base}.${extension}`,
-    ...(tint ? { maskSrc: `${base}-fill.${extension}` } : {}),
-    ...(category === 'body' ? { bareSrc: `${base}-bare.${extension}` } : {}),
+  const base = `/heroes/raster-v1/${key}`;
+  return { id, label, art: { src: `${base}.png`,
+    ...(tint ? { maskSrc: `${base}-fill.png` } : {}),
+    ...(category === 'body' ? { bareSrc: `${base}-bare.png`, bareMaskSrc: `${base}-bare-fill.png` } : {}),
   } };
 };
 export const HERO_PARTS = {
@@ -82,8 +81,8 @@ export const HERO_HATS: HeroHat[] = [
   { ...part('hat', 'shepherd', 'Shepherd’s floppy hat'), keepsake: 'Mara’s copper bell', chapter: 'The missing livestock' },
   { ...part('hat', 'reed', 'Reed-woven hat'), keepsake: 'A silver river reed', chapter: 'The riverside hunt' },
   { ...part('hat', 'moonstone', 'Moonstone crown'), keepsake: 'The guardian’s moonstone', chapter: 'The chapel' },
-  { ...part('hat', 'teacup', 'Travelling teacup'), supporter: true, paletteArt: { src:'/heroes/hat-teacup-outline.svg', maskSrc:'/heroes/hat-teacup-fill.svg' } },
-  { ...part('hat', 'lantern', 'Lamplighter’s hat'), supporter: true, paletteArt: { src:'/heroes/hat-lantern-outline.svg', maskSrc:'/heroes/hat-lantern-fill.svg' } },
+  { ...part('hat', 'teacup', 'Travelling teacup'), supporter: true, paletteArt: { src:'/heroes/raster-v1/hat-teacup-outline.png', maskSrc:'/heroes/raster-v1/hat-teacup-fill.png' } },
+  { ...part('hat', 'lantern', 'Lamplighter’s hat'), supporter: true, paletteArt: { src:'/heroes/raster-v1/hat-lantern-outline.png', maskSrc:'/heroes/raster-v1/hat-lantern-fill.png' } },
   { ...part('hat', 'pilot-cap', 'Teacup pilot cap'), keepsake: 'Pella’s dented brass badge', chapter: 'The Last Flight of the Teacup' },
   { ...part('hat', 'breakfast-nightcap', 'Breakfast nightcap'), keepsake: 'A mismatched breakfast spoon', chapter: 'The Inn That Misplaced Tomorrow' },
   { ...part('hat', 'apple-blossom-crown', 'Apple-blossom crown'), keepsake: 'A carved apple seed', chapter: 'The Orchard That Walked Away' },

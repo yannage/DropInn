@@ -1,24 +1,9 @@
 import { useId } from 'react';
 import type { CharacterProfile } from '../../lib/character';
 import { heroAccent } from '../../lib/character';
-import { HERO_HATS, HERO_HAIR, HERO_SHOES, HERO_PARTS, ALL_HAT_STYLES, SHEPHERD_STYLE_ART, normalizeCustomization, displayHeroName, type HeroArt, type HeroHat } from '../../lib/cosmetics';
+import { HERO_HATS, HERO_HAIR, HERO_SHOES, HERO_PARTS, ALL_HAT_STYLES, SHEPHERD_STYLE_ART, RUBY_SHOE_PALETTE_ART, normalizeCustomization, displayHeroName, type HeroArt, type HeroHat } from '../../lib/cosmetics';
 
 export type AvatarHero = Pick<CharacterProfile, 'name' | 'classKey' | 'accent'> & Partial<Pick<CharacterProfile, 'appearance' | 'equipment' | 'inventory' | 'cosmeticUnlocks'>>;
-
-// One fixed pencil wobble for the complete drawing (including its tint mask).
-// Never animate the seed: tiny table portraits should not shimmer or crawl.
-function PencilEdges({ id }: { id: string }) {
-  return <defs>
-    <filter id={id} filterUnits="userSpaceOnUse" x="-4" y="-4" width="264" height="264" colorInterpolationFilters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="1" seed="17" result="pencil" />
-      <feComponentTransfer in="pencil" result="steps">
-        <feFuncR type="discrete" tableValues="0 .25 .5 .75 1" />
-        <feFuncG type="discrete" tableValues="0 .25 .5 .75 1" />
-      </feComponentTransfer>
-      <feDisplacementMap in="SourceGraphic" in2="steps" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-  </defs>;
-}
 
 function ArtLayer({ art, color, maskId }: { art: HeroArt; color: string; maskId: string }) {
   const bounds = { x: art.x ?? 0, y: art.y ?? 0, width: art.width ?? 256, height: art.height ?? 256 };
@@ -48,15 +33,12 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
   const hair = HERO_HAIR.find(part => part.id === appearance.hair);
   const shoes = HERO_SHOES.find(part => part.id === equipment.shoes);
   const accent = heroAccent(hero.accent, hero.classKey, hero.cosmeticUnlocks?.items);
-  // Supplied raster contours already have pencil texture. Keep paired masks and
-  // details together, without adding a second displacement to mixed assemblies.
-  const pencil = ![...parts, hat, hair, shoes].some(part => part?.art.src.endsWith('.png'));
+  // The painted raster contours and their matching masks need no displacement.
   return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${displayHeroName({name:hero.name,equipment:hero.equipment}) || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
-    {pencil && <PencilEdges id={`${id}-pencil`} />}
-    <g filter={pencil ? `url(#${id}-pencil)` : undefined}>
-      <ArtLayer art={shoes ? { ...parts[0].art, src: parts[0].art.bareSrc ?? parts[0].art.src } : parts[0].art} color={accent} maskId={`${id}-body`} />
+    <g>
+      <ArtLayer art={shoes ? { ...parts[0].art, src: parts[0].art.bareSrc ?? parts[0].art.src, maskSrc: parts[0].art.bareMaskSrc ?? parts[0].art.maskSrc } : parts[0].art} color={accent} maskId={`${id}-body`} />
       {shoes && (shoes.id === 'ruby' && equipment.shoeColor
-        ? <ArtLayer art={{src:'/heroes/shoes-ruby-outline.svg',maskSrc:'/heroes/shoes-ruby-fill.svg'}} color={equipment.shoeColor} maskId={`${id}-shoes`}/>
+        ? <ArtLayer art={RUBY_SHOE_PALETTE_ART} color={equipment.shoeColor} maskId={`${id}-shoes`}/>
         : <ArtLayer art={shoes.art} color={accent} maskId={`${id}-shoes`}/>)}
       {hair && <ArtLayer art={hair.art} color={accent} maskId={`${id}-hair`}/>}
       {parts.slice(1).map((part, index) => <ArtLayer key={`${index}-${part.id}`} art={part.art} color={accent} maskId={`${id}-${index}`} />)}
@@ -69,9 +51,7 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
 
 export function HeroHatPreview({ hat, color = '#e0bd70',hatColor,hatTrim }: { hat: HeroHat; color?: string;hatColor?:string|null;hatTrim?:string|null }) {
   const id = useId().replace(/:/g, '');
-  const pencil = !hat.art.src.endsWith('.png');
   return <svg className="di-hat-art" viewBox="0 0 256 140" aria-hidden="true">
-    {pencil && <PencilEdges id={`${id}-pencil`} />}
-    <g filter={pencil ? `url(#${id}-pencil)` : undefined}><HatLayer hat={hat} hatColor={hatColor} hatTrim={hatTrim} id={`${id}-hat`} color={color}/></g>
+    <HatLayer hat={hat} hatColor={hatColor} hatTrim={hatTrim} id={`${id}-hat`} color={color}/>
   </svg>;
 }

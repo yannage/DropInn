@@ -2,15 +2,15 @@
 
 The V2 builder uses `src/lib/cosmetics.ts` as its catalog and `HeroAvatar` as its shared renderer. Body, eyes, nose, mouth, and hat are independent layers. The legacy builder remains available unchanged.
 
-## Supplied raster starter pieces
+## Raster hero catalog
 
-Bean, Curious eyes, Round nose, Little gasp, and Spellbound hat now use the aligned PNGs in `public/heroes/raster-v1/`. All existing IDs and unlocks are unchanged. Other choices retain their SVG artwork. The supplied Bean master contained only a torso, so its production detail and bare-footwear layers retain the original native limbs and boots. Its new torso alpha supplies the matching tint mask; the blue master is not baked into the saved body color.
+Every modular hero choice now uses aligned PNGs in `public/heroes/raster-v1/`: six bodies, eight eye expressions, seven nose choices, seven mouths, four hair styles, twelve hats, two shoe styles and the separate Shepherd feather. The 73 production layers include matching tint masks, palette details and footwear-free bodies. Existing IDs, unlocks and saves are unchanged. Original SVGs remain as editable source history and are not loaded by the hero catalog.
 
-`scripts/prepare-hero-raster.mjs` exports these seven 256×256 production files from the five selected masters in `output/ms-painter`. It preserves their full source canvases and records reviewed affine placements, exact original prompts, generator, source hashes and output hashes in `public/heroes/raster-v1/provenance.json`. Original masters stay untouched. This is a partial catalog conversion, not a completed raster set or a change to the worker queue.
+The artwork uses 43 selected style A image_gen masters from `output/ms-painter`. The supplied Bean master contains only a torso, so its limbs and boots retain rasterized native geometry. Crooked nose, Little beak and Crooked smirk use native raster exports after generation failures; No nose remains an empty transparent layer. These exceptions are recorded in `public/heroes/raster-v1/provenance.json`, alongside exact prompts, generator provenance, source/output hashes and affine placements. Original masters stay untouched.
 
-Body `art.bareSrc` now selects the matching footwear-free layer; equipping shoes cannot switch the torso back to SVG. Assemblies containing raster pieces skip the additional pencil displacement, since their contours already carry the supplied texture. All-SVG combinations retain the effect. The hero review script uses its own Vite cache so review generation cannot invalidate a running app's optimized dependencies.
+To rebuild, run `node scripts/prepare-hero-raster.mjs` for the five starter masters, then `node scripts/prepare-hero-raster-set.mjs` for the full set. Both preserve the complete source canvas and shared 256×256 output canvas. Tint separation removes the master body color without flattening the face or equipment into the body. `art.bareSrc` and `art.bareMaskSrc` select the matching footwear-free detail and mask; both omit the built-in boot area. The renderer no longer applies pencil displacement because the painted contours already provide it. The SVG composition container still supplies alpha masks and accessible labeling.
 
-Raster review: inspected the five-piece assembly, the new hat on all six bodies, Bean with every hat and body color, hair/shoe combinations, and face options on pale/dark backgrounds with 64px and 48px samples. The local builder save/reload, Cancel and mobile checks are recorded in `output/playwright/raster-hero-verification.json`; they do not establish hosted persistence or physical-phone behavior.
+Raster review: the existing catalog-driven sheet contains 287 examples, including every body/hat and body/color pair, all face options, hair with and without the crown, hat palettes/feather, both shoe styles and every Ruby shoe palette. Inspected on pale/dark backgrounds with 64px and 48px samples. Evidence is in `output/playwright/full-raster-*.png`. The local builder save/reload, Cancel, all-body selection, 73 asset responses and mobile checks are recorded in `output/playwright/raster-hero-verification.json`; they do not establish hosted persistence or physical-phone behavior. The review script uses its own Vite cache so it cannot invalidate a running app's optimized dependencies.
 
 ## Replace a drawing
 
@@ -43,9 +43,7 @@ The current native drawings use flat fills, heavy near-black outlines, hand-shap
 
 ## Catalog and saves
 
-The shared renderer adds a static, stepped pencil-edge displacement to the assembled hero and wardrobe previews. It roughens contours without adding shaded fills or animated noise. Apply it to the composite, never independently to the body and tint mask, to avoid seams. The fixed seed keeps expressions stable; SVG sources and saved customization IDs remain unchanged. The effect is deliberately subtle at 48–64px and most visible in the larger builder preview.
-
-Pencil-effect review: inspected the actual renderer's six bodies, eye and mouth rows at large/64/48px on parchment and dark backgrounds, plus the body/hat and body/color matrix. No source assets or hashes changed. This was a local Chromium visual review, not a hosted or physical-phone performance test.
+The previous native renderer used a fixed pencil displacement. Raster pieces carry their own coarse contours, so that additional filter has been removed. Keep tint masks and details aligned when replacing a master.
 
 `appearance` stores body/eyes/nose/mouth IDs; `equipment.hat` stores a hat ID or explicit `null` for no hat. Missing fields on older heroes receive defaults. Invalid face IDs receive defaults; invalid or unowned hats are unequipped. The existing `accent` is the body color. There are no cosmetic stat modifiers.
 
