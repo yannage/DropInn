@@ -17,11 +17,11 @@ export function useStagePlayback(room: AdventureRoom, now: number, immediate: bo
     if (!active || document.hidden || now < active.start + active.duration / 3 || now > active.start + active.duration * 5 / 9) return;
     if (claimStageSound(active.event.id)) playTableSound(active.event.success !== false && active.event.result?.combination ? 'combo' : active.event.result?.protection ? 'protect' : active.event.success === false || active.event.result?.damage ? 'complication' : 'result');
   }, [active?.event.id, now]);
-  return projection;
+  return { ...projection, hasChoosingSnapshot: before.current?.id === room.id && before.current.chapter === room.chapter && before.current.turn === room.turn };
 }
 
 type Point = { x: number; y: number };
-export function StageEffects({ room, event, elapsed = 0, duration = 900, stage, quiet, shake }: { room: AdventureRoom; event?: StoryEvent; elapsed?: number; duration?: number; stage: RefObject<HTMLDivElement>; quiet: boolean; shake: boolean }) {
+export function StageEffects({ room, event, elapsed = 0, duration = 900, stage, quiet, shake, showDice = true }: { room: AdventureRoom; event?: StoryEvent; elapsed?: number; duration?: number; stage: RefObject<HTMLDivElement>; quiet: boolean; shake: boolean; showDice?: boolean }) {
   const offset = useRef({ id: event?.id, seconds: elapsed / 1000 });
   if (offset.current.id !== event?.id) offset.current = { id: event?.id, seconds: elapsed / 1000 };
   const delay = -offset.current.seconds;
@@ -50,7 +50,7 @@ export function StageEffects({ room, event, elapsed = 0, duration = 900, stage, 
   const strong = (event.success !== false && !!event.result?.combination) || event.result?.approach === 'heavy';
   const glyph = token === 'influence' ? '“' : token === 'investigate' ? '✧' : token === 'assist' ? '♡' : '✦';
   return <div className={`di-stage-effects is-${token ?? 'strike'} ${strong ? 'is-strong' : ''}`} aria-hidden="true" data-stage-event={event.id} style={{ "--beat-offset": `${delay}s`, "--beat-duration": `${duration / 1000}s`, "--beat-contact": `${.3 * scale}s`, "--beat-tail": `${.55 * scale}s`, "--beat-shake": `${.18 * scale}s` } as React.CSSProperties} key={event.id}>
-    <StageDice key={event.id} event={event} elapsed={elapsed} scale={scale} left={event.result?.duel ? (stage.current?.clientWidth ?? 320) / 2 : Math.max(68, Math.min((stage.current?.clientWidth ?? 320) - 68, points.from.x))} top={Math.max(8, Math.min(points.from.y - 100, (points.captionTop ?? points.from.y) - 80))} />
+    {showDice && <StageDice key={event.id} event={event} elapsed={elapsed} scale={scale} left={event.result?.duel ? (stage.current?.clientWidth ?? 320) / 2 : Math.max(68, Math.min((stage.current?.clientWidth ?? 320) - 68, points.from.x))} top={Math.max(8, Math.min(points.from.y - 100, (points.captionTop ?? points.from.y) - 80))} />}
     <svg className="di-action-thread"><path d={`M ${points.from.x} ${points.from.y} Q ${points.to.x} ${points.from.y - 70} ${points.to.x} ${points.to.y}`} /></svg>
     {actor && event.kind === 'action' && <motion.div className="di-acting-hero" initial={{ x: points.from.x - 28, y: points.from.y - 28, opacity: 0 }} animate={{ x: [points.from.x - 28, points.from.x - 28 + (points.to.x - points.from.x) * .3, points.from.x - 28], y: [points.from.y - 28, points.from.y - 65, points.from.y - 28], opacity: [0, 1, 0] }} transition={{ duration: .8 * scale, delay }}><HeroAvatar hero={actor.character} decorative /></motion.div>}
     <motion.div className="di-flying-piece" initial={{ x: points.from.x - 20, y: points.from.y - 20, scale: .6 }} animate={{ x: points.to.x - 20, y: points.to.y - 20, scale: [1.2, 1, 0], rotate: token === 'fight' ? 70 : -12 }} transition={{ duration: .65 * scale, delay, times: [0, .5, 1] }}>{token && token !== 'spotlight' ? <TokenArtwork token={token} /> : glyph}</motion.div>

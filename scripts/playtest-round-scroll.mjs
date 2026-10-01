@@ -116,6 +116,63 @@ async function skip(page) {
   assert.equal(records.length, before + 1);
   return records.at(-1);
 }
+async function watchPersonalDice(page) {
+  await page.evaluate(async () => {
+    const { useAdventureStore } = await import('/src/store/adventureStore.ts');
+    const initial = useAdventureStore.getState();
+    const { id, chapter, turn } = initial.room;
+    const probe = window.__diceReadProbe = {
+      firstDiceAt: null, settledAt: null, lastSettledAt: null, scrollAt: null,
+      readyAt: null, interrupted: false, covered: false, done: false,
+      maxPersonalDice: 0,
+      initiallyOpen: !!document.querySelector('.di-round-scroll'), expected: null, shown: null,
+    };
+    const frame = () => {
+      const now = performance.now();
+      const current = useAdventureStore.getState();
+      const room = current.room;
+      const event = room?.events.find(entry => entry.chapter === chapter && entry.turn === turn
+        && entry.actorId === initial.userId && entry.kind === 'action' && entry.roll !== undefined);
+      const personalDice = [...document.querySelectorAll('.di-personal-roll [data-roll-event]')];
+      probe.maxPersonalDice = Math.max(probe.maxPersonalDice, personalDice.length);
+      const dice = event && personalDice.find(node => node.dataset.rollEvent === event.id);
+      const scroll = !!document.querySelector('.di-round-scroll');
+      if (dice) {
+        probe.firstDiceAt ??= now;
+        probe.covered ||= scroll;
+        const settled = dice.dataset.rollState === 'settled'
+          && !dice.getAnimations({ subtree: true }).some(animation => animation.playState === 'running');
+        if (settled && !scroll) {
+          probe.settledAt ??= now;
+          probe.lastSettledAt = now;
+          probe.expected = { die: String(event.roll), modifier: `${(event.modifier ?? 0) < 0 ? '−' : '+'}${Math.abs(event.modifier ?? 0)}`, total: `= ${event.result?.duel?.playerTotal ?? event.roll + (event.modifier ?? 0)}` };
+          probe.shown = { die: dice.querySelector('.di-roll-face')?.textContent, modifier: dice.querySelector('.di-roll-calculation small')?.textContent, total: dice.querySelector('.di-roll-calculation strong')?.textContent };
+        }
+      }
+      if (probe.settledAt !== null && !dice && !scroll && room?.id === id && room.chapter === chapter && room.turn === turn && room.phase === 'reveal') probe.interrupted = true;
+      if (room?.revealSkips?.includes(initial.userId)) probe.readyAt ??= now;
+      if (probe.firstDiceAt !== null && scroll) { probe.scrollAt = now; probe.done = true; }
+      if (probe.firstDiceAt !== null && (!room || room.id !== id || room.chapter !== chapter || room.turn !== turn || room.phase !== 'reveal')) probe.done = true;
+      if (!probe.done) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
+}
+async function verifyPersonalDice(page, name, { staticResult = false, waitingScroll = false } = {}) {
+  await page.waitForFunction(() => window.__diceReadProbe?.done, undefined, { timeout: 15000 });
+  const probe = await page.evaluate(() => window.__diceReadProbe);
+  assert.notEqual(probe.settledAt, null, `${name}: the confirmed personal result appears on the table`);
+  assert.equal(probe.maxPersonalDice, 1, `${name}: only one personal die tableau is rendered`);
+  assert.deepEqual(probe.shown, probe.expected, `${name}: the die, modifier and total match the confirmed event`);
+  assert.equal(probe.covered, false, `${name}: automatic history never covers the personal die`);
+  assert.equal(probe.interrupted, false, `${name}: the settled result remains continuously visible`);
+  const readingMs = Math.round(probe.lastSettledAt - probe.settledAt);
+  assert.ok(readingMs >= 2400, `${name}: only ${readingMs}ms of settled reading time`);
+  if (probe.readyAt !== null) assert.ok(probe.readyAt - probe.settledAt >= 2400, `${name}: automatic readiness waits for the result`);
+  if (staticResult) assert.ok(probe.settledAt - probe.firstDiceAt < 100, `${name}: reduced motion shows the completed calculation immediately`);
+  if (waitingScroll) assert.equal(probe.initiallyOpen, true, `${name}: the waiting scroll yields to the newly confirmed result`);
+  note(name, { readingMs, ...(probe.readyAt === null ? {} : { automaticReadyAfterMs: Math.round(probe.readyAt - probe.settledAt) }) });
+}
 try {
   ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-scroll-tests', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'error' });
   const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
@@ -137,8 +194,12 @@ try {
   await b.waitForFunction(async () => !!(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room);
   await select(a,'investigate','tracks');
   assert.equal(await a.locator('.di-round-scroll').count(),0,'Selection is not submission');
+  await watchPersonalDice(a);
   await skip(a); await syncAll();
   assert.equal(await a.locator('.di-round-scroll').count(),0,'The confirmed hit remains visible before automatic history');
+  await a.waitForFunction(() => window.__diceReadProbe?.settledAt !== null);
+  await a.screenshot({path:'output/playwright/roll-now-dice-reading-390.png'});
+  await verifyPersonalDice(a, 'roll-now-settled-dice-before-scroll');
   await a.locator('.di-round-scroll').waitFor();
   const showAll = a.getByRole('button',{name:'Show all',exact:true});
   if (await showAll.isVisible()) await showAll.click();
@@ -231,6 +292,9 @@ try {
   await a.getByRole('button',{name:'Story settings',exact:true}).click();
   await a.getByRole('checkbox',{name:/Pace turn results/}).uncheck();
   await a.keyboard.press('Escape');
+  await select(b,'assist','tracks'); await skip(b); await syncAll();
+  await b.locator('.di-round-scroll').waitFor();
+  await watchPersonalDice(a); await watchPersonalDice(b);
   const release = a.getByRole('button',{name:'Hold and release the die',exact:true});
   const releaseBox = await release.boundingBox();
   await a.mouse.move(releaseBox.x + releaseBox.width / 2, releaseBox.y + releaseBox.height / 2);
@@ -242,11 +306,36 @@ try {
   assert.equal(await a.locator('.di-round-scroll').count(),0);
   await a.screenshot({path:'output/playwright/release-before-scroll-390.png'});
   await a.locator('.di-release-flight').waitFor({state:'detached'});
+  await verifyPersonalDice(a, 'pointer-hold-settled-dice-with-fast-pacing');
+  await verifyPersonalDice(b, 'waiting-scroll-yields-to-confirmed-dice', { waitingScroll: true });
   await a.locator('.di-round-scroll').waitFor();
   note('pointer-release-animation-before-scroll-even-with-fast-pacing');
+  await b.getByRole('button',{name:/^Next (round|chapter)$/}).click(); await syncAll();
+  await readyNext(a);
+  await a.emulateMedia({reducedMotion:'reduce'});
+  const assistedTarget = getScene((await state(a)).room).targets.find(target => target.tokens.includes('assist'));
+  assert.ok(assistedTarget, 'The next chapter has a compatible Help target');
+  await select(b,'assist',assistedTarget.id); await skip(b); await syncAll();
+  await select(a,'assist',assistedTarget.id);
+  await a.getByRole('checkbox',{name:'Assist timing',exact:true}).check();
+  await watchPersonalDice(a);
+  const assistedBefore = records.length;
+  const assistedResponse = a.waitForResponse(response => response.url() === `${base}/api/dropinn`
+    && response.request().method() === 'POST' && response.request().postDataJSON()?.command?.type === 'act');
+  await a.getByRole('button',{name:'Release with timing assistance',exact:true}).tap();
+  assert.equal((await assistedResponse).status(), 200);
+  assert.equal(records.length, assistedBefore + 1, 'Assisted tap submits exactly one move');
+  assert.equal(records.at(-1).command.action.releaseMs, 800);
+  await a.waitForFunction(() => window.__diceReadProbe?.settledAt !== null);
+  await a.screenshot({path:'output/playwright/assisted-reduced-motion-dice-reading-390.png'});
+  await verifyPersonalDice(a, 'assisted-tap-static-dice-with-fast-pacing', { staticResult: true });
   assert.deepEqual(errors,[]); assert.equal(externalCalls,0);
 } catch(error) {
   note('FAILED',{message:error.message,stack:error.stack}); process.exitCode=1;
+  for(let i=0;i<pages.length;i++) {
+    const probe = await pages[i].evaluate(() => window.__diceReadProbe).catch(() => undefined);
+    if(probe) note('dice-probe-on-failure', { page:i, ...probe });
+  }
   for(let i=0;i<pages.length;i++) await pages[i].screenshot({path:`output/playwright/round-scroll-failure-${i}.png`}).catch(()=>{});
 } finally {
   await writeFile('output/playwright/round-scroll-results.json',JSON.stringify({checks,errors,externalCalls,fixture:'Isolated real local handler; browser gestures; controlled time. No hosted writes.'},null,2));

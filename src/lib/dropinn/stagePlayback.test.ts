@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from '../character';
 import { createAdventure } from './engine';
-import { claimStageSound, roundScrollReadyAt, stageCaption, stageProjection, stageTimeline } from './stagePlayback';
+import { claimStageSound, personalRollBeat, roundScrollReadyAt, stageCaption, stageProjection, stageTimeline } from './stagePlayback';
 import type { AdventureRoom, StoryEvent } from './types';
 
 function fixture(count = 4) {
@@ -24,6 +24,66 @@ describe('stage playback', () => {
     const { room } = fixture(9);
     room.events[8].actorId = 'last';
     expect(roundScrollReadyAt(room, 'last')).toBeLessThanOrEqual(7850);
+  });
+  it('keeps the confirmed calculation readable after the impact has finished', () => {
+    const { room, before } = fixture(1);
+    room.events[0].roll = 12; room.events[0].modifier = 3;
+    const roll = personalRollBeat(room, 'a')!;
+    expect(roll.start).toBe(2150);
+    expect(roll.settledAt).toBe(2950);
+    expect(roll.readyAt).toBe(5550);
+    expect(stageProjection(room, before, roll.start + roll.duration).active).toBeUndefined();
+    expect(roundScrollReadyAt(room, 'a')).toBe(roll.readyAt);
+    expect(roundScrollReadyAt(room, 'a') - roll.settledAt).toBe(2600);
+  });
+  it.each([4, 9, 30])('preserves a full dice read for the last actor in a %i-event round without extending ten seconds', count => {
+    const { room } = fixture(count);
+    const event = room.events.at(-1)!;
+    event.actorId = 'last'; event.roll = 12;
+    const roll = personalRollBeat(room, 'last')!;
+    expect(roll.event.id).toBe(event.id);
+    expect(roll.settledAt - roll.start).toBe(800);
+    expect(roundScrollReadyAt(room, 'last') - roll.settledAt).toBe(2600);
+    expect(roll.readyAt - event.at).toBeLessThan(10000);
+  });
+  it('keeps guaranteed actions and spectators on the consequence timing without an empty dice pause', () => {
+    const { room } = fixture(1);
+    room.events[0].result = { token: 'assist', targetKind: 'hero', targetId: 'a', protection: 3 };
+    expect(personalRollBeat(room, 'a')).toBeUndefined();
+    expect(roundScrollReadyAt(room, 'a')).toBe(3800);
+    expect(personalRollBeat(room, 'spectator')).toBeUndefined();
+    expect(roundScrollReadyAt(room, 'spectator')).toBe(3800);
+  });
+  it('does not restart the dice read for duplicate snapshots or a late refreshed room timestamp', () => {
+    const { room, before } = fixture(1);
+    room.events[0].roll = 12;
+    const roll = personalRollBeat(room, 'a')!;
+    const refreshed = structuredClone(room);
+    refreshed.updatedAt = 20000;
+    refreshed.events.push(structuredClone(refreshed.events[0]));
+    expect(personalRollBeat(refreshed, 'a')).toEqual(roll);
+    expect(roundScrollReadyAt(refreshed, 'a')).toBe(roll.readyAt);
+    expect(roundScrollReadyAt(refreshed, 'a')).toBeLessThan(refreshed.updatedAt);
+    expect(stageProjection(refreshed, before, refreshed.updatedAt).settled).toBe(true);
+  });
+  it('selects only this actor’s current confirmed action roll', () => {
+    const { room } = fixture(1);
+    room.events[0].roll = 12;
+    expect(personalRollBeat({ ...room, phase: 'choosing' }, 'a')).toBeUndefined();
+    expect(personalRollBeat({ ...room, turn: room.turn + 1 }, 'a')).toBeUndefined();
+    expect(personalRollBeat({ ...room, chapter: room.chapter + 1 }, 'a')).toBeUndefined();
+    expect(personalRollBeat(room, 'someone-else')).toBeUndefined();
+    expect(personalRollBeat({ ...room, status: 'completed' }, 'a')?.event.id).toBe(room.events[0].id);
+    room.events[0].kind = 'consequence';
+    expect(personalRollBeat(room, 'a')).toBeUndefined();
+  });
+  it('preserves a recorded zero roll and modifier without mistaking them for a missing roll', () => {
+    const { room } = fixture(1);
+    room.events[0].roll = 0; room.events[0].modifier = 0;
+    const roll = personalRollBeat(room, 'a');
+    expect(roll?.event.roll).toBe(0);
+    expect(roll?.event.modifier).toBe(0);
+    expect(roundScrollReadyAt(room, 'a')).toBe(5550);
   });
   it('makes a missed combination explicit instead of celebrating its label', () => {
     const {room}=fixture(1); const event=room.events[0]; event.success=false;

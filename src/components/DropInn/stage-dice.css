@@ -7,6 +7,8 @@
 .di-roll-versus{color:#82674b;flex:none}
 .di-roll-verdict{position:absolute;bottom:-8px;background:#315d43;color:#fff7d9;border:1px solid #f8e3a3;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:800;line-height:12px;letter-spacing:.03em}
 .is-miss .di-roll-verdict{background:#84553f}
+.di-personal-roll{position:absolute;inset:0;z-index:13;pointer-events:none}
+.di-roll-tableau[data-roll-quiet=true] *{animation:none!important}
 .di-roll-tableau[data-roll-state=anticipating] .di-roll-face{animation:di-die-windup var(--die-windup,.3s) cubic-bezier(.2,.7,.4,1) both}
 .di-roll-tableau[data-roll-state=anticipating] .is-enemy .di-roll-face{animation-direction:reverse}
 .di-roll-tableau[data-roll-state=settled] .di-roll-face{animation:di-die-landing var(--die-land,.2s) cubic-bezier(.15,1.5,.5,1) var(--landing-delay) both}

@@ -41,8 +41,9 @@ import { useStagePlayback, StageEffects, CombinationLinks, CombinationNotice, st
 import { useTableContact, useLiveReducedMotion } from './TableContact';
 import { AimConnection, HeldToken, useHeroPlay } from './PlayfulTable';
 import { ChapterReward } from './ChapterReward';
+import { PersonalStageDice } from './StageDice';
 import { combinationAvailable, combinationDefinition, combinationState, combinationPreview, selectedPayoff } from '../../lib/dropinn/combinations';
-import { claimStageSound, stageEvents, roundScrollReadyAt } from '../../lib/dropinn/stagePlayback';
+import { claimStageSound, stageEvents, roundScrollReadyAt, personalRollBeat } from '../../lib/dropinn/stagePlayback';
 function readEffectPreference(key: string) { try { return localStorage.getItem(key) === 'off'; } catch { return false; } }
 
 
@@ -128,15 +129,18 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const skipVoted = room.revealSkips?.includes(userId) ?? false;
   const releaseBusy = !!releaseBeat && releaseBeat.key === `${room.id}:${room.chapter}:${room.turn}` && now < releaseBeat.at + (reducedMotion ? 800 : 2400);
   const revealBypassed = !pacedTurns || skipVoted || (lastRound !== undefined && localSkipId === lastRound.id);
+  const rollBeat = personalRollBeat(room, userId);
+  const rollBusy = !!rollBeat && !skipVoted && localSkipId !== lastRound?.id && now < rollBeat.readyAt;
+  const rollVisible = rollBusy && now >= rollBeat.start;
   const partyPayoff = room.phase === 'reveal' && (!lastRound || reducedMotion || revealBypassed || now - lastRound.at >= 1100);
   const revealVoters = room.seats.filter(seat => seat.kind === 'human' && !seat.leaving);
   const canSkipReveal = room.status === 'active' && room.phase === 'reveal' && revealVoters.some(seat => seat.actorId === userId);
   useEffect(() => {
-    if (releaseBusy || pacedTurns || !canSkipReveal || skipVoted || skippingReveal || !lastRound) return;
+    if (releaseBusy || rollBusy || pacedTurns || !canSkipReveal || skipVoted || skippingReveal || !lastRound) return;
     if (autoSkipAttempt.current === lastRound.id) return;
     autoSkipAttempt.current = lastRound.id;
     void skipReveal();
-  }, [releaseBusy, pacedTurns, canSkipReveal, skipVoted, skippingReveal, lastRound?.id, skipReveal]);
+  }, [releaseBusy, rollBusy, pacedTurns, canSkipReveal, skipVoted, skippingReveal, lastRound?.id, skipReveal]);
   const [holding, setHolding] = useState(false);
   const [idea, setIdea] = useState('');
   const [spotlightTarget, setSpotlightTarget] = useState(scene.targets[0]?.id ?? '');
@@ -164,7 +168,7 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const restingSince = useRef({ key: '', at: 0 });
   if (!roundRest) restingSince.current = { key: '', at: 0 };
   else if (restingSince.current.key !== roundKey) restingSince.current = { key: roundKey, at: Date.now() };
-  const automaticScrollReady = !releaseBusy && (reducedMotion || revealBypassed || now >= (
+  const automaticScrollReady = !releaseBusy && !rollBusy && (reducedMotion || revealBypassed || now >= (
     room.phase === 'reveal' || room.status === 'completed'
       ? roundScrollReadyAt(room, userId) : restingSince.current.at + 1800));
   const historicalRound = drawer === 'round';
@@ -413,7 +417,8 @@ export function SceneAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       </>
       {room.phase === "choosing" && !committed && !pending && (drag || selection) && <AimConnection stage={stage} actorId={userId} targetId={drag ? drag.over ?? undefined : selection?.targetId} pointer={drag ?? undefined} token={drag?.kind ?? selection!.token} />}
       <CombinationLinks room={room} stage={stage} userId={userId} />
-      <StageEffects room={room} event={playback.active?.event} elapsed={playback.active ? Math.max(0, now - playback.active.start) : 0} duration={playback.active?.duration} stage={stage} quiet={quietEffects || reducedMotion} shake={!noShake} />
+      <StageEffects room={room} event={playback.active?.event} elapsed={playback.active ? Math.max(0, now - playback.active.start) : 0} duration={playback.active?.duration} stage={stage} quiet={quietEffects || reducedMotion} shake={!noShake} showDice={!rollVisible} />
+      {rollVisible && <PersonalStageDice key={`roll-${rollBeat.event.id}`} event={rollBeat.event} elapsed={now - rollBeat.start} stage={stage} quiet={quietEffects || reducedMotion || !playback.hasChoosingSnapshot} captionId={playback.active?.event.id} />}
       {playback.active && <div className="di-stage-caption" role="status" key={playback.active.event.id}>{stageCaption(playback.active.event)}{playback.active.event.result?.combination?.kind === 'payoff' && <small>Prepared by {playback.active.event.result.combination.actorName}</small>}</div>}
       {room.phase === 'reveal' && rewardReady && room.status !== 'completed' && <div className="di-stage-reward" data-arriving={!!playback.active}><span className="di-collection-destination">✧ Collection</span><ChapterReward room={room} /></div>}
       {joining && <div className="di-stage-notice" role="status"><Users size={20} />Joining next turn. Explore the scene.</div>}

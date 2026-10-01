@@ -16,12 +16,28 @@ export function stageTimeline(room: AdventureRoom) {
   return events.map((event, index) => ({ event, start: origin + 150 + index * spacing, duration }));
 }
 
+export const PERSONAL_ROLL_WINDUP_MS = 600;
+export const PERSONAL_ROLL_LANDING_MS = 200;
+export const PERSONAL_ROLL_READ_MS = 2600;
+
+/** Keep the confirmed calculation readable independently of the short impact effects.
+ * Recorded timestamps preserve fast-forwarding on reconnect and repeated snapshots.
+ */
+export function personalRollBeat(room: AdventureRoom, actorId: string) {
+  if (room.phase !== 'reveal' && room.status !== 'completed') return undefined;
+  const own = stageTimeline(room).find(beat => beat.event.actorId === actorId && beat.event.kind === 'action' && beat.event.roll !== undefined);
+  if (!own) return undefined;
+  const settledAt = own.start + PERSONAL_ROLL_WINDUP_MS + PERSONAL_ROLL_LANDING_MS;
+  return { ...own, settledAt, readyAt: settledAt + PERSONAL_ROLL_READ_MS };
+}
+
 /** Let the player's confirmed hit settle before automatic history covers it. */
 export function roundScrollReadyAt(room: AdventureRoom, actorId: string) {
   const timeline = stageTimeline(room);
   const origin = timeline[0] ? timeline[0].start - 150 : room.updatedAt;
   const own = timeline.find(beat => beat.event.actorId === actorId && beat.event.kind === 'action');
-  return Math.min(origin + 5850, Math.max(origin + 1800, own ? own.start + own.duration + 650 : origin + 1800));
+  const consequenceReady = Math.min(origin + 5850, Math.max(origin + 1800, own ? own.start + own.duration + 650 : origin + 1800));
+  return Math.max(consequenceReady, personalRollBeat(room, actorId)?.readyAt ?? 0);
 }
 
 /** Presentation only. Never feed this projection back to the command store. */
