@@ -26,6 +26,7 @@ import {
   Flag,
   Flame,
   Heart,
+  Hand,
   Lightbulb,
   LoaderCircle,
   MessageCircle,
@@ -334,7 +335,7 @@ export function DropInn() {
   }, [ready, Boolean(room), restoringCode, syncRoom, refreshRooms]);
 
   return (
-    <CustomizeHeroContext.Provider value={openHero}><div className={`di-app ${room ? 'di-app-playing' : ''}`}>
+    <CustomizeHeroContext.Provider value={openHero}><div className={`di-app ${room ? 'di-app-playing' : 'di-app-at-inn'}`}>
       {!room && <header className="di-header">
         <a
           className="di-brand"
@@ -512,46 +513,55 @@ function Lobby() {
   };
   return (
     <main className="di-lobby di-shell di-lobby-clear">
-      <StoryPassSummary onOpen={() => setPassOpen(true)} />
       <section className="di-lobby-entrance" aria-label="Start your adventure">
         <div className="di-lobby-intro">
           <div className="di-lobby-intro-copy">
-            <h1>A short adventure.<br /><em>Together.</em></h1>
-            <p className="di-lobby-explanation">Play a fantasy story together. <span className="di-lobby-story-hook">{adventure.pitch}</span></p>
-            <ol className="di-lobby-loop" aria-label="Each round">
-              <li><b>1</b><span>Pick a target</span></li>
-              <li><b>2</b><span>Choose a move</span></li>
-              <li><b>3</b><span>Hold &amp; release</span></li>
-              <li><b>4</b><span>See what changed</span></li>
-            </ol>
+            <p className="di-lobby-welcome"><span aria-hidden="true" /> The door is always open</p>
+            <h1>Pull up a chair.<br />Make a little<br className="di-lobby-title-break" /> <em>legend.</em></h1>
+            <p className="di-lobby-explanation">A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.</p>
+            <div className="di-lobby-start">
+              <div className="di-lobby-start-actions">
+                <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id)}>
+                  {loading ? <LoaderCircle className="di-spin" size={20} /> : <TabletopArtwork kind="dice" />}
+                  <span>{loading ? preparing ? 'Preparing a new telling…' : 'Opening your adventure…' : `Play ${adventure.title}`}</span>
+                  <ArrowRight size={20} />
+                </button>
+                <button type="button" className="di-lobby-friends" aria-haspopup="dialog" disabled={loading} onClick={() => { clearError(); setFriends(true); }}>
+                  <Users size={17} /> Play with friends <ArrowRight size={15} />
+                </button>
+              </div>
+              <p className="di-lobby-start-note">Free to play. No group needed. Leave whenever.</p>
+            </div>
+            {character && <div className="di-lobby-ready-hero">
+              <div className="di-arrival-identity"><HeroAvatar hero={character} /><div><span className="di-lobby-ready-label"><Check size={12} aria-hidden="true" /> Your hero is ready</span><strong>{displayHeroName(character)}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label}</small></div></div>
+              <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => openHero()}>Customize hero <ArrowRight size={14} /></button>
+            </div>}
           </div>
-          <div className="di-lobby-intro-art" aria-hidden="true"><SceneArt scene={adventure.chapters[0].art} /></div>
+          <div className="di-lobby-story-display">
+            <span className="di-lobby-margin-note" aria-hidden="true">A small escape awaits…</span>
+            <article className="di-lobby-postcard" aria-labelledby="lobby-story-title">
+              <div className="di-lobby-intro-art"><SceneArt scene={adventure.chapters[0].art} /><span className="di-lobby-art-label"><BookOpen size={14} /> Your next adventure</span></div>
+              <div className="di-lobby-postcard-copy">
+                <div className="di-lobby-postcard-heading"><h2 id="lobby-story-title">{adventure.title}</h2><span className="di-lobby-chapters">3 chapters</span></div>
+                <p className="di-lobby-story-hook">{adventure.pitch}</p>
+                <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => setStoryChooser(true)}>Change story <ArrowRight size={15} /></button>
+              </div>
+            </article>
+            <div className="di-lobby-company-note"><Users size={20} aria-hidden="true" /><p>Come solo. Bring friends.<br /><span>Companions keep a seat warm.</span></p></div>
+          </div>
         </div>
+      </section>
 
-        <div className="di-lobby-ready">
-          {character && <div className="di-lobby-ready-hero">
-            <div className="di-arrival-identity"><HeroAvatar hero={character} /><div><span className="di-lobby-ready-label">Your hero is ready</span><strong>{displayHeroName(character)}</strong><small>{CHARACTER_CLASS_PRESETS[character.classKey].label}</small></div></div>
-            <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => openHero()}>Customize hero</button>
-          </div>}
-          <div className="di-lobby-ready-story">
-            <div><span className="di-lobby-ready-label">Your story</span><strong>{adventure.title}</strong></div>
-            <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => setStoryChooser(true)}>Change story</button>
-          </div>
-        </div>
-
-        <div className="di-lobby-start">
-          <div className="di-lobby-start-actions">
-            <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id)}>
-              {loading ? <LoaderCircle className="di-spin" size={20} /> : <TabletopArtwork kind="dice" />}
-              <span>{loading ? preparing ? 'Preparing a new telling…' : 'Opening your adventure…' : `Play ${adventure.title}`}</span>
-              <ArrowRight size={18} />
-            </button>
-            <button type="button" className="di-button di-secondary di-lobby-friends" aria-haspopup="dialog" disabled={loading} onClick={() => { clearError(); setFriends(true); }}>
-              <Users size={18} /> Play with friends
-            </button>
-          </div>
-          <p className="di-lobby-start-note">Join players or start with companions. No group needed. Leave whenever.</p>
-          <p className="di-lobby-round-note">Everyone chooses together · 60 seconds per round · Ready parties move sooner</p>
+      <section className="di-lobby-how" aria-labelledby="lobby-how-title">
+        <div className="di-lobby-how-heading"><p className="di-eyebrow">A little courage is all it takes</p><h2 id="lobby-how-title">Small moves.<br /> Shared stories.</h2></div>
+        <div className="di-lobby-how-content">
+          <ol className="di-lobby-loop" aria-label="Each round">
+            <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> Pick a target</span></li>
+            <li><span className="di-lobby-step-art"><Swords size={25} aria-hidden="true" /></span><span><b>02</b> Choose a move</span></li>
+            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> Hold &amp; release</span></li>
+            <li><span className="di-lobby-step-art"><Sparkles size={25} aria-hidden="true" /></span><span><b>04</b> See what changed</span></li>
+          </ol>
+          <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" /> Everyone chooses together · 60 seconds per round · Ready parties move sooner</p>
         </div>
       </section>
 
@@ -579,7 +589,7 @@ function Lobby() {
             </div>
             {liveRooms.length > 0 ? <div className="di-room-list">
               {liveRooms.map(summary => <RoomCard key={summary.code} summary={summary} disabled={loading} onJoin={() => void joinRoom(summary.code)} />)}
-            </div> : <p className="di-lobby-empty">No public tables have an open seat right now. Press Play above to begin with companions.</p>}
+            </div> : <div className="di-lobby-empty"><TabletopArtwork kind="dice" /><div><strong>The next story could be yours.</strong><p>No open seats right now. Press Play above to start a table with companions.</p></div></div>}
           </section>
 
           {recaps.length > 0 && <section className="di-recent">
@@ -600,6 +610,7 @@ function Lobby() {
             <CollectionGoal />
             <NextLook compact />
           </section>
+          <StoryPassSummary onOpen={() => setPassOpen(true)} />
         </div>
         <aside className="di-lobby-aside"><AccountPanel /></aside>
       </div>

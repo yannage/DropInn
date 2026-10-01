@@ -66,16 +66,21 @@ try {
       const play = page.locator('.di-lobby-play');
       await play.waitFor();
       await fits(page, `lobby-${width}`);
-      for (const control of [page.locator('.di-lobby-explanation'), page.getByRole('list', { name: 'Each round', exact: true }), page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Change story', exact: true }), page.getByRole('button', { name: 'Play with friends', exact: true }), play, page.locator('.di-arrival-identity .di-avatar')]) {
+      for (const control of [play, page.getByRole('button', { name: 'Play with friends', exact: true })]) {
         const box = await control.boundingBox();
-        assert.ok(box && box.y >= 0 && box.y + box.height <= height, `Explanation, round loop, ready hero and start controls visible on first screen: ${await control.textContent()}`);
+        assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.y >= 0 && box.y + box.height <= height, `Play and friends controls visible on first screen: ${await control.textContent()}`);
       }
+      for (const control of [page.locator('.di-lobby-explanation'), page.getByRole('list', { name: 'Each round', exact: true }), page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Change story', exact: true }), page.getByRole('button', { name: 'Play with friends', exact: true }), play, page.locator('.di-arrival-identity .di-avatar')]) {
+        await control.scrollIntoViewIfNeeded();
+        const box = await control.boundingBox();
+        assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.y >= 0 && box.y + box.height <= height, `Explanation, round loop, ready hero and start controls reachable without clipping: ${await control.textContent()}`);
+      }
+      await page.evaluate(() => window.scrollTo(0, 0));
       assert.match(await play.textContent(), /Play Briar Glen/);
       assert.equal(await page.getByRole('group', { name: 'Story choices' }).count(), 0, 'Story choice stays behind Change story');
-      assert.equal(await page.locator('.di-narrator-download').count(), 1, 'One shared narrator entry');
       for (const control of [page.getByRole('button', { name: 'Customize hero', exact: true }), page.getByRole('button', { name: 'Change story', exact: true }), page.getByRole('button', { name: 'Play with friends', exact: true }), play]) {
         const box = await control.boundingBox();
-        assert.ok(box.width >= 44 && box.height >= 44, 'First-screen controls preserve 44px tap targets');
+        assert.ok(box.width >= 44 && box.height >= 44, 'Landing controls preserve 44px tap targets');
       }
       const changeStory = page.getByRole('button', { name: 'Change story', exact: true });
       await changeStory.click();
@@ -156,7 +161,7 @@ try {
         await page.keyboard.press('Escape');
       }
       await page.getByRole('button', { name: 'Leave & save', exact: true }).click();
-      note(`First-screen explanation and ready hero, story/friend dialogs, all story selections, hero save/reload, hats, help, account, target-first guidance and five adventure drawers: ${width}×${height}`);
+      note(`First-screen Play/friends, reachable explanation and ready hero, story/friend dialogs, all story selections, hero save/reload, hats, help, account, target-first guidance and five adventure drawers: ${width}×${height}`);
     } finally { await context.close(); }
   }
   assert.deepEqual(errors, []);

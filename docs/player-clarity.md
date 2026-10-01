@@ -4,13 +4,17 @@ Status: implemented presentation; current local verification is tracked in [NEXT
 
 ## Intended behavior
 
-The landing answers what the game is and how a round works before asking the player to start. A ready hero and selected story support one main Play action, with that story's existing authored pitch visible at the entrance. The last selected story is remembered in this browser and checked against the current registry; unavailable IDs or blocked storage fall back safely. Story selection does not begin play; the friends dialog separates starting a private table from entering an invitation. Public tables, collection goals and optional services sit below the entrance.
+The landing leads with a handmade invitation, a ready hero and one main Play action. The selected story appears as an illustrated postcard with its existing authored pitch and a Change story control; the four round steps follow the entrance. On phones, Play and Play with friends remain in the first viewport, while the postcard and round explanation are reached by scrolling. The illustration stays visible on mobile. Story Pass progress, public tables, collection goals and optional services sit below the entrance.
+
+The last selected story is remembered in this browser and checked against the current registry; unavailable IDs or blocked storage fall back safely. Story selection does not begin play; the friends dialog separates starting a private table from entering an invitation. Landing motion is limited to a brief entrance and button feedback, and respects reduced motion.
 
 During play, the shared goal explains why to act and the contextual dock explains what to do now. Inspecting a target shows authored moves; preparing a move reveals the hold/release control and its effect. Committed, uncertain, joining and resolving states explain why the player is waiting. **Show tokens** preserves the existing token-first shortcut. Recorded personal consequences connect the move to the party's result before the next round begins.
 
 First-move teaching is optional and remembered in this browser. Suggested targets invite inspection without selecting an action; both routes receive equal treatment at branch choices. Teaching ends after a recorded personal contribution result or dismissal and can be replayed from action help. Persistent state guidance remains afterward.
 
 ## Responsive presentation
+
+The October 1 landing refresh was checked locally at 320×568, 390×844, 412×844 and 1280×900 with the maintained mobile flow suite, including story/friend dialogs, keyboard focus, hero save/reload and entry into play. Desktop and phone screenshots were inspected; 150% text enlargement at 390px retained horizontal containment. The production build, two scene-art tests and asset integrity checks passed. These checks do not establish hosted or physical-phone behavior.
 
 The follow-up presentation is implemented and locally verified. Its evidence is recorded separately from the initial onboarding pass below.
 
