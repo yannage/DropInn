@@ -45,7 +45,6 @@ import { useAdventureStore } from '../../store/adventureStore';
 import { ADVENTURES, DEFAULT_ADVENTURE, chaptersFor } from '../../lib/dropinn/registry';
 import {
   CHARACTER_CLASS_PRESETS,
-  heroAccent,
 } from '../../lib/character';
 import type {
   AdventureRoom,
@@ -55,8 +54,9 @@ import type {
 import { SceneArt } from './SceneArt';
 import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
-import { HeroAvatar, HeroHatPreview, type AvatarHero } from './HeroAvatar';
+import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { HeroCustomizer } from './HeroCustomizer';
+import { HeroMenuButton } from './HeroMenuButton';
 import { hatForKeepsake, displayHeroName } from '../../lib/cosmetics';
 import { AccountPanel, SaveStatus } from './AccountPanel';
 import { localPlay } from '../../lib/dropinn/api';
@@ -66,25 +66,6 @@ import { threadBalance } from '../../lib/dropinn/collection';
 import { CustomizeHeroContext, useCustomizeHero, NextLook, StoryRewards, type HeroCustomizerTarget } from './HeroProgression';
 import './mobile-layout.css';
 import './lobby-clarity.css';
-
-function HeroMark({
-  hero,
-  small = false,
-}: {
-  hero: AvatarHero;
-  small?: boolean;
-}) {
-  const accent = heroAccent(hero.accent, hero.classKey, hero.cosmeticUnlocks?.items);
-  return (
-    <span
-      className={`di-hero-mark ${small ? 'di-small' : ''} di-class-${hero.classKey}`}
-      style={{ color: accent, borderColor: `${accent}80`, background: `radial-gradient(circle at 30% 20%, ${accent}44, ${accent}12)` }}
-      aria-hidden="true"
-    >
-      <HeroAvatar hero={hero} decorative />
-    </span>
-  );
-}
 
 function Modal({
   title,
@@ -266,6 +247,7 @@ function Recap({ recap, onClose }: { recap: VisitRecap; onClose: () => void }) {
 export function DropInn() {
   const {
     ready,
+    loading,
     room,
     character,
     initialize,
@@ -378,10 +360,7 @@ export function DropInn() {
             <span>How to play</span>
           </button>
           {character && (
-            <button type="button" className="di-header-hero" aria-label="Customize hero from header" onClick={() => openHero()}>
-              <HeroMark hero={character} small />
-              <span>{displayHeroName(character)}</span>
-            </button>
+            <HeroMenuButton hero={character} disabled={!ready || loading || Boolean(restoringCode)} onClick={() => openHero()} />
           )}
         </nav>
       </header>}

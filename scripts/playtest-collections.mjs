@@ -4,9 +4,13 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 
 // Real browser + real isolated local handler, controlled clock. Never calls a hosted API.
-const vite=await createServer({cacheDir:'node_modules/.vite-collection-tests',server:{host:'127.0.0.1',port:5207,strictPort:true}});
-await vite.listen();
-const origin='http://127.0.0.1:5207';
+const args=process.argv.slice(2);
+if(args.length && (args.length!==2 || args[0]!=='--base-url')) throw new Error('Use --base-url http://127.0.0.1:5199, or omit it to launch a local server.');
+const url=new URL(args[1] ?? 'http://127.0.0.1:5207');
+if(url.protocol!=='http:' || !['localhost','127.0.0.1','[::1]'].includes(url.hostname) || url.username || url.password || url.pathname!=='/' || url.search || url.hash) throw new Error('Collection playtests require a plain HTTP loopback origin.');
+const vite=await createServer({cacheDir:'node_modules/.vite-collection-tests',server:args.length?{middlewareMode:true}:{host:'127.0.0.1',port:5207,strictPort:true}});
+if(!args.length) await vite.listen();
+const origin=url.origin;
 const {createDropinnHandler}=await vite.ssrLoadModule('/server/dropinn.ts');
 let now=Date.now();
 const handler=createDropinnHandler({local:true,now:()=>now,env:{}});
@@ -30,7 +34,10 @@ await context.route('**/*',localRoute);
 const state=()=>page.evaluate(async()=>{const {useAdventureStore:s}=await import('/src/store/adventureStore.ts');const v=s.getState();return {collection:v.collection,hero:v.character,room:v.room,error:v.error};});
 async function wardrobe() {
  await page.getByRole('button',{name:'Customize hero',exact:true}).click();
- await page.getByRole('tab',{name:/Hats ·/}).click();
+ await page.getByRole('dialog',{name:'A little hero. A lot of you.'}).waitFor();
+ await page.getByRole('tab',{name:'Wardrobe',exact:true}).click();
+ assert.equal(await page.getByRole('region',{name:'First tales collection'}).isVisible(),false,'Thread crafting starts collapsed on a direct wardrobe visit');
+ await page.getByText('Make something special with Thread',{exact:true}).click();
  await page.getByRole('region',{name:'First tales collection'}).waitFor();
 }
 async function finishAdventure(id) {
@@ -92,8 +99,8 @@ async function finishAdventure(id) {
   assert.equal(await recap.getByText('New hat unlocked',{exact:true}).count(),3);
   const before=(await state()).hero.equipment;
   await recap.getByRole('button',{name:'View your hat',exact:true}).first().click();
-  await page.getByRole('tab',{name:/Hats/}).waitFor();
-  assert.equal(await page.getByRole('tab',{name:/Hats/}).getAttribute('aria-selected'),'true');
+  await page.getByRole('tab',{name:'Wardrobe',exact:true}).waitFor();
+  assert.equal(await page.getByRole('tab',{name:'Wardrobe',exact:true}).getAttribute('aria-selected'),'true');
   assert.equal(await page.locator('[data-cosmetic-id="shepherd"]').evaluate(node=>node.classList.contains('di-cosmetic-highlight')),true);
   assert.deepEqual((await state()).hero.equipment,before,'Viewing a reward never equips');
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
@@ -117,7 +124,7 @@ try {
  assert.equal(await cards.getByText('+1 Thread per contributed chapter',{exact:true}).count(),4);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Customize hero from header',exact:true}).click();
- await page.getByRole('tab',{name:'Character',exact:true}).waitFor();
+ await page.getByRole('tab',{name:'Hero',exact:true}).waitFor();
  await page.keyboard.press('Escape');
  assert.equal(await page.getByRole('button',{name:'Customize hero from header',exact:true}).evaluate(button=>button===document.activeElement),true);
  await page.getByRole('button',{name:'Choose a look',exact:true}).click();
@@ -139,11 +146,14 @@ try {
  await page.getByRole('button',{name:'Wear Blue',exact:true}).waitFor();
  assert.equal((await state()).collection.spent,3);assert.equal((await state()).hero.equipment.hat,prior,'Craft never equips');
  await page.getByRole('button',{name:'Wear Blue',exact:true}).click();
+ const selectedHat=page.locator('button[data-cosmetic-id="shepherd"]');
+ assert.equal(await selectedHat.getAttribute('aria-pressed'),'true');
+ await selectedHat.click();
  await page.getByRole('button',{name:'Save hero',exact:true}).click();
- assert.equal((await state()).hero.equipment.hatColor,'shepherd-blue');
+ assert.equal((await state()).hero.equipment.hatColor,'shepherd-blue','Reselecting the current hat preserves its chosen color');
  await page.reload();await page.locator('.di-lobby-play').waitFor();
  assert.equal((await state()).collection.spent,3);assert.equal((await state()).hero.equipment.hatColor,'shepherd-blue');
- note('Crafting spends once, does not auto-equip, and saved blue style survives reload');
+ note('Crafting spends once, does not auto-equip, and the blue style survives same-hat reselection and reload');
  await page.setViewportSize({width:320,height:568});
  await finishAdventure('last-flight-teacup');
  assert.equal((await state()).collection.earned,6);assert.equal((await state()).collection.spent,3);

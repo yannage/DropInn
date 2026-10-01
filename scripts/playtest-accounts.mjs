@@ -79,10 +79,12 @@ async function setup(){
 const state=page=>page.evaluate(async()=>{const s=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState();return {character:s.character,account:s.account,error:s.error,saveStatus:s.saveStatus};});
 try{
  const a=await setup();
- await a.getByRole('button',{name:'Customize hero',exact:true}).click();await a.getByLabel('Hero name').fill('Moss');
+ await a.getByRole('button',{name:'Customize hero',exact:true}).click();
+ await a.getByRole('dialog',{name:'A little hero. A lot of you.'}).waitFor();
+ await a.getByLabel('Hero name').fill('Moss');
  failSave=true;await a.getByRole('button',{name:'Save hero',exact:true}).click();await a.getByRole('alert').filter({hasText:'Save interrupted'}).first().waitFor();
  assert.equal((await state(a)).character.name,'Wren');failSave=false;await a.getByRole('button',{name:'Save hero',exact:true}).click();
- await a.getByRole('dialog',{name:'Meet your little weirdo.'}).waitFor({state:'hidden'});
+ await a.getByRole('dialog',{name:'A little hero. A lot of you.'}).waitFor({state:'hidden'});
  const guest=(await state(a)).character;assert.equal(guest.name,'Moss');
  await a.reload();await a.getByRole('button',{name:'Save your hero',exact:true}).click();assert.equal((await state(a)).character.id,guest.id);note('guest edit retry and reload');
  for(const viewport of [{width:390,height:844},{width:320,height:568}]){

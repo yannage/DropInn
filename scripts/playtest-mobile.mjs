@@ -115,7 +115,7 @@ try {
       const name = page.getByRole('textbox', { name: 'Hero name optional' });
       await name.fill('Mobile Wren');
       await page.getByRole('button', { name: 'Cleric', exact: true }).click();
-      await page.getByRole('tab', { name: /Hats/ }).click();
+      await page.getByRole('tab', { name: 'Wardrobe', exact: true }).click();
       await page.getByRole('button', { name: 'No hat', exact: false }).click();
       await fits(page, `hats-${width}`);
       await page.getByRole('button', { name: 'Save hero', exact: true }).click();
