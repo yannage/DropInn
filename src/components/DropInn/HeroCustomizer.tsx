@@ -5,7 +5,7 @@ import { CHARACTER_CLASS_PRESETS, HERO_COLORS, MOONLIT_BLUE, type CharacterClass
 import { HERO_HATS, HERO_HAIR, HERO_SHOES, HERO_PARTS, normalizeCustomization, ownsHat, displayHeroName, type HeroHat } from '../../lib/cosmetics';
 import { PASS_TITLES } from '../../lib/dropinn/storyPass';
 import { useAdventureStore } from '../../store/adventureStore';
-import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
+import { HeroAvatar, HeroHatPreview, INN_FRAME_ART } from './HeroAvatar';
 import { CollectionWardrobe } from './Collection';
 import { collectionUnlocks } from '../../lib/dropinn/collection';
 import type { HeroCustomizerTarget } from './HeroProgression';
@@ -18,6 +18,7 @@ const designerTabs = [
   { id: 'face', label: 'Face', icon: Smile },
   { id: 'hats', label: 'Wardrobe', icon: Sparkles },
 ] as const;
+const borderColors = [{ name: 'Inn gold', value: null, swatch: '#e2bd60' }, ...HERO_COLORS.map(color => ({ ...color, swatch: color.value }))];
 const callings = {
   wizard: { icon: WandSparkles, description: 'Clever ideas. A little magic.', strength: 'Clever & charming' },
   fighter: { icon: Swords, description: 'Big heart. Bigger courage.', strength: 'Strong & sturdy' },
@@ -143,7 +144,7 @@ export function HeroCustomizer({ character, onClose, initialTarget = {} }: { cha
       <form onSubmit={event => void save(event)}>
         <div className="di-builder-workspace">
           <aside className="di-builder-preview">
-            <div className="di-portrait-paper"><span className="di-paper-note">Looking like an adventure.</span><div className={`di-designer-model ${lookBeat ? 'has-changed' : ''}`} key={lookBeat}><HeroAvatar hero={preview} /></div><span className="di-paper-spark di-spark-one" aria-hidden="true">✦</span><span className="di-paper-spark di-spark-two" aria-hidden="true">✧</span><span className="di-designer-stage" aria-hidden="true" /></div>
+            <div className="di-portrait-paper"><span className="di-paper-note">Looking like an adventure.</span><div className={`di-designer-model ${lookBeat ? 'has-changed' : ''}`} key={lookBeat}><img className="di-portrait-frame" src={INN_FRAME_ART} alt="" aria-hidden="true" /><HeroAvatar hero={preview} /></div><span className="di-designer-stage" aria-hidden="true" /></div>
             <div className="di-designer-identity"><span className="di-designer-sticker">ONE OF A KIND</span><h3>{displayHeroName({ ...draft, name: draft.name.trim() || 'Wren' })}</h3><p>{CHARACTER_CLASS_PRESETS[draft.classKey].label} · {equipped?.label ?? 'a lovely bare head'}</p></div>
             <div className="di-designer-play"><button type="button" className="di-surprise-look" disabled={saving} onClick={() => changeDraft({ ...draft, ...surpriseHeroLook(preview, collection) }, 'A fresh look! Keep it, tweak it, or undo.')}><Dices size={19} aria-hidden="true" /> Surprise me</button><button className="di-designer-undo" type="button" disabled={!history.length || saving} onClick={undo} aria-label="Undo last change" title="Undo last change"><Undo2 size={18} aria-hidden="true" /></button></div>
             <p className="di-builder-caption">Mix, match, make a little mischief.<br />Your look is just for fun. Your calling sets your abilities.</p>
@@ -191,7 +192,21 @@ export function HeroCustomizer({ character, onClose, initialTarget = {} }: { cha
                 <fieldset className="di-part-picker"><legend>Shoes</legend><div><button type="button" aria-pressed={!draft.equipment.shoes} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,shoes:null,shoeColor:null}})}>Classic boots</button>{HERO_SHOES.map(part=>{const unlocked=!!part.unlockId&&collection.items?.includes(part.unlockId);return <button type="button" key={part.id} disabled={!unlocked} aria-pressed={draft.equipment.shoes===part.id} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,shoes:part.id,shoeColor:null}})}><HeroAvatar hero={{...preview,equipment:{...draft.equipment,shoes:part.id}}} decorative/><span>{part.label}{!unlocked?' · Story Pass':''}</span></button>;})}</div></fieldset>
                 {draft.equipment.shoes==='ruby' && collection.items?.includes('shoes:ruby-sparkle') && <fieldset className="di-builder-colors"><legend>Sparkling Ruby Shoes colors</legend><div><button type="button" onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,shoeColor:null}})}>Original red</button>{HERO_COLORS.map(color=><button type="button" key={color.value} aria-pressed={draft.equipment.shoeColor===color.value} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,shoeColor:color.value}})}><span style={{background:color.value}}/><small>{color.name}</small></button>)}</div></fieldset>}
                 <fieldset className="di-part-picker"><legend>Title</legend><div><button type="button" aria-pressed={!draft.equipment.title} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,title:null}})}>No title</button>{PASS_TITLES.map(title=><button type="button" key={title.id} disabled={!collection.items?.includes(`title:${title.id}`)} aria-pressed={draft.equipment.title===title.id} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,title:title.id}})}>{title.label}{!collection.items?.includes(`title:${title.id}`)?' · Story Pass':''}</button>)}</div></fieldset>
-                {collection.items?.includes('frame:inn-border') && <fieldset className="di-builder-colors"><legend>Avatar border</legend><div><button type="button" onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,frame:null,frameColor:null}})}>No border</button>{HERO_COLORS.map(color=><button type="button" key={color.value} aria-pressed={draft.equipment.frame==='inn-border'&&draft.equipment.frameColor===color.value} onClick={()=>changeDraft({...draft,equipment:{...draft.equipment,frame:'inn-border',frameColor:color.value}})}><span style={{background:color.value}}/><small>{color.name}</small></button>)}</div></fieldset>}
+                {collection.items?.includes('frame:inn-border') && <>
+                  <fieldset className="di-border-picker"><legend>Avatar border</legend><div>
+                    {[{ id: null, label: 'No border' }, { id: 'inn-border', label: 'Inn border' }].map(border => {
+                      const selected = (draft.equipment.frame ?? null) === border.id;
+                      return <button type="button" key={border.id ?? 'none'} aria-label={border.label} aria-pressed={selected} onClick={() => changeDraft({ ...draft, equipment: { ...draft.equipment, frame: border.id, frameColor: border.id ? draft.equipment.frameColor ?? null : null } }, border.id ? 'Inn border added.' : 'Avatar border removed.')}>
+                        <HeroAvatar hero={{ ...preview, equipment: { ...draft.equipment, frame: border.id } }} decorative />
+                        <strong>{border.label}</strong>{selected && <Check className="di-designer-picked" size={15} aria-hidden="true" />}
+                      </button>;
+                    })}
+                  </div></fieldset>
+                  <fieldset className="di-builder-colors di-border-colors"><legend>Border color</legend><div>{borderColors.map(color => {
+                    const selected = draft.equipment.frame === 'inn-border' && (draft.equipment.frameColor ?? null) === color.value;
+                    return <button type="button" key={color.value ?? 'inn-gold'} aria-label={`${color.name} border color`} aria-pressed={selected} onClick={() => changeDraft({ ...draft, equipment: { ...draft.equipment, frame: 'inn-border', frameColor: color.value } }, `${color.name} Inn border selected.`)}><span style={{ background: color.swatch }}>{selected && <Check size={17} aria-hidden="true" />}</span><small>{color.name}</small></button>;
+                  })}</div></fieldset>
+                </>}
               </>}
             </div>
           </fieldset>

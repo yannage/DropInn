@@ -8,6 +8,8 @@ From the repository root:
 node .agents/skills/dropinn-art/scripts/review-heroes.mjs
 ```
 
+For the portrait frame, add `--frames-only` to render just its body/hat and palette examples to `output/hero-frame-review.html`, including 24px samples. The same full source/manifest checks still run. Open the self-contained file directly or through a simple static server; the complete raster sheet is large enough to exhaust Vite's HTML transform memory.
+
 This checks catalog sources, native SVG/PNG canvas declarations, and hashes from `native-hero-art.json`, then generates `output/hero-review.html` using the actual `HeroAvatar` renderer. Sources are embedded so the HTML can be opened without a dev server. The sheet includes each body with each hat and no hat, every face option, color variations, and 256px/64px/48px previews on light and dark backgrounds. The module loader uses Vite with config disabled; it starts no gameplay endpoint and makes no model requests.
 
 Inspect the sheet in a browser and capture affected rows at readable scale. Look for hat/eye collisions, mask seams, clipping, recognizable expressions, color response, and details lost at table size. File checks cannot prove visual alignment, actual transparency, or readability. For a new face part, inspect representative combinations beyond its default row where overlaps are plausible; the sheet is not the Cartesian product of every option.

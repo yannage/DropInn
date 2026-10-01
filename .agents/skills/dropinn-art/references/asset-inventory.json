@@ -1381,6 +1381,40 @@
       "alpha": false,
       "sha256": "0f9fba71fe4f470fa602b1daea7440cd1e091a2a377d56b2fba434d481e00f2c",
       "review": "Visually inspected illustrative AI garment mockup. Visible name and caption reviewed; not product-specific and not a production proof."
+    },
+    {
+      "id": "hero-inn-frame-v1-master",
+      "purpose": "Original generated master for the tintable decorative inn-sign hero frame",
+      "file": "public/art/hero-inn-frame-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "bytes": 383994,
+      "sha256": "958ef3a02b9045dd8e8eac0d3772186001b1e9c6e4cda399a4f9885d3448cf4d",
+      "promptFile": ".agents/skills/dropinn-art/references/hero-inn-frame-prompts.json",
+      "generator": "Codex built-in image_gen",
+      "review": "Master inspected at full size for irregular cream/black contour and intact complete canvas. Runtime derivative inspected in the actual browser renderer; see hero-inn-frame-v1-runtime."
+    },
+    {
+      "id": "hero-inn-frame-v1-runtime",
+      "purpose": "Full-canvas runtime derivative behind modular hero artwork",
+      "file": "public/heroes/inn-frame-v1.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 31514,
+      "sha256": "a55c91c67c25ca26648c3cf2d3107178af9769cc95d63f131e29554de881d4ad",
+      "promptFile": ".agents/skills/dropinn-art/references/hero-inn-frame-prompts.json",
+      "generator": "Codex built-in image_gen master; Sharp full-canvas resize",
+      "review": "Inspected actual HeroAvatar browser compositions for all six bodies with no hat, tall Spellbound hat, and wide Shepherd hat, plus default gold and six palette colors, at 256/64/48/24px on pale parchment and dark green. Transparent center and outer margin, intact silhouettes, rear-frame overlaps, and color response visible. Frame remains recognizable at 24px; facial detail is naturally limited. Evidence: output/playwright/inn-frame-review-1.png through inn-frame-review-5.png. This record does not establish saved-hero or hosted behavior.",
+      "reference": "public/art/hero-inn-frame-v1.png",
+      "reviewEvidence": [
+        "output/playwright/inn-frame-review-1.png",
+        "output/playwright/inn-frame-review-2.png",
+        "output/playwright/inn-frame-review-3.png",
+        "output/playwright/inn-frame-review-4.png",
+        "output/playwright/inn-frame-review-5.png"
+      ]
     }
   ]
 }

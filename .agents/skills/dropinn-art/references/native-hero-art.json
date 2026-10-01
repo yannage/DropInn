@@ -691,6 +691,18 @@
       "file": "public/heroes/raster-v1/body-bean-bare-fill.png",
       "sha256": "b4a81f5494d70ab2fff3304f07473ce120a30646e699156a16ee709f6b886bce",
       "review": "Inspected through the actual HeroAvatar composition matrix on pale/dark backgrounds, including matching tint or footwear variants and 64px/48px samples. See raster-v1/provenance.json for origin and exceptions."
+    },
+    {
+      "file": "public/heroes/inn-frame-v1.png",
+      "sha256": "a55c91c67c25ca26648c3cf2d3107178af9769cc95d63f131e29554de881d4ad",
+      "review": "Inspected actual HeroAvatar browser compositions for all six bodies with no hat, tall Spellbound hat, and wide Shepherd hat, plus default gold and six palette colors, at 256/64/48/24px on pale parchment and dark green. Transparent center and outer margin, intact silhouettes, rear-frame overlaps, and color response visible. Frame remains recognizable at 24px; facial detail is naturally limited. Evidence: output/playwright/inn-frame-review-1.png through inn-frame-review-5.png. This record does not establish saved-hero or hosted behavior.",
+      "reviewEvidence": [
+        "output/playwright/inn-frame-review-1.png",
+        "output/playwright/inn-frame-review-2.png",
+        "output/playwright/inn-frame-review-3.png",
+        "output/playwright/inn-frame-review-4.png",
+        "output/playwright/inn-frame-review-5.png"
+      ]
     }
   ]
 }

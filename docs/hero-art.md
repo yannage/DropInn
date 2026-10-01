@@ -12,6 +12,12 @@ To rebuild, run `node scripts/prepare-hero-raster.mjs` for the five starter mast
 
 Raster review: the existing catalog-driven sheet contains 287 examples, including every body/hat and body/color pair, all face options, hair with and without the crown, hat palettes/feather, both shoe styles and every Ruby shoe palette. Inspected on pale/dark backgrounds with 64px and 48px samples. Evidence is in `output/playwright/full-raster-*.png`. The local builder save/reload, Cancel, all-body selection, 73 asset responses and mobile checks are recorded in `output/playwright/raster-hero-verification.json`; they do not establish hosted persistence or physical-phone behavior. The review script uses its own Vite cache so it cannot invalidate a running app's optimized dependencies.
 
+## Painted portrait frame
+
+The builder surround and optional `inn-border` share `public/heroes/inn-frame-v1.png`, a full-canvas 256×256 export of `public/art/hero-inn-frame-v1.png`. The original transparent master was generated with the built-in image tool; the exact prompt and resize provenance are in `.agents/skills/dropinn-art/references/hero-inn-frame-prompts.json`. The builder uses the neutral cream artwork when no cosmetic frame is equipped. An equipped frame replaces that surround and renders behind the unchanged hero layers; its dark contour stays visible while the paint follows the saved color. The header removes its redundant circular plate for framed heroes.
+
+`inn-border`, its ownership gate, saved colors, and the null-color Inn gold default retain their existing meaning. Frame selection and colors have separate labeled controls. The hero review sheet includes framed bodies, tall/wide hats, all frame colors and 24px samples alongside the usual sizes. Local browser checks cover equip, colors, removal, Undo, Cancel and Save/reload at desktop, 390×844 and 320×568; the ownership fixture is local and does not verify purchases or hosted persistence.
+
 ## Replace a drawing
 
 1. Make a transparent PNG or SVG on a **256 × 256 canvas**. Start with [the alignment template](../public/heroes/alignment-template.svg). Keep the full canvas when exporting; do not trim transparent margins.

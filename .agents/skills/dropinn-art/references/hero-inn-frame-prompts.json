@@ -1,0 +1,36 @@
+{
+  "id": "hero-inn-frame-v1",
+  "generator": "Codex built-in image_gen",
+  "source": "C:/Users/Yanni/.codex/generated_images/01a0f558-ccd8-7010-862d-069fc9da0af9/exec-18bdc41d-ba46-48bb-92c3-1a8f91f26b2d.png",
+  "file": "public/art/hero-inn-frame-v1.png",
+  "purpose": "Tintable decorative frame behind modular hero artwork; transparent center and outer margin",
+  "prompt": "Use case: stylized-concept. Create ONE transparent square game asset for DropInn: an empty hand-painted inn-sign portrait frame that will sit BEHIND a separately drawn full-body whimsical hero. Match the coarse, irregular MS Paint mouse-drawn black contours and restrained flat fills of the approved blue hero reference seen in this conversation. Draw ONLY the frame, no hero. Composition: frontal, nearly square inn-sign outline, gently arched upper corners and a slightly uneven horizontal top and bottom, not an oval or circle. Frame occupies approximately 94 percent of the square canvas, with a clear 3 percent transparent outer margin on every side. Narrow ivory/cream painted band about 3 percent of the canvas wide, edged inside and outside with blunt irregular black strokes about 0.7 percent canvas wide. Keep the center completely empty and truly transparent: at least the central 82 percent width and height is open for the hero. Subtle crooked timber-like joins at the two bottom corners, no other ornaments. Loosely drawn actual imperfect shape, a few uneven joins, simple broad fill, no grain or wood texture. Ivory/cream monochrome fill and near-black contours ONLY, intended for runtime color tinting. Absolutely no text, stars, symbols, leaves, bolts, ribbons, pedestal, character, background, shadows, gradients, glow, beveled metal, photorealism, vector-perfect geometry or checkerboard. Entire center and outside background must be alpha transparent. Keep whole frame visible with margin. Output square PNG.",
+  "master": {
+    "file": "public/art/hero-inn-frame-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "bytes": 383994,
+    "sha256": "958ef3a02b9045dd8e8eac0d3772186001b1e9c6e4cda399a4f9885d3448cf4d"
+  },
+  "runtimeDerivative": {
+    "file": "public/heroes/inn-frame-v1.png",
+    "width": 256,
+    "height": 256,
+    "alpha": true,
+    "bytes": 31514,
+    "sha256": "a55c91c67c25ca26648c3cf2d3107178af9769cc95d63f131e29554de881d4ad",
+    "source": "public/art/hero-inn-frame-v1.png",
+    "transform": "Sharp resize to 256×256 over the complete square source canvas, preserving source placement and alpha; no trimming, crop, center, or paint edits.",
+    "review": "Inspected actual HeroAvatar browser compositions for all six bodies with no hat, tall Spellbound hat, and wide Shepherd hat, plus default gold and six palette colors, at 256/64/48/24px on pale parchment and dark green. Transparent center and outer margin, intact silhouettes, rear-frame overlaps, and color response visible. Frame remains recognizable at 24px; facial detail is naturally limited. Evidence: output/playwright/inn-frame-review-1.png through inn-frame-review-5.png. This record does not establish saved-hero or hosted behavior.",
+    "tool": "Sharp 0.35.4 (bundled workspace dependency)",
+    "pipeline": "sharp('public/art/hero-inn-frame-v1.png').resize(256,256).png().toFile('public/heroes/inn-frame-v1.png')",
+    "reviewEvidence": [
+      "output/playwright/inn-frame-review-1.png",
+      "output/playwright/inn-frame-review-2.png",
+      "output/playwright/inn-frame-review-3.png",
+      "output/playwright/inn-frame-review-4.png",
+      "output/playwright/inn-frame-review-5.png"
+    ]
+  }
+}

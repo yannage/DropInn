@@ -18,10 +18,10 @@ function inside(path) {
 try {
   const { HERO_PARTS, HERO_HATS, HERO_HAIR, HERO_SHOES, DEFAULT_APPEARANCE, SHEPHERD_STYLE_ART, RUBY_SHOE_PALETTE_ART, ALL_HAT_STYLES } = await runtime.ssrLoadModule('/src/lib/cosmetics.ts');
   const { HERO_COLORS } = await runtime.ssrLoadModule('/src/lib/character.ts');
-  const { HeroAvatar } = await runtime.ssrLoadModule('/src/components/DropInn/HeroAvatar.tsx');
+  const { HeroAvatar, INN_FRAME_ART } = await runtime.ssrLoadModule('/src/components/DropInn/HeroAvatar.tsx');
   const manifest = JSON.parse(await readFile(new URL('../references/native-hero-art.json', import.meta.url), 'utf8'));
   const catalog = [...Object.values(HERO_PARTS).flat(), ...HERO_HAIR, ...HERO_SHOES, ...HERO_HATS];
-  const extra = [...HERO_PARTS.body.flatMap(body => [body.art.bareSrc, body.art.bareMaskSrc]).filter(Boolean), RUBY_SHOE_PALETTE_ART.src, RUBY_SHOE_PALETTE_ART.maskSrc];
+  const extra = [...HERO_PARTS.body.flatMap(body => [body.art.bareSrc, body.art.bareMaskSrc]).filter(Boolean), RUBY_SHOE_PALETTE_ART.src, RUBY_SHOE_PALETTE_ART.maskSrc, INN_FRAME_ART];
   const sources = [...new Set([...catalog.map(part=>part.art),...Object.values(SHEPHERD_STYLE_ART),...HERO_HATS.map(hat=>hat.paletteArt).filter(Boolean)].flatMap(art => [art.src,art.maskSrc].filter(Boolean)).concat(extra))];
   const encoded = new Map();
   for (const source of sources) {
@@ -62,16 +62,31 @@ try {
   for (const body of HERO_PARTS.body) for (const shoes of HERO_SHOES) examples.push({label:`${body.label} / ${shoes.label}`,hero:{name:'Shoes preview',classKey:'wizard',accent:HERO_COLORS[0].value,inventory,appearance:{...DEFAULT_APPEARANCE,body:body.id},cosmeticUnlocks:{hats:HERO_HATS.map(h=>h.id),styles:ALL_HAT_STYLES.map(s=>s.id),items:unlockedItems},equipment:{hat:null,shoes:shoes.id}}});
   for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) add(`${body.label} / ${color.name}`, { ...DEFAULT_APPEARANCE, body: body.id }, null, color.value);
   for (const body of HERO_PARTS.body) for (const color of HERO_COLORS) examples.push({label:`Ruby palette / ${body.label} / ${color.name}`,hero:{name:'Shoe palette',classKey:'wizard',accent:HERO_COLORS[0].value,appearance:{...DEFAULT_APPEARANCE,body:body.id},cosmeticUnlocks:{hats:[],styles:[],items:[...unlockedItems,'shoes:ruby-sparkle']},equipment:{hat:null,shoes:'ruby',shoeColor:color.value}}});
+  const addFrame = (label, body, hat = null, frameColor = null) => examples.push({label, review:'frame', sizes:[256,64,48,24], hero:{
+    name:label,classKey:'wizard',accent:HERO_COLORS[0].value,inventory,appearance:{...DEFAULT_APPEARANCE,body},
+    cosmeticUnlocks:{hats:HERO_HATS.map(h=>h.id),styles:ALL_HAT_STYLES.map(s=>s.id),items:[...unlockedItems,'frame:inn-border']},
+    equipment:{hat,frame:'inn-border',frameColor}}});
+  // Keep each silhouette visible with no hat, the tall Spellbound hat, and wide Shepherd brim.
+  for (const body of HERO_PARTS.body) for (const hatId of [null,'wizard','shepherd']) {
+    const hat = HERO_HATS.find(candidate=>candidate.id===hatId);
+    addFrame(`Inn frame / ${body.label} / ${hat?.label ?? 'No hat'}`,body.id,hatId);
+  }
+  // Seven supported treatments: the default painted gold plus the six editable palette colors.
+  for (const color of [{name:'Default gold',value:null},...HERO_COLORS]) addFrame(`Frame palette / ${color.name}`,DEFAULT_APPEARANCE.body,'wizard',color.value);
+  // Targeted review avoids sending the large, embedded full catalog through a dev server.
+  const framesOnly = process.argv.includes('--frames-only');
+  const reviewedExamples = framesOnly ? examples.filter(example=>example.review==='frame') : examples;
+  const outputName = framesOnly ? 'hero-frame-review.html' : 'hero-review.html';
   // One render tree ensures useId-generated mask IDs are unique across the sheet.
-  let markup = renderToStaticMarkup(React.createElement('main', null, examples.map(({ label, hero }) => React.createElement('section', { key: label },
+  let markup = renderToStaticMarkup(React.createElement('main', null, reviewedExamples.map(({ label, hero, review, sizes = [256,64,48] }) => React.createElement('section', { key: label, 'data-review':review },
     React.createElement('h2', null, label),
-    ...[256, 64, 48].map(size => React.createElement('div', { className: 'pair', key: size },
+    ...sizes.map(size => React.createElement('div', { className: 'pair', key: size, 'data-size':size, 'aria-label':`${size}px on light and dark backgrounds` },
       ...['light', 'dark'].map(background => React.createElement('div', { className: background, key: background, style: { width: size, height: size } }, React.createElement(HeroAvatar, { hero })))))))));
   markup = markup.replace(/href="(\/heroes\/[^"#]+)"/g, (_, source) => `href="${encoded.get(source) ?? source}"`);
-  const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DropInn hero review</title><style>body{font:14px system-ui;background:#eee4cb;color:#252923;margin:20px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(560px,1fr));gap:16px}section{border:1px solid #8c856f;padding:12px}h2{font-size:16px}.pair{display:flex;gap:8px;margin:8px 0}.light{background:#fff5dc}.dark{background:#20352f}svg{width:100%;height:100%}pre{white-space:pre-wrap}</style><h1>DropInn hero review</h1><p>${examples.length} catalog-driven examples. 256px, 64px and 48px on light/dark backgrounds. File checks do not establish visual quality.</p><pre>${escape(failures.length ? failures.join('\n') : 'File and manifest checks passed.')}</pre>${markup}</html>`;
+  const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DropInn hero review</title><style>body{font:14px system-ui;background:#eee4cb;color:#252923;margin:20px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(560px,1fr));gap:16px}section{border:1px solid #8c856f;padding:12px}h2{font-size:16px}.pair{display:flex;gap:8px;margin:8px 0}.light{background:#fff5dc}.dark{background:#20352f}svg{width:100%;height:100%}pre{white-space:pre-wrap}</style><h1>DropInn hero review</h1><p>${reviewedExamples.length} catalog-driven examples. 256px, 64px and 48px on light/dark backgrounds; framed examples also include 24px. File checks do not establish visual quality.</p><pre>${escape(failures.length ? failures.join('\n') : 'File and manifest checks passed.')}</pre>${markup}</html>`;
   await mkdir(resolve(root, 'output'), { recursive: true });
-  await writeFile(resolve(root, 'output/hero-review.html'), html);
+  await writeFile(resolve(root, 'output', outputName), html);
   for (const failure of failures) console.error(failure);
-  console.log(`Wrote output/hero-review.html: ${sources.length} sources, ${examples.length} examples, ${failures.length} file issues.`);
+  console.log(`Wrote output/${outputName}: ${sources.length} sources, ${reviewedExamples.length} examples, ${failures.length} file issues.`);
   if (failures.length) process.exitCode = 1;
 } finally { await runtime.close(); }
