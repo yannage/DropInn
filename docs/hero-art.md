@@ -2,6 +2,16 @@
 
 The V2 builder uses `src/lib/cosmetics.ts` as its catalog and `HeroAvatar` as its shared renderer. Body, eyes, nose, mouth, and hat are independent layers. The legacy builder remains available unchanged.
 
+## Supplied raster starter pieces
+
+Bean, Curious eyes, Round nose, Little gasp, and Spellbound hat now use the aligned PNGs in `public/heroes/raster-v1/`. All existing IDs and unlocks are unchanged. Other choices retain their SVG artwork. The supplied Bean master contained only a torso, so its production detail and bare-footwear layers retain the original native limbs and boots. Its new torso alpha supplies the matching tint mask; the blue master is not baked into the saved body color.
+
+`scripts/prepare-hero-raster.mjs` exports these seven 256×256 production files from the five selected masters in `output/ms-painter`. It preserves their full source canvases and records reviewed affine placements, exact original prompts, generator, source hashes and output hashes in `public/heroes/raster-v1/provenance.json`. Original masters stay untouched. This is a partial catalog conversion, not a completed raster set or a change to the worker queue.
+
+Body `art.bareSrc` now selects the matching footwear-free layer; equipping shoes cannot switch the torso back to SVG. Assemblies containing raster pieces skip the additional pencil displacement, since their contours already carry the supplied texture. All-SVG combinations retain the effect. The hero review script uses its own Vite cache so review generation cannot invalidate a running app's optimized dependencies.
+
+Raster review: inspected the five-piece assembly, the new hat on all six bodies, Bean with every hat and body color, hair/shoe combinations, and face options on pale/dark backgrounds with 64px and 48px samples. The local builder save/reload, Cancel and mobile checks are recorded in `output/playwright/raster-hero-verification.json`; they do not establish hosted persistence or physical-phone behavior.
+
 ## Replace a drawing
 
 1. Make a transparent PNG or SVG on a **256 × 256 canvas**. Start with [the alignment template](../public/heroes/alignment-template.svg). Keep the full canvas when exporting; do not trim transparent margins.

@@ -7,7 +7,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
-const runtime = await createServer({ root, configFile: false, server: { middlewareMode: true }, appType: 'custom' });
+const runtime = await createServer({ root, configFile: false, cacheDir: resolve(root, 'output/hero-review-vite-cache'), server: { middlewareMode: true, watch: { ignored: ['**/output/**'] } }, appType: 'custom' });
 const failures = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 function inside(path) {
@@ -21,7 +21,7 @@ try {
   const { HeroAvatar } = await runtime.ssrLoadModule('/src/components/DropInn/HeroAvatar.tsx');
   const manifest = JSON.parse(await readFile(new URL('../references/native-hero-art.json', import.meta.url), 'utf8'));
   const catalog = [...Object.values(HERO_PARTS).flat(), ...HERO_HAIR, ...HERO_SHOES, ...HERO_HATS];
-  const extra = [...HERO_PARTS.body.map(body => `/heroes/body-${body.id}-bare.svg`),'/heroes/shoes-ruby-outline.svg','/heroes/shoes-ruby-fill.svg'];
+  const extra = [...HERO_PARTS.body.map(body => body.art.bareSrc).filter(Boolean),'/heroes/shoes-ruby-outline.svg','/heroes/shoes-ruby-fill.svg'];
   const sources = [...new Set([...catalog.map(part=>part.art),...Object.values(SHEPHERD_STYLE_ART),...HERO_HATS.map(hat=>hat.paletteArt).filter(Boolean)].flatMap(art => [art.src,art.maskSrc].filter(Boolean)).concat(extra))];
   const encoded = new Map();
   for (const source of sources) {
@@ -50,6 +50,7 @@ try {
   const examples = [];
   const unlockedItems=[...HERO_HAIR,...HERO_SHOES,...Object.values(HERO_PARTS).flat()].map(part=>part.unlockId).filter(Boolean);
   const add = (label, appearance, hat = null, accent = HERO_COLORS[0].value) => examples.push({ label, hero: { name: label, classKey: 'wizard', accent, inventory, appearance, cosmeticUnlocks:{hats:HERO_HATS.map(h=>h.id),styles:ALL_HAT_STYLES.map(s=>s.id),items:unlockedItems}, equipment: { hat } } });
+  add('Raster starter / all five pieces', { ...DEFAULT_APPEARANCE, mouth: 'open' }, 'wizard');
   for (const body of HERO_PARTS.body) for (const hat of [null, ...HERO_HATS]) add(`${body.label} / ${hat?.label ?? 'No hat'}`, { ...DEFAULT_APPEARANCE, body: body.id }, hat?.id ?? null);
   for(const body of HERO_PARTS.body) for(const style of ALL_HAT_STYLES) {
     examples.push({label:`Styles / ${body.label} / ${style.label}`,hero:{name:'Style preview',classKey:'wizard',accent:HERO_COLORS[0].value,inventory,

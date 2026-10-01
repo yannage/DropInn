@@ -9,7 +9,7 @@ export interface HeroEquipment { hat: string | null; hatColor?: string | null; h
   shoes?: string | null; shoeColor?: string | null; title?: string | null; frame?: string | null; frameColor?: string | null }
 export interface HeroCustomization { appearance: HeroAppearance; equipment: HeroEquipment }
 /** Assets share a 256px canvas. Placement is optional for externally supplied artwork. */
-export interface HeroArt { src: string; maskSrc?: string; x?: number; y?: number; width?: number; height?: number }
+export interface HeroArt { src: string; maskSrc?: string; bareSrc?: string; x?: number; y?: number; width?: number; height?: number }
 export interface HeroPart { id: string; label: string; art: HeroArt; unlockId?: string }
 export interface HeroHat extends HeroPart { keepsake?: string; chapter?: string; supporter?: boolean; paletteArt?: HeroArt }
 export const ALL_HAT_STYLES = [...HAT_STYLES, ...SUPPORTER_STYLES];
@@ -17,9 +17,16 @@ export const SHEPHERD_STYLE_ART: Record<'color' | 'trim', HeroArt> = {
   color: { src:'/heroes/hat-shepherd-outline.svg', maskSrc:'/heroes/hat-shepherd-fill.svg' },
   trim: { src:'/heroes/hat-shepherd-feather.svg' },
 };
-const part = (category: string, id: string, label: string, tint = false): HeroPart => ({
-  id, label, art: { src: `/heroes/${category}-${id}.svg`, ...(tint ? { maskSrc: `/heroes/${category}-${id}-fill.svg` } : {}) },
-});
+const RASTER_PARTS = new Set(['body-bean', 'eyes-dots', 'nose-button', 'mouth-open', 'hat-wizard']);
+const part = (category: string, id: string, label: string, tint = false): HeroPart => {
+  const key = `${category}-${id}`;
+  const base = RASTER_PARTS.has(key) ? `/heroes/raster-v1/${key}` : `/heroes/${key}`;
+  const extension = RASTER_PARTS.has(key) ? 'png' : 'svg';
+  return { id, label, art: { src: `${base}.${extension}`,
+    ...(tint ? { maskSrc: `${base}-fill.${extension}` } : {}),
+    ...(category === 'body' ? { bareSrc: `${base}-bare.${extension}` } : {}),
+  } };
+};
 export const HERO_PARTS = {
   body: [
     part('body', 'bean', 'Bean', true),

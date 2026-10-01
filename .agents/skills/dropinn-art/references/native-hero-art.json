@@ -1,6 +1,6 @@
 {
   "style": "Expressive primitive native hero layers",
-  "method": "Native SVG path editing; no raster generation for modular hero layers",
+  "method": "Native SVG layers plus five supplied image_gen raster masters, with aligned production exports and matching Bean tint/bare derivatives.",
   "canvas": "256×256, original face and hat anchors, paired identical body silhouette masks",
   "review": "Style consistency pass: reviewed all six bodies, seven eye expressions, and six mouths with the actual HeroAvatar renderer on light/dark backgrounds, including 64px and 48px previews. Reviewed all body/hat and body/color combinations. Unified limb outlines, hand construction, and boots; removed wrist overlaps; rounded and differentiated mouth and eye expressions. Canvas anchors and catalog IDs preserved. This pass changes native SVG assets only. Story Pass additions: rendered the six-body contact sheet and inspected representative hair, crown, cap and Ruby Shoes compositions at 256/64/48px on light and dark backgrounds.",
   "assets": [
@@ -326,6 +326,48 @@
       "file": "public/heroes/body-lanky-bare.svg",
       "sha256": "973a927fe2439e122132f844c8c3acbf52f304ada713163b7845d955acfb99da",
       "review": "Included in the 256/64/48px light/dark contact sheet; representative hair, crown, cap and shoe compositions were visually inspected."
+    },
+    {
+      "file": "public/heroes/raster-v1/eyes-dots.png",
+      "sha256": "1c2f6d7862d4d54d85af2f245161294c7128ff1c4e4e607e54c2f798653ea486",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-button.png",
+      "sha256": "f46588bdde23526a095a1f669263c05549aba1c4b1524a146472ac886efa7d07",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-open.png",
+      "sha256": "1f5ec5b11ad85dd79a00cda748b3a20ff56961f35d999894168a3d517489ca07",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-wizard.png",
+      "sha256": "dbff3edc339f97f636c20530787b0f9f00b8bc9e55b5d520f3ea6451fa184652",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean.png",
+      "sha256": "634176e6f42922d4352be5bb36b7fdb9f8fa3c9c80e3a3fa94da5dd1c85eb37d",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean-bare.png",
+      "sha256": "d53614efc89b9d82f18f7e5de63f7c3af11d8908c30316626946292ced7da2fd",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean-fill.png",
+      "sha256": "c07afb0bd5ae3f8a2a303a101a647007bcce55e549eb15f67ee7bb26d12c6939",
+      "review": "Inspected actual HeroAvatar on parchment/dark backgrounds at large, 64px and 48px: five-piece assembly, six bodies with Spellbound hat, Bean hat/hair/shoe/color combinations and face options. Bean limbs/boots retain native geometry.",
+      "provenance": "public/heroes/raster-v1/provenance.json"
     }
   ]
 }

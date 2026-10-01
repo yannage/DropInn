@@ -48,10 +48,13 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
   const hair = HERO_HAIR.find(part => part.id === appearance.hair);
   const shoes = HERO_SHOES.find(part => part.id === equipment.shoes);
   const accent = heroAccent(hero.accent, hero.classKey, hero.cosmeticUnlocks?.items);
+  // Supplied raster contours already have pencil texture. Keep paired masks and
+  // details together, without adding a second displacement to mixed assemblies.
+  const pencil = ![...parts, hat, hair, shoes].some(part => part?.art.src.endsWith('.png'));
   return <svg className={`di-avatar ${className}`} viewBox={faceOnly ? '70 96 116 98' : '0 0 256 256'} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `${displayHeroName({name:hero.name,equipment:hero.equipment}) || 'Your hero'}${hat ? ` wearing ${hat.label}` : ', no hat'}`}>
-    <PencilEdges id={`${id}-pencil`} />
-    <g filter={`url(#${id}-pencil)`}>
-      <ArtLayer art={shoes ? { ...parts[0].art, src: `/heroes/body-${appearance.body}-bare.svg` } : parts[0].art} color={accent} maskId={`${id}-body`} />
+    {pencil && <PencilEdges id={`${id}-pencil`} />}
+    <g filter={pencil ? `url(#${id}-pencil)` : undefined}>
+      <ArtLayer art={shoes ? { ...parts[0].art, src: parts[0].art.bareSrc ?? parts[0].art.src } : parts[0].art} color={accent} maskId={`${id}-body`} />
       {shoes && (shoes.id === 'ruby' && equipment.shoeColor
         ? <ArtLayer art={{src:'/heroes/shoes-ruby-outline.svg',maskSrc:'/heroes/shoes-ruby-fill.svg'}} color={equipment.shoeColor} maskId={`${id}-shoes`}/>
         : <ArtLayer art={shoes.art} color={accent} maskId={`${id}-shoes`}/>)}
@@ -66,8 +69,9 @@ export function HeroAvatar({ hero, className = '', decorative = false, faceOnly 
 
 export function HeroHatPreview({ hat, color = '#e0bd70',hatColor,hatTrim }: { hat: HeroHat; color?: string;hatColor?:string|null;hatTrim?:string|null }) {
   const id = useId().replace(/:/g, '');
+  const pencil = !hat.art.src.endsWith('.png');
   return <svg className="di-hat-art" viewBox="0 0 256 140" aria-hidden="true">
-    <PencilEdges id={`${id}-pencil`} />
-    <g filter={`url(#${id}-pencil)`}><HatLayer hat={hat} hatColor={hatColor} hatTrim={hatTrim} id={`${id}-hat`} color={color}/></g>
+    {pencil && <PencilEdges id={`${id}-pencil`} />}
+    <g filter={pencil ? `url(#${id}-pencil)` : undefined}><HatLayer hat={hat} hatColor={hatColor} hatTrim={hatTrim} id={`${id}-hat`} color={color}/></g>
   </svg>;
 }

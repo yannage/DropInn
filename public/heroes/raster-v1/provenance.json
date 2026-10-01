@@ -1,0 +1,198 @@
+{
+  "method": "Aligned full-canvas PNG exports; blue-key torso tint separation; original native Bean limbs and boots rasterized into matching detail, bare and mask layers.",
+  "limitations": "Five supplied masters only. Bean limbs and boots retain native geometry. Other catalog choices remain SVG.",
+  "sources": [
+    {
+      "name": "body-bean",
+      "path": "output/ms-painter/jobs/hero-raster-body-bean/r001/attempt-1/image.png",
+      "sha256": "6a3c1717d9c88cfcb38adc644e9b1114049e9a2920c34a446265c620f4ce1f59",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: the blue bean-shaped body only, on the complete shared square canvas. Match the approved Style A reference's whimsical MS Paint look: flat bright blue fill, thick irregular black raster contour, awkward hand-drawn asymmetry, sparse detail. Preserve the exact shared-canvas alignment and proportions from the body-bean.svg source and alignment-template.svg: body centered around x50-205 and y82-208 on a 256x256 canvas, leaving the face, hat, arms, hands, legs, and shoes absent so other modular layers can be assembled later. Do not add eyes, nose, mouth, hat, arms, legs, shoes, shadows, text, background, or extra layers. Image 1 is the approved Style A visual language only; body-bean.svg is the source identity and geometry; alignment-template.svg is the placement guide. Output must be a single clean transparent PNG component-master, not a finished character and not a flattened composite."
+    },
+    {
+      "name": "eyes-dots",
+      "path": "output/ms-painter/jobs/hero-raster-eyes-dots/r001/attempt-1/image.png",
+      "sha256": "e41d681f88f7f423dc8fe9092bac9e4a3bf4eb19aca08b2fa3910a1e291186d1",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: the two mismatched pale eyes with small dark dots only, on the complete shared square canvas. Match approved Style A whimsical MS Paint language: flat cream fills, thick irregular black raster contours, awkward asymmetry, sparse detail. Preserve both shared eye anchors from eyes-dots.svg and alignment-template.svg around (98,132) and (157,132) on a 256x256 canvas, with transparent gaps between and around the eyes. Do not add body, face, nose, mouth, hat, hair, arms, hands, legs, shoes, shadows, text, background, or extra layers. Output a single clean transparent PNG component-master, not a finished character or flattened composite."
+    },
+    {
+      "name": "nose-button",
+      "path": "output/ms-painter/jobs/hero-raster-nose-button/r001/attempt-1/image.png",
+      "sha256": "2ee214b72c972a0827590902005ca861267dfb99f89a9f881697c9f2e68508fc",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: a single small rosy pink button nose only, on the complete shared square canvas. Match approved Style A whimsical MS Paint language: flat pink fill, thick irregular black raster contour, awkward asymmetry, sparse detail. Place it at the shared nose anchor around x128,y148 on a 256x256 canvas, leaving transparent space around it. Do not add body, eyes, mouth, hat, hair, arms, hands, legs, shoes, shadows, text, background, or extra layers. Output a clean transparent PNG component-master, not a finished character or flattened composite."
+    },
+    {
+      "name": "mouth-open",
+      "path": "output/ms-painter/jobs/hero-raster-mouth-open/r001/attempt-1/image.png",
+      "sha256": "3917b675a21636e547580b5d7765d57a5a64d0e3e8a05ed98fc0af92d4242ea2",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: a small open smiling mouth only, on the complete shared square canvas. Match approved Style A whimsical MS Paint language: thick irregular black raster contour, flat dark mouth with a small pink tongue, awkward asymmetry and sparse detail. Place it around the shared mouth anchor x128,y174 on a 256x256 canvas. Do not add body, eyes, nose, hat, hair, limbs, shoes, shadows, text, background, or extra layers. Output a clean transparent PNG component-master, not a finished character or flattened composite."
+    },
+    {
+      "name": "hat-wizard",
+      "path": "output/ms-painter/jobs/hero-raster-hat-wizard/r001/attempt-1/image.png",
+      "sha256": "a0999a3c4746f1d339bc4b2523384d8e6b3d3d4b86b1d76865737531315cb4c4",
+      "generator": "Codex built-in image_gen",
+      "prompt": "Create one isolated transparent raster component-master for the DropInn player hero: a crooked cream wizard hat with brim only, on the complete shared square canvas. Match approved Style A whimsical MS Paint language: flat cream fill, thick irregular black raster contour, awkward asymmetry, sparse detail. Place the hat brim around y85-100 on a 256x256 canvas, leaving the face and body absent. Do not add eyes, nose, mouth, hair, body, arms, hands, legs, shoes, shadows, text, background, or extra layers. Output a clean transparent PNG component-master, not a finished character or flattened composite."
+    }
+  ],
+  "placements": [
+    {
+      "name": "body-bean",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        316,
+        394,
+        940,
+        1014
+      ],
+      "anchors": [
+        63,
+        80,
+        190,
+        209
+      ],
+      "transform": [
+        0.20352564102564102,
+        0.20806451612903226,
+        -1.3141025641025692,
+        -1.977419354838716
+      ]
+    },
+    {
+      "name": "eyes-dots",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        374,
+        511,
+        907,
+        773
+      ],
+      "anchors": [
+        77,
+        112,
+        177,
+        150
+      ],
+      "transform": [
+        0.18761726078799248,
+        0.1450381679389313,
+        6.831144465290805,
+        37.885496183206115
+      ]
+    },
+    {
+      "name": "nose-button",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        534,
+        556,
+        722,
+        698
+      ],
+      "anchors": [
+        116,
+        143,
+        140,
+        162
+      ],
+      "transform": [
+        0.1276595744680851,
+        0.13380281690140844,
+        47.829787234042556,
+        68.60563380281691
+      ]
+    },
+    {
+      "name": "mouth-open",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        512,
+        654,
+        756,
+        848
+      ],
+      "anchors": [
+        115,
+        164,
+        139,
+        187
+      ],
+      "transform": [
+        0.09836065573770492,
+        0.11855670103092783,
+        64.63934426229508,
+        86.4639175257732
+      ]
+    },
+    {
+      "name": "hat-wizard",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "opaqueBounds": [
+        330,
+        180,
+        1000,
+        753
+      ],
+      "anchors": [
+        55,
+        12,
+        198,
+        105
+      ],
+      "transform": [
+        0.21343283582089553,
+        0.16230366492146597,
+        -15.43283582089552,
+        -17.214659685863875
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "public/heroes/raster-v1/eyes-dots.png",
+      "sha256": "1c2f6d7862d4d54d85af2f245161294c7128ff1c4e4e607e54c2f798653ea486"
+    },
+    {
+      "file": "public/heroes/raster-v1/nose-button.png",
+      "sha256": "f46588bdde23526a095a1f669263c05549aba1c4b1524a146472ac886efa7d07"
+    },
+    {
+      "file": "public/heroes/raster-v1/mouth-open.png",
+      "sha256": "1f5ec5b11ad85dd79a00cda748b3a20ff56961f35d999894168a3d517489ca07"
+    },
+    {
+      "file": "public/heroes/raster-v1/hat-wizard.png",
+      "sha256": "dbff3edc339f97f636c20530787b0f9f00b8bc9e55b5d520f3ea6451fa184652"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean.png",
+      "sha256": "634176e6f42922d4352be5bb36b7fdb9f8fa3c9c80e3a3fa94da5dd1c85eb37d"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean-bare.png",
+      "sha256": "d53614efc89b9d82f18f7e5de63f7c3af11d8908c30316626946292ced7da2fd"
+    },
+    {
+      "file": "public/heroes/raster-v1/body-bean-fill.png",
+      "sha256": "c07afb0bd5ae3f8a2a303a101a647007bcce55e549eb15f67ee7bb26d12c6939"
+    }
+  ]
+}
