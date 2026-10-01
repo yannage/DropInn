@@ -81,7 +81,8 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
     const beats=(await import('/src/lib/dropinn/stagePlayback.ts')).stageTimeline(room);
     return Math.max(...beats.map(beat=>beat.start+beat.duration));
   });
-  assert.ok((await page.evaluate(index=>window.__narratorSpeech.spoken[index].at,priorSpoken))>=settledAt,'Narration waits until the table consequences finish');
+  const deviceStartedAt=await page.evaluate(index=>window.__narratorSpeech.spoken[index].at,priorSpoken);
+  assert.ok(deviceStartedAt>=settledAt,`Narration waits until the table consequences finish (started ${deviceStartedAt}, settled ${settledAt})`);
   assert.equal(generatedNarrationRequests,0,'A resolved round must not request model-generated narration');
   const afterRound=await page.evaluate(()=>window.__narratorSpeech.spoken.length);
   await readyNext(page);
@@ -96,6 +97,26 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null);
   await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});
   await page.waitForFunction(()=>!!window.__narratorSpeech.current);
+  const completedCue=await page.evaluate(async()=>{
+    const synth=window.__narratorSpeech;
+    let completed=0;
+    for(;completed<20&&synth.current?.onend;completed++){
+      synth.current.onend();
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    return {completed,count:synth.spoken.length,pending:!!synth.current?.onend};
+  });
+  assert.ok(completedCue.completed>0&&!completedCue.pending,'Every chunk in the current device cue has finished');
+  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+  await page.evaluate(async()=>{
+    Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  });
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),completedCue.count,'Returning to a visible tab must not replay a finished cue');
+  await page.getByRole('button',{name:'Story settings',exact:true}).click();
+  await page.getByRole('button',{name:'Read this line',exact:true}).click();
+  await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,completedCue.count);
+  await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   await page.getByRole('button',{name:'Collapse narrator subtitles',exact:true}).click();
   await page.screenshot({path:'output/playwright/narrator-collapsed-390.png',animations:'disabled'});
   await page.reload();
@@ -107,8 +128,8 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('region',{name:'Story narrator',exact:true}).waitFor({state:'hidden'});
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.current),null,'Leaving cancels narration');
   assert.ok(await page.evaluate(()=>window.__narratorSpeech.spoken.every(line=>line.local===true&&line.voice!=='test-online')),'No online device voice is invoked');
-  note('narrator-speech-bridge',{evidence:'Mock local SpeechSynthesis: opt-in activation, filtered delayed voice list, subtitle sync, reveal timing, mute, collapse, error, visibility, reload, unmount; no audible quality assertion'});
-  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'natural',collapsed:false,voice:'test-natural'})));
+  note('narrator-speech-bridge',{evidence:'Mock local SpeechSynthesis: opt-in activation, filtered delayed voice list, subtitle sync, reveal timing, mute, collapse, error, visibility, completed-cue silence on return, explicit replay, reload, unmount; no audible quality assertion'});
+  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'natural',collapsed:false,voice:'test-natural',speed:1.25})));
   // Static download fixtures: the worker remains mocked; no live model is fetched.
   await page.route('https://huggingface.co/KittenML/**', route => {
     const path = new URL(route.request().url()).pathname;
@@ -116,7 +137,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
     return route.fulfill({ status: 200, contentType: 'application/octet-stream', body: Buffer.alloc(bytes) });
   });
   await page.addInitScript(()=>{
-    window.__natural={workers:0,terminated:0,requests:[],inits:[],hold:true,fail:false,
+    window.__natural={workers:0,terminated:0,requests:[],inits:[],hold:true,fail:false,failGenerate:false,
       finishInit(stale=false){for(const item of this.inits.splice(0)){
         const receiver=stale?item.receiver:item.worker.onmessage;
         receiver?.({data:{id:item.id,type:'ready'}});
@@ -133,7 +154,8 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
           if(window.__natural.fail)send({id:message.id,type:'error',message:'Voice download failed. Please retry.'});
           else if(window.__natural.hold)window.__natural.inits.push({worker:this,id:message.id,receiver:this.onmessage});
           else send({id:message.id,type:'ready'});
-        } else send({id:message.id,type:'audio',samples:new Float32Array(24000),sampleRate:24000});
+        } else if(window.__natural.failGenerate)send({id:message.id,type:'error',message:'Speech synthesis failed. Please retry.'});
+        else send({id:message.id,type:'audio',samples:new Float32Array(24000),sampleRate:24000});
       }
       terminate(){this.alive=false;window.__natural.terminated++;}
     };
@@ -181,7 +203,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   await leaveTable();
   note('narrator-natural-bridge',{evidence:'Mock worker, real AudioContext: one-click loading, mobile controls, progress, cancel/late-ready, failure, retry, all eight voice requests, speed, playback and mute; no audible quality assertion'});
-  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'auto',collapsed:false,voice:'test-local',naturalVoice:'Jasper'})));
+  await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'auto',collapsed:false,voice:'test-local',naturalVoice:'Jasper',speed:1.25})));
   await page.reload();
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Play with friends',exact:true}).click();
@@ -215,6 +237,41 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   });
   assert.ok(naturalStart.startedAt>=naturalStart.settledAt,'The next natural cue also waits for the table consequences');
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),bridgeSpoken,'The next cue uses the ready natural voice, without a duplicate device reading');
+  await readyNext(page);
+  await page.evaluate(()=>window.__natural.failGenerate=true);
+  const commitInvestigation=async()=>{
+    const target=await page.evaluate(async()=>{
+      const room=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room;
+      return (await import('/src/lib/dropinn/scene.ts')).getScene(room).targets.find(item=>item.tokens.includes('investigate')).id;
+    });
+    await select(page,'investigate',target);await skip(page);await sync(page);
+  };
+  await commitInvestigation();
+  await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,bridgeSpoken,{timeout:12000});
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).voice),'test-local','A failed natural sentence falls back to a verified local voice');
+  assert.match(await page.locator('.di-narrator-error').textContent(),/Using your device voice because the natural voice could not continue/);
+  await page.getByRole('button',{name:'Mute narrator',exact:true}).waitFor();
+  const afterFallback=await page.evaluate(()=>({spoken:window.__narratorSpeech.spoken.length,generated:window.__natural.requests.filter(item=>item.type==='generate').length}));
+  // Even if synthesis would now succeed, automatic mode stays with the working
+  // local voice until the listener explicitly requests another natural attempt.
+  await page.evaluate(()=>window.__natural.failGenerate=false);
+  await readyNext(page);
+  await commitInvestigation();
+  await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,afterFallback.spoken,{timeout:12000});
+  assert.equal(await page.evaluate(()=>window.__natural.requests.filter(item=>item.type==='generate').length),afterFallback.generated,'Subsequent cues keep using the local fallback without retrying synthesis');
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).voice),'test-local');
+  const beforeLocalFailure=await page.evaluate(()=>window.__narratorSpeech.spoken.length);
+  await page.evaluate(()=>window.__narratorSpeech.current.onerror({error:'synthesis-failed'}));
+  await page.getByRole('button',{name:'Enable narrator voice',exact:true}).waitFor();
+  await page.getByRole('group',{name:'Story settings'}).waitFor();
+  assert.match(await page.locator('.di-narrator-error').textContent(),/Voice unavailable/);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.length),beforeLocalFailure,'A failed fallback voice stops instead of looping into another device reading');
+  assert.equal(await page.evaluate(()=>window.__natural.requests.filter(item=>item.type==='generate').length),afterFallback.generated,'A failed fallback voice does not silently retry natural speech');
+  await page.getByRole('button',{name:'Retry voice',exact:true}).click();
+  await page.waitForFunction(count=>window.__natural.requests.filter(item=>item.type==='generate').length>count,afterFallback.generated);
+  assert.equal(await page.locator('.di-narrator-error').count(),0,'Explicit retry clears the fallback explanation and resumes natural speech');
+  await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   await page.getByRole('button',{name:'Mute narrator',exact:true}).click();
   await readyNext(page);
   await leaveTable();
@@ -238,7 +295,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   assert.equal(await page.evaluate(()=>window.__natural.requests.filter(item=>item.type==='generate').length),0,'Late automatic readiness cannot re-enable narration');
   await page.getByRole('button',{name:'Close story settings',exact:true}).click();
   await leaveTable();
-  note('narrator-automatic-bridge',{evidence:'Mock local voice plus held worker: immediate listening, uninterrupted current cue on readiness, natural voice on the next settled cue, delayed local voice availability, cancellation rejecting late readiness; no audible quality assertion'});
+  note('narrator-automatic-bridge',{evidence:'Mock local voice plus held worker: immediate listening, uninterrupted current cue on readiness, natural voice on the next settled cue, synthesis failure with visible local fallback, later cues stay local, local fallback failure stops without a loop, explicit natural retry, delayed local voice availability, cancellation rejecting late readiness; no audible quality assertion'});
   await page.evaluate(()=>localStorage.setItem('dropinn-narrator',JSON.stringify({engine:'device',collapsed:true,voice:'test-natural'})));
   await page.addInitScript(()=>{Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});Object.defineProperty(window,'AudioContext',{configurable:true,value:undefined});});
   await page.reload();

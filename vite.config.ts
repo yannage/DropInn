@@ -80,6 +80,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react(), tailwindcss(), adventureServer(env), narratorAssets()],
+    // Browser profiles and generated reports can contain locked files on Windows.
+    server: { watch: { ignored: ['**/output/**'] } },
     optimizeDeps: { include: ['onnxruntime-web/wasm', 'phonemizer', 'fflate'] },
     worker: { format: 'es' as const, rollupOptions: { output: { inlineDynamicImports: true } } },
     define: { 'import.meta.env.VITE_DROPINN_BACKEND': JSON.stringify(env.DROPINN_BACKEND === 'supabase' ? 'supabase' : 'local') },

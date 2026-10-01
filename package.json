@@ -22,6 +22,8 @@
     "stories:build": "node scripts/build-story-data.mjs",
     "art:check": "node .agents/skills/dropinn-art/scripts/check-assets.mjs",
     "test:narrator:model": "node scripts/playtest-narrator-model.mjs",
+    "narrator:build-openings": "node scripts/build-narrator-openings.mjs",
+    "test:narrator:openings": "node scripts/check-narrator-openings.mjs",
     "test:narrator:production": "node scripts/check-narrator-production.mjs"
   },
   "dependencies": {

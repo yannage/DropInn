@@ -1,8 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NarratorPlayer } from './narratorPlayer';
 import type { NarratorAssets } from './narratorModel';
+import { loadNarratorOpeningClip, narratorOpeningClip } from './narratorOpenings';
 
 vi.mock('./narratorDownload', () => ({ createNarratorWorker: vi.fn(), cancelNarratorDownload: vi.fn() }));
+vi.mock('./narratorOpenings', () => ({ narratorOpeningClip: vi.fn(), loadNarratorOpeningClip: vi.fn() }));
+beforeEach(() => { vi.mocked(narratorOpeningClip).mockReset(); vi.mocked(loadNarratorOpeningClip).mockReset(); });
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 const flush = async () => { for (let index = 0; index < 8; index++) await Promise.resolve(); };
 
@@ -167,6 +170,138 @@ describe('reusable natural speech', () => {
     await player.initialize(true); oldFailure();
     expect(player.ready).toBe(true); expect(second.terminate).not.toHaveBeenCalled();
     player.dispose();
+  });
+});
+
+describe('authored opening audio', () => {
+  const clip = {} as NonNullable<ReturnType<typeof narratorOpeningClip>>;
+  const audio = () => ({ samples: new Float32Array(24000), sampleRate: 24000 });
+
+  it('starts an opening before initialization and waits for readiness before the next dynamic chunk', async () => {
+    const worker = new WorkerStub(), { sources } = mockAudio(false), player = new NarratorPlayer(worker.prepare), caption = vi.fn();
+    worker.automatic = false;
+    vi.mocked(narratorOpeningClip).mockImplementation(text => text === 'Opening.' ? clip : undefined);
+    vi.mocked(loadNarratorOpeningClip).mockResolvedValue(audio());
+    await player.unlock(); const initialized = player.initialize(true);
+    const playing = player.play(['Opening.', 'The party makes a choice.'], 0, 'natural', '', caption);
+    await flush();
+    expect(player.ready).toBe(false); expect(sources[0].start).toHaveBeenCalledOnce();
+    expect(worker.generations()).toHaveLength(0); expect(caption).toHaveBeenCalledWith('Opening.', 0);
+    sources[0].onended?.(); await flush(); expect(sources).toHaveLength(1);
+    worker.automatic = true; worker.reply({ id: worker.messages[0].id, type: 'ready' });
+    await initialized; await flush();
+    expect(worker.generations().map(message => message.text)).toEqual(['The party makes a choice.']);
+    expect(sources[1].start).toHaveBeenCalledOnce(); sources[1].onended?.(); await playing;
+    player.dispose();
+  });
+
+  it('can read and replay a complete authored passage without initializing a model', async () => {
+    const worker = new WorkerStub(), { sources } = mockAudio(), player = new NarratorPlayer(worker.prepare);
+    vi.mocked(narratorOpeningClip).mockReturnValue(clip); vi.mocked(loadNarratorOpeningClip).mockResolvedValue(audio());
+    await player.unlock();
+    await player.play(['Opening.', 'The journey begins.'], 0, 'natural', '', vi.fn());
+    await player.play(['Opening.', 'The journey begins.'], 0, 'natural', '', vi.fn());
+    expect(worker.prepare).not.toHaveBeenCalled(); expect(loadNarratorOpeningClip).toHaveBeenCalledTimes(2);
+    expect(sources).toHaveLength(4); expect(player.ready).toBe(false); player.dispose();
+  });
+
+  it('finishes an authored opening when concurrent model preparation fails', async () => {
+    const worker = new WorkerStub(), { sources } = mockAudio(false), player = new NarratorPlayer(worker.prepare), caption = vi.fn();
+    worker.automatic = false;
+    vi.mocked(narratorOpeningClip).mockReturnValue(clip); vi.mocked(loadNarratorOpeningClip).mockResolvedValue(audio());
+    await player.unlock();
+    const playing = player.play(['Opening.', 'The journey begins.'], 0, 'natural', '', caption);
+    const failed = expect(player.initialize(true)).rejects.toThrow('Model unavailable');
+    await flush(); expect(sources[0].start).toHaveBeenCalledOnce();
+    worker.reply({ id: worker.messages[0].id, type: 'error', message: 'Model unavailable' }); await failed;
+    sources[0].onended?.(); await flush();
+    expect(sources[1].start).toHaveBeenCalledOnce(); expect(caption).toHaveBeenLastCalledWith('The journey begins.', 1);
+    sources[1].onended?.(); await playing;
+    expect(worker.generations()).toHaveLength(0); expect(player.ready).toBe(false); player.dispose();
+  });
+
+  it('uses live synthesis when an opening asset cannot be loaded', async () => {
+    const { worker, player, sources } = await naturalPlayer();
+    vi.mocked(narratorOpeningClip).mockReturnValue(clip);
+    vi.mocked(loadNarratorOpeningClip).mockRejectedValue(new Error('Opening not available offline'));
+    await player.play(['Opening.'], 0, 'natural', '', vi.fn());
+    expect(worker.generations()).toHaveLength(1); expect(sources[0].start).toHaveBeenCalledOnce(); player.dispose();
+  });
+
+  it('aborts a stale opening promptly and never caches its late result', async () => {
+    const { worker, player, sources } = await naturalPlayer(), caption = vi.fn();
+    let complete!: (value: ReturnType<typeof audio>) => void;
+    vi.mocked(narratorOpeningClip).mockReturnValue(clip);
+    vi.mocked(loadNarratorOpeningClip).mockImplementationOnce(() => new Promise(resolve => { complete = resolve; }));
+    const playing = player.play(['Opening.'], 0, 'natural', '', caption);
+    const signal = vi.mocked(loadNarratorOpeningClip).mock.calls[0][1];
+    player.stop(); await playing; expect(signal!.aborted).toBe(true);
+    complete(audio()); await flush();
+    expect(caption).not.toHaveBeenCalled(); expect(sources).toHaveLength(0); expect(worker.generations()).toHaveLength(0);
+    vi.mocked(loadNarratorOpeningClip).mockResolvedValue(audio());
+    await player.play(['Opening.'], 0, 'natural', '', caption);
+    expect(loadNarratorOpeningClip).toHaveBeenCalledTimes(2); expect(sources).toHaveLength(1); player.dispose();
+  });
+
+  it('stops waiting for initialization without canceling it or generating late speech', async () => {
+    const worker = new WorkerStub(), { sources } = mockAudio(), player = new NarratorPlayer(worker.prepare);
+    worker.automatic = false;
+    await player.unlock(); const initialized = player.initialize(true);
+    const initializationFailure = expect(initialized).rejects.toThrow('unavailable');
+    const playing = player.play(['A dynamic line.'], 0, 'natural', '', vi.fn());
+    await flush(); player.stop(); await playing;
+    expect(worker.terminate).not.toHaveBeenCalled(); expect(worker.generations()).toHaveLength(0);
+    worker.onmessageerror?.(); await initializationFailure; await flush();
+    expect(sources).toHaveLength(0); player.dispose();
+  });
+});
+
+describe('automatic playback recovery', () => {
+  it('falls back at the failed prefetched chunk and keeps the rest of the passage local', async () => {
+    const speech = mockSpeech(), { worker, player, sources } = await naturalPlayer(false), caption = vi.fn(), onFallback = vi.fn();
+    worker.automatic = false;
+    const playing = player.play(['First.', 'Second.', 'Third.'], 0, 'natural', '', caption, 1, 'Bella', { fallbackToDevice: true, onFallback });
+    worker.reply({ id: worker.generations()[0].id, type: 'audio', samples: worker.samples, sampleRate: 24000 });
+    await flush();
+    worker.reply({ id: worker.generations()[1].id, type: 'error', message: 'Speech generation failed.' });
+    await flush(); expect(speech.speak).not.toHaveBeenCalled();
+    sources[0].onended?.(); await flush();
+    expect(speech.speak.mock.calls.map(([line]) => line.text)).toEqual(['Second.']);
+    expect(onFallback).toHaveBeenCalledOnce(); expect(caption).toHaveBeenLastCalledWith('Second.', 1);
+    speech.speak.mock.calls[0][0].onend?.(); await flush();
+    expect(speech.speak.mock.calls.map(([line]) => line.text)).toEqual(['Second.', 'Third.']);
+    expect(caption).toHaveBeenLastCalledWith('Third.', 2); expect(onFallback).toHaveBeenCalledOnce();
+    speech.speak.mock.calls[1][0].onend?.(); await playing;
+    expect(worker.generations()).toHaveLength(2); player.dispose();
+  });
+
+  it('recovers from a bounded synthesis timeout using an installed local voice', async () => {
+    vi.useFakeTimers();
+    const speech = mockSpeech(), { worker, player } = await naturalPlayer(), onFallback = vi.fn();
+    worker.automatic = false;
+    const playing = player.play(['The story continues.'], 0, 'natural', '', vi.fn(), 1, 'Bella', { fallbackToDevice: true, onFallback });
+    await vi.advanceTimersByTimeAsync(20000);
+    expect(worker.terminate).toHaveBeenCalledOnce(); expect(onFallback).toHaveBeenCalledOnce();
+    expect(speech.speak.mock.calls[0][0].voice).toBe(localVoice);
+    speech.speak.mock.calls[0][0].onend?.(); await playing; expect(vi.getTimerCount()).toBe(0); player.dispose();
+  });
+
+  it('leaves explicitly selected natural speech unchanged on synthesis failure', async () => {
+    const speech = mockSpeech(), { worker, player } = await naturalPlayer(), onFallback = vi.fn();
+    worker.automatic = false;
+    const failed = expect(player.play(['Opening.'], 0, 'natural', '', vi.fn(), 1, 'Bella', { onFallback })).rejects.toThrow('Speech generation failed');
+    worker.reply({ id: worker.generations()[0].id, type: 'error', message: 'Speech generation failed.' });
+    await failed; expect(speech.speak).not.toHaveBeenCalled(); expect(onFallback).not.toHaveBeenCalled(); player.dispose();
+  });
+
+  it('does not announce fallback when no verified local voice can be selected', async () => {
+    vi.useFakeTimers();
+    const speech = mockSpeech([{ ...localVoice, localService: false }]), { worker, player } = await naturalPlayer(), onFallback = vi.fn();
+    worker.automatic = false;
+    const failed = expect(player.play(['Opening.'], 0, 'natural', '', vi.fn(), 1, 'Bella', { fallbackToDevice: true, onFallback })).rejects.toThrow('No English voice');
+    worker.reply({ id: worker.generations()[0].id, type: 'error', message: 'Speech generation failed.' });
+    await vi.advanceTimersByTimeAsync(1500); await failed;
+    expect(speech.speak).not.toHaveBeenCalled(); expect(onFallback).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0); player.dispose();
   });
 });
 

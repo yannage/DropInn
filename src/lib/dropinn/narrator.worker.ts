@@ -50,12 +50,13 @@ async function generate(input: string, rate: number, selected: NarratorNaturalVo
     style: new ort.Tensor('float32', voice.slice(row * 256, (row + 1) * 256), [1, 256]),
     speed: new ort.Tensor('float32', [narratorNaturalVoiceProfile(selected).speedPrior * rate], [1]),
   };
-  const output = await session!.run(inputs);
+  let output: Record<string, ort.Tensor> | undefined;
   try {
+    output = await session!.run(inputs);
     const raw = output[session!.outputNames[0]].data;
     if (!(raw instanceof Float32Array) || raw.length <= 5000 || raw.some(value => !Number.isFinite(value))) throw Error('Speech generation failed.');
     return raw.slice(0, -5000); // Official Nano pipeline removes its trailing pad.
-  } finally { Object.values(inputs).forEach(tensor => tensor.dispose()); Object.values(output).forEach(tensor => tensor.dispose()); }
+  } finally { Object.values(inputs).forEach(tensor => tensor.dispose()); Object.values(output ?? {}).forEach(tensor => tensor.dispose()); }
 }
 
 let queue = Promise.resolve();

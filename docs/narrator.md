@@ -7,11 +7,12 @@ audio still needs a user gesture; saved settings do not enable autoplay.
 
 ## Listening modes
 
-- **Automatic** is the default for new preferences. An available installed English
-  voice starts immediately while the natural storyteller loads and warms up. The
-  current passage keeps its voice; the next cue uses the natural voice. Without a
-  local voice, captions remain visible while the natural voice prepares.
-- **Natural storyteller** loads and starts the chosen voice with one click.
+- **Automatic** is the default for new preferences. At 1×, prepared first-chapter
+  openings play in the chosen natural voice while the dynamic engine loads.
+  Otherwise an available installed English voice bridges preparation; the next
+  cue uses the ready natural voice. Without either, captions remain visible.
+- **Natural storyteller** also plays prepared openings before model readiness,
+  then uses local synthesis for changing events.
 - **Device voice** uses installed English speech without loading model assets.
 
 Only voices marked `localService === true` are eligible for device speech. Remote,
@@ -56,6 +57,29 @@ Sources: [Kitten inference](https://github.com/KittenML/KittenTTS/blob/main/kitt
 
 ## Playback and cue selection
 
+The first chapter of each of the four adventures has prepared audio for all eight
+voices: **96 PCM16/24 kHz WAV files, 16,931,424 bytes total**. Only requested chunks
+load after Listen. The default Bella/Briar Glen opening starts with a 198,844-byte
+clip; its entire two-clip passage is 562,088 bytes. All first clips are under 335 KB.
+The library is not an extra pack downloaded by each visitor.
+
+These recordings were generated once using the same pinned local worker, without
+a speech service. Exact text, voice, 1× speed and model revision must match before
+a clip can replace inference. Changed text, other speeds and later events use the
+dynamic engine. A missing, malformed or slow clip falls back to normal synthesis;
+fetch/body reading has a three-second limit and aborts on mute or cue change.
+Model readiness never cuts off or replays a prepared passage, and the opening can
+finish even if model preparation fails.
+
+`npm run narrator:build-openings` regenerates missing clips through a loopback Vite
+server (`NARRATOR_BUILD_URL`, default port 5200). It resumes validated files and
+caches the model in an OS-temporary browser profile outside the watched checkout.
+Use `-- --plan` to inspect scope and `-- --check` to verify all hashes, PCM headers,
+text/voice coverage and byte budgets without downloading or generating anything.
+The script writes `narrator-openings.json` atomically; story/model changes require
+regenerating the library. These clips use the ordinary browser HTTP cache, separate
+from removable model Cache Storage.
+
 Speech prioritizes recorded chapter endings, party route choices, discoveries and
 meaningful human consequences over routine companion actions. No chat, temporary AI
 copy, roll modifiers or reward arithmetic enters the cue. Names and outcomes come
@@ -78,6 +102,14 @@ audio leaves readable captions. Settings retain 44px touch targets, Escape/focus
 restoration and scrolling on small screens. The game has one narrator and ducks
 table effects underneath enabled speech.
 
+If natural playback fails in Automatic mode, a verified local voice retries the
+affected chunk, preserving completed chunks, and reads subsequent cues until an
+explicit retry. Natural-only mode reports the failure. A local fallback failure
+stops cleanly. Completed passages stay completed across background/foreground;
+interrupted passages resume their current chunk. Silent caption progression never
+advances the voice cursor while the model loads. Late callbacks after cancellation
+or terminal playback failure cannot re-enable speech.
+
 ## Storage and runtime
 
 Complete assets live in the versioned `dropinn-kitten-*` Cache Storage bucket.
@@ -93,6 +125,10 @@ Kitten tokenization, text-length style selection, 24 kHz output and 5,000-sample
 trailing trim follow the official Python inference implementation. Download,
 initialization and synthesis have bounded timeouts. Third-party notices, including
 eSpeak NG's GPL terms and source links, are at `/licenses/narrator.txt`.
+Shared size-manifest loading has a ten-second deadline. A canceled caller stops
+waiting immediately without canceling another reader; download retry and removal
+account for older in-flight cache writes. Input and output tensors are disposed
+even when inference rejects.
 
 ## Verification
 
@@ -106,6 +142,11 @@ eSpeak NG's GPL terms and source links, are at `/licenses/narrator.txt`.
 - `npm run test:narrator:model` exercises real synthesis on development port 5198.
   `NARRATOR_TEST_BROWSER=chromium` limits it to Chromium. Windows WebKit's lack of
   AudioContext is not Safari playback evidence.
+- `npm run test:narrator:openings` uses real shipped WAVs and AudioContext on port
+  5200 with model transport and readiness deliberately held. It checks pre-consent
+  inactivity, first audio before model download, late readiness, completed-cue
+  visibility, preparation/playback failure, cancellation and mobile settings.
+  The dynamic-model runners use 1.25× to bypass prepared 1× clips.
 - `npm run test:narrator:production` tests shipped-worker synthesis, cached offline
   operation and removal. Its production UI fixture expects an isolated build with
   dummy `VITE_SUPABASE_URL=https://narrator-qa.invalid` and
@@ -145,3 +186,30 @@ the focused narrator runner passed all five groups separately, with zero server
 was not repeated wholesale after this test-only wait correction. Browser helpers
 now import their store before polling synchronously; start a fresh dev server after
 store edits so HMR timestamp imports do not create a second fixture store.
+
+### Opening and reliability continuation · 2026-09-30
+
+The production build and **456 unit/service checks** pass. All 96 prepared files
+pass hash, PCM, coverage and size validation. Five real-WAV Chromium scenarios
+passed with model transfer/readiness held: late readiness after completion and
+backgrounding, readiness during playback, preparation failure, terminal playback
+failure, and cancellation rejecting late callbacks. The first clip started in
+42–111 ms in the final run on local desktop HTTP; this isolates playback startup from network and
+mobile performance. Each visit requested only the two selected opening clips.
+Both mobile settings viewports were inspected. Default Automatic mode covered
+late readiness, uninterrupted playback and cancellation; explicit Natural mode
+covered preparation and playback failures.
+
+The focused scene narrator runner also passes all five groups, including automatic
+fallback at the failed chunk, local speech on later cues, terminal local failure
+without retry loops, and an explicit retry back to natural speech. There were no
+browser exceptions or server `narrate` requests. These checks use mocked device
+speech and worker failure delivery; they do not measure perceived voice quality.
+
+The rebuilt production worker passed real synthesis for all eight voices,
+cached/offline generation, faster speech and removal. Dynamic 1.25× first playback
+took 4.52 seconds, versus 3.39 seconds on revisit; its runtime/model assets totaled
+43,321,063 bytes. Prepared openings are tested separately at 1×. Reports are
+`output/playwright/narrator-openings.json`, `scene-narrator-results.json` and
+`narrator-bella-production.json`. No hosted deployment or physical-phone test was
+performed in this continuation.

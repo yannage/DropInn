@@ -11,7 +11,7 @@ import { createServer } from 'vite';
 const base = process.env.NARRATOR_PREVIEW_URL ?? 'http://localhost:5199';
 if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(base)) throw Error('Use a loopback preview server.');
 await mkdir('output/playwright', { recursive: true });
-const ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-narrator-production', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'error' });
+const ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-narrator-production', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
 const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
 const { createCharacterProfile } = await ssr.ssrLoadModule('/src/lib/character.ts');
 const { emptyCollection } = await ssr.ssrLoadModule('/src/lib/dropinn/collection.ts');
@@ -45,7 +45,8 @@ page.on('pageerror', error => errors.push(error.message));
 page.on('console', msg => { if (msg.type() === 'error') console.error(msg.text().slice(0, 350)); });
 await page.addInitScript(({ session }) => {
   localStorage.setItem('dropinn-auth', JSON.stringify(session));
-  if (!localStorage.getItem('dropinn-narrator')) localStorage.setItem('dropinn-narrator', JSON.stringify({ engine: 'natural', naturalVoice: 'Bella', speed: 1 }));
+  // Prepared 1× openings have a separate real-audio check.
+  if (!localStorage.getItem('dropinn-narrator')) localStorage.setItem('dropinn-narrator', JSON.stringify({ engine: 'natural', naturalVoice: 'Bella', speed: 1.25 }));
   window.__narratorProduction = { messages: [], playback: [] };
   const OriginalWorker = window.Worker;
   window.Worker = class extends OriginalWorker {

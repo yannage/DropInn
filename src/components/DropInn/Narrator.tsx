@@ -8,6 +8,7 @@ import { narratorDownloadSnapshot, narratorSize, refreshNarratorDownload, subscr
 import { narratorNaturalVoices } from '../../lib/dropinn/narratorVoices';
 import { NarratorDownload } from './NarratorDownload';
 import { NarratorPlayer } from '../../lib/dropinn/narratorPlayer';
+import { narratorOpeningClip } from '../../lib/dropinn/narratorOpenings';
 import './narrator.css';
 import { duckTableSound } from './tableSound';
 
@@ -48,7 +49,8 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
   const run = useRef(0);
   const activeKey = useRef('');
   const hasSpoken = useRef(false);
-  // Automatic mode changes voice only between cues, never halfway through a sentence.
+  const naturalFailed = useRef(false);
+  // Readiness changes voice between cues; failure retries the affected chunk locally.
   const cueEngine = useRef<{ id: string; engine: 'natural' | 'device' }>();
   const settingsButton = useRef<HTMLButtonElement>(null);
   const cue = useMemo(() => narratorCue(room), [room.id, room.chapter, room.turn, room.phase, room.events, room.outcomes]);
@@ -56,20 +58,26 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
   const captions = useMemo(() => narratorCaptions(cue.text), [cue.text]);
   const caption = deferCue ? 'The party’s moves are unfolding…' : display.id === cue.id ? display.text : captions[0] ?? '';
   const speech = typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined' ? window.speechSynthesis : undefined;
-  const naturalSupported = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined' && typeof AudioContext !== 'undefined';
-  const supported = naturalSupported || !!speech;
+  const audioSupported = typeof AudioContext !== 'undefined';
+  const naturalSupported = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined' && audioSupported;
+  const opening = audioSupported && sentences.length > 0 && sentences.every(text => narratorOpeningClip(text, preference.naturalVoice, preference.speed));
+  const supported = naturalSupported || opening || !!speech;
 
   function stop() { ++run.current; activeKey.current = ''; hasSpoken.current = false; player.current!.stop(); }
   function devicePassageActive() { return cueEngine.current?.engine === 'device' && !!activeKey.current; }
   function fail(reason: unknown) {
     if (reason instanceof DOMException && reason.name === 'AbortError') return;
+    ++activation.current;
+    if (preparing.current) player.current!.cancelDownload();
+    preparing.current = false;
     stop(); setEnabled(false); setLoading(false);
     setError(reason instanceof Error ? reason.message : 'Voice unavailable. You can still follow the subtitles.');
     setSettings(true);
   }
   function start(engine = preference.engine, voice = preference.voice) {
     if (document.hidden || suppressed.current === cue.id || suppressCue || deferCue) return;
-    if (engine === 'auto' && cueEngine.current?.id !== cue.id) cueEngine.current = { id: cue.id, engine: player.current!.ready ? 'natural' : 'device' };
+    if (current.current.id === cue.id && current.current.segment >= sentences.length) return;
+    if (engine === 'auto' && cueEngine.current?.id !== cue.id) cueEngine.current = { id: cue.id, engine: !naturalFailed.current && (player.current!.ready || opening) ? 'natural' : 'device' };
     const actual = engine === 'auto' ? cueEngine.current!.engine : engine;
     const key = `${cue.id}:${cue.text}:${actual}:${voice}:${preference.naturalVoice}:${preference.speed}:${replay}`;
     if (activeKey.current === key) return;
@@ -80,10 +88,19 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
       if (run.current !== ticket) return;
       hasSpoken.current = true;
       current.current = { id: cue.id, segment }; setDisplay({ id: cue.id, text });
-    }, preference.speed, preference.naturalVoice).catch(reason => {
+    }, preference.speed, preference.naturalVoice, {
+      fallbackToDevice: engine === 'auto',
+      onFallback: () => {
+        if (run.current !== ticket) return;
+        naturalFailed.current = true; cueEngine.current = { id: cue.id, engine: 'device' };
+        setError('Using your device voice because the natural voice could not continue. Retry voice in Story settings tries again.');
+      },
+    }).then(() => {
+      if (run.current === ticket) current.current = { id: cue.id, segment: sentences.length };
+    }).catch(reason => {
       if (run.current !== ticket || (reason instanceof DOMException && reason.name === 'AbortError')) return;
       // A local device voice may disappear while the natural voice is preparing.
-      if (engine === 'auto' && actual === 'device' && (preparing.current || player.current!.ready)) {
+      if (engine === 'auto' && actual === 'device' && !naturalFailed.current && (preparing.current || player.current!.ready)) {
         stop(); cueEngine.current = undefined; setEnabled(false);
         if (player.current!.ready) { setEnabled(true); setReplay(value => value + 1); }
       } else fail(reason);
@@ -93,6 +110,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
   async function activate(engine = preference.engine) {
     const ticket = ++activation.current;
     stop(); if (preparing.current) player.current!.cancelDownload(); preparing.current = false;
+    naturalFailed.current = false;
     setEnabled(false); setLoading(false); setError('');
     cueEngine.current = undefined; current.current = { id: cue.id, segment: 0 };
     setPreference(value => ({ ...value, engine }));
@@ -102,8 +120,9 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
     }
     // Voice enumeration often completes after the click. The player waits briefly
     // for a verified local voice while the model prepares independently.
-    const bridge = engine === 'auto' && !!speech && !player.current!.ready;
-    if (!naturalSupported) {
+    const bridge = engine === 'auto' && !!speech && !player.current!.ready && !opening;
+    const openingActive = () => opening && current.current.id === cue.id && !!activeKey.current;
+    if (!naturalSupported && !opening) {
       if (engine === 'auto' && speech) { setEnabled(true); start('device'); }
       else { setSettings(true); setError('Natural narration is unavailable on this device.'); }
       return;
@@ -111,17 +130,24 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
     // Resume audio during this click; never defer it until the download finishes.
     const unlocked = player.current!.unlock().catch(reason => {
       if (ticket === activation.current) {
-        if (!bridge) fail(reason);
-        else { setLoading(false); setError('The natural voice is unavailable. Trying your local device voice.'); }
+        if (engine !== 'auto' || !speech) fail(reason);
+        else {
+          naturalFailed.current = true; cueEngine.current = { id: cue.id, engine: 'device' };
+          setLoading(false); setEnabled(true); setError('The natural voice is unavailable. Trying your local device voice.');
+          start('auto');
+        }
       }
       return false;
     });
     preparing.current = true;
-    setLoading(true); setProgress('Getting the storyteller ready…');
+    setLoading(naturalSupported); setProgress('Getting the storyteller ready…');
     if (bridge) { setEnabled(true); start('auto'); }
     const audioReady = await unlocked;
     if (ticket !== activation.current) return;
     if (audioReady === false) { preparing.current = false; return; }
+    // Small authored audio files start before the much larger dynamic engine.
+    if (opening) { setEnabled(true); start(engine); }
+    if (!naturalSupported) { preparing.current = false; return; }
     player.current!.onProgress = (loaded, total) => {
       if (ticket === activation.current) setProgress(total && loaded >= total ? 'Warming up the storyteller…' : total ? `Loading storyteller · ${Math.floor(loaded / total * 100)}%${bridge && hasSpoken.current ? ' · Device voice is playing' : ''}` : 'Getting the storyteller ready…');
     };
@@ -129,17 +155,21 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
       await player.current!.initialize(true);
       if (ticket !== activation.current) return;
       preparing.current = false; setLoading(false); setProgress(''); setEnabled(true);
-      if (!(devicePassageActive() && hasSpoken.current)) {
-        cueEngine.current = undefined; current.current = { id: '', segment: 0 }; setReplay(value => value + 1);
+      if (devicePassageActive() && !hasSpoken.current && !naturalFailed.current) {
+        cueEngine.current = undefined; setReplay(value => value + 1);
       }
-      // A bridge finishes in its original voice; the next cue uses the ready model.
+      // Keep prepared, resumed and completed cursors when readiness arrives late.
     } catch (reason) {
       if (ticket !== activation.current) return;
       preparing.current = false; setLoading(false);
       if (reason instanceof DOMException && reason.name === 'AbortError') { if (!bridge) setEnabled(false); }
-      else if (bridge && devicePassageActive()) setError(hasSpoken.current
+      else if (openingActive()) setError('The opening can keep playing. Live speech could not load; Retry voice in Story settings tries again.');
+      else if (devicePassageActive()) setError(hasSpoken.current
         ? 'The natural voice could not load. Your device voice can keep reading. Retry in Story settings.'
         : 'The natural voice could not load. Trying your local device voice.');
+      // A newer natural cue may be awaiting this same initialization. Its player
+      // owns failure/fallback, so do not cancel it from the older activation.
+      else if (activeKey.current) setError('The natural voice could not load. Retry voice in Story settings tries again.');
       else fail(reason);
     }
   }
@@ -182,10 +212,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
       if (index >= captions.length - 1) return;
       index++;
       const text = captions[index];
-      const offset = captions.slice(0, index).join(' ').length;
-      let end = 0, segment = 0;
-      for (; segment < sentences.length - 1; segment++) { end += sentences[segment].length + 1; if (offset < end) break; }
-      current.current = { id: cue.id, segment };
+      // Silent captions must not advance the voice cursor while its model loads.
       setDisplay({ id: cue.id, text });
       timer = setTimeout(next, captionDuration(text));
     };
@@ -207,7 +234,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
       <label className="di-narrator-check"><input type="checkbox" checked={pacedTurns} onChange={event => onPacedTurns(event.target.checked)} /><span>Pace turn results<small>Show each move before the full recap. Turning this off automatically skips your wait between turns.</small></span></label>
       <strong className="di-narrator-settings-subhead">A voice for the story</strong>
       <label>Narration mode<select value={preference.engine} onChange={event => { cancelLoading(); cueEngine.current = undefined; setError(''); setPreference({ ...preference, engine: event.target.value as NarratorEngine }); }}>
-        <option value="auto">Automatic · start listening sooner</option><option value="natural" disabled={!naturalSupported}>Natural storyteller</option><option value="device" disabled={!speech}>Device voice · no voice download</option>
+        <option value="auto">Automatic · start listening sooner</option><option value="natural" disabled={!naturalSupported && !opening}>Natural storyteller</option><option value="device" disabled={!speech}>Device voice · no voice download</option>
       </select></label>
       {preference.engine !== 'device' && <label>Storyteller<select value={preference.naturalVoice} onChange={event => setPreference({ ...preference, naturalVoice: event.target.value })}>{narratorNaturalVoices.map(voice => <option key={voice.id} value={voice.id}>{voice.name} · {voice.description}</option>)}</select></label>}
       <label>Speaking speed<select value={preference.speed} onChange={event => setPreference({ ...preference, speed: Number(event.target.value) })}>
@@ -216,7 +243,7 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
       {preference.engine === 'device' && <label>Browser voice<select disabled={!speech} value={preference.voice} onChange={event => { setPreference({ ...preference, voice: event.target.value }); if (enabled) start('device', event.target.value); }}>
         <option value="">Storyteller · automatic</option>{voices.map(voice => <option key={voice.voiceURI} value={voice.voiceURI}>{voice.name} · {voice.lang}</option>)}
       </select></label>}
-      {preference.engine !== 'device' ? <><p>Press Listen and the storyteller loads automatically{pack.total ? ` (${narratorSize(pack.total)} the first time)` : ''}. Saved for every adventure. Speech stays on your device, with no usage fees.</p>{preference.engine === 'auto' && <p>An available local device voice can start while the storyteller prepares. Voices change between passages.</p>}<NarratorDownload compact /></> : <p>Uses an installed English voice. No voice pack or online speech service. Voice quality depends on your device.</p>}
+      {preference.engine !== 'device' ? <><p>At 1× speed, story openings play from small audio files while the storyteller prepares for changing events{pack.total ? ` (${narratorSize(pack.total)} saved once)` : ''}. Speech stays on your device, with no usage fees.</p>{preference.engine === 'auto' && <p>An available local voice keeps the story moving if natural speech cannot play.</p>}<NarratorDownload compact /></> : <p>Uses an installed English voice. No voice pack or online speech service. Voice quality depends on your device.</p>}
       {error && <p className="di-narrator-error" role="status">{error}</p>}
       {loading ? <><p role="status">{progress}</p><button className="di-narrator-replay" onClick={cancelLoading}>Cancel voice loading</button></> : <>
         <button className="di-narrator-replay" disabled={!supported} onClick={() => void activate()}>{error ? 'Retry voice' : 'Read this line'}</button>

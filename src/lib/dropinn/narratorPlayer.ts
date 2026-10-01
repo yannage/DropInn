@@ -2,6 +2,7 @@ import { narratorCaptions, narratorVoice } from './narrator';
 import { narratorSpeed, type NarratorRequest, type NarratorResponse } from './narratorAudio';
 import { createNarratorWorker, cancelNarratorDownload } from './narratorDownload';
 import { narratorNaturalVoice } from './narratorVoices';
+import { loadNarratorOpeningClip, narratorOpeningClip } from './narratorOpenings';
 
 type AudioResult = Extract<NarratorResponse, {type: 'audio'}>;
 type Pending = { resolve: (result: NarratorResponse) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; type: string };
@@ -11,11 +12,25 @@ const deviceUnavailable = () => new Error('No English voice is available on this
 const MAX_CACHED_AUDIO_BYTES = 24 * 1024 * 1024;
 const MAX_CACHED_SENTENCES = 32;
 
+/** Stop waiting promptly, even when shared initialization or a transport settles later. */
+function untilStopped<T>(operation: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(signal.reason ?? canceled());
+    const cleanup = () => signal.removeEventListener('abort', abort);
+    operation.then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });
+    if (signal.aborted) abort();
+    else signal.addEventListener('abort', abort, { once: true });
+  });
+}
+
+export interface NarratorPlaybackOptions { fallbackToDevice?: boolean; onFallback?: () => void }
+
 export class NarratorPlayer {
   private worker?: Worker;
   private pending = new Map<number, Pending>();
   private serial = 0;
   private generation = 0;
+  private playbackAbort?: AbortController;
   private context?: AudioContext;
   private source?: AudioBufferSourceNode;
   private speech?: SpeechSynthesisUtterance;
@@ -100,6 +115,7 @@ export class NarratorPlayer {
 
   stop() {
     ++this.generation;
+    this.playbackAbort?.abort(canceled()); this.playbackAbort = undefined;
     this.timers.forEach(clearTimeout); this.timers = [];
     this.stopWaitingForVoice?.(); this.stopWaitingForVoice = undefined;
     const source = this.source;
@@ -117,6 +133,10 @@ export class NarratorPlayer {
     const finish = this.finishPlayback;
     this.finishPlayback = undefined;
     finish?.();
+    this.cancelSynthesis();
+  }
+
+  private cancelSynthesis() {
     for (const [id, pending] of this.pending) {
       if (pending.type !== 'generate') continue;
       clearTimeout(pending.timer); this.pending.delete(id); pending.reject(canceled());
@@ -138,13 +158,30 @@ export class NarratorPlayer {
 
   clearAudioCache() { this.audioCache.clear(); this.cachedBytes = 0; }
 
-  private async synthesize(text: string, rate: number, voice: string, ticket: number): Promise<AudioResult> {
+  private async synthesize(text: string, rate: number, voice: string, ticket: number, signal: AbortSignal): Promise<AudioResult> {
+    signal.throwIfAborted();
     const key = JSON.stringify([text, rate, voice]), cached = this.audioCache.get(key);
     if (cached) {
       this.audioCache.delete(key); this.audioCache.set(key, cached);
       return cached;
     }
-    const result = await this.request({ type: 'generate', text, speed: rate, voice });
+    let result: NarratorResponse | undefined;
+    const clip = narratorOpeningClip(text, voice, rate);
+    if (clip) {
+      try {
+        const audio = await untilStopped(loadNarratorOpeningClip(clip, signal), signal);
+        if (audio.samples instanceof Float32Array && audio.samples.length && Number.isFinite(audio.sampleRate) && audio.sampleRate > 0) result = { type: 'audio', id: 0, ...audio };
+      } catch {
+        // A missing or stale opening uses ordinary synthesis; mute never does.
+        signal.throwIfAborted();
+      }
+    }
+    if (!result) {
+      if (!this.ready && this.initializing) await untilStopped(this.initializing, signal);
+      signal.throwIfAborted();
+      if (ticket !== this.generation) throw canceled();
+      result = await this.request({ type: 'generate', text, speed: rate, voice });
+    }
     if (ticket !== this.generation) throw canceled();
     if (result.type !== 'audio' || !(result.samples instanceof Float32Array) || !result.samples.length || !Number.isFinite(result.sampleRate) || result.sampleRate <= 0) throw new Error('The narrator could not produce this line.');
     const bytes = result.samples.byteLength;
@@ -221,7 +258,7 @@ export class NarratorPlayer {
     });
   }
 
-  private async device(text: string, preferred: string, rate: number, ticket: number, caption: (text: string) => void): Promise<void> {
+  private async device(text: string, preferred: string, rate: number, ticket: number, caption: (text: string) => void, onStarted?: () => void): Promise<void> {
     const voice = await this.deviceVoice(preferred, ticket);
     if (ticket !== this.generation) return;
     if (!voice) throw deviceUnavailable();
@@ -253,34 +290,48 @@ export class NarratorPlayer {
       line.onerror = () => finish(new Error('Voice unavailable. You can still follow the subtitles.'));
       caption(captions[0] ?? text);
       if (ticket !== this.generation) { finish(); return; }
-      try { window.speechSynthesis.speak(line); }
+      try { window.speechSynthesis.speak(line); if (ticket === this.generation) onStarted?.(); }
       catch { finish(new Error('Voice unavailable. You can still follow the subtitles.')); }
     });
   }
 
-  async play(sentences: string[], start: number, engine: 'natural' | 'device', preferred: string, onCaption: (text: string, segment: number) => void, speed = 1, naturalVoice = 'Bella') {
+  async play(sentences: string[], start: number, engine: 'natural' | 'device', preferred: string, onCaption: (text: string, segment: number) => void, speed = 1, naturalVoice = 'Bella', options: NarratorPlaybackOptions = {}) {
     this.stop();
     const ticket = this.generation;
+    const controller = new AbortController(); this.playbackAbort = controller;
     const rate = narratorSpeed(speed);
     // Attach a rejection handler immediately to prefetched work, even while audio plays.
-    const synthesize = (text: string) => this.synthesize(text, rate, narratorNaturalVoice(naturalVoice), ticket).then(value => ({ value }), error => ({ error: error as Error }));
+    const synthesize = (text: string) => this.synthesize(text, rate, narratorNaturalVoice(naturalVoice), ticket, controller.signal).then(value => ({ value }), error => ({ error: error as Error }));
     let next = engine === 'natural' && sentences[start] ? synthesize(sentences[start]) : undefined;
+    let useDevice = engine === 'device';
     try {
       for (let index = start; index < sentences.length && ticket === this.generation; index++) {
         const text = sentences[index];
-        if (engine === 'device') await this.device(text, preferred, rate, ticket, caption => onCaption(caption, index));
+        if (useDevice) await this.device(text, preferred, rate, ticket, caption => onCaption(caption, index));
         else {
-          const result = await next!;
-          if (ticket !== this.generation) return;
-          if ('error' in result) throw result.error;
-          next = sentences[index + 1] ? synthesize(sentences[index + 1]) : undefined;
-          await this.audio(result.value, text, ticket, caption => onCaption(caption, index));
+          try {
+            const result = await next!;
+            if (ticket !== this.generation) return;
+            if ('error' in result) throw result.error;
+            next = sentences[index + 1] ? synthesize(sentences[index + 1]) : undefined;
+            await this.audio(result.value, text, ticket, caption => onCaption(caption, index));
+          } catch (error) {
+            if (ticket !== this.generation) return;
+            if (!options.fallbackToDevice) throw error;
+            controller.abort(canceled()); this.cancelSynthesis();
+            this.timers.forEach(clearTimeout); this.timers = [];
+            next = undefined; useDevice = true;
+            // Keep the loop's failing index: the previous chunk may already be heard.
+            await this.device(text, preferred, rate, ticket, caption => onCaption(caption, index), options.onFallback);
+          }
         }
       }
     } catch (error) {
       if (ticket !== this.generation) return;
       this.stop();
       throw error;
+    } finally {
+      if (this.playbackAbort === controller) this.playbackAbort = undefined;
     }
   }
 }
