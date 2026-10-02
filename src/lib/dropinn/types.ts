@@ -33,6 +33,8 @@ export interface CombinationResult {
   payoffId?: string; progress?: number; dangerReduction?: number; cover?: number;
 }
 export interface ChapterDefinition {
+  /** An authored supplies decision, pinned to Briar Glen v3. */
+  riverSupplies?: true;
   combination?: SceneCombination;
   id: string;
   title: string;
@@ -84,6 +86,8 @@ export interface EnemyIntent {
 }
 /** Presentation reads numeric outcomes, never guesses effects from story prose. */
 export interface ActionResult {
+  /** Confirmed cargo state, for turn playback before the final room is revealed. */
+  riverSupplies?: AdventureRoom['riverSupplies'];
   combination?: CombinationResult;
   approach?: ActionApproach;
   duel?: { enemyRoll: number; enemyModifier: number; enemyTotal: number; playerTotal: number };
@@ -147,6 +151,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  riverSupplies?: { status: 'drifting' | 'spilled' | 'secured' | 'salvaged' | 'lost' };
   combinations?: CombinationState[];
   collectionVersion?: 1;
   /** New rooms opt into focused actions; old rooms keep their original rules. */

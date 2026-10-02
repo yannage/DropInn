@@ -7,6 +7,8 @@ const ASSISTED_RELEASE_MS = 800;
 const ASSISTED_STORAGE_KEY = 'dropinn:assisted-release:v1';
 
 export interface TimedReleaseProps {
+  /** Some scene commitments are guaranteed and earn no execution bonus. */
+  timingBonus?: boolean;
   disabled: boolean;
   turn: number;
   deadline: number;
@@ -97,7 +99,7 @@ export function TimedRelease(props: TimedReleaseProps) {
     getContext: () => latest.current,
     onCommit: releaseMs => {
       setCommitted(true);
-      setFeedback(releaseMs !== undefined && releaseMs >= 650 && releaseMs <= 950 ? 'Good release! +1' : 'Released');
+      setFeedback(latest.current.timingBonus !== false && releaseMs !== undefined && releaseMs >= 650 && releaseMs <= 950 ? 'Good release! +1' : 'Released');
       latest.current.onCommit(releaseMs);
     },
     onHoldingChange: next => {
@@ -129,10 +131,11 @@ export function TimedRelease(props: TimedReleaseProps) {
   }, [controller, holding]);
 
   const unavailable = disabled || committed || Date.now() >= deadline;
+  const timingBonus = props.timingBonus !== false;
   const sweet = elapsed >= 650 && elapsed <= 950;
   const phase = committed ? 'released' : holding ? (sweet ? 'sweet' : elapsed > 950 ? 'late' : 'winding') : 'ready';
   const holdLabel = committed ? 'Move sent' : holding
-    ? assisted ? 'Finding your moment…' : sweet ? 'Release for +1!' : elapsed > 950 ? 'Release your move' : 'Wind up…'
+    ? !timingBonus ? 'Release your move' : assisted ? 'Finding your moment…' : sweet ? 'Release for +1!' : elapsed > 950 ? 'Release your move' : 'Wind up…'
     : assisted ? 'Tap to release' : 'Hold & release';
   const begin = () => {
     if (controller.start(assisted)) { setElapsed(0); setFeedback(''); return true; }
@@ -182,17 +185,17 @@ export function TimedRelease(props: TimedReleaseProps) {
     >
       <span className="di-timing-die" aria-hidden="true"><Dice5 size={24} strokeWidth={2.2} /></span>
       <span className="di-timing-label">{holdLabel}</span>
-      <span className="di-timing-bonus" aria-hidden="true"><Sparkles size={13} /> +1</span>
+      <span className="di-timing-bonus" aria-hidden="true">{timingBonus ? <><Sparkles size={13} /> +1</> : '✓'}</span>
       <span className="di-focus-meter" aria-hidden="true" data-sweet={sweet}>
         <span className="di-focus-sweet" style={{ left: `${650 / DURATION_MS * 100}%`, width: `${300 / DURATION_MS * 100}%` }} />
         <span className="di-focus-marker" style={{ left: `${elapsed / DURATION_MS * 100}%` }} />
       </span>
     </button>
     <span id={statusId} className="di-focus-status" role="status" aria-live="polite" aria-atomic="true">
-      {feedback || (holding ? (assisted ? 'Timing assisted' : (sweet ? 'Release now for +1' : elapsed > 950 ? 'Your ordinary move is still ready' : 'Aim for the bright zone')) : 'Good timing: +1 · missing costs nothing')}
+      {feedback || (!timingBonus ? 'Guaranteed · timing does not change the outcome' : holding ? (assisted ? 'Timing assisted' : (sweet ? 'Release now for +1' : elapsed > 950 ? 'Your ordinary move is still ready' : 'Aim for the bright zone')) : 'Good timing: +1 · missing costs nothing')}
     </span>
     <div className="di-focus-options">
-      <button type="button" className="di-focus-roll-now" disabled={unavailable || holding} onClick={() => controller.rollNow()}>Roll now</button>
+      <button type="button" className="di-focus-roll-now" disabled={unavailable || holding} onClick={() => controller.rollNow()}>{timingBonus ? 'Roll now' : 'Commit now'}</button>
       <label className="di-focus-assisted"><input type="checkbox" checked={assisted} disabled={holding}
         onChange={event => setAssisted(event.target.checked)} /> Assist timing</label>
     </div>

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createCharacterProfile } from '../character';
 import type { CharacterClassKey } from '../character';
 import { CHAPTERS } from './content';
+import { chaptersFor } from './registry';
 import { getScene } from './scene';
 import { createAdventure, describeAction, fallbackProposal, getCatchUp, getVisitRecap, reduceAdventure, releaseBonus, summarizeRoom, validateProposal } from './engine';
 import type { AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, PlayerAction } from './types';
@@ -288,7 +289,7 @@ describe('drop-in adventure creation and discovery', () => {
     let room = initial(); room.chapterRound = 10;
     room = command(room, 'tick', 'alice', {}, room.deadline);
     expect(getCatchUp(room)).toContain('Mara reaches shelter');
-    expect(getCatchUp(room)).toContain(`Next: ${CHAPTERS[1].objective}`);
+    expect(getCatchUp(room)).toContain(`Next: ${chaptersFor(room)[1].objective}`);
     room.chapter = 2; room.status = 'completed';
     room.outcomes.push({ chapter: 2, result: 'mixed', text: CHAPTERS[2].endings.mixed, at: 100 });
     expect(getCatchUp(room).split('.').filter(Boolean)).toHaveLength(2);
@@ -520,7 +521,8 @@ describe('chapter closure and durable rewards', () => {
     let room = initial();
     let rounds = 0;
     while (room.status !== 'completed' && rounds < 31) {
-      room = act(room);
+      const downed = room.seats.find(seat => seat.actorId === 'alice')!.hp === 0;
+      room = act(room, downed ? { token: 'assist', targetId: getScene(room).targets.find(target => target.tokens.includes('assist'))!.id } : undefined);
       rounds += 1;
       if (room.status !== 'completed') room = next(room);
     }

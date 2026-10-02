@@ -112,7 +112,7 @@ async function showTokens(page) {
 }
 async function skip(page) {
   const before = records.length;
-  await page.getByRole('button', { name: 'Roll now', exact: true }).click();
+  await page.getByRole('button', { name: /^(Roll|Commit) now$/ }).click();
   await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
   assert.equal(records.length, before + 1);
   return records.at(-1);
@@ -222,7 +222,13 @@ try {
   },16); });
   for (let chapter=0;chapter<3;chapter++) {
     let room=(await state(a)).room;
-    assert.equal(room.adventureVersion,2);
+    assert.equal(room.adventureVersion,3);
+    if (chapter === 1) {
+      for (const page of [a,b]) { await select(page, 'assist', 'boat'); await skip(page); }
+      await syncAll();
+      assert.equal((await state(a)).room.riverSupplies.status, 'secured');
+      await readyNext(a); await syncAll(); room = (await state(a)).room;
+    }
     for(let attempt=0;!combinationState(room)&&attempt<8;attempt++) {
       const setupMove=combinationDefinition(room);
       for(const page of [a,b]) {

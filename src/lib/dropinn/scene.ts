@@ -1,5 +1,6 @@
 import { adventureFor, chaptersFor } from './registry';
 import { briarTargetContext } from './briarContext';
+import { isRiverSuppliesChapter, riverStatus, riverTarget } from './river';
 import type { AdventureRoom, PlayerAction, SceneChange, SceneTarget } from './types';
 
 const developments: Record<string, { flag: string; name: string; description: string; tokens: SceneTarget['tokens']; change: SceneChange }> = {
@@ -46,9 +47,9 @@ export function getScene(room: AdventureRoom) {
   }
   const targets = chapter.targets.map(target => {
     const update = developments[target.id];
-    return briarTargetContext(update && room.flags.includes(update.flag)
+    return riverTarget(room, briarTargetContext(update && room.flags.includes(update.flag)
       ? { ...target, name: update.name, description: update.description, tokens: update.tokens, changed: true }
-      : { ...target });
+      : { ...target }));
   });
   let intro = chapter.intro;
   let objective = chapter.objective;
@@ -64,7 +65,9 @@ export function getScene(room: AdventureRoom) {
     intro = 'The restored ward shines beneath the bell. Gloamfang falters as its old purpose stirs; the captives need a clear path home.';
     objective = 'Bring the guardian back to its purpose and lead the captives home.';
   }
-  const situation = intro !== chapter.intro ? intro.split('. ')[0] + '.' : [
+  const supplies = riverStatus(room);
+  if (supplies) intro = `${supplies.label}. ${supplies.detail} The ferryman knows what binds the shadow pack to the chapel.`;
+  const situation = supplies ? `${supplies.label}. ${supplies.detail}` : intro !== chapter.intro ? intro.split('. ')[0] + '.' : [
     'Mara is trapped by the gate. The missing herd left tracks toward the river.',
     'The pack guards the crossing. A boat and the ferryman may offer a way through.',
     'The captives huddle behind the altar. The broken ward binds Gloamfang to its curse.',
@@ -73,6 +76,8 @@ export function getScene(room: AdventureRoom) {
 }
 
 export function developScene(room: AdventureRoom, action: PlayerAction): SceneChange | undefined {
+  // Its cargo is resolved collectively; this boat starts afloat and never frees twice.
+  if (isRiverSuppliesChapter(room) && action.targetId === 'boat') return;
   if (adventureFor(room).id !== 'briar-glen') {
     const target = getScene(room).targets.find(item => item.id === action.targetId);
     const key = `developed:${action.targetId}`;

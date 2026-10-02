@@ -16,6 +16,18 @@ export const DEFAULT_ADVENTURE = 'briar-glen';
 export const ADVENTURE_VERSIONS: AdventureDefinition[] = [
   { id: DEFAULT_ADVENTURE, version: 1, title: 'Briar Glen: The Broken Bell', pitch: 'Follow a missing herd and restore a fallen guardian.', chapters: CHAPTERS },
   { id: DEFAULT_ADVENTURE, version: 2, title: 'Briar Glen: The Broken Bell', pitch: 'Prepare a little magic together. Follow the herd and restore a fallen guardian.', chapters: CHAPTERS.map((chapter, index) => ({ ...chapter, combination: BRIAR_COMBINATIONS[index] })) },
+  { id: DEFAULT_ADVENTURE, version: 3, title: 'Briar Glen: The Broken Bell', pitch: 'Brave a river crossing, save what you can, and face the fallen guardian together.', chapters: CHAPTERS.map((chapter, index) => ({
+    ...chapter, combination: BRIAR_COMBINATIONS[index],
+    ...(index === 1 ? {
+      riverSupplies: true as const, firstTarget: 'boat',
+      targets: chapter.targets.map(target => target.id === 'boat' ? { ...target, name: 'The loaded boat', artKey: 'boat-afloat', tokens: ['fight', 'assist'] as import('./types').TokenKind[] } : target),
+      intro: 'The shadow pack guards the crossing while a loaded boat drifts against its rope. Its supplies will help at the chapel, but the current will carry them away after river round 3—or sooner if you leave them behind.',
+      situation: 'The pack closes in. Secure the drifting supplies, risk rushing them across, or press on without them.',
+      objective: 'Cross the river and decide what supplies to save.',
+      catchUp: 'The missing herd was taken to the ruined chapel. The supplies in the drifting boat could help there; protect them before the third river round ends or you cross.',
+      endings: { ...chapter.endings, setback: 'A desperate crossing gets everyone to the chapel. A ward-mark on the boat reveals how its fallen guardian can be freed.' },
+    } : {}),
+  })) },
   ...NEW_ADVENTURES,
 ];
 /** Discovery selects current releases; snapshot readers always resolve pinned versions. */

@@ -11,6 +11,7 @@ const act = (room: AdventureRoom, action: PlayerAction, userId = 'a') => command
 const next = (room: AdventureRoom) => command(room, 'tick', 'a', {}, room.revealUntil!);
 function fixture(chapter = 0, count = 1) {
   const room = createAdventure(createCharacterProfile('Ada', 'fighter'), 'a', 1000, 'COMBOS');
+  room.adventureVersion = 2; // Historical combination contract stays independently covered.
   room.chapter = chapter; room.danger = 4;
   const first = room.seats.find(seat => seat.actorId === 'a')!;
   first.character.traits = { ATH: 100, CHA: 100, ING: 100, INT: 100 };
@@ -44,8 +45,8 @@ describe('versioned scene combinations', () => {
     const river = prepare(1); river.flags.push(`cover:${river.turn}:3`);
     expect(combinationPreview(river, combinationDefinition(river)!.payoffs[1])).toContain('already covered');
   });
-  it('selects v2 for new visits but never upgrades missing or pinned v1 snapshots', () => {
-    expect(currentAdventure().version).toBe(2);
+  it('selects v3 for new visits but never upgrades missing or pinned v1 snapshots', () => {
+    expect(currentAdventure().version).toBe(3);
     expect(ADVENTURES.filter(item => item.id === 'briar-glen')).toHaveLength(1);
     expect(adventureFor().version).toBe(1);
     expect(adventureFor({ adventureId: 'briar-glen', adventureVersion: 1 }).chapters[0].combination).toBeUndefined();

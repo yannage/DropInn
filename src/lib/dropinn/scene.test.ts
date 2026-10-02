@@ -52,8 +52,8 @@ describe('developing scenes', () => {
     expect(developScene(room, { token: 'spotlight', targetId: 'mara', proposal: { ...proposal, effect: 'rescue' } })?.title).toBe('Mara is safe');
   });
 
-  it('updates the immediate objective in all three chapters', () => {
-    const room = fresh();
+  it('updates the pinned v2 immediate objective in all three chapters', () => {
+    const room = fresh(); room.adventureVersion = 2;
     for (const [chapter, targetId] of ['mara', 'boat', 'ward'].entries()) {
       room.chapter = chapter;
       developScene(room, { token: 'assist', targetId });

@@ -77,7 +77,7 @@ describe('focused actions', () => {
   it('rejects wrong-token, wrong-target and old-room approaches', () => {
     const base = room();
     expect(() => act(base, { token: 'influence', targetId: 'pack', approach: 'heavy' })).toThrow('available approach');
-    expect(() => act(base, { token: 'fight', targetId: 'boat', approach: 'quick' })).toThrow('available approach');
+    expect(() => act(base, { token: 'fight', targetId: 'boat', approach: 'quick' })).toThrow(/approach/);
     delete base.mechanicsVersion;
     expect(approachOptions(base, { token: 'fight', targetId: 'pack' })).toEqual([]);
     expect(() => act(base, { token: 'fight', targetId: 'pack', approach: 'quick' })).toThrow('available approach');

@@ -8,6 +8,11 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 
 ## Player clarity pass
 
+The [Briar Glen v3 river pass](docs/stories/briar-glen-v3.md) adds guaranteed versus risky cargo moves, a changed decision after failure, and chapel consequences. It preserves chapter rewards, downed participation and pinned v1/v2 tables. The packet records implementation and verification evidence.
+
+- [ ] Compare v2/v3 with uncoached solo players and pairs: can they explain the tradeoff, recognize a spill, coordinate who saves cargo, and identify the chapel consequence? Check whether safe Help becomes an automatic opening; tune from observation.
+- [ ] Test whether players choose another visit after a clean stopping point. Automated checks cannot establish fun or retention. Broader class abilities remain a separate design experiment.
+
 - [x] Put the game explanation, round loop, ready hero and one story-specific Play action at the entrance. Move story selection and friend admission into named dialogs; keep deeper options below.
 - [x] Make target inspection the default path, with contextual authored moves, persistent state guidance, a visible shared goal and hold/release as the primary commitment. Retain **Show tokens** and accessible alternatives.
 - [x] Add browser-local, dismissible/replayable first-move teaching and recorded personal consequences. Preserve server rules, deadlines, reward contracts and authored story content.

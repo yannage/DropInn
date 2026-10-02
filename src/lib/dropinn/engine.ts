@@ -7,6 +7,8 @@ import { combinationAvailable, combinationDefinition, combinationState, selected
 import { rollSupport, supportText } from './teamwork';
 import { getScene, developScene } from './scene';
 import { approachOption, turnInsight } from './approaches';
+import { isRiverSuppliesChapter, riverActionPreview, riverMove, riverSupplyState, RIVER_SUPPLY_DEADLINE } from './river';
+import type { RiverMove, RiverSupplyStatus } from './river';
 import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
 const ROUND_MS = 60_000;
@@ -101,6 +103,9 @@ export function describeAction(classKey: CharacterClassKey, token: TokenKind, ta
   const name = target?.name ?? 'the scene';
   const dc = 10 + room.chapter + (room.danger >= 6 ? 1 : 0);
   const points = (value: number) => pointsLabel(value * progressShare(room));
+  const riverPreview = riverActionPreview(room, { token, targetId });
+  if (riverPreview) return { label: riverPreview.label, description: riverPreview.detail,
+    trait: token === 'investigate' ? classKey === 'rogue' ? 'ING' : 'INT' : CLASS_TRAIT[classKey], dc };
   if (token === 'fight') {
     const verb = chapterOf(room).combat ? { wizard: 'Cast a spell', fighter: 'Strike', rogue: 'Exploit an opening', cleric: 'Channel radiance' }[classKey] : { wizard: 'Move it with magic', fighter: 'Lift the timbers', rogue: 'Cut it loose', cleric: 'Clear a safe path' }[classKey];
     return { label: verb, description: `${verb} at ${name}. On success, gain ${points(3)} objective progress${chapterOf(room).combat ? ' and block 2 damage from the next threat' : ' and clear the obstruction'}.`, trait: CLASS_TRAIT[classKey], dc };
@@ -151,6 +156,8 @@ function applyEffect(room: AdventureRoom, effect: CreativeEffect, now: number, s
 function validateAction(room: AdventureRoom, userId: string, action: PlayerAction) {
   const seat = room.seats.find(s => s.actorId === userId && s.kind === 'human' && !s.leaving);
   if (!seat) throw new Error('Your seat will open at the next turn.');
+  const supplyMove = riverMove(room, action);
+  if (supplyMove && supplyMove !== 'rescue' && (action.approach !== undefined || action.combination !== undefined)) throw new Error('This supplies move already has its own outcome. Choose it without an approach or combination.');
   if (action.combination !== undefined && (!combinationAvailable(room, userId) || !selectedPayoff(room, action))) throw new Error('Choose an available scene combination.');
   if (action.approach !== undefined && !approachOption(room, action)) throw new Error('Choose an available approach for this action.');
   if (action.targetKind !== undefined && action.targetKind !== 'scene' && action.targetKind !== 'hero') throw new Error('Choose a scene target or the threatened hero.');
@@ -176,8 +183,36 @@ function validateAction(room: AdventureRoom, userId: string, action: PlayerActio
   } else if (!target.tokens.includes(action.token)) throw new Error('That action is not available on this target.');
 }
 
-function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now: number, frozenBonus: number, startingDanger: number, share: number) {
+function resolveSupplyMove(room: AdventureRoom, seat: Seat, action: PlayerAction, move: Exclude<RiverMove, 'rescue'>, now: number, frozenBonus: number, startingDanger: number, share: number): RiverSupplyStatus | undefined {
+  const guaranteed = move === 'secure' || move === 'salvage';
+  const description = describeAction(seat.character.classKey, action.token, action.targetId, { ...room, danger: startingDanger });
+  const executionBonus = guaranteed ? 0 : releaseBonus(action.releaseMs);
+  const roll = guaranteed ? undefined : 1 + hash(`${room.id}:${room.turn}:${seat.actorId}:${action.token}:${action.targetId}`) % 20;
+  const support = rollSupport(room, seat.actorId, action);
+  const modifier = guaranteed ? undefined : seat.character.traits[description.trait] + frozenBonus + support.teamwork + executionBonus;
+  const success = guaranteed || roll! + modifier! >= description.dc;
+  const progress = guaranteed ? 0 : (success ? move === 'rush' ? 4 : 2 : 1) * share;
+  const danger = success ? 0 : share;
+  room.progress += progress; room.danger += danger;
+  const desired: RiverSupplyStatus | undefined = move === 'secure' ? 'secured' : move === 'salvage' ? 'salvaged'
+    : success ? 'secured' : move === 'rush' ? 'spilled' : undefined;
+  const text = `${seat.character.name} ${guaranteed ? 'helps' : success ? 'succeeds' : 'finds a complication'}: ${description.label.toLowerCase()}.`;
+  const effect = guaranteed ? 'Guaranteed supplies contribution. No crossing progress or class support.'
+    : `+${pointsLabel(progress)} crossing progress.${danger ? ` +${pointsLabel(danger)} danger.` : ''} ${success ? 'This move can secure all the supplies.' : move === 'rush' ? 'The cargo slips into the reeds unless the party secures it this turn.' : 'The supplies remain in the reeds unless another hero saves them.'}${support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
+  event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, effect, success, contribution: true,
+    ...(roll === undefined ? {} : { roll, modifier }),
+    result: { targetKind: 'scene', targetId: action.targetId, token: action.token, executionBonus, progress: Number(progress.toFixed(2)), danger: Number(danger.toFixed(2)), protection: 0, changed: false } });
+  const player = room.players[seat.actorId];
+  player.actions++; player.xp += guaranteed || !success ? 3 : 5;
+  player.highlights = [...player.highlights, `${text} ${effect}`].slice(-8);
+  seat.missedTurns = 0;
+  return desired;
+}
+
+function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now: number, frozenBonus: number, startingDanger: number, share: number, supplyState?: RiverSupplyStatus): RiverSupplyStatus | undefined {
   const executionBonus = releaseBonus(action.releaseMs);
+  const supplyMove = riverMove(room, action, supplyState);
+  if (supplyMove && supplyMove !== 'rescue') return resolveSupplyMove(room, seat, action, supplyMove, now, frozenBonus, startingDanger, share);
   if (action.targetKind === 'hero') {
     const target = room.seats.find(candidate => candidate.actorId === action.targetId)!;
     if (action.approach === 'mend') {
@@ -280,6 +315,35 @@ function resolveHuman(room: AdventureRoom, seat: Seat, action: PlayerAction, now
   player.highlights.push(`${text} ${effect}${change ? ` ${change.text}` : ''}`);
   player.highlights = player.highlights.slice(-8);
   seat.missedTurns = 0;
+  return success && supplyMove === 'rescue' ? 'secured' : undefined;
+}
+
+function recordSupplyChange(room: AdventureRoom, next: RiverSupplyStatus, now: number) {
+  const previous = riverSupplyState(room);
+  if (!previous || previous === next) return;
+  room.riverSupplies = { status: next };
+  const changes = {
+    secured: { title: 'All supplies secured', text: 'The party saves all the supplies: +3 starting chapel progress.', next: 'Keep the party moving across the river.' },
+    salvaged: { title: 'Some supplies salvaged', text: 'The party saves the nearby supplies: +1 starting chapel progress. The rest is left behind.', next: 'Keep the party moving across the river.' },
+    spilled: room.chapterRound >= RIVER_SUPPLY_DEADLINE || room.progress >= chapterOf(room).progressGoal
+      ? { title: 'Supplies spill into the reeds', text: 'The supplies spill as the current pulls them beyond reach. No recovery turn remains.', next: 'The unsaved cargo is swept away.' }
+      : { title: 'Supplies spill into the reeds', text: 'The current catches the spilled supplies. Next turn, Help the boat to salvage +1 starting chapel progress, or Investigate the reeds to risk recovering +3.', next: 'Recover supplies before river round 3 ends or you finish crossing; otherwise the chapel starts with +2 danger.' },
+    lost: { title: 'The supplies drift away', text: 'The unsaved supplies drift beyond reach: +2 starting chapel danger.', next: 'Everyone can still cross, help at the chapel, and earn their chapter rewards.' },
+    drifting: { title: 'The supplies are drifting', text: 'The loaded boat drifts against its rope.', next: 'Secure the supplies or risk rushing them across.' },
+  };
+  const change = changes[next];
+  event(room, now, { kind: 'consequence', text: change.text, change,
+    result: { targetKind: 'scene', targetId: previous === 'spilled' && next === 'secured' ? 'reeds' : 'boat', changed: true, riverSupplies: { status: next } } });
+}
+
+/** Success takes precedence across the whole turn, independent of seat or commit order. */
+function resolveSupplies(room: AdventureRoom, changes: RiverSupplyStatus[], now: number) {
+  if (!isRiverSuppliesChapter(room)) return;
+  room.riverSupplies ??= { status: 'drifting' };
+  const next = (['secured', 'salvaged', 'spilled'] as const).find(status => changes.includes(status));
+  if (next) recordSupplyChange(room, next, now);
+  if ((room.riverSupplies.status === 'drifting' || room.riverSupplies.status === 'spilled')
+    && (room.chapterRound >= RIVER_SUPPLY_DEADLINE || room.progress >= chapterOf(room).progressGoal)) recordSupplyChange(room, 'lost', now);
 }
 
 function finishChapter(room: AdventureRoom, now: number) {
@@ -288,6 +352,8 @@ function finishChapter(room: AdventureRoom, now: number) {
   let text = definition.endings[result];
   if (adventureFor(room).id === 'briar-glen' && room.chapter === 2 && result === 'success') text = hasFlag(room, 'ward-repaired') ? 'The repaired ward answers the bell. Gloamfang’s shadow falls away, and the guardian bows as the captives return to Briar Glen.' : 'You drive Gloamfang from the chapel and lead the captives home. The villagers hang a new bell, grateful for the brave strangers who answered it.';
   if (definition.branch && room.storyBranch) text += ` ${adventureFor(room).branchEndings?.[room.storyBranch] ?? ''}`;
+  if (isRiverSuppliesChapter(room)) text += room.riverSupplies?.status === 'secured' ? ' You bring all the supplies: +3 starting chapel progress.'
+    : room.riverSupplies?.status === 'salvaged' ? ' You bring some salvaged supplies: +1 starting chapel progress.' : ' The lost supplies leave the chapel with +2 starting danger.';
   if (room.chapter === 2 && hasFlag(room, 'mara-helped')) text += ' Mara welcomes you back with the copper bell you helped her save.';
   room.outcomes.push({ chapter: room.chapter, result, text, at: now });
   flag(room, `outcome:${room.chapter}:${result}`);
@@ -318,9 +384,14 @@ function resolveRound(room: AdventureRoom, now: number) {
   const frozenBonus = turnInsight(room) + Number(hasFlag(room, `opening:${room.turn}`));
   const startingDanger = room.danger;
   const share = progressShare(room);
+  const supplyState = riverSupplyState(room);
+  const supplyChanges: RiverSupplyStatus[] = [];
   for (const seat of room.seats.filter(s => s.kind === 'human')) {
     const action = room.commits[seat.actorId];
-    if (action) resolveHuman(room, seat, action, now, frozenBonus, startingDanger, share);
+    if (action) {
+      const supplyChange = resolveHuman(room, seat, action, now, frozenBonus, startingDanger, share, supplyState);
+      if (supplyChange) supplyChanges.push(supplyChange);
+    }
     else if (!seat.leaving) {
       seat.missedTurns += 1;
       event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text: chapterOf(room).combat ? `${seat.character.name} defends while away. No token is spent.` : `${seat.character.name} sits this round out. No choice is made for them.`, effect: 'No reward or action was claimed.', contribution: false });
@@ -339,6 +410,7 @@ function resolveRound(room: AdventureRoom, now: number) {
   }
   room.progress = Math.min(chapterOf(room).progressGoal, Math.round(room.progress * 100) / 100);
   room.danger = Math.round(room.danger * 100) / 100;
+  resolveSupplies(room, supplyChanges, now);
   if (chapterOf(room).combat && room.progress < chapterOf(room).progressGoal && humans(room).length) {
     // Old snapshots finish their current turn under the old targeting rule.
     const intent = room.enemyIntent?.turn === room.turn ? room.enemyIntent : undefined;
@@ -374,8 +446,17 @@ function advanceRound(room: AdventureRoom, now: number) {
     const maraHelp = room.chapter === 1 && hasFlag(room, 'mara-helped');
     room.progress = (priorSuccess ? 3 : 0) + Number(maraHelp);
     room.danger = Math.max(0, Math.min(8, room.danger) + (priorSuccess ? -2 : 1));
+    let suppliesText = '';
+    if (isRiverSuppliesChapter(room)) room.riverSupplies = { status: 'drifting' };
+    if (room.chapter > 0 && chaptersFor(room)[room.chapter - 1]?.riverSupplies && room.riverSupplies) {
+      const status = room.riverSupplies.status;
+      const progress = status === 'secured' ? 3 : status === 'salvaged' ? 1 : 0;
+      room.progress += progress;
+      if (status === 'lost') room.danger += 2;
+      suppliesText = progress ? ` The supplies you saved add ${progress} starting progress.` : status === 'lost' ? ' The lost supplies add 2 starting danger.' : '';
+    }
     for (const seat of room.seats) { seat.hp = Math.min(seat.character.maxHp, seat.hp + 3); if (seat.kind === 'human') room.players[seat.actorId].character.hp = seat.hp; }
-    event(room, now, { kind: 'chapter', text: `${chapterOf(room).intro}${priorSuccess ? ' Your earlier success gives the party a head start.' : ''}${maraHelp ? ' Because you helped Mara, her directions give the party another point of progress.' : ''}` });
+    event(room, now, { kind: 'chapter', text: `${chapterOf(room).intro}${priorSuccess ? ' Your earlier success gives the party a head start.' : ''}${maraHelp ? ' Because you helped Mara, her directions give the party another point of progress.' : ''}${suppliesText}` });
   } else room.chapterRound += 1;
   room.turn += 1;
   room.phase = 'choosing'; room.deadline = now + ROUND_MS; room.revealUntil = null; room.revealSkips = []; room.commits = {};
@@ -482,6 +563,7 @@ export function getCatchUp(room: AdventureRoom): string {
   if (room.status === 'completed') return `${firstSentence(outcome?.text ?? 'The adventure is complete')}. Your contributions are saved in the chapter journal.`;
   if (outcome && chaptersFor(room)[room.chapter + 1]) return `${firstSentence(outcome.text)}. Next: ${chaptersFor(room)[room.chapter + 1].objective}`;
   const definition = chapterOf(room);
+  if (isRiverSuppliesChapter(room)) return `${definition.situation} ${definition.objective}`;
   if (adventureFor(room).id !== 'briar-glen') return `${definition.intro} ${definition.objective}`;
   const latestAttempt = [...room.events].reverse().find(e => e.chapter === room.chapter && e.kind === 'action' && e.roll !== undefined);
   let state = firstSentence(definition.intro);

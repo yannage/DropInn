@@ -1,4 +1,5 @@
 import type { ActionApproach, AdventureRoom, PlayerAction } from './types';
+import { riverActionPreview } from './river';
 
 export interface ApproachOption { id: ActionApproach; label: string; detail: string; modifier: number; progress: number; protection?: number }
 export const ATTACKS: ApproachOption[] = [
@@ -11,6 +12,7 @@ export const isDuel = (room: AdventureRoom, action: PlayerAction) => room.mechan
   && room.enemyIntent.sourceId === action.targetId && room.enemyIntent.duelModifier !== undefined;
 
 export function approachOptions(room: AdventureRoom, action: PlayerAction): ApproachOption[] {
+  if (riverActionPreview(room, action)) return [];
   if (room.mechanicsVersion !== 1) return [];
   if (isDuel(room, action)) return ATTACKS;
   if (action.targetKind === 'hero') return action.token === 'assist'

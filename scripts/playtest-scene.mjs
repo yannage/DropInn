@@ -138,7 +138,7 @@ async function pointerRelease(page, ms) {
 }
 async function skip(page) {
   const before = records.length;
-  await page.getByRole('button', { name: 'Roll now', exact: true }).click();
+  await page.getByRole('button', { name: /^(Roll|Commit) now$/ }).click();
   await waitForStore(page, () => !window.__qaAdventureStore.getState().loading);
   assert.equal(records.length, before + 1);
   await openRound(page);
@@ -711,6 +711,7 @@ try {
     await fixture([fixtureEvent('guaranteed-protect', { kind: 'action', actorId: identities[0].userId, contribution: true,
       result: { targetKind: 'hero', targetId: renderVictim, protection: 3, progress: 0 } })]);
     await openRound(a); await a.locator('.di-round-body[data-beat=full]').waitFor();
+    await a.locator('[data-round-entry=qa-render-guaranteed-protect]').waitFor();
     assert.equal(await a.locator('.di-resolution-die').count(), 0);
     assert.match(await a.locator('.di-round-body').textContent(), /protection/);
     note('snapshot-pacing-late-receipt-reduced-motion-and-guaranteed-protect', { evidence: 'Client snapshot rendering only' });
