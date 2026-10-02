@@ -12,6 +12,8 @@ The [chapter choice pass](docs/stories/chapter-choices.md) extends the river's v
 
 The cooperation follow-up adds accepted teammate plans, contextual overlap advice, current success odds and recorded credit for preparation, payoffs, building, banking and rescues. It preserves existing rules and rewards; player observation below remains the next design check.
 
+The [mobile tabletop pass](docs/player-clarity.md#mobile-tabletop-composition--october-2) gives the scene more room, keeps labels beneath artwork, replaces full-piece selection rings with a marked nameplate, and puts confirmed mobile dice in a dedicated tray. Short-screen subtitles can be peeked without changing narration preferences. Verification and physical-device limits are recorded with the presentation notes.
+
 - [ ] Compare the current versions with their predecessors using uncoached solo players and pairs: can they explain the tradeoff, recognize a setback, coordinate a payoff, and identify later consequences? Check whether guaranteed rescue, repeated preparation or banking one level becomes automatic; tune from observation.
 - [ ] Test whether players choose another visit after a clean stopping point. Automated checks cannot establish fun or retention. Broader class abilities remain a separate design experiment.
 

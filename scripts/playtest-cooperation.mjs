@@ -325,9 +325,12 @@ try {
   assert.equal(afterOdds.normal, Math.min(100, beforeOdds.normal + 5));
   assert.equal(afterOdds.goodRelease, Math.min(100, beforeOdds.goodRelease + 5));
   assert.match(await b.locator('.di-cooperation-note').textContent(), /Ada/);
-  assert.match(await b.locator('.di-scene-selection').textContent(), /\+1 teamwork with Ada/);
   await b.getByRole('button', { name: 'Action details and help', exact: true }).click();
-  assert.ok((await b.getByRole('dialog', { name: 'Your action', exact: true }).textContent()).includes(`${afterOdds.normal}% success`));
+  const supportedAction = await b.getByRole('dialog', { name: 'Your action', exact: true }).textContent();
+  // The compact tray keeps the odds and contextual plan; full arithmetic lives
+  // in action details instead of repeating it beneath the approach cards.
+  assert.match(supportedAction, /\+1 teamwork with Ada/);
+  assert.ok(supportedAction.includes(`${afterOdds.normal}% success`));
   await b.keyboard.press('Escape');
   assert.equal((await state(b)).room.phase, 'choosing');
   assert.equal((await state(b)).room.commits[identityB.userId], undefined);

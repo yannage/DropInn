@@ -1,0 +1,542 @@
+/* Scene pieces stay on an open tabletop. The caption carries selection, while
+   artwork, state and party markers each keep their own space. */
+.di-living-table .di-stage-targets > .di-scene-object {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 3px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.di-living-table .di-stage-targets > .di-scene-object:is(:hover, .is-compatible, .is-selected, .is-over, .is-suggested) {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+.di-living-table .di-stage-targets > .di-scene-object:focus-visible {
+  outline: 2px solid #1e6c89;
+  outline-offset: 2px;
+}
+
+/* This also replaces the old short-stage horizontal 42%/44% artwork layout. */
+.di-living-table .di-stage-targets > .di-scene-object > .di-target-art {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 0;
+  min-height: 24px;
+  max-height: 180px;
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(ellipse at 50% 90%, #304d3020 0, #304d300a 30%, transparent 60%);
+  filter: none;
+  transform: none;
+  transition: transform .18s ease-out;
+}
+
+.di-living-table .di-stage-targets > .di-scene-object > .di-target-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 1px #26322c20);
+}
+
+.di-living-table .di-stage-targets .di-object-label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 2px 4px;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 6px;
+  border: 1px solid #7d826859;
+  border-radius: 7px 9px 8px 7px;
+  background: #fff9e9f2;
+  box-shadow: 0 1px 1px #26322c16;
+  color: #283d31;
+  font-size: clamp(.6875rem, 1.1vw, .875rem);
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  transition: background-color .15s ease-out, border-color .15s ease-out;
+}
+
+.di-living-table .di-stage-targets .di-object-name {
+  position: relative;
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-inline: 7px;
+  overflow-wrap: anywhere;
+}
+
+.di-living-table .di-stage-targets .di-object-name > svg {
+  display: inline-block;
+  margin-left: 2px;
+  vertical-align: -2px;
+}
+
+/* The pin has a reserved place, so selecting a piece never reflows its name. */
+.di-living-table .di-stage-targets .di-object-name::before {
+  position: absolute;
+  top: .36em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+  content: '';
+}
+
+.di-living-table .di-stage-targets > .is-compatible > .di-object-label {
+  border: 1px dashed #527c5c;
+  background: #f3f6df;
+}
+
+.di-living-table .di-stage-targets > .is-suggested > .di-object-label {
+  border-color: #aa8540;
+  background: #fff0c6;
+}
+
+.di-living-table .di-stage-targets > :is(.is-selected, .is-over) > .di-object-label {
+  border: 1px solid #315d49;
+  background: #eaf2cf;
+  box-shadow: 0 2px 0 #315d4926;
+}
+
+.di-living-table .di-stage-targets > :is(.is-selected, .is-over) .di-object-name::before {
+  background: #315d49;
+}
+
+.di-living-table.is-charging .di-stage-targets > .is-selected > .di-object-label {
+  background: #ffe5a1;
+}
+
+.di-living-table .di-stage-targets .di-object-label:has(.di-river-cargo) .di-object-name {
+  grid-column: 1;
+}
+
+.di-living-table .di-stage-targets .di-river-cargo {
+  margin: 0;
+  gap: 2px;
+}
+
+.di-living-table .di-stage-targets :is(.di-river-tag, .di-choice-marker) {
+  grid-column: 1 / -1;
+  max-width: 100%;
+  margin: 0;
+  font-size: .625rem;
+  line-height: 1.15;
+}
+
+.di-living-table .di-stage-targets .di-choice-marker {
+  gap: 3px;
+}
+
+.di-living-table .di-stage-targets .di-choice-marker small {
+  min-width: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.di-living-table .di-stage-targets .di-choice-pips {
+  gap: 2px;
+}
+
+.di-living-table .di-stage-targets .di-choice-pips i {
+  width: 7px;
+  height: 7px;
+}
+
+/* Small receipts sit in the art corners; labels are never covered by a coin. */
+.di-living-table .di-stage-targets .di-object-coin {
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #526b49;
+  box-shadow: 0 2px 0 #26322c20;
+}
+
+.di-living-table .di-stage-targets .di-object-coin :is(.di-token-art, .di-tabletop-art) {
+  width: 23px;
+  height: 23px;
+}
+
+.di-living-table .di-stage-targets .di-object-result {
+  top: 2px;
+  left: 2px;
+  max-width: calc(100% - 8px);
+  border-width: 1px;
+  border-radius: 6px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 1px #26322c20;
+  flex-wrap: wrap;
+}
+
+.di-living-table .di-stage-targets .di-scene-object:has(.di-object-coin) > .di-object-result {
+  max-width: calc(100% - 36px);
+}
+
+.di-living-table .di-stage-targets .di-object-party {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 19px;
+  pointer-events: none;
+}
+
+.di-living-table .di-stage-targets .di-object-party:has(.di-object-teammates:empty):not(:has(.di-object-teamwork)) {
+  display: none;
+}
+
+.di-living-table .di-stage-targets :is(.di-object-teammates, .di-object-teamwork) {
+  position: static;
+  inset: auto;
+  transform: none;
+}
+
+.di-living-table .di-stage-targets .di-object-teammates {
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.di-living-table .di-stage-targets .di-object-teammates:empty {
+  display: none;
+}
+
+.di-living-table .di-stage-targets .di-object-teammates > span {
+  width: 19px;
+  height: 19px;
+  background: #e3eff0;
+  border-color: #6c8982;
+}
+
+.di-living-table .di-stage-targets .di-object-teammates .di-token-art {
+  width: 15px;
+  height: 15px;
+}
+
+.di-living-table .di-stage-targets .di-object-teamwork {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 5px;
+  font-size: .5625rem;
+  line-height: 1.1;
+  white-space: normal;
+}
+
+.di-living-table .di-stage-targets .di-combo-target {
+  top: 2px;
+  right: 2px;
+  padding: 2px 4px;
+  border-color: #967a35;
+  font-size: .625rem;
+}
+
+.di-living-table .di-stage-targets .di-scene-object:has(.di-object-coin) > .di-combo-target {
+  right: 34px;
+}
+
+/* A narrow caption needs its whole width for the name. The cargo pips repeat
+   the adjacent status text, so omit only those decorative marks on small phones. */
+@media (max-width: 375px) {
+  .di-living-table .di-stage-targets .di-object-label:has(.di-river-tag) > .di-river-cargo {
+    display: none;
+  }
+
+  .di-living-table .di-stage-targets .di-object-label:has(.di-river-cargo) .di-object-name {
+    grid-column: 1 / -1;
+  }
+
+  .di-living-table .di-stage-targets .di-object-label {
+    gap: 1px 3px;
+    padding: 2px 4px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-name {
+    padding-inline: 6px;
+  }
+
+  .di-living-table .di-stage-targets :is(.di-river-tag, .di-choice-marker) {
+    font-size: .6875rem;
+  }
+}
+
+@media (max-width: 375px) and (max-height: 650px) {
+  .di-living-table .di-stage-targets > .di-scene-object {
+    gap: 2px;
+    padding: 1px 2px;
+  }
+}
+
+/* In a short scene, a piece with an accepted party plan needs three clear slots.
+   Put its art beside the name and keep the party row across the full width. */
+@media (max-width: 739px) {
+@container encounter (max-height: 300px) {
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) {
+    display: grid;
+    grid-template-columns: minmax(36px, 32%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 2px 4px;
+    align-items: center;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) > .di-target-art {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: stretch;
+    height: 100%;
+    min-height: 36px;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) > .di-object-label {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    padding: 2px;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) .di-object-name {
+    padding-inline: 6px 0;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) > .di-object-party {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object:has(.di-object-teammates:not(:empty)) > .di-object-coin {
+    left: 2px;
+    right: auto;
+  }
+}
+}
+
+/* The landscape dock sits beside a short stage. Give each piece a horizontal
+   art slot and a separate caption column; party marks get a row below the art. */
+@media (min-width: 740px) and (max-height: 600px) {
+  .di-living-table .di-stage-targets,
+  .di-living-table .di-stage-combat .di-stage-targets {
+    inset: 30px 10px 60px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: minmax(60px, 37%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: center;
+    gap: 1px 5px;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    min-height: 44px;
+    padding: 0;
+    aspect-ratio: auto;
+    transform: none;
+  }
+
+  .di-living-table .di-stage-targets > .di-scene-object > .di-target-art {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: none;
+  }
+
+  .di-living-table .di-stage-targets .di-object-label {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    width: 100%;
+    gap: 1px 3px;
+    padding: 2px 4px;
+    font-size: .6875rem;
+    line-height: 1.1;
+  }
+
+  .di-living-table .di-stage-targets .di-object-name,
+  .di-living-table .di-stage-targets .di-object-label:has(.di-river-cargo) .di-object-name {
+    grid-column: 1 / -1;
+    padding-inline: 6px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-label:has(.di-river-tag) > .di-river-cargo {
+    display: none;
+  }
+
+  .di-living-table .di-stage-targets .di-river-cargo {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .di-living-table .di-stage-targets .di-object-party {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    width: 100%;
+    min-height: 17px;
+    gap: 2px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-teammates > span {
+    width: 16px;
+    height: 16px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-teammates .di-token-art {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Preserve the full teamwork text for accessibility; its visible pill can
+     share the narrow art column with all three other players' tokens. */
+  .di-living-table .di-stage-targets .di-object-teamwork {
+    flex: 0 0 auto;
+    padding: 1px 3px;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  .di-living-table .di-stage-targets .di-object-teamwork::after {
+    content: '+1';
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-coin {
+    top: 1px;
+    right: calc(63% + 5px);
+    width: 24px;
+    height: 24px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-coin :is(.di-token-art, .di-tabletop-art) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .di-living-table .di-stage-targets .di-object-result,
+  .di-living-table .di-stage-targets .di-scene-object:has(.di-object-coin) > .di-object-result {
+    left: 1px;
+    top: 1px;
+    width: 21px;
+    max-width: 21px;
+    min-height: 21px;
+    padding: 1px;
+    justify-content: center;
+  }
+
+  /* The adjacent confirmed caption retains the progress/protection numbers. */
+  .di-living-table .di-stage-targets .di-object-result small {
+    display: none;
+  }
+
+  .di-living-table .di-stage-party {
+    top: auto;
+    bottom: 5px;
+    gap: 10px;
+  }
+
+  .di-living-table .di-stage-hero {
+    width: 50px;
+    height: 50px;
+    min-height: 50px;
+    padding: 2px;
+  }
+
+  .di-living-table .di-stage-hero > .di-avatar {
+    width: 30px;
+    height: 26px;
+  }
+
+  .di-living-table .di-stage-hero-name,
+  .di-living-table .di-stage-health {
+    font-size: 9px;
+    line-height: 10px;
+  }
+}
+
+/* At 360px landscape height, both target rows must still clear the heroes.
+   The threat and portraits have their own smaller slots; all hit areas stay 44px. */
+@media (min-width: 740px) and (max-height: 399px) {
+  .di-living-table .di-stage-targets,
+  .di-living-table .di-stage-combat .di-stage-targets {
+    inset: 24px 10px 52px;
+    row-gap: 1px;
+  }
+
+  .di-living-table .di-stage-threat {
+    top: 1px;
+    min-height: 21px;
+    padding: 2px 7px;
+    font-size: 11px;
+    line-height: 13px;
+  }
+
+  .di-living-table .di-stage-hero {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .di-living-table .di-stage-hero > .di-avatar {
+    height: 20px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .di-living-table .di-stage-targets > .di-scene-object:hover > .di-target-art {
+    transform: translateY(-2px);
+  }
+  .di-living-table .di-stage-targets > .di-scene-object:hover > .di-object-label {
+    border-color: #527c5c;
+  }
+}
+
+.di-living-table .di-stage-targets > .di-scene-object.is-over > .di-target-art {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .di-living-table .di-stage-targets > .di-scene-object > .di-target-art,
+  .di-living-table .di-stage-targets > .di-scene-object:is(:hover, .is-selected, .is-over) > .di-target-art {
+    transform: none;
+    transition: none;
+  }
+}
+
+.di-living-table[data-quiet=true] .di-stage-targets > .di-scene-object > .di-target-art {
+  transform: none;
+  transition: none;
+}

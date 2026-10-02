@@ -12,6 +12,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Discovery, hero builder, chat and recaps | `src/components/DropInn/DropInn.tsx` |
 | Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |
 | Shared scene pieces, compact/landscape dock and approach controls | `src/components/DropInn/responsive-table.css`, `encounter-focus.css` |
+| Mobile scene budget, caption selection and dedicated result tray | `src/components/DropInn/mobile-table.css`, `scene-selection.css`, `StageDice.tsx`, [mobile composition](docs/player-clarity.md#mobile-tabletop-composition--october-2) |
 | Landing clarity, turn guidance and first-move teaching | `src/components/DropInn/lobby-clarity.css`, `src/lib/dropinn/playerGuidance.ts`, [clarity and uncoached checks](docs/player-clarity.md) |
 | Confirmed stage beats, tactile feedback and combinations | `src/components/DropInn/LivingStage.tsx`, `living-table.css`, `src/lib/dropinn/stagePlayback.ts`, `combinations.ts` |
 | Focused attacks, token approaches and opposed dice | `src/components/DropInn/FocusedAction.tsx`, `src/lib/dropinn/approaches.ts`, [mechanics and verification](docs/focused-actions.md) |

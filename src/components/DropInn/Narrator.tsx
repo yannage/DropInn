@@ -18,7 +18,7 @@ function readPreference() {
   catch { return narratorPreference(null); }
 }
 
-export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue = false, portalTarget }: { room: AdventureRoom; pacedTurns: boolean; onPacedTurns: (value: boolean) => void; suppressCue: boolean; deferCue?: boolean; portalTarget?: HTMLElement | null }) {
+export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue = false, portalTarget, compact = false }: { room: AdventureRoom; pacedTurns: boolean; onPacedTurns: (value: boolean) => void; suppressCue: boolean; deferCue?: boolean; portalTarget?: HTMLElement | null; compact?: boolean }) {
   const inline = useRef<HTMLDivElement>(null);
   const height = useRef(44);
   useLayoutEffect(() => {
@@ -29,6 +29,10 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
     observer.observe(node); return () => observer.disconnect();
   }, [portalTarget]);
   const [preference, setPreference] = useState(readPreference);
+  // A temporary small-screen peek never changes saved subtitles or the audio cursor.
+  const [captionPeek, setCaptionPeek] = useState(false);
+  useEffect(() => { setCaptionPeek(false); }, [compact]);
+  const minimized = compact ? !captionPeek : preference.collapsed;
   const pack = useSyncExternalStore(subscribeNarratorDownload, narratorDownloadSnapshot);
   const [enabled, setEnabled] = useState(false);
   useEffect(() => { duckTableSound(enabled); return () => duckTableSound(false); }, [enabled]);
@@ -220,10 +224,11 @@ export function Narrator({ room, pacedTurns, onPacedTurns, suppressCue, deferCue
     return () => clearTimeout(timer);
   }, [cue.id, cue.text, enabled, preference.engine, preference.voice, preference.naturalVoice, preference.speed, visibility, replay, suppressCue, deferCue]);
 
-  const content = <section className={`di-narrator ${preference.collapsed ? 'is-collapsed' : ''}`} aria-label="Story narrator" onKeyDown={event => { if (event.key === 'Escape' && settings) { event.preventDefault(); event.stopPropagation(); closeSettings(); } }}>
+  const captionWords = <span id="narrator-caption-text" className="di-narrator-words" key={`${cue.id}:${caption}`}>{caption}</span>;
+  const content = <section className={`di-narrator ${compact ? 'is-compact' : ''} ${minimized ? 'is-collapsed' : ''}`} aria-label="Story narrator" onKeyDown={event => { if (event.key === 'Escape' && settings) { event.preventDefault(); event.stopPropagation(); closeSettings(); } }}>
     <div className="di-narrator-line">
-      <button className="di-narrator-caption" aria-label={preference.collapsed ? 'Show narrator subtitles' : 'Collapse narrator subtitles'} aria-describedby={preference.collapsed ? undefined : 'narrator-caption-text'} aria-expanded={!preference.collapsed} onClick={() => { setPreference({ ...preference, collapsed: !preference.collapsed }); setSettings(false); }}>
-        {preference.collapsed ? <><MessageCircle size={18} /><span>Narrator</span></> : <><span className="di-narrator-label">The storyteller</span><span id="narrator-caption-text" className="di-narrator-words" key={`${cue.id}:${caption}`}>{caption}</span></>}
+      <button className="di-narrator-caption" aria-label={minimized ? 'Show narrator subtitles' : 'Collapse narrator subtitles'} aria-describedby={minimized ? undefined : 'narrator-caption-text'} aria-expanded={!minimized} onClick={() => { if (compact) setCaptionPeek(peeking => !peeking); else setPreference({ ...preference, collapsed: !preference.collapsed }); setSettings(false); }}>
+        {compact ? <><MessageCircle size={18} />{!minimized && captionWords}</> : minimized ? <><MessageCircle size={18} /><span>Narrator</span></> : <><span className="di-narrator-label">The storyteller</span>{captionWords}</>}
       </button>
       <button className="di-narrator-voice" disabled={!supported} onClick={toggleVoice} aria-label={supported ? enabled ? 'Mute narrator' : loading ? 'Cancel voice loading' : 'Enable narrator voice' : 'Narrator voice unavailable'} aria-pressed={enabled}>{enabled ? <Volume2 size={18} /> : <><VolumeX size={18} /><span>{loading ? 'Loading' : 'Listen'}</span></>}</button>
       <button ref={settingsButton} className="di-narrator-settings-button" aria-label="Story settings" aria-expanded={settings} onClick={() => setSettings(!settings)}><Settings2 size={17} /></button>

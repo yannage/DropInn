@@ -17,6 +17,7 @@
     "test:adventures": "node scripts/playtest-adventures.mjs",
     "test:chapter-choices": "node scripts/playtest-chapter-choices.mjs",
     "test:cooperation": "node scripts/playtest-cooperation.mjs",
+    "test:mobile-composition": "node scripts/playtest-mobile-composition.mjs",
     "test:accounts": "node scripts/playtest-accounts.mjs",
     "test:collections": "node scripts/playtest-collections.mjs",
     "test:tabletop": "node scripts/playtest-tabletop.mjs",

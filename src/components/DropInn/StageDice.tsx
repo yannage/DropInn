@@ -29,11 +29,11 @@ export function StageDice({ event, elapsed, scale = 1, left, top, windup = 300 *
 }
 
 /** The player's dice outlive the impact; other actors' effects cannot replace them. */
-export function PersonalStageDice({ event, elapsed, stage, quiet, captionId }: { event: StoryEvent; elapsed: number; stage: RefObject<HTMLDivElement>; quiet: boolean; captionId?: string }) {
+export function PersonalStageDice({ event, elapsed, stage, quiet, captionId, inline = false }: { event: StoryEvent; elapsed: number; stage: RefObject<HTMLDivElement>; quiet: boolean; captionId?: string; inline?: boolean }) {
   const [position, setPosition] = useState({ left: 0, top: 8 });
   useLayoutEffect(() => {
     const root = stage.current;
-    if (!root) return;
+    if (!root || inline) return;
     const measure = () => {
       const bounds = root.getBoundingClientRect();
       const caption = root.querySelector<HTMLElement>('.di-stage-caption');
@@ -46,8 +46,8 @@ export function PersonalStageDice({ event, elapsed, stage, quiet, captionId }: {
     const observer = new ResizeObserver(measure); observer.observe(root);
     const caption = root.querySelector('.di-stage-caption'); if (caption) observer.observe(caption);
     return () => observer.disconnect();
-  }, [event.actorId, stage, captionId]);
-  return <div className="di-personal-roll" role="status" aria-label="Your confirmed roll">
+  }, [event.actorId, stage, captionId, inline]);
+  return <div className={`di-personal-roll ${inline ? 'is-inline' : ''}`} role="status" aria-label="Your confirmed roll">
     <StageDice event={event} elapsed={elapsed} {...position} windup={PERSONAL_ROLL_WINDUP_MS} landing={PERSONAL_ROLL_LANDING_MS} quiet={quiet} />
   </div>;
 }

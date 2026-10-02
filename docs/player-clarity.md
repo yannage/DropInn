@@ -12,7 +12,29 @@ During play, the shared goal explains why to act and the contextual dock explain
 
 First-move teaching is optional and remembered in this browser. Suggested targets invite inspection without selecting an action; both routes receive equal treatment at branch choices. Teaching ends after a recorded personal contribution result or dismissal and can be replayed from action help. Persistent state guidance remains afterward.
 
-## Responsive presentation
+## Mobile tabletop composition — October 2
+
+The mobile table now reserves room for the scene before adding explanatory copy. Four pieces sit in a stable two-by-two arrangement, with artwork above a wrapping nameplate and separate room for shared state and teammate tokens. A selected nameplate uses one green edge and a small pin; keyboard focus remains visible over the full interaction target. Selecting a piece does not move its name.
+
+Landscape uses artwork beside each nameplate and a compact hero row, keeping long developed-state captions inside their own piece. A short portrait scene also gives pieces with accepted teammate plans a side-by-side art/name layout, with a full-width party row below; a state badge plus party markers must not squeeze out the illustration. Short portrait screens use a smaller token hand and retain the combination's actionable prompt without a second decorative heading.
+
+Prepared actions put the move and current odds above the approach cards, followed by one row containing hold/release, Roll now and Assist timing. Repeated instructions and arithmetic no longer take a second block above these controls; approach effects stay visible and Action details retains the full rules and support breakdown. The scene and all four heroes stay available while choosing, waiting and resolving.
+
+On phones, confirmed personal dice and the current consequence occupy their own result tray below the scene. Inspecting a piece during playback keeps that result mounted. Round scroll and readiness controls remain reachable. Healing and damage badges sit over the portrait without covering the hero's name or current HP. An unresolved enemy strike shows an ellipsis until its recorded damage is known.
+
+Short phones use a temporary subtitle peek beside the goal, with separate 44px voice and settings controls. The peek does not change the saved subtitle preference or restart narration. The live parchment still opens after on-table consequences, uses the same narrator, and respects View scene for that round. Gameplay, timing, saved commands and reward rules are unchanged.
+
+Verification for this pass uses the local working tree based on `e6bcb59`, with a local Vite app at `127.0.0.1:5201`. The maintained composition runner uses explicitly controlled reducer fixtures and frozen presentation timestamps; scene and cooperation runners separately exercise independent browser identities through isolated real local command handlers. Hosted persistence, Realtime and physical-phone behavior are not established by these checks.
+
+- All 652 unit tests and the production build passed.
+- `test:mobile-composition` passed 98 presentation checks across 320×568, 390×700, 390×844, 412×780 and 1280×800 with zero violations or runtime errors and unchanged source throughout capture. In the 320×568 prepared-combat cases, the scene occupies 253px and the action dock 154px. River/chapel screenshots were visually reviewed, including recorded healing and damage together.
+- A subsequent `test:mobile-composition -- --cooperation-only` run passed 25 checks against the final crowded-piece, compact ally-plan and selected-coin refinements. It verified at least 36px artwork, contained captions and party markers, coins clear of names, and no unexpected commits, store errors or visible alerts. Both composition reports retain their own source fingerprints.
+- `test:scene` passed 102 checks, including 67 layouts, with zero browser errors or external calls. It covers admission, actual timed turns, exact uncertain-command retries, reconnects, narrated results, and developed river/chapel layouts at 844×390 and 740×360. The final focused composition run separately covers the coin adjustment made during this integration run.
+- `test:chapter-choices` passed 110 checks, including every authored choice, enlarged text, three committed teammates, long names, confirmed consequences, recovery and reload. `test:cooperation` passed 14 checks through independent local browser identities, including updated teamwork odds, recorded credit and reload. The narrator-only scene run passed five speech/worker/fallback/subtitle checks, including small-phone settings. Browser runners made no external handler calls.
+
+The new report is `output/playwright/composition-current-results.json`; screenshots and other browser reports remain local ignored artifacts. Player comprehension, one-handed use and enjoyment still need observation on real phones.
+
+## Earlier responsive presentation
 
 The October 1 landing refresh was checked locally at 320×568, 390×844, 412×844 and 1280×900 with the maintained mobile flow suite, including story/friend dialogs, keyboard focus, hero save/reload and entry into play. Desktop and phone screenshots were inspected; 150% text enlargement at 390px retained horizontal containment. The production build, two scene-art tests and asset integrity checks passed. These checks do not establish hosted or physical-phone behavior.
 

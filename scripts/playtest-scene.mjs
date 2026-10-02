@@ -132,7 +132,29 @@ async function showTokens(page) {
 }
 async function guidance(page, expected) {
   if (['pending','committed','reveal','completed'].includes(expected)) { await page.locator('.di-round-rest-bar').waitFor(); return; }
-  await page.locator(`.di-player-guidance[data-state="${expected}"]`).waitFor({ state: 'visible' });
+  const semantic = page.locator(`.di-player-guidance[data-state="${expected}"]`);
+  await semantic.waitFor({ state: 'attached' });
+  // Mobile inspection and prepared controls replace the duplicate instruction block.
+  if (expected === 'joining' && await page.locator('.di-scene-dock.is-inspecting').isVisible()) {
+    await page.locator('.di-stage-notice').filter({ hasText: 'Joining next turn. Explore the scene.' }).waitFor();
+    const moves = page.getByRole('group', { name: 'Moves for this target' });
+    await moves.waitFor();
+    const buttons = moves.getByRole('button');
+    assert.ok(await buttons.count() > 0, 'An awaiting player can inspect available moves');
+    for (const button of await buttons.all()) assert.equal(await button.isDisabled(), true, 'Admission is required before any inspected move can be prepared');
+    return;
+  }
+  if (expected === 'inspecting') {
+    await page.locator('.di-inspection-context').waitFor();
+    await page.getByRole('group', { name: /^Moves for this (?:target|hero)$/ }).waitFor();
+    return;
+  }
+  if (expected === 'prepared') {
+    await page.locator('.di-scene-selection').waitFor();
+    await page.locator('.di-focus-control').waitFor();
+    return;
+  }
+  await semantic.waitFor({ state: 'visible' });
 }
 async function pointerRelease(page, ms) {
   const before = records.length;
@@ -170,24 +192,55 @@ async function playToChapter(a, identities, chapter) {
   }
   throw new Error(`Could not reach chapter ${chapter}`);
 }
-async function layout(page, label) {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1280, height: 900 }, ...(['river','battle-focus'].includes(label) ? [{ width: 740, height: 360 }] : []), ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }, { width: 414, height: 770 }, { width: 390, height: 780 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
+async function layout(page, label, viewports) {
+  for (const viewport of viewports ?? [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1280, height: 900 }, ...(['river','battle-focus'].includes(label) ? [{ width: 740, height: 360 }] : []), ...(label.endsWith('focus') ? [{ width: 360, height: 640 }, { width: 412, height: 732 }, { width: 414, height: 770 }, { width: 390, height: 780 }] : []), ...(['river','inspection'].includes(label) ? [{ width: 566, height: 1064 }, { width: 910, height: 1072 }] : [])]) {
     await page.setViewportSize(viewport);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     // Finish finite visual transitions before measuring the same settled layout
     // captured below; viewport changes can otherwise catch a translated target.
     await page.screenshot({ path: `output/playwright/integration-${label}-${viewport.width}.png`, animations:'disabled' });
     const result = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
+      modalOpen: [...document.querySelectorAll('[role=dialog]')].some(node => node.getBoundingClientRect().width > 0),
       regions: Object.fromEntries(['.di-scene-tools', '.di-scene-stage', '.di-focus-stage', '.di-focus-heading', '.di-focus-player', '.di-focus-opponent', '.di-focus-stakes', '.di-focus-choices', '.di-scene-selection', '.di-focus-control', '.di-round-advance', '.di-reveal-content'].map(selector => [selector, document.querySelector(selector)?.getBoundingClientRect().toJSON()])),
       targets: [...document.querySelectorAll('[data-scene-target]')].map(node => { const r = node.getBoundingClientRect(); return { id: node.getAttribute('data-scene-target'), kind: node.getAttribute('data-target-kind'), width: r.width, height: r.height, top: r.top, bottom: r.bottom, left: r.left, right: r.right }; }),
       targetArt: [...document.querySelectorAll('.di-stage-targets .di-target-art')].map(node => { const r = node.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
+      scenePieces: [...document.querySelectorAll('.di-stage-targets > .di-scene-object')].map(node => ({
+        id: node.getAttribute('data-scene-target'), bounds: node.getBoundingClientRect().toJSON(),
+        art: node.querySelector(':scope > .di-target-art')?.getBoundingClientRect().toJSON(),
+        caption: node.querySelector(':scope > .di-object-label')?.getBoundingClientRect().toJSON(),
+        markers: [...node.querySelectorAll('.di-object-name,.di-choice-marker,.di-river-tag,.di-object-teammates,.di-object-teamwork')]
+          .filter(item => { const box = item.getBoundingClientRect(); return box.width > 0 && box.height > 0; })
+          .map(item => ({ label: item.textContent, bounds: item.getBoundingClientRect().toJSON() })),
+      })),
       choiceBottom: Math.max(0, ...[...document.querySelectorAll('.di-focus-choices button')].map(node => node.getBoundingClientRect().bottom)),
       selectionBottom: Math.max(0, ...[...document.querySelectorAll('.di-scene-selection>div>*')].map(node => node.getBoundingClientRect().bottom)),
       buttons: [...document.querySelectorAll('.di-theater button:not(:disabled)')].map(node => { const r = node.getBoundingClientRect(); return { name: node.getAttribute('aria-label') || node.textContent, width: r.width, height: r.height }; }) }));
     assert.ok(result.scrollHeight <= result.height + 1 && result.scrollWidth <= result.width, `${label} document overflow ${JSON.stringify(result)}`);
     assert.ok(result.targets.every(target => target.width >= 44 && target.height >= 44 && target.top >= 0 && target.bottom <= result.height && target.left >= 0 && target.right <= result.width + 1), `${label}: scene/hero targets keep their full hit area inside the viewport ${JSON.stringify(result.targets)}`);
     assert.ok(result.targets.every(target => target.bottom <= result.regions['.di-scene-stage'].bottom + 1), `${label}: scene targets stay above the dock`);
-    if (viewport.width === 320 && result.targetArt.length) assert.ok(result.targetArt.every(art => art.height >= 36), `${label}: target artwork stays recognizable on the small phone ${JSON.stringify(result.targetArt)}`);
+    if (!result.modalOpen && viewport.width === 320 && result.targetArt.length) assert.ok(result.targetArt.every(art => art.height >= 36), `${label}: target artwork stays recognizable on the small phone ${JSON.stringify(result.targetArt)}`);
+    if (!result.modalOpen && viewport.width >= 740 && viewport.height <= 600) {
+      const contains = (outer, inner) => inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1
+        && inner.left >= outer.left - 1 && inner.right <= outer.right + 1;
+      const overlaps = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1
+        && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+      for (const piece of result.scenePieces) {
+        assert.ok(piece.art && piece.caption && contains(piece.bounds, piece.art) && contains(piece.bounds, piece.caption), `${label}/${viewport.width}: artwork and caption stay within their own piece ${JSON.stringify(piece)}`);
+        assert.ok(!overlaps(piece.art, piece.caption), `${label}/${viewport.width}: caption does not overlap artwork ${JSON.stringify(piece)}`);
+        for (const other of result.scenePieces.filter(other => other.id !== piece.id)) {
+          assert.ok(!overlaps(piece.bounds, other.bounds), `${label}/${viewport.width}: scene hit areas do not overlap ${JSON.stringify({ piece, other })}`);
+        }
+        for (const hero of result.targets.filter(target => target.kind === 'hero')) {
+          assert.ok(!overlaps(piece.bounds, hero), `${label}/${viewport.width}: scene hit areas remain clear of hero controls ${JSON.stringify({ piece, hero })}`);
+        }
+        for (const marker of piece.markers) {
+          assert.ok(contains(piece.bounds, marker.bounds), `${label}/${viewport.width}: visible label or party marker stays within its target ${JSON.stringify({ id: piece.id, bounds: piece.bounds, marker })}`);
+          for (const other of result.scenePieces.filter(other => other.id !== piece.id)) {
+            assert.ok(!overlaps(marker.bounds, other.bounds), `${label}/${viewport.width}: label or party marker crosses into ${other.id} ${JSON.stringify({ id: piece.id, marker, other })}`);
+          }
+        }
+      }
+    }
     assert.ok(result.regions['.di-scene-tools'].bottom <= result.height + 1, `${label}/${viewport.width}: footer clipped by the app shell ${JSON.stringify(result.regions)}`);
     const stage = result.regions['.di-focus-stage'];
     if (stage) {
@@ -279,6 +332,8 @@ try {
   await guidance(b, 'joining');
   assert.equal(records.length, 0, 'A player awaiting admission can inspect without submitting a move');
   await b.keyboard.press('Escape');
+  // Settle B's arrival before checking that A's local inspection does not mutate the room.
+  await sync(a);
   await guidance(a, 'target');
   await a.getByRole('group', { name: 'Action tokens' }).waitFor();
   const inspectedRevision = (await state(a)).room.revision;
@@ -328,7 +383,11 @@ try {
   await skip(a); await sync(b);
   await guidance(a, 'committed');
   assert.equal(await b.locator('[data-scene-target="tracks"] .di-object-teamwork').textContent(), '+1 teamwork');
-  assert.match(await b.locator('.di-scene-selection').textContent(), /\+1 teamwork/);
+  const committedTeammate = (await state(b)).room.seats.find(seat => seat.actorId === identities[0].userId);
+  assert.ok((await b.locator('.di-scene-selection .di-cooperation-note').textContent()).includes(`${committedTeammate.character.name} has committed:`), 'The compact selection names the accepted teammate plan');
+  await b.getByRole('button', { name: 'Action details and help', exact: true }).click();
+  assert.match(await b.getByRole('dialog', { name: 'Your action', exact: true }).textContent(), /\+1 teamwork/);
+  await b.keyboard.press('Escape');
   await skip(b); await syncAll();
   const shared = (await state(a)).room;
   assert.equal(shared.phase, 'reveal');
@@ -351,6 +410,8 @@ try {
   note('real-result-total-and-visible-teamwork', { total: actualResult.roll + actualResult.modifier });
   note('two-player-shared-turn', { turn: sameTurn });
   await layout(a, 'party-recap');
+  await a.getByRole('button', { name: 'View scene', exact: true }).click();
+  await layout(a, 'party-recap-scene', [{ width: 320, height: 568 }]);
   await readyNext(a);
   const beforeJournal = (await state(a)).room;
   await a.getByRole('button', {name:/Last round/}).click();
@@ -513,6 +574,7 @@ try {
   await a.setViewportSize({ width: 414, height: 770 });
   await a.screenshot({ path: 'output/playwright/mobile-before-checking-receipt-414.png', animations: 'disabled' });
   const choosingStage = await a.locator('.di-scene-stage').boundingBox();
+  const choosingHero = await a.locator('.di-stage-party .di-avatar').first().boundingBox();
   let resumeAct;
   faults.pauseAAct = new Promise(resolve => { resumeAct = resolve; });
   const uncertainBefore = records.length;
@@ -527,8 +589,12 @@ try {
     assert.doesNotMatch(await a.locator('.di-round-rest-bar').textContent(), /Tap (?:a target|something)/i, 'Receipt checking keeps the sent move rather than asking for a new target');
     const pendingStage = await a.locator('.di-scene-stage').boundingBox();
     const pendingHero = await a.locator('.di-stage-party .di-avatar').first().boundingBox();
+    const pendingHeroTarget = await a.locator('.di-stage-party .di-stage-hero').first().boundingBox();
     assert.ok(pendingStage.height >= choosingStage.height, `Receipt checking keeps the encounter height stable: ${JSON.stringify({ choosingStage, pendingStage })}`);
-    assert.ok(pendingHero.width >= 44 && pendingHero.height >= 44, 'Hero remains visible while checking receipt');
+    assert.ok(pendingHeroTarget.width >= 44 && pendingHeroTarget.height >= 44 && pendingHeroTarget.y + pendingHeroTarget.height <= pendingStage.y + pendingStage.height + 1,
+      `The hero keeps a full hit area on the stage while checking receipt: ${JSON.stringify({ pendingHeroTarget, pendingStage })}`);
+    assert.ok(pendingHero.width >= choosingHero.width - 1 && pendingHero.height >= choosingHero.height - 1,
+      `Receipt checking does not shrink the hero portrait: ${JSON.stringify({ choosingHero, pendingHero })}`);
     await a.screenshot({ path: 'output/playwright/mobile-checking-receipt-414.png', animations: 'disabled' });
     note('pending-receipt-stable-scene-and-visible-hero');
   } finally { resumeAct(); faults.pauseAAct = null; }
@@ -636,14 +702,32 @@ try {
     store.setState({ room: snapshot });
   }, { ...renderBase, mechanicsVersion: undefined, events });
   try {
+    const landscapeViewports = [{ width: 844, height: 390 }, { width: 740, height: 360 }];
     await a.evaluate(async snapshot => {
       const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
       store.setState({ room: snapshot });
-    }, { ...renderBase, phase: 'choosing', commits: {}, flags: [...renderBase.flags, 'bell-rung'], deadline: clock() + 60_000 });
+    }, { ...renderBase, chapter: 1, phase: 'choosing', progress: 8, danger: 0, events: [], outcomes: [],
+      commits: { [renderVictim]: { token: 'assist', targetId: 'boat' } },
+      enemyIntent: { ...renderBase.enemyIntent, sourceId: 'pack' }, riverSupplies: { status: 'secured' },
+      flags: ['boat-freed', 'reed-path', 'ferryman-spoke'], deadline: clock() + 60_000 });
+    await select(a, 'investigate', 'boat');
+    await layout(a, 'developed-river-landscape', landscapeViewports);
+    await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
+    const chapelChoice = getScene(renderBase).choice;
+    assert.ok(chapelChoice, 'The current chapel fixture includes its authored preparation choice');
+    await a.evaluate(async snapshot => {
+      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      store.setState({ room: snapshot });
+    }, { ...renderBase, phase: 'choosing',
+      commits: { [renderVictim]: { token: 'assist', targetId: 'ward' } },
+      chapterChoices: { ...renderBase.chapterChoices, [chapelChoice.id]: { phase: 'ready', level: 1,
+        sources: [{ actorId: renderVictim, actorName: renderBase.seats.find(seat => seat.actorId === renderVictim).character.name, eventId: 'qa-preparation' }] } },
+      flags: [...renderBase.flags, 'bell-rung', 'ward-repaired', 'captives-guided'], deadline: clock() + 60_000 });
     await select(a, 'investigate', 'bell');
     await layout(a, 'ringing-bell-focus');
+    await layout(a, 'developed-chapel-landscape', landscapeViewports);
     await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
-    note('developed-bell-mobile-focus', { evidence: 'Client snapshot rendering only; reproduces the supplied long-title state' });
+    note('developed-bell-mobile-focus', { evidence: 'Client snapshot rendering only; developed river/chapel labels with active choice and human intent, including 844×390 and 740×360 containment/cross-row checks' });
     await a.evaluate(async snapshot => {
       const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
       store.setState({ room: snapshot });
