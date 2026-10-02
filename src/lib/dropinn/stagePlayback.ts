@@ -1,6 +1,7 @@
 import type { AdventureRoom, StoryEvent } from './types';
 import { getScene } from './scene';
 import { riverStatus } from './river';
+import { choiceDefinition, choiceStatus } from './chapterChoices';
 
 export function stageEvents(room: AdventureRoom) {
   const seen = new Set<string>();
@@ -37,7 +38,7 @@ export function roundScrollReadyAt(room: AdventureRoom, actorId: string) {
   const timeline = stageTimeline(room);
   const origin = timeline[0] ? timeline[0].start - 150 : room.updatedAt;
   const own = timeline.find(beat => beat.event.actorId === actorId && beat.event.kind === 'action');
-  const supplies = timeline.filter(beat => beat.event.result?.riverSupplies).at(-1);
+  const supplies = timeline.filter(beat => beat.event.result?.riverSupplies || beat.event.result?.chapterChoice).at(-1);
   const consequenceReady = Math.min(origin + 5850, Math.max(origin + 1800, own ? own.start + own.duration + 650 : origin + 1800,
     supplies ? supplies.start + supplies.duration + 650 : origin + 1800));
   return Math.max(consequenceReady, personalRollBeat(room, actorId)?.readyAt ?? 0);
@@ -50,14 +51,18 @@ export function stageProjection(room: AdventureRoom, before: AdventureRoom | und
   const landed = timeline.filter(beat => !canAnimate || now >= beat.start + beat.duration / 3).map(beat => beat.event);
   const active = canAnimate ? timeline.find(beat => now >= beat.start && now < beat.start + beat.duration) : undefined;
   const settled = !canAnimate || timeline.every(beat => now >= beat.start + beat.duration);
-  if (!canAnimate || settled) return { scene: getScene(room), river: riverStatus(room), seats: room.seats, progress: room.progress, danger: room.danger, active, landed, settled };
+  if (!canAnimate || settled) return { scene: getScene(room), river: riverStatus(room), choice: choiceStatus(room), seats: room.seats, progress: room.progress, danger: room.danger, active, landed, settled };
   const supplyResult = landed.filter(event => event.result?.riverSupplies).at(-1)?.result?.riverSupplies;
-  const supplyRoom = { ...room, riverSupplies: supplyResult ?? before!.riverSupplies };
+  const choiceResult = landed.filter(event => event.result?.chapterChoice).at(-1)?.result?.chapterChoice;
+  const choices = { ...before!.chapterChoices, ...(choiceResult ? { [choiceResult.id]: choiceResult.state } : {}) };
+  const supplyRoom = { ...room, riverSupplies: supplyResult ?? before!.riverSupplies, chapterChoices: choices };
   const scene = getScene(supplyRoom), previous = getScene(before!);
+  const definition = choiceDefinition(room);
   const changed = new Set(landed.filter(event => event.result?.changed).map(event => event.result?.targetId));
   return {
     river: riverStatus(supplyResult ? supplyRoom : before!),
-    scene: { ...previous, targets: scene.targets.map(target => changed.has(target.id) || (supplyResult && (target.id === 'boat' || target.id === 'reeds')) ? target : previous.targets.find(old => old.id === target.id) ?? target) },
+    choice: choiceStatus(choiceResult ? supplyRoom : before!),
+    scene: { ...previous, targets: scene.targets.map(target => changed.has(target.id) || (supplyResult && (target.id === 'boat' || target.id === 'reeds')) || (choiceResult && (target.id === definition?.primaryId || target.id === definition?.secondaryId)) ? target : previous.targets.find(old => old.id === target.id) ?? target) },
     seats: room.seats.map(seat => {
       const health = landed.filter(event => event.result?.targetKind === 'hero' && event.result.targetId === seat.actorId && event.result.hp !== undefined).at(-1)?.result?.hp;
       return { ...seat, hp: health ?? before!.seats.find(old => old.actorId === seat.actorId)?.hp ?? seat.hp };

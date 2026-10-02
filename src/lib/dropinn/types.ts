@@ -32,7 +32,36 @@ export interface CombinationResult {
   id: string; kind: 'setup' | 'payoff'; label: string; sourceId: string; actorId: string; actorName: string;
   payoffId?: string; progress?: number; dangerReduction?: number; cover?: number;
 }
+export interface ChapterChoiceDefinition {
+  id: string;
+  mode: 'prepare' | 'rescue' | 'press';
+  primaryId: string;
+  secondaryId: string;
+  riskToken: Exclude<TokenKind, 'assist' | 'spotlight'>;
+  title: string;
+  resource: string;
+  labels: { prepare: string; risk: string; secure: string; recover: string };
+  context: string;
+  deadlineRound?: number;
+  endings: Record<'full' | 'partial' | 'lost', string>;
+}
+export interface ChoiceContributor { actorId: string; actorName: string; eventId: string }
+export interface ChoiceCredit {
+  kind: 'prepared' | 'payoff' | 'built' | 'banked' | 'rescued';
+  actors: ChoiceContributor[];
+  sources?: ChoiceContributor[];
+}
+export interface ChapterChoiceState {
+  phase: 'open' | 'ready' | 'setback' | 'settled';
+  level: number;
+  outcome?: 'full' | 'partial' | 'lost';
+  /** Successful preparation payoff batches, not the number of simultaneous users. */
+  uses?: number;
+  /** Confirmed humans who created the current opportunity; names survive departure. */
+  sources?: ChoiceContributor[];
+}
 export interface ChapterDefinition {
+  choice?: ChapterChoiceDefinition;
   /** An authored supplies decision, pinned to Briar Glen v3. */
   riverSupplies?: true;
   combination?: SceneCombination;
@@ -86,6 +115,7 @@ export interface EnemyIntent {
 }
 /** Presentation reads numeric outcomes, never guesses effects from story prose. */
 export interface ActionResult {
+  chapterChoice?: { id: string; state: ChapterChoiceState; credit?: ChoiceCredit };
   /** Confirmed cargo state, for turn playback before the final room is revealed. */
   riverSupplies?: AdventureRoom['riverSupplies'];
   combination?: CombinationResult;
@@ -151,6 +181,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  chapterChoices?: Record<string, ChapterChoiceState>;
   riverSupplies?: { status: 'drifting' | 'spilled' | 'secured' | 'salvaged' | 'lost' };
   combinations?: CombinationState[];
   collectionVersion?: 1;

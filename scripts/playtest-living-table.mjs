@@ -120,6 +120,10 @@ async function skip(page) {
 try {
   ssr = await createServer({ configFile:false, cacheDir:'node_modules/.vite-living-tests', optimizeDeps:{noDiscovery:true,include:[]}, server:{middlewareMode:true,hmr:false}, appType:'custom',logLevel:'error' });
   const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
+  // This suite preserves the released v3 combination contract against the current UI.
+  // Only this isolated service's discovery catalog selects v3; production is untouched.
+  const { ADVENTURES, adventureFor } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
+  ADVENTURES.splice(ADVENTURES.findIndex(story => story.id === 'briar-glen'), 1, adventureFor({ adventureId: 'briar-glen', adventureVersion: 3 }));
   ({ getScene } = await ssr.ssrLoadModule('/src/lib/dropinn/scene.ts'));
   const { combinationDefinition, combinationState } = await ssr.ssrLoadModule('/src/lib/dropinn/combinations.ts');
   handler = createDropinnHandler({local:true,env:{},now:clock,fetch:async()=>{externalCalls++;throw new Error('No external calls');}});

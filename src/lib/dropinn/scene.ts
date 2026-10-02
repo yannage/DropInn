@@ -1,6 +1,7 @@
 import { adventureFor, chaptersFor } from './registry';
 import { briarTargetContext } from './briarContext';
 import { isRiverSuppliesChapter, riverStatus, riverTarget } from './river';
+import { choiceStatus, choiceTarget } from './chapterChoices';
 import type { AdventureRoom, PlayerAction, SceneChange, SceneTarget } from './types';
 
 const developments: Record<string, { flag: string; name: string; description: string; tokens: SceneTarget['tokens']; change: SceneChange }> = {
@@ -17,7 +18,7 @@ const developments: Record<string, { flag: string; name: string; description: st
 };
 
 /** One shared scene projection for browser, rules, and model context. */
-export function getScene(room: AdventureRoom) {
+function baseScene(room: AdventureRoom) {
   const chapter = chaptersFor(room)[room.chapter];
   if (!chapter) throw new Error('This chapter is unavailable.');
   if (adventureFor(room).id !== 'briar-glen') {
@@ -73,6 +74,17 @@ export function getScene(room: AdventureRoom) {
     'The captives huddle behind the altar. The broken ward binds Gloamfang to its curse.',
   ][room.chapter];
   return { ...chapter, intro, objective, situation, targets };
+}
+
+export function getScene(room: AdventureRoom) {
+  const scene = baseScene(room);
+  const choice = choiceStatus(room);
+  if (!choice) return scene;
+  return { ...scene,
+    // Keep the irreversible route's cost visible while players cast their votes.
+    situation: scene.branch ? scene.situation : `${choice.label}. ${choice.detail}`,
+    targets: scene.targets.map(target => choiceTarget(room, target)),
+  };
 }
 
 export function developScene(room: AdventureRoom, action: PlayerAction): SceneChange | undefined {

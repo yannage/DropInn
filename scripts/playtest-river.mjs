@@ -45,7 +45,7 @@ try {
   await page.evaluate(async () => { window.__riverStore = (await import('/src/store/adventureStore.ts')).useAdventureStore; });
   await page.waitForFunction(() => !!window.__riverStore.getState().room && !window.__riverStore.getState().loading);
   ({ room: initial, userId: selfId } = await page.evaluate(() => { const { room, userId } = window.__riverStore.getState(); return { room, userId }; }));
-  assert.equal(initial.adventureVersion, 3);
+  assert.equal(initial.adventureVersion, 4);
 
   async function fixture(status = 'drifting', success = true, chapterRound = 1) {
     fixtureRoom = structuredClone(initial);

@@ -1,6 +1,7 @@
 import { CHAPTERS } from './content';
 import { NEW_ADVENTURES } from './adventures';
 import { BRIAR_COMBINATIONS } from './combinations';
+import { CHAPTER_CHOICES } from './chapterChoiceContent';
 import type { ChapterDefinition } from './types';
 
 export interface AdventureDefinition {
@@ -30,6 +31,19 @@ export const ADVENTURE_VERSIONS: AdventureDefinition[] = [
   })) },
   ...NEW_ADVENTURES,
 ];
+// Add new rules without mutating any definition used by an already-pinned room.
+const briarThree = ADVENTURE_VERSIONS.find(item => item.id === DEFAULT_ADVENTURE && item.version === 3)!;
+ADVENTURE_VERSIONS.push({
+  ...briarThree, version: 4,
+  pitch: 'Prepare a shelter, brave the river, and give the guardian a way home.',
+  chapters: briarThree.chapters.map((chapter, index) => index === 1 ? chapter : {
+    ...chapter, combination: undefined, choice: CHAPTER_CHOICES[chapter.id],
+  }),
+});
+ADVENTURE_VERSIONS.push(...NEW_ADVENTURES.map(adventure => ({
+  ...adventure, version: 2,
+  chapters: adventure.chapters.map(chapter => ({ ...chapter, choice: CHAPTER_CHOICES[chapter.id] })),
+})));
 /** Discovery selects current releases; snapshot readers always resolve pinned versions. */
 export const ADVENTURES = ADVENTURE_VERSIONS.filter(item => !ADVENTURE_VERSIONS.some(other => other.id === item.id && other.version > item.version));
 export function currentAdventure(id = DEFAULT_ADVENTURE): AdventureDefinition {

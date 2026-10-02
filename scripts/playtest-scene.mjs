@@ -92,7 +92,15 @@ async function sync(page) {
 async function openRound(page) {
   // Reopen history if this round was previously dismissed.
   const button = page.getByRole('button', { name: 'Open round scroll', exact: true });
-  if (await button.isVisible() && !(await page.getByRole('dialog', { name: 'Round story' }).isVisible())) await button.click();
+  const dialog = page.getByRole('dialog', { name: 'Round story' });
+  if (await button.isVisible() && !(await dialog.isVisible())) {
+    try { await button.click({ timeout: 1500 }); }
+    catch (error) {
+      // The automatic parchment can open between the check and pointer dispatch.
+      // Accept only that completed transition; other interaction failures still fail.
+      if (!(await dialog.isVisible())) throw error;
+    }
+  }
 }
 async function syncAll() { for (const page of pages) { await sync(page); if ((await state(page)).room?.phase === 'reveal') await openRound(page); } }
 async function advanceTo(time) {

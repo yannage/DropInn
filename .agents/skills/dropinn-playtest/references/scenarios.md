@@ -10,6 +10,12 @@ Verify both players see simultaneous target/hero effects during the up-to-ten-se
 
 Existing anchors: `server/dropinn.test.ts`, `src/lib/dropinn/teamwork.test.ts`, `src/lib/dropinn/engine.test.ts`.
 
+## Cooperation and risk previews
+
+Run `npm run test:cooperation -- --base-url http://127.0.0.1:5201` against a local Vite server. It creates two named humans through an isolated real local handler and advances that handler's injected clock. The first hero prepares an opening, then commits a risky payoff; the second sees the accepted plan before choosing maintenance or a shared payoff. Check both screens, ordinary XP, named preparation/payoff credit, saved history and same-identity reload. Inspect an unrelated target after committing to ensure a retained selection cannot supply its cooperation hint. A later different-token action on the same target must increase current teamwork odds before the second commitment.
+
+The runner separately labels client-clock expiry probes and held outbound delivery, verifying that fresh odds disappear while pending, committed or expired. It checks 320×568, 390×844 and desktop bounds with four scene targets, hero targets and reachable release controls. `test:chapter-choices` complements this with controlled three-teammate fixtures, long names, overlapping preparation/rescue/banking and final-turn preparation. Reports live in `output/playwright/cooperation-results.json` and `chapter-choices-results.json`. These establish local handler/browser behavior and controlled presentation, not hosted persistence, Realtime or human comprehension.
+
 ## Interruption, reload, retry, and rejoin
 
 1. Establish A and B in an isolated table; record character IDs, table code, turn, and cumulative participant XP/actions/keepsakes.

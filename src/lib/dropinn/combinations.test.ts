@@ -46,7 +46,7 @@ describe('versioned scene combinations', () => {
     expect(combinationPreview(river, combinationDefinition(river)!.payoffs[1])).toContain('already covered');
   });
   it('selects v3 for new visits but never upgrades missing or pinned v1 snapshots', () => {
-    expect(currentAdventure().version).toBe(3);
+    expect(currentAdventure().version).toBe(4);
     expect(ADVENTURES.filter(item => item.id === 'briar-glen')).toHaveLength(1);
     expect(adventureFor().version).toBe(1);
     expect(adventureFor({ adventureId: 'briar-glen', adventureVersion: 1 }).chapters[0].combination).toBeUndefined();

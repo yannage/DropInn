@@ -9,7 +9,9 @@ import { getScene, developScene } from './scene';
 import { approachOption, turnInsight } from './approaches';
 import { isRiverSuppliesChapter, riverActionPreview, riverMove, riverSupplyState, RIVER_SUPPLY_DEADLINE } from './river';
 import type { RiverMove, RiverSupplyStatus } from './river';
-import type { ActionDescription, AdventureCommand, AdventureRoom, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
+import { aggregateChoice, attributeChoice, choiceActionPreview, choiceChange, choiceCreditText, choiceDefinition, choiceGuaranteed, choiceMove, choiceMoveEffects, choiceState, choiceStatus, closeChoice } from './chapterChoices';
+import type { ChoiceAttempt, ChoiceMove } from './chapterChoices';
+import type { ActionDescription, AdventureCommand, AdventureRoom, ChapterChoiceDefinition, ChapterChoiceState, ChoiceCredit, CreativeEffect, CreativeProposal, Participant, PlayerAction, RoomSummary, Seat, StoryEvent, TokenKind, VisitRecap } from './types';
 
 const ROUND_MS = 60_000;
 const REVEAL_MS = 10_000;
@@ -103,6 +105,9 @@ export function describeAction(classKey: CharacterClassKey, token: TokenKind, ta
   const name = target?.name ?? 'the scene';
   const dc = 10 + room.chapter + (room.danger >= 6 ? 1 : 0);
   const points = (value: number) => pointsLabel(value * progressShare(room));
+  const chapterChoice = choiceActionPreview(room, { token, targetId });
+  if (chapterChoice) return { label: chapterChoice.label, description: chapterChoice.detail,
+    trait: token === 'investigate' ? classKey === 'rogue' ? 'ING' : 'INT' : token === 'influence' ? classKey === 'rogue' ? 'ING' : 'CHA' : CLASS_TRAIT[classKey], dc };
   const riverPreview = riverActionPreview(room, { token, targetId });
   if (riverPreview) return { label: riverPreview.label, description: riverPreview.detail,
     trait: token === 'investigate' ? classKey === 'rogue' ? 'ING' : 'INT' : CLASS_TRAIT[classKey], dc };
@@ -156,6 +161,7 @@ function applyEffect(room: AdventureRoom, effect: CreativeEffect, now: number, s
 function validateAction(room: AdventureRoom, userId: string, action: PlayerAction) {
   const seat = room.seats.find(s => s.actorId === userId && s.kind === 'human' && !s.leaving);
   if (!seat) throw new Error('Your seat will open at the next turn.');
+  if (choiceMove(room, action) && (action.approach !== undefined || action.combination !== undefined)) throw new Error('This scene choice has its own outcome. Choose it without an approach or combination.');
   const supplyMove = riverMove(room, action);
   if (supplyMove && supplyMove !== 'rescue' && (action.approach !== undefined || action.combination !== undefined)) throw new Error('This supplies move already has its own outcome. Choose it without an approach or combination.');
   if (action.combination !== undefined && (!combinationAvailable(room, userId) || !selectedPayoff(room, action))) throw new Error('Choose an available scene combination.');
@@ -181,6 +187,66 @@ function validateAction(room: AdventureRoom, userId: string, action: PlayerActio
     if (room.players[userId].spotlightChapters.includes(room.chapter)) throw new Error('Your Spotlight token returns next chapter.');
     if (!action.proposal || action.proposal.targetId !== action.targetId || !validateProposal(room, action.proposal)) throw new Error('Review a supported idea for this turn before committing.');
   } else if (!target.tokens.includes(action.token)) throw new Error('That action is not available on this target.');
+}
+
+function resolveChoiceHuman(room: AdventureRoom, frozen: AdventureRoom, seat: Seat, action: PlayerAction, move: ChoiceMove, now: number, frozenBonus: number, startingDanger: number, share: number): ChoiceAttempt {
+  const guaranteed = choiceGuaranteed(move);
+  const description = describeAction(seat.character.classKey, action.token, action.targetId, { ...frozen, danger: startingDanger });
+  const executionBonus = guaranteed ? 0 : releaseBonus(action.releaseMs);
+  const roll = guaranteed ? undefined : 1 + hash(`${room.id}:${room.turn}:${seat.actorId}:${action.token}:${action.targetId}`) % 20;
+  const support = rollSupport(frozen, seat.actorId, action);
+  const modifier = guaranteed ? undefined : seat.character.traits[description.trait] + frozenBonus + support.teamwork + executionBonus;
+  const success = guaranteed || roll! + modifier! >= description.dc;
+  const effects = choiceMoveEffects(move, success, choiceState(frozen)!, chaptersFor(frozen)[frozen.chapter].combat);
+  const progress = Math.max(0, Math.min(effects.progress * share, chaptersFor(room)[room.chapter].progressGoal - room.progress));
+  const previousDanger = room.danger;
+  room.progress += progress; room.danger = Math.max(0, room.danger + effects.danger * share);
+  const danger = room.danger - previousDanger;
+  if (effects.cover) flag(room, `cover:${room.turn}`);
+  // This authored payoff actually repairs the ward; record that fact without
+  // granting unrelated development to other signature resource interactions.
+  const change = success && choiceDefinition(frozen)?.id === 'briar-bell-rhythm' && (move === 'spend-safe' || move === 'spend-risk')
+    ? developScene(room, action) : undefined;
+  const text = `${seat.character.name} ${guaranteed ? 'helps' : success ? 'succeeds' : 'finds a complication'}: ${description.label.toLowerCase()}.`;
+  const effect = `${guaranteed ? 'Guaranteed. ' : ''}+${pointsLabel(progress)} progress.${danger ? ` ${danger > 0 ? '+' : '−'}${pointsLabel(Math.abs(danger))} danger.` : ''}${effects.cover ? ' 2 party cover; strongest cover wins.' : ''} The party’s scene choice resolves together.${!guaranteed && support.total ? ` Roll support: ${supportText(support)}.` : ''}`;
+  event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, effect, success, contribution: true,
+    ...(roll === undefined ? {} : { roll, modifier }), result: { targetKind: 'scene', targetId: action.targetId, token: action.token, executionBonus,
+      progress: Number(progress.toFixed(2)), danger: Number(danger.toFixed(2)), protection: effects.cover, changed: !!change }, ...(change ? { change } : {}) });
+  const player = room.players[seat.actorId]; player.actions++; player.xp += guaranteed || !success ? 3 : 5;
+  player.highlights = [...player.highlights, `${text} ${effect}${change ? ` ${change.text}` : ''}`].slice(-8); seat.missedTurns = 0;
+  return { move, success, contributor: { actorId: seat.actorId, actorName: seat.character.name, eventId: room.events[room.events.length - 1].id } };
+}
+
+function recordChoiceState(room: AdventureRoom, definition: ChapterChoiceDefinition, state: ChapterChoiceState, now: number, closing = false, credit?: ChoiceCredit) {
+  const before = choiceState(room)!;
+  (room.chapterChoices ??= {})[definition.id] = { ...state };
+  if (JSON.stringify(before) === JSON.stringify(state)) return;
+  let progress = 0, danger = 0;
+  if (definition.mode === 'rescue' && before.phase !== 'settled' && state.phase === 'settled' && room.chapter === chaptersFor(room).length - 1) {
+    progress = Math.min(state.outcome === 'full' ? 2 : state.outcome === 'partial' ? 1 : 0, Math.max(0, chaptersFor(room)[room.chapter].progressGoal - room.progress));
+    danger = state.outcome === 'lost' ? 1 : 0;
+    room.progress += progress; room.danger += danger;
+  }
+  const change = choiceChange(definition, before, state, closing);
+  if (credit) change.text += ` ${choiceCreditText(credit)}`;
+  if (definition.mode === 'rescue' && state.phase === 'settled') {
+    const destination = room.chapter === chaptersFor(room).length - 1 ? 'this finale' : 'the next chapter';
+    change.text += state.outcome === 'lost' ? ` +1 danger for ${destination}.` : ` +${state.outcome === 'full' ? 2 : 1} progress for ${destination}.`;
+  }
+  event(room, now, { kind: 'consequence', text: change.text, change, result: { targetKind: 'scene', targetId: choiceStatus(room)?.targetId ?? definition.primaryId,
+    changed: true, chapterChoice: { id: definition.id, state: { ...state }, ...(credit ? { credit } : {}) }, ...(progress ? { progress } : {}), ...(danger ? { danger } : {}) } });
+}
+
+function resolveChoices(room: AdventureRoom, frozen: AdventureRoom, attempts: ChoiceAttempt[], now: number) {
+  const definition = choiceDefinition(frozen), before = choiceState(frozen);
+  if (!definition || !before) return;
+  let state = aggregateChoice(definition, before, attempts);
+  const closing = room.progress >= chaptersFor(room)[room.chapter].progressGoal || room.chapterRound >= MAX_ROUNDS;
+  const expired = definition.mode === 'rescue' && room.chapterRound >= (definition.deadlineRound ?? 3);
+  if (closing || expired) state = closeChoice(definition, state);
+  const attributed = attributeChoice(definition, before, state, attempts);
+  // Do not advertise a recovery/payoff turn between the last action and chapter closure.
+  recordChoiceState(room, definition, attributed.state, now, closing || expired && state.outcome === 'lost', attributed.credit);
 }
 
 function resolveSupplyMove(room: AdventureRoom, seat: Seat, action: PlayerAction, move: Exclude<RiverMove, 'rescue'>, now: number, frozenBonus: number, startingDanger: number, share: number): RiverSupplyStatus | undefined {
@@ -347,6 +413,8 @@ function resolveSupplies(room: AdventureRoom, changes: RiverSupplyStatus[], now:
 }
 
 function finishChapter(room: AdventureRoom, now: number) {
+  const choice = choiceDefinition(room), state = choiceState(room);
+  if (choice && state) recordChoiceState(room, choice, closeChoice(choice, state), now, true);
   const definition = chapterOf(room);
   const result = room.progress >= definition.progressGoal ? 'success' : room.progress >= definition.progressGoal * 0.5 ? 'mixed' : 'setback';
   let text = definition.endings[result];
@@ -355,6 +423,8 @@ function finishChapter(room: AdventureRoom, now: number) {
   if (isRiverSuppliesChapter(room)) text += room.riverSupplies?.status === 'secured' ? ' You bring all the supplies: +3 starting chapel progress.'
     : room.riverSupplies?.status === 'salvaged' ? ' You bring some salvaged supplies: +1 starting chapel progress.' : ' The lost supplies leave the chapel with +2 starting danger.';
   if (room.chapter === 2 && hasFlag(room, 'mara-helped')) text += ' Mara welcomes you back with the copper bell you helped her save.';
+  const choiceOutcome = choiceState(room)?.outcome;
+  if (choice && choiceOutcome) text += ` ${choice.endings[choiceOutcome]}`;
   room.outcomes.push({ chapter: room.chapter, result, text, at: now });
   flag(room, `outcome:${room.chapter}:${result}`);
   // Necessary story facts arrive even when a chapter goes badly.
@@ -372,6 +442,9 @@ function finishChapter(room: AdventureRoom, now: number) {
 
 function resolveRound(room: AdventureRoom, now: number) {
   if (room.phase !== 'choosing' || room.status === 'completed') return;
+  // Freeze before resolving branch votes too: a Help vote must not become a signature move.
+  const frozenChoiceRoom: AdventureRoom = { ...room, chapterChoices: room.chapterChoices ? JSON.parse(JSON.stringify(room.chapterChoices)) : undefined };
+  const choiceAttempts: ChoiceAttempt[] = [];
   const branch = chapterOf(room).branch;
   if (branch && !room.storyBranch) {
     const votes = branch.options.map(option => ({ option, count: Object.values(room.commits).filter(action => action.token === 'assist' && action.targetKind !== 'hero' && action.targetId === option.targetId).length }));
@@ -389,8 +462,12 @@ function resolveRound(room: AdventureRoom, now: number) {
   for (const seat of room.seats.filter(s => s.kind === 'human')) {
     const action = room.commits[seat.actorId];
     if (action) {
-      const supplyChange = resolveHuman(room, seat, action, now, frozenBonus, startingDanger, share, supplyState);
-      if (supplyChange) supplyChanges.push(supplyChange);
+      const move = choiceMove(frozenChoiceRoom, action);
+      if (move) choiceAttempts.push(resolveChoiceHuman(room, frozenChoiceRoom, seat, action, move, now, frozenBonus, startingDanger, share));
+      else {
+        const supplyChange = resolveHuman(room, seat, action, now, frozenBonus, startingDanger, share, supplyState);
+        if (supplyChange) supplyChanges.push(supplyChange);
+      }
     }
     else if (!seat.leaving) {
       seat.missedTurns += 1;
@@ -410,6 +487,7 @@ function resolveRound(room: AdventureRoom, now: number) {
   }
   room.progress = Math.min(chapterOf(room).progressGoal, Math.round(room.progress * 100) / 100);
   room.danger = Math.round(room.danger * 100) / 100;
+  resolveChoices(room, frozenChoiceRoom, choiceAttempts, now);
   resolveSupplies(room, supplyChanges, now);
   if (chapterOf(room).combat && room.progress < chapterOf(room).progressGoal && humans(room).length) {
     // Old snapshots finish their current turn under the old targeting rule.
@@ -447,13 +525,21 @@ function advanceRound(room: AdventureRoom, now: number) {
     room.progress = (priorSuccess ? 3 : 0) + Number(maraHelp);
     room.danger = Math.max(0, Math.min(8, room.danger) + (priorSuccess ? -2 : 1));
     let suppliesText = '';
+    const previousChoice = chaptersFor(room)[room.chapter - 1]?.choice;
+    const previousChoiceState = previousChoice && room.chapterChoices?.[previousChoice.id];
+    if (previousChoice?.mode === 'rescue' && previousChoiceState?.phase === 'settled') {
+      const carryProgress = previousChoiceState.outcome === 'full' ? 2 : previousChoiceState.outcome === 'partial' ? 1 : 0;
+      room.progress += carryProgress;
+      if (previousChoiceState.outcome === 'lost') room.danger += 1;
+      suppliesText += carryProgress ? ` Saved ${previousChoice.resource} adds ${carryProgress} starting progress.` : ` Lost ${previousChoice.resource} adds 1 starting danger.`;
+    }
     if (isRiverSuppliesChapter(room)) room.riverSupplies = { status: 'drifting' };
     if (room.chapter > 0 && chaptersFor(room)[room.chapter - 1]?.riverSupplies && room.riverSupplies) {
       const status = room.riverSupplies.status;
       const progress = status === 'secured' ? 3 : status === 'salvaged' ? 1 : 0;
       room.progress += progress;
       if (status === 'lost') room.danger += 2;
-      suppliesText = progress ? ` The supplies you saved add ${progress} starting progress.` : status === 'lost' ? ' The lost supplies add 2 starting danger.' : '';
+      suppliesText += progress ? ` The supplies you saved add ${progress} starting progress.` : status === 'lost' ? ' The lost supplies add 2 starting danger.' : '';
     }
     for (const seat of room.seats) { seat.hp = Math.min(seat.character.maxHp, seat.hp + 3); if (seat.kind === 'human') room.players[seat.actorId].character.hp = seat.hp; }
     event(room, now, { kind: 'chapter', text: `${chapterOf(room).intro}${priorSuccess ? ' Your earlier success gives the party a head start.' : ''}${maraHelp ? ' Because you helped Mara, her directions give the party another point of progress.' : ''}${suppliesText}` });

@@ -1,7 +1,9 @@
 import { chaptersFor } from './registry';
 import { getScene } from './scene';
 import type { AdventureRoom, PlayerAction, TokenKind } from './types';
-import { riverActionPreview, riverStatus } from './river';
+import { riverStatus } from './river';
+import { specialActionPreview } from './actionPreview';
+import { choiceStatus } from './chapterChoices';
 
 export type PlayerGuidanceState = 'completed' | 'parked' | 'joining' | 'unseated' | 'leaving'
   | 'reveal' | 'pending' | 'committed' | 'expired' | 'holding' | 'prepared' | 'inspecting' | 'armed' | 'target';
@@ -37,7 +39,7 @@ const tokenLabels: Record<TokenKind, string> = {
 /** Keep the authored world action visible while the player compares mechanical approaches. */
 export function contextualActionLabel(room: AdventureRoom, action: PlayerAction): string {
   if (action.token === 'spotlight' && action.proposal?.label.trim()) return action.proposal.label.trim();
-  const riverMove = riverActionPreview(room, action);
+  const riverMove = specialActionPreview(room, action);
   if (riverMove) return riverMove.label;
   if (action.targetKind === 'hero') {
     const name = room.seats.find(seat => seat.actorId === action.targetId)?.character.name ?? 'your ally';
@@ -94,7 +96,7 @@ export function derivePlayerGuidance(input: PlayerGuidanceInput): PlayerGuidance
     ? `Your move is committed. Everyone resolves together in up to ${seconds}s.`
     : 'Your move is committed. Waiting for the party’s results.', 'wait');
   if (now >= room.deadline) return guidance('expired', 'Time to resolve', 'Choosing has ended. Waiting for the party’s results.', 'wait');
-  const guaranteed = selection && riverActionPreview(room, selection)?.guaranteed;
+  const guaranteed = selection && specialActionPreview(room, selection)?.guaranteed;
   if (holding) return guidance('holding', 'Finish your release', guaranteed ? 'This move is guaranteed. Timing does not change its outcome.' : 'The bright zone adds a bonus. Missing it keeps your ordinary move.', 'commit');
   if (selection) return guidance('prepared', 'Hold and release to commit', guaranteed ? 'Guaranteed move. Release or Commit now to send it.' : 'Release sends your move. The bright zone adds +1.', 'commit');
   const scene = getScene(room);
@@ -104,6 +106,9 @@ export function derivePlayerGuidance(input: PlayerGuidanceInput): PlayerGuidance
   if (inspectedHero) return guidance('inspecting', 'Choose how to help', 'Choose a move below. Release the die to send it.', 'move');
   if (armedToken) return guidance('armed', `Place ${tokenLabels[armedToken]}`, 'Choose a highlighted target. You will commit your move afterward.', 'target');
   if (scene.branch && !room.storyBranch) return guidance('target', 'Inspect the routes', 'Compare the routes. Help votes for a route; other moves contribute without voting.', 'target');
+  if (self.hp === 0) return guidance('target', 'Choose where to Help', 'You can still Help. Inspect a highlighted target to choose a move.', 'target');
+  const choice = choiceStatus(room);
+  if (choice && choice.phase !== 'settled') return guidance('target', choice.label, choice.detail, 'target');
   const supplies = riverStatus(room);
   if (supplies && supplies.roundsLeft > 0) return guidance('target', supplies.label, supplies.status === 'spilled'
     ? 'Help the boat to salvage some; Investigate the reeds to risk saving all. Lost cargo adds 2 chapel danger.'

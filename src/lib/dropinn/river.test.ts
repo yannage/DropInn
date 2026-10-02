@@ -39,8 +39,8 @@ const next = (room: AdventureRoom) => command(room, 'tick', 'a', {}, room.reveal
 const own = (room: AdventureRoom, id = 'a') => [...room.events].reverse().find(event => event.turn === room.turn && event.actorId === id && event.kind === 'action')!;
 
 describe('Briar Glen v3 river decisions', () => {
-  it('selects v3 for new tables and leaves pinned v1/v2 and missing versions untouched', () => {
-    expect(currentAdventure().version).toBe(3);
+  it('retains river choices in new tables and leaves pinned v1/v2 and missing versions untouched', () => {
+    expect(currentAdventure().version).toBe(4);
     expect(adventureFor().version).toBe(1);
     for (const version of [1, 2]) {
       const room = fixture(); room.adventureVersion = version; delete room.riverSupplies;

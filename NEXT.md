@@ -8,9 +8,11 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 
 ## Player clarity pass
 
-The [Briar Glen v3 river pass](docs/stories/briar-glen-v3.md) adds guaranteed versus risky cargo moves, a changed decision after failure, and chapel consequences. It preserves chapter rewards, downed participation and pinned v1/v2 tables. The packet records implementation and verification evidence.
+The [chapter choice pass](docs/stories/chapter-choices.md) extends the river's visible tradeoffs through all 12 chapters: shared preparation, optional rescues and recoveries, and building versus banking gains. New rooms use Briar v4 and the other stories' v2; released tables retain their behavior. The supplement records rules and verification evidence.
 
-- [ ] Compare v2/v3 with uncoached solo players and pairs: can they explain the tradeoff, recognize a spill, coordinate who saves cargo, and identify the chapel consequence? Check whether safe Help becomes an automatic opening; tune from observation.
+The cooperation follow-up adds accepted teammate plans, contextual overlap advice, current success odds and recorded credit for preparation, payoffs, building, banking and rescues. It preserves existing rules and rewards; player observation below remains the next design check.
+
+- [ ] Compare the current versions with their predecessors using uncoached solo players and pairs: can they explain the tradeoff, recognize a setback, coordinate a payoff, and identify later consequences? Check whether guaranteed rescue, repeated preparation or banking one level becomes automatic; tune from observation.
 - [ ] Test whether players choose another visit after a clean stopping point. Automated checks cannot establish fun or retention. Broader class abilities remain a separate design experiment.
 
 - [x] Put the game explanation, round loop, ready hero and one story-specific Play action at the entrance. Move story selection and friend admission into named dialogs; keep deeper options below.

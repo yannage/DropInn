@@ -20,6 +20,7 @@ try {
   for (const definition of ADVENTURES.slice(1).filter(item => !process.env.STORY_ID || item.id === process.env.STORY_ID)) {
     const handler = createDropinnHandler({ local: true, env: {}, now: () => Date.now() + offset, fetch: async () => { throw new Error('External services disabled'); } });
     const contexts = [], pages = [];
+    let lastInteraction;
     const state = page => page.evaluate(async () => { const s = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState(); return { room: s.room, userId: s.userId }; });
     const sync = async () => { for (const page of pages) await page.evaluate(async () => { await (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().syncRoom(); }); };
     const advance = async time => {
@@ -30,7 +31,20 @@ try {
     try {
       for (const name of ['a','b']) {
         const context = await browser.newContext({ viewport: { width: 390, height: 844 } }); contexts.push(context);
-        await context.addInitScript(value => { const realNow = Date.now.bind(Date); window.__storyOffset = value; Date.now = () => realNow() + window.__storyOffset; }, offset);
+        await context.addInitScript(value => {
+          const realNow = Date.now.bind(Date); window.__storyOffset = value; Date.now = () => realNow() + window.__storyOffset;
+          // Failure-only diagnostics distinguish a moved/replaced control from a rejected command.
+          window.__storyInputs = [];
+          for (const type of ['pointerdown', 'pointerup', 'click']) document.addEventListener(type, event => {
+            const control = event.target instanceof Element ? event.target.closest('button') : null;
+            if (!control) return;
+            window.__storyInputs.push({ type, at: performance.now(), label: control.getAttribute('aria-label') ?? control.textContent.trim().slice(0, 80),
+              source: control.closest('.di-context-moves') ? 'context' : control.dataset.token ? 'hand' : 'other',
+              phase: document.querySelector('.di-scene-dock')?.dataset.phase,
+              guidance: document.querySelector('.di-player-guidance')?.dataset.state });
+            window.__storyInputs = window.__storyInputs.slice(-24);
+          }, true);
+        }, offset);
         const page = await context.newPage(); pages.push(page);
         page.on('pageerror', error => errors.push(error.message));
         await page.route('**/*', route => new URL(route.request().url()).origin === base ? route.fallback() : route.abort());
@@ -93,16 +107,38 @@ try {
         for (const page of pages) {
           const current = await state(page);
           if (current.room.pendingJoins.includes(current.userId)) continue;
+          // A store read can finish before React has cleared the previous turn's inspection.
+          // Start pointer input only after this choosing turn is rendered and ready for a target.
+          await page.waitForFunction(async expected => {
+            const s = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState();
+            return s.room?.turn === expected.turn && s.room?.chapter === expected.chapter && s.room?.phase === 'choosing'
+              && document.querySelector('.di-scene-dock')?.dataset.phase === 'choosing'
+              && document.querySelector('.di-player-guidance')?.dataset.state === 'target';
+          }, { turn: current.room.turn, chapter: current.room.chapter });
           const target = scene.branch && !room.storyBranch ? scene.branch.options[0].targetId : scene.targets[round % 4].id;
+          lastInteraction = { browser: pages.indexOf(page), round, chapter: current.room.chapter, turn: current.room.turn, target, step: 'inspect' };
           await page.locator(`[data-scene-target="${target}"]`).click();
+          await page.locator('.di-player-guidance[data-state="inspecting"]').waitFor();
+          lastInteraction.step = 'prepare Help';
           await page.getByRole('group', { name: 'Moves for this target', exact: true }).getByRole('button', { name: /^Help:/ }).click();
           if (scene.branch && !room.storyBranch) {
             await page.getByRole('dialog', {name:'Choose your route'}).waitFor();
             assert.ok(await page.getByText(scene.branch.options[0].consequence,{exact:true}).isVisible());
             await page.getByRole('button',{name:'Ready this route',exact:true}).click();
           }
-          await page.getByRole('button',{name:'Roll now',exact:true}).click();
-          await page.waitForFunction(async () => !(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().loading);
+          lastInteraction.step = 'commit prepared Help';
+          // Compact special moves hide the repeated heading while keeping the release controls visible.
+          await page.locator('.di-player-guidance[data-state="prepared"]').waitFor({ state: 'attached' });
+          const response = page.waitForResponse(response => response.url().endsWith('/api/dropinn')
+            && response.request().postDataJSON()?.command?.type === 'act'
+            && response.request().postDataJSON()?.command?.expectedTurn === current.room.turn);
+          await page.getByRole('button',{name:/^(Roll|Commit) now$/}).click();
+          assert.equal((await response).status(), 200, 'The prepared move is accepted by the local handler');
+          await page.waitForFunction(async expected => {
+            const s = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState();
+            return !s.loading && (s.room?.commits[s.userId]?.targetId === expected.target
+              || s.room?.events.some(event => event.turn === expected.turn && event.actorId === s.userId && event.contribution));
+          }, { turn: current.room.turn, target });
           if(checkScroll && page===a) await watchStoryWhileWaiting(a);
         }
         await sync();
@@ -125,7 +161,11 @@ try {
       evidence.push({ adventure:definition.id, chapters:[...captured], branch:finished.storyBranch, reconnect:reloaded, completed:true });
       console.log(JSON.stringify(evidence.at(-1)));
     } catch (error) {
-      for (const [index, page] of pages.entries()) await page.screenshot({ path:`output/playwright/${definition.id}-failure-${index}.png` }).catch(() => {});
+      for (const [index, page] of pages.entries()) {
+        await page.screenshot({ path:`output/playwright/${definition.id}-failure-${index}.png` }).catch(() => {});
+        const inputs = await page.evaluate(() => window.__storyInputs ?? []).catch(() => []);
+        await writeFile(`output/playwright/${definition.id}-failure-${index}.json`, JSON.stringify({ lastInteraction, inputs }, null, 2));
+      }
       throw error;
     } finally { for (const context of contexts) await context.close(); }
   }

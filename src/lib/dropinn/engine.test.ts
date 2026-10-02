@@ -446,7 +446,7 @@ describe('creative agency and hero abilities', () => {
     expect(describeAction('fighter', 'fight', 'gate', room).trait).toBe('ATH');
     expect(describeAction('rogue', 'fight', 'gate', room).trait).toBe('ING');
     expect(describeAction('cleric', 'fight', 'gate', room).trait).toBe('CHA');
-    expect(new Set(['wizard', 'fighter', 'rogue', 'cleric'].map(k => describeAction(k as CharacterClassKey, 'assist', 'gate', room).label)).size).toBe(4);
+    expect(new Set(['wizard', 'fighter', 'rogue', 'cleric'].map(k => describeAction(k as CharacterClassKey, 'assist', 'mara', room).label)).size).toBe(4);
   });
 
   it.each(['cover', 'distract', 'reveal', 'rescue'] as CreativeEffect[])('applies a bounded %s effect with a successful Spotlight attempt', effect => {

@@ -32,7 +32,7 @@ describe('adventure registry and routes', () => {
       expect(room.outcomes[2].text).toContain(definition.branchEndings![option.id]);
       expect(room.players.alice.keepsakes).toEqual(definition.chapters.map(c => c.keepsake));
       const restored = JSON.parse(JSON.stringify(room));
-      expect(getVisitRecap(restored, 'alice')).toMatchObject({ adventureId: definition.id, adventureVersion: 1 });
+      expect(getVisitRecap(restored, 'alice')).toMatchObject({ adventureId: definition.id, adventureVersion: definition.version });
     });
     it(`${definition.id} resolves ties independently of arrival order and preserves receipts`, () => {
       let room = createAdventure(hero, 'alice', 1000, 'STORY1', definition.id);

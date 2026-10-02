@@ -5,7 +5,7 @@ import { claimStageSound, stageCaption, stageProjection } from '../../lib/dropin
 import { combinationAvailable, combinationDefinition, combinationState } from '../../lib/dropinn/combinations';
 import { StageDice } from './StageDice';
 import { TokenArtwork } from './TokenArtwork';
-import { riverActionPreview } from '../../lib/dropinn/river';
+import { specialActionPreview } from '../../lib/dropinn/actionPreview';
 import { playTableSound } from './tableSound';
 import './action-effects.css';
 
@@ -24,6 +24,7 @@ export function useStagePlayback(room: AdventureRoom, now: number, immediate: bo
 type Point = { x: number; y: number };
 
 function actionVisualToken(event: StoryEvent) {
+  if (event.result?.chapterChoice) return event.result.chapterChoice.state.phase === 'setback' ? 'investigate' : 'assist';
   // Untokened rescue healing and fully protected attacks never read as damaging impacts.
   return event.result?.token ?? ((event.result?.healing ?? 0) > 0 || (event.result?.damage === 0 && event.result.protection) ? 'assist' : 'strike');
 }
@@ -118,7 +119,7 @@ export function CombinationLinks({ room, stage, userId }: { room: AdventureRoom;
         return box && { x: box.x + box.width / 2 - bounds.x, y: box.y + box.height / 2 - bounds.y };
       };
       const source = point(definition.sourceId);
-      setPaths(source ? definition.payoffs.filter(payoff => !riverActionPreview(room, { token: payoff.token, targetId: payoff.targetId })).flatMap(payoff => { const target = point(payoff.targetId); return target ? [`M ${source.x} ${source.y} Q ${(source.x + target.x) / 2} ${Math.min(source.y, target.y) - 30} ${target.x} ${target.y}`] : []; }) : []);
+      setPaths(source ? definition.payoffs.filter(payoff => !specialActionPreview(room, { token: payoff.token, targetId: payoff.targetId })).flatMap(payoff => { const target = point(payoff.targetId); return target ? [`M ${source.x} ${source.y} Q ${(source.x + target.x) / 2} ${Math.min(source.y, target.y) - 30} ${target.x} ${target.y}`] : []; }) : []);
     };
     measure(); const observer = new ResizeObserver(measure); observer.observe(root); return () => observer.disconnect();
   }, [room.chapter, room.riverSupplies?.status, definition?.id, available, stage]);
@@ -131,7 +132,7 @@ export function CombinationNotice({ room, userId }: { room: AdventureRoom; userI
   const available = combinationAvailable(room, userId);
   return <div className={`di-combination-notice ${available ? 'is-ready' : ''}`} role="status">
     <strong>{available ? '✧ Combination ready' : state ? state.usedBy.includes(userId) ? '✧ Your combination played' : room.turn > state.throughTurn ? '✧ The opening has passed' : '✧ Opening next turn' : '✧ Make a little magic'}</strong>
-    <span>{available ? `${state!.actorName} prepared the opening · ${state!.throughTurn - room.turn + 1} turns left · ${definition.payoffs.filter(payoff => !riverActionPreview(room, { token: payoff.token, targetId: payoff.targetId })).map(payoff => `${payoff.token === 'assist' ? 'Help' : payoff.token[0].toUpperCase() + payoff.token.slice(1)} → ${payoff.targetId}`).join(' or ')}` : !state ? `Prepare ${definition.sourceId === 'gate' ? 'the gate with Fight or Help' : definition.sourceId === 'reeds' ? riverActionPreview(room, {token:'investigate',targetId:'reeds'}) ? 'the reeds with Help' : 'the reeds with Investigate or Help' : 'the bell with Fight or Help'}.` : 'Ordinary moves remain available.'}</span>
+    <span>{available ? `${state!.actorName} prepared the opening · ${state!.throughTurn - room.turn + 1} turns left · ${definition.payoffs.filter(payoff => !specialActionPreview(room, { token: payoff.token, targetId: payoff.targetId })).map(payoff => `${payoff.token === 'assist' ? 'Help' : payoff.token[0].toUpperCase() + payoff.token.slice(1)} → ${payoff.targetId}`).join(' or ')}` : !state ? `Prepare ${definition.sourceId === 'gate' ? 'the gate with Fight or Help' : definition.sourceId === 'reeds' ? specialActionPreview(room, {token:'investigate',targetId:'reeds'}) ? 'the reeds with Help' : 'the reeds with Investigate or Help' : 'the bell with Fight or Help'}.` : 'Ordinary moves remain available.'}</span>
   </div>;
 }
 
