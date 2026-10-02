@@ -3,6 +3,7 @@ import { createServer } from 'vite';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { checkStageMotion, checkStageActionStyles } from './check-stage-motion.mjs';
 
 // Local integration fixture: real command handler + real browser UI, no hosted writes
 // or inference. Only its injected clock advances between completed turn boundaries.
@@ -134,6 +135,7 @@ try {
   await b.getByRole('textbox',{name:'Adventure code or invitation link'}).fill(invite);
   await b.getByRole('button',{name:'Join adventure by code'}).click();
   await b.getByRole('main',{name:'Adventure table'}).waitFor();
+  await checkStageMotion(a, note);
   const help=a.getByRole('button',{name:'Help token',exact:true});
   const resting=await help.boundingBox();
   await a.mouse.move(resting.x+resting.width/2,resting.y+resting.height/2); await a.mouse.down();
@@ -209,8 +211,12 @@ try {
   await a.getByRole('group',{name:'Moves for this target'}).waitFor();
   note('unavailable-art-keeps-labels-and-legal-moves');
   await a.unroute('**/art/**'); await a.reload(); await sync(a);
-  await a.evaluate(()=>{ window.__rollStates={}; window.__stageBudget={maxParticles:0,frames:0}; window.__stageSample=setInterval(()=>{
+  await a.evaluate(()=>{ window.__rollStates={}; window.__stageMotifs={}; window.__stageBudget={maxParticles:0,frames:0}; window.__stageSample=setInterval(()=>{
     window.__stageBudget.maxParticles=Math.max(window.__stageBudget.maxParticles,document.querySelectorAll('.di-stage-effects .di-impact i,.di-table-contact i').length);window.__stageBudget.frames++;
+    for(const motif of document.querySelectorAll('.di-stage-effects .di-action-motif')) {
+      const effect=motif.closest('[data-stage-event]');
+      if(effect) window.__stageMotifs[effect.dataset.stageEvent]=motif.getAttribute('class');
+    }
     const roll=document.querySelector('.di-roll-tableau');
     if(roll) { const id=roll.dataset.rollEvent; const sample=window.__rollStates[id]??={};sample[roll.dataset.rollState]=roll.textContent; }
   },16); });
@@ -369,6 +375,10 @@ try {
         }
       }
       note('confirmed-dice-wind-up-and-landing',{rolls:samples.length});
+      const motifs=Object.entries(await a.evaluate(()=>window.__stageMotifs));
+      assert.ok(motifs.length>0,'Observed an action-specific visual motif during confirmed real commands');
+      for(const [id] of motifs) assert.ok(room.events.some(event=>event.id===id && event.result),'Each motif belongs to a confirmed event');
+      note('confirmed-action-motifs',{events:motifs.length,styles:[...new Set(motifs.map(([,style])=>style))]});
     }
     await a.screenshot({path:`output/playwright/living-payoff-${chapter}.png`});
     const sample=await a.evaluate(()=>window.__stageBudget);
@@ -432,6 +442,7 @@ try {
   } finally {
     await a.evaluate(async()=>{cancelAnimationFrame(window.__busyRAF);(await import('/src/store/adventureStore.ts')).useAdventureStore.setState(window.__busyRestore);delete window.__busyRestore;});
   }
+  await checkStageActionStyles(a, note);
   const budget=await a.evaluate(()=>{clearInterval(window.__stageSample);return window.__stageBudget;});
   // Reload checks intentionally reset page-local sampling; finite effects are also bounded in source.
   if (budget) { assert.ok(budget.maxParticles<=24); note('sampled-transient-budget',budget); }
