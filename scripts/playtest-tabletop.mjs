@@ -14,6 +14,7 @@ try{
   for(const [width,height] of [[1280,900],[390,844],[320,568]]){
     const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});
     const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+    await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
     await page.goto(`${base}/?session=tabletopqa${width}`);
     await page.locator('.di-lobby-play').waitFor();
     if(width===1280)await page.screenshot({path:'output/playwright/tabletop-lobby-1280.png'});

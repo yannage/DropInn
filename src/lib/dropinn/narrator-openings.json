@@ -6,6 +6,28 @@
   "speed": 1,
   "clips": [
     {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/4482075111204f6e4da362faf1a2225d7ff03917fc87fc41f9cc34246d6b7f60.wav",
+      "bytes": 160444,
+      "sampleRate": 24000,
+      "sampleCount": 80200,
+      "duration": 3.341666666666667,
+      "sha256": "12c59fdb49720431c3bf5a76606246c80e97ea6b10d6bfbcb08dcbb1cd65216a"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/7397d65b5b7ece8400a52556124c81afdf1ec56ff682e5e5cd5083ecd681d854.wav",
+      "bytes": 338044,
+      "sampleRate": 24000,
+      "sampleCount": 169000,
+      "duration": 7.041666666666667,
+      "sha256": "815c106862bb52ad3d82eb722d1d9cbb37a8f9e6bb3fe105c49246a00a4fae26"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Bella",
       "speed": 1,
@@ -136,6 +158,28 @@
       "sampleCount": 160000,
       "duration": 6.666666666666667,
       "sha256": "036db6094eea6b534aea8d65c4f653ae54467553220958d02e125b0ba1aaef77"
+    },
+    {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/719f112c66ee050f379b56e39345555affeef689106e67afa3e27c868532795f.wav",
+      "bytes": 107644,
+      "sampleRate": 24000,
+      "sampleCount": 53800,
+      "duration": 2.2416666666666667,
+      "sha256": "580b22097b773a754b2617a0c12286523171d297fe91904f7eab9dbdf1db7d4b"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/a67d7e83e1c5d52f523b9fafeff99a53318e770fd93b4c0dfa77e93da29ae7c2.wav",
+      "bytes": 245644,
+      "sampleRate": 24000,
+      "sampleCount": 122800,
+      "duration": 5.116666666666666,
+      "sha256": "54e93eada60d0e3b1fa0735aaec0db7bbc912837a68a980bd6ed3e39d5f9525b"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -270,6 +314,28 @@
       "sha256": "8d3748c2a78f7e158b10aed0393d3b1f46916f08007b072b283fe34e701ab51b"
     },
     {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/5672116a09251fba0648cce0e37f33345cedf3dbe2313abb70aed4084f050b9c.wav",
+      "bytes": 111244,
+      "sampleRate": 24000,
+      "sampleCount": 55600,
+      "duration": 2.316666666666667,
+      "sha256": "cf0c69238fba1f10e7081acae459678b6687f5c27a55dcbc5d9075d0b806febd"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/6b1451ca3de27acc08e2bfdf37c4db5686942a5c90e10f6574c81bc570783fbf.wav",
+      "bytes": 257644,
+      "sampleRate": 24000,
+      "sampleCount": 128800,
+      "duration": 5.366666666666666,
+      "sha256": "52b173290c1da08a66ae2a4567442244fbe8cff6a4654657e7a00e4ad1672ecc"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Luna",
       "speed": 1,
@@ -400,6 +466,28 @@
       "sampleCount": 112000,
       "duration": 4.666666666666667,
       "sha256": "d20c419e82daa3b34a61fd4d47bedebee8234335a7519c883d36a45a366af7f4"
+    },
+    {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/6c0833389c0c57dbf462b7d9af973da7a023bb6938927043ffcfa922c7a8d638.wav",
+      "bytes": 106444,
+      "sampleRate": 24000,
+      "sampleCount": 53200,
+      "duration": 2.216666666666667,
+      "sha256": "a57b80c00651886a9f9073631d1a2daa6023d2108cb3323134738bea8aefb429"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/98b8374fdfb7c82d20c73793ff2617a80fb7696b36709513bea35c6853f4d1d0.wav",
+      "bytes": 250444,
+      "sampleRate": 24000,
+      "sampleCount": 125200,
+      "duration": 5.216666666666667,
+      "sha256": "47afafb3a33bed5ff036709a33cf7b6a1a56e7e2fe554833f2b87f3e62b3e2bd"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -534,6 +622,28 @@
       "sha256": "2c0461df4eb673d81c9ff3060c774d00ef9b82a193efd0580dad4b36a12152ae"
     },
     {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/0333552b4aa6b91c4d26b64e765668ac77fd8b3f26523b1dd47d0e0712852ce6.wav",
+      "bytes": 111244,
+      "sampleRate": 24000,
+      "sampleCount": 55600,
+      "duration": 2.316666666666667,
+      "sha256": "0dd9eb19ae86d1140a2aaf6de9af6c22a811b69d1ce50dd32b2467792e2e63b0"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/3df43b8eeadc9667a3927ad05387d61c5e6f30b12f58b95c8e24a70706f66391.wav",
+      "bytes": 304444,
+      "sampleRate": 24000,
+      "sampleCount": 152200,
+      "duration": 6.341666666666667,
+      "sha256": "8f88b0be4beecc20398e3c9855fc7d3b5239a1f3b30a5528ebb73bb0484ba048"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Rosie",
       "speed": 1,
@@ -664,6 +774,28 @@
       "sampleCount": 98200,
       "duration": 4.091666666666667,
       "sha256": "c3005d22fa9879a02a7efcc6fa56bc5e648ec4e8222cbbfc401e6f4e8883eeb4"
+    },
+    {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/1685271fb5355b0d9f7a2822dc3973f47df2413e694bb1ff5e30b0f52cf195f6.wav",
+      "bytes": 94444,
+      "sampleRate": 24000,
+      "sampleCount": 47200,
+      "duration": 1.9666666666666666,
+      "sha256": "9e9a8e4095bc76e1e928939af6b516514e91fe052105ebcde76f72bc6736143a"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/0ce34026e142460b284911d3fb66fbe0e1cb0d04752461c98db7bd0d5a995342.wav",
+      "bytes": 222844,
+      "sampleRate": 24000,
+      "sampleCount": 111400,
+      "duration": 4.641666666666667,
+      "sha256": "b0697afb6e3dac1257fb59949c699b53a2c5ec679f20f7c321006dd816cab512"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -798,6 +930,28 @@
       "sha256": "3523333d7bd9ef05cfb77f4fc0b77f99c281cd1e8d2ee5b54308645c3bd2dd1b"
     },
     {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/a286bf60c8f2ae0f3a48ae210c354ce73ab6bb2fe1845fd64fb02c5ce8a367b0.wav",
+      "bytes": 105244,
+      "sampleRate": 24000,
+      "sampleCount": 52600,
+      "duration": 2.191666666666667,
+      "sha256": "93956d2e5263e339d86dc59f74670f19a51f920909bef89c725a4399778d7586"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/3d8aefaf2487152a8dc241933a56b17ccbc200da69bdd5fa823cc0a34869bbc8.wav",
+      "bytes": 244444,
+      "sampleRate": 24000,
+      "sampleCount": 122200,
+      "duration": 5.091666666666667,
+      "sha256": "c2d3d7d40225afd6fcbd4f4e6b8832d94ebec290b68b66b6f888d6b61a4ceafb"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Kiki",
       "speed": 1,
@@ -928,6 +1082,28 @@
       "sampleCount": 101200,
       "duration": 4.216666666666667,
       "sha256": "e9f499b656982673fe18740e02e2250be5157e6aa79f764e7f3bd3e183b4972b"
+    },
+    {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/10b3136bd2287748fc35933f0fd8b1d4a3bef7896d91c1900b3e69e3b11c2b3e.wav",
+      "bytes": 141244,
+      "sampleRate": 24000,
+      "sampleCount": 70600,
+      "duration": 2.941666666666667,
+      "sha256": "c015e4d0d685dfdf3ccd7da152af8d826a1a8d25906307840da89efbcb4f2c81"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/9401fd8c19cffc66ef16c8e69565d2a850fcd0e31708985ddb2915c41a6df94f.wav",
+      "bytes": 362044,
+      "sampleRate": 24000,
+      "sampleCount": 181000,
+      "duration": 7.541666666666667,
+      "sha256": "57fadc483beddc0d3837437d213e7e3e1e3d331a733d2257c01c38bc950c2d88"
     },
     {
       "text": "The evening bell rings over empty pens.",

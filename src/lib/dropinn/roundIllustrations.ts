@@ -1,6 +1,7 @@
 import type { AdventureRoom } from './types';
 import type { RoundEntry } from './roundSummary';
 import { chaptersFor } from './registry';
+import { expeditionTarget } from './expedition';
 
 /** Retained human profiles survive departures; companion seat IDs can be reused. */
 export function roundHero(room: AdventureRoom, actorId?: string, actorName?: string) {
@@ -20,7 +21,8 @@ export function roundIllustrations(room: AdventureRoom, chapter: number, entry: 
     actor: roundHero(room, entry.actorId, entry.actorName),
     // Consequence actors can be victims. Only actions get a directed interaction.
     target: entry.kind === 'action' && entry.targetKind !== 'hero'
-      ? chaptersFor(room)[chapter]?.targets.find(target => target.id === entry.targetId) : undefined,
+      ? expeditionTarget(source?.result?.expedition?.locationId, entry.targetId)
+        ?? chaptersFor(room)[chapter]?.targets.find(target => target.id === entry.targetId) : undefined,
     targetHero: entry.kind === 'action' && entry.targetKind === 'hero'
       ? roundHero(room, entry.targetId, targetRecord?.actorName ?? currentTarget?.character.name) : undefined,
   };

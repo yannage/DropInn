@@ -62,6 +62,7 @@ try {
       await route.fulfill({ status: response.status, contentType: 'application/json', body });
     });
     try {
+      await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
       await page.goto(`${base}/?session=mobileflow${width}`);
       const play = page.locator('.di-lobby-play');
       await play.waitFor();

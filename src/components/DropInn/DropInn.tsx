@@ -43,7 +43,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
-import { ADVENTURES, DEFAULT_ADVENTURE, chaptersFor } from '../../lib/dropinn/registry';
+import { ADVENTURES, chaptersFor } from '../../lib/dropinn/registry';
 import {
   CHARACTER_CLASS_PRESETS,
 } from '../../lib/character';
@@ -55,6 +55,8 @@ import type {
 import { SceneArt } from './SceneArt';
 import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
+import { ExpeditionAdventure } from './ExpeditionAdventure';
+import { isExpedition } from '../../lib/dropinn/expedition';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { HeroCustomizer } from './HeroCustomizer';
 import { HeroMenuButton } from './HeroMenuButton';
@@ -471,7 +473,7 @@ function initialLobbyStory(): string {
     const saved = localStorage.getItem(lobbyStoryKey);
     if (saved && ADVENTURES.some(adventure => adventure.id === saved)) return saved;
   } catch { /* A browser preference must never prevent entering an adventure. */ }
-  return DEFAULT_ADVENTURE;
+  return 'gemward';
 }
 
 function Lobby() {
@@ -725,6 +727,7 @@ function RoomCard({
 }
 
 function Adventure({ room }: { room: AdventureRoom }) {
+  if (isExpedition(room)) return <ExpeditionAdventure room={room} chat={<Chat room={room} />} />;
   return <SceneAdventure room={room} chat={<Chat room={room} />} />;
 }
 

@@ -4,6 +4,7 @@ import type { AdventureRoom, PlayerAction, TokenKind } from './types';
 import { riverStatus } from './river';
 import { specialActionPreview } from './actionPreview';
 import { choiceStatus } from './chapterChoices';
+import { expeditionActionPreview, isExpedition } from './expedition';
 
 export type PlayerGuidanceState = 'completed' | 'parked' | 'joining' | 'unseated' | 'leaving'
   | 'reveal' | 'pending' | 'committed' | 'expired' | 'holding' | 'prepared' | 'inspecting' | 'armed' | 'target';
@@ -39,6 +40,13 @@ const tokenLabels: Record<TokenKind, string> = {
 /** Keep the authored world action visible while the player compares mechanical approaches. */
 export function contextualActionLabel(room: AdventureRoom, action: PlayerAction): string {
   if (action.token === 'spotlight' && action.proposal?.label.trim()) return action.proposal.label.trim();
+  if (isExpedition(room)) {
+    if (room.expedition?.battle?.status === 'active') {
+      if (action.targetKind === 'hero') return 'Protect';
+      return { fight: 'Strike', influence: 'Trick', investigate: 'Guard', assist: 'Class support' }[action.token as Exclude<TokenKind, 'spotlight'>] ?? 'Creative move';
+    }
+    return expeditionActionPreview(room, '', action).label;
+  }
   const riverMove = specialActionPreview(room, action);
   if (riverMove) return riverMove.label;
   if (action.targetKind === 'hero') {

@@ -272,6 +272,7 @@ try {
     return route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() });
     } finally { if (isAction) inFlightActions--; }
   });
+  await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
   await page.goto(`${base}/?session=compositionqa`);
   assert.equal(await page.evaluate(async () => (await import('/src/lib/dropinn/api.ts')).localPlay), true);
   await page.getByRole('button', { name: 'Play with friends', exact: true }).click();

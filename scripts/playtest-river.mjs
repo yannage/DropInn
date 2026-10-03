@@ -38,6 +38,7 @@ try {
     const response = await handler(new Request(`${base.origin}/api/dropinn`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }));
     return route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() });
   });
+  await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
   await page.goto(`${base.origin}/?session=riverfocusedqa`);
   await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
   await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();

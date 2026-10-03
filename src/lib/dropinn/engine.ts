@@ -1,5 +1,7 @@
 import { CHARACTER_CLASS_PRESETS, heroAccent } from '../character';
 import { normalizeHero } from '../cosmetics';
+import { createExpedition, expeditionActionPreview, isExpedition } from './expedition';
+import { advanceExpeditionBoundary, advanceExpeditionChapter, expeditionChapterOutcome, resolveExpeditionRound, validateExpeditionAction } from './expeditionEngine';
 import { chapterCredits } from './collection';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
 import { adventureFor, chaptersFor, currentAdventure } from './registry';
@@ -93,6 +95,7 @@ export function createAdventure(character: CharacterProfile, userId: string, now
   const room: AdventureRoom = { version: 2, adventureId: adventure.id, adventureVersion: adventure.version, id: globalThis.crypto?.randomUUID?.() ?? `room-${roomCode}-${now}`, code: roomCode, revision: 0, title: adventure.title,
     mechanicsVersion: 1, collectionVersion: 1, status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
+  if (isExpedition(room)) room.expedition = createExpedition(room.id);
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);
@@ -101,6 +104,11 @@ export function createAdventure(character: CharacterProfile, userId: string, now
 }
 
 export function describeAction(classKey: CharacterClassKey, token: TokenKind, targetId: string, room: AdventureRoom): ActionDescription {
+  if (isExpedition(room)) {
+    const player = room.seats.find(seat => seat.character.classKey === classKey);
+    const preview = expeditionActionPreview(room, player?.actorId ?? '', { token, targetId });
+    return { label: preview.label, description: preview.description, trait: CLASS_TRAIT[classKey], dc: 10 + room.chapter };
+  }
   const target = chapterOf(room).targets.find(t => t.id === targetId);
   const name = target?.name ?? 'the scene';
   const dc = 10 + room.chapter + (room.danger >= 6 ? 1 : 0);
@@ -161,6 +169,17 @@ function applyEffect(room: AdventureRoom, effect: CreativeEffect, now: number, s
 function validateAction(room: AdventureRoom, userId: string, action: PlayerAction) {
   const seat = room.seats.find(s => s.actorId === userId && s.kind === 'human' && !s.leaving);
   if (!seat) throw new Error('Your seat will open at the next turn.');
+  if (isExpedition(room)) {
+    if (action.releaseMs !== undefined && (!Number.isInteger(action.releaseMs) || action.releaseMs < 0 || action.releaseMs > RELEASE_DURATION_MS)) throw new Error('Release timing must be a whole number from 0 to 1200 milliseconds.');
+    if (action.targetKind !== undefined && action.targetKind !== 'scene' && action.targetKind !== 'hero') throw new Error('Choose a scene target or the threatened hero.');
+    validateExpeditionAction(room, userId, action);
+    if (action.token === 'spotlight') {
+      if (room.players[userId].spotlightChapters.includes(room.chapter)) throw new Error('Your Spotlight token returns next chapter.');
+      if (!action.proposal || action.proposal.targetId !== action.targetId || !validateProposal(room, action.proposal)) throw new Error('Review a supported idea for this turn before committing.');
+    }
+    return;
+  }
+  if (action.expedition !== undefined) throw new Error('This adventure does not use expedition actions.');
   if (choiceMove(room, action) && (action.approach !== undefined || action.combination !== undefined)) throw new Error('This scene choice has its own outcome. Choose it without an approach or combination.');
   const supplyMove = riverMove(room, action);
   if (supplyMove && supplyMove !== 'rescue' && (action.approach !== undefined || action.combination !== undefined)) throw new Error('This supplies move already has its own outcome. Choose it without an approach or combination.');
@@ -416,8 +435,9 @@ function finishChapter(room: AdventureRoom, now: number) {
   const choice = choiceDefinition(room), state = choiceState(room);
   if (choice && state) recordChoiceState(room, choice, closeChoice(choice, state), now, true);
   const definition = chapterOf(room);
-  const result = room.progress >= definition.progressGoal ? 'success' : room.progress >= definition.progressGoal * 0.5 ? 'mixed' : 'setback';
-  let text = definition.endings[result];
+  const expeditionOutcome = isExpedition(room) ? expeditionChapterOutcome(room) : undefined;
+  const result = expeditionOutcome?.result ?? (room.progress >= definition.progressGoal ? 'success' : room.progress >= definition.progressGoal * 0.5 ? 'mixed' : 'setback');
+  let text = expeditionOutcome?.text ?? definition.endings[result];
   if (adventureFor(room).id === 'briar-glen' && room.chapter === 2 && result === 'success') text = hasFlag(room, 'ward-repaired') ? 'The repaired ward answers the bell. Gloamfang’s shadow falls away, and the guardian bows as the captives return to Briar Glen.' : 'You drive Gloamfang from the chapel and lead the captives home. The villagers hang a new bell, grateful for the brave strangers who answered it.';
   if (definition.branch && room.storyBranch) text += ` ${adventureFor(room).branchEndings?.[room.storyBranch] ?? ''}`;
   if (isRiverSuppliesChapter(room)) text += room.riverSupplies?.status === 'secured' ? ' You bring all the supplies: +3 starting chapel progress.'
@@ -442,6 +462,19 @@ function finishChapter(room: AdventureRoom, now: number) {
 
 function resolveRound(room: AdventureRoom, now: number) {
   if (room.phase !== 'choosing' || room.status === 'completed') return;
+  if (isExpedition(room)) {
+    if (!room.expedition) throw new Error('This expedition is missing its saved run state.');
+    const closes = resolveExpeditionRound(room, now);
+    for (const seat of [...room.seats]) if (seat.kind === 'human') {
+      room.players[seat.actorId].character.hp = seat.hp;
+      if (seat.leaving || seat.missedTurns >= 2) releasePlayer(room, seat, now, !seat.leaving);
+    }
+    if (closes) finishChapter(room, now);
+    room.phase = 'reveal'; room.revealUntil = now + REVEAL_MS; room.revealSkips = []; room.commits = {};
+    if (room.outcomes.length < chaptersFor(room).length && !humans(room).length && !room.pendingJoins.length) room.status = 'parked';
+    fillCompanions(room);
+    return;
+  }
   // Freeze before resolving branch votes too: a Help vote must not become a signature move.
   const frozenChoiceRoom: AdventureRoom = { ...room, chapterChoices: room.chapterChoices ? JSON.parse(JSON.stringify(room.chapterChoices)) : undefined };
   const choiceAttempts: ChoiceAttempt[] = [];
@@ -520,6 +553,8 @@ function advanceRound(room: AdventureRoom, now: number) {
   if (room.status === 'completed') return;
   if (room.outcomes.some(o => o.chapter === room.chapter)) {
     room.chapter += 1; room.chapterRound = 1;
+    if (isExpedition(room)) advanceExpeditionChapter(room, now);
+    else {
     const priorSuccess = hasFlag(room, `outcome:${room.chapter - 1}:success`);
     const maraHelp = room.chapter === 1 && hasFlag(room, 'mara-helped');
     room.progress = (priorSuccess ? 3 : 0) + Number(maraHelp);
@@ -543,6 +578,7 @@ function advanceRound(room: AdventureRoom, now: number) {
     }
     for (const seat of room.seats) { seat.hp = Math.min(seat.character.maxHp, seat.hp + 3); if (seat.kind === 'human') room.players[seat.actorId].character.hp = seat.hp; }
     event(room, now, { kind: 'chapter', text: `${chapterOf(room).intro}${priorSuccess ? ' Your earlier success gives the party a head start.' : ''}${maraHelp ? ' Because you helped Mara, her directions give the party another point of progress.' : ''}${suppliesText}` });
+    }
   } else room.chapterRound += 1;
   room.turn += 1;
   room.phase = 'choosing'; room.deadline = now + ROUND_MS; room.revealUntil = null; room.revealSkips = []; room.commits = {};
@@ -550,6 +586,7 @@ function advanceRound(room: AdventureRoom, now: number) {
   room.pendingJoins = [];
   fillCompanions(room);
   room.status = humans(room).length ? 'active' : 'parked';
+  if (isExpedition(room)) advanceExpeditionBoundary(room);
   announceEnemyIntent(room);
 }
 
@@ -557,6 +594,7 @@ function advanceRound(room: AdventureRoom, now: number) {
 export function reduceAdventure(original: AdventureRoom, command: AdventureCommand, now: number): AdventureRoom {
   if (!command.id || command.id.length > 160) throw new Error('A unique command id is required.');
   if (original.appliedCommands.includes(command.id)) return original;
+  if (isExpedition(original) && !original.expedition) throw new Error('This expedition is missing its saved run state.');
   if (command.expectedTurn !== undefined && command.expectedTurn !== original.turn && command.type === 'act') throw new Error('This turn has ended. Choose an action for the current scene.');
   if (original.status === 'completed' && command.type !== 'leave') {
     if (command.type === 'tick') return original;

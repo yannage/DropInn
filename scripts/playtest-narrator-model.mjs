@@ -25,6 +25,7 @@ for (const [name, browserType] of Object.entries({ chromium, webkit })) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' || message.text().includes('[Kitten]')) console.error(name, message.text().slice(0, 500)); });
   await page.addInitScript(() => {
+    localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen');
     // Exercise dynamic synthesis, rather than the prepared 1× opening clips.
     if (!localStorage.getItem('dropinn-narrator')) localStorage.setItem('dropinn-narrator', JSON.stringify({ engine: 'natural', naturalVoice: 'Bella', speed: 1.25 }));
     window.__narratorModel = { messages: [], playback: [], firstAudio: null, started: performance.now() };

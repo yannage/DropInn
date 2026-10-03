@@ -17,7 +17,8 @@ try {
   const { ADVENTURES } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
   const { getScene } = await ssr.ssrLoadModule('/src/lib/dropinn/scene.ts');
   browser = await chromium.launch({ headless: true });
-  for (const definition of ADVENTURES.slice(1).filter(item => !process.env.STORY_ID || item.id === process.env.STORY_ID)) {
+  // This runner covers the fixed chapter/branch UI; Gemward has an expedition runner.
+  for (const definition of ADVENTURES.slice(1).filter(item => item.id !== 'gemward' && (!process.env.STORY_ID || item.id === process.env.STORY_ID))) {
     const handler = createDropinnHandler({ local: true, env: {}, now: () => Date.now() + offset, fetch: async () => { throw new Error('External services disabled'); } });
     const contexts = [], pages = [];
     let lastInteraction;

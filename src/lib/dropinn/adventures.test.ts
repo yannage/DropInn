@@ -16,7 +16,9 @@ describe('adventure registry and routes', () => {
     expect(() => adventureFor({ adventureId: 'unknown' })).toThrow();
     expect(() => adventureFor({ adventureId: 'briar-glen', adventureVersion: 99 })).toThrow();
   });
-  for (const definition of ADVENTURES.slice(1)) {
+  // These assertions describe the fixed three-chapter, first-turn branch rules.
+  // Expedition routes and interrupt/resume battles have their own reducer suite.
+  for (const definition of ADVENTURES.filter(item => item.id !== 'briar-glen' && item.id !== 'gemward')) {
     it.each(definition.chapters[2].branch!.options)(`${definition.id} completes route $id with one human and companions`, option => {
       let room = createAdventure(hero, 'alice', 1000, 'STORY1', definition.id);
       for (let rounds = 0; room.status !== 'completed' && rounds < 32; rounds++) {

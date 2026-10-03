@@ -271,7 +271,7 @@ describe('adventure client recovery', () => {
     expect(ids[0]).toBe(ids[1]);
   });
 
-  it('restores the exact timed action and command ID after a network failure and reload', async () => {
+  it.each(['protect', 'expedition'] as const)('restores the exact timed %s action and command ID after a network failure and reload', async kind => {
     const { store, room } = await setup();
     const commands: Array<{ id: string; action: unknown }> = [];
     mocks.request.mockImplementation(async payload => {
@@ -281,7 +281,11 @@ describe('adventure client recovery', () => {
       }
       return { backend: 'local', room, rooms: [], recaps: [] };
     });
-    const action = { token: 'assist' as const, targetKind: 'hero' as const, targetId: 'friend', releaseMs: 812 };
+    const action = kind === 'protect'
+      ? { token: 'assist' as const, targetKind: 'hero' as const, targetId: 'friend', releaseMs: 812 }
+      : { token: 'investigate' as const, targetKind: 'scene' as const, targetId: 'ledger', releaseMs: 812,
+        expedition: { locationId: 'shop', interactionId: 'read-ledger', routeId: 'warehouse', consumableId: 'favour-17',
+          favourChoice: 'receipt', rewardChoice: { offerId: 'reward-12', replaceId: 'stash-3' } } };
     await store.getState().commitAction(action);
     expect(store.getState().pendingMove).toEqual({ turn: room.turn, action });
     vi.resetModules();

@@ -42,7 +42,7 @@ export function TargetArtwork({ target, pose = 'idle' }: {
   pose?: TargetPose;
 }) {
   const enemy = enemyArt.get(target.id);
-  const src = target.artKey ? `/art/${target.artKey}${target.artKey === 'gate' ? '.png' : '.webp'}` : target.changed ? developedArt.get(target.id)
+  const src = target.artKey ? `/art/${target.artKey}${/\.(png|webp)$/.test(target.artKey) ? '' : target.artKey === 'gate' ? '.png' : '.webp'}` : target.changed ? developedArt.get(target.id)
     : enemy && pose !== 'idle' ? `/art/${enemy}-${pose}.webp` : targetArt.get(target.id);
   const [failedSource, setFailedSource] = useState<string>();
   // Never replace a developed object with its contradictory initial illustration.

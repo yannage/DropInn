@@ -1,5 +1,6 @@
 import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character';
 import type { ChapterCredit } from './collection';
+import type { ExpeditionAction, ExpeditionState, ExpeditionResult } from './expeditionTypes';
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
 export type ActionApproach = 'quick' | 'heavy' | 'guarded' | 'soothe' | 'distract' | 'trail' | 'study' | 'mend';
@@ -95,6 +96,7 @@ export interface CreativeProposal {
   source: 'authored' | 'openai' | 'ollama';
 }
 export interface PlayerAction {
+  expedition?: ExpeditionAction;
   combination?: { id: string; payoffId: string };
   approach?: ActionApproach;
   token: TokenKind;
@@ -115,6 +117,7 @@ export interface EnemyIntent {
 }
 /** Presentation reads numeric outcomes, never guesses effects from story prose. */
 export interface ActionResult {
+  expedition?: ExpeditionResult;
   chapterChoice?: { id: string; state: ChapterChoiceState; credit?: ChoiceCredit };
   /** Confirmed cargo state, for turn playback before the final room is revealed. */
   riverSupplies?: AdventureRoom['riverSupplies'];
@@ -181,6 +184,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  expedition?: ExpeditionState;
   chapterChoices?: Record<string, ChapterChoiceState>;
   riverSupplies?: { status: 'drifting' | 'spilled' | 'secured' | 'salvaged' | 'lost' };
   combinations?: CombinationState[];

@@ -82,6 +82,7 @@ async function setup(label, heroName) {
     }
     return route.fulfill({ status: response.status, contentType: 'application/json', body });
   });
+  await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
   await page.goto(`${base}/?session=coopqa${label.toLowerCase()}`);
   assert.equal(await page.evaluate(async () => (await import('/src/lib/dropinn/api.ts')).localPlay), true, 'Use a local-backend Vite server.');
   await page.getByRole('button', { name: 'Customize hero', exact: true }).click();

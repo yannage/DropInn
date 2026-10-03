@@ -20,9 +20,9 @@ describe('adventure selection contract', () => {
       const read = await call('read', { roomCode: opened.room.code });
       expect(read.room.adventureId).toBe(definition.id);
     }
-    expect(codes.size).toBe(4);
+    expect(codes.size).toBe(ADVENTURES.length);
     const history = await call('history');
-    expect(new Set(history.recaps.map((recap: { adventureId: string }) => recap.adventureId)).size).toBe(4);
+    expect(new Set(history.recaps.map((recap: { adventureId: string }) => recap.adventureId)).size).toBe(ADVENTURES.length);
     const invalid = await call('play', { character: hero, adventureId: 'made-up' });
     expect(invalid.status).toBe(400);
   });

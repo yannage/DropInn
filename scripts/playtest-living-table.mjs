@@ -67,6 +67,7 @@ async function setup(name, viewport) {
     }
     return route.fulfill({ status: response.status, contentType: 'application/json', body });
   });
+  await page.addInitScript(() => localStorage.setItem('dropinn:lobby-story:v1', 'briar-glen'));
   await page.goto(`${base}/?session=scrollqa${name.toLowerCase()}`);
   assert.equal(await page.evaluate(async () => (await import('/src/lib/dropinn/api.ts')).localPlay), true, 'The selected Vite server must run the local backend.');
   await page.getByRole('button', { name: 'Play with friends', exact: true }).waitFor();

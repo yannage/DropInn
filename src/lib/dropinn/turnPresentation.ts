@@ -1,4 +1,5 @@
 import type { AdventureRoom, StoryEvent } from './types';
+import { CONSUMABLES, QUEST_ITEMS } from './expedition';
 
 /** Presentation follows the resolved event's clock, including after reconnect. */
 export function revealBeat(event: StoryEvent, now: number, reducedMotion = false) {
@@ -18,6 +19,11 @@ export function resultBenefits(event: StoryEvent) {
   const result = event.result;
   if (!result) return [];
   return [
+    ...(result.expedition?.questItems ?? []).map(id => `Discovered: ${QUEST_ITEMS[id]?.label ?? id}`),
+    result.expedition?.routeId ? `Route chosen: ${result.expedition.routeId}` : '',
+    result.expedition?.battleProgress ? `+${amount(result.expedition.battleProgress)} encounter progress` : '',
+    result.expedition?.consumed ? `Used ${CONSUMABLES.find(item => item.id === result.expedition?.consumed)?.label ?? 'a consumable'}` : '',
+    result.expedition?.reward ? `Supply earned: ${CONSUMABLES.find(item => item.id === result.expedition?.reward?.item.kind)?.label ?? 'a consumable'}` : '',
     result.combination ? result.combination.kind === 'setup' ? `${result.combination.label} ready next turn` : `${result.combination.label} · prepared by ${result.combination.actorName}${event.success === false ? ' · attempt spent' : ''}` : '',
     result.progress ? `+${amount(result.progress)} progress` : '',
     result.danger ? `${result.danger > 0 ? '+' : '−'}${amount(Math.abs(result.danger))} danger` : '',

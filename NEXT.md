@@ -6,6 +6,18 @@ The default V2 app includes live discovery, Play [selected story], saved heroes,
 
 The current scene-stage pass adds a fixed action dock, illustrated scene interactions, optional-reading drawers, announced combat intent, guaranteed Protect, timed release and persisted uncertain-move recovery. All three chapters use the new components and 17 new illustrations. Local tests, build and browser checks passed; see [scene playtest evidence](docs/scene-playtest.md) for the backend, scenarios and limitations. Hosted and human evidence remain separate.
 
+## Gemward expedition — October 3, 2026
+
+The working tree adds [Gemward: The Missing Light](docs/stories/gemward.md): three independently browsable town locations, shared quest discoveries, warehouse/canal/road chapter patterns, seeded smugglers/ward facts, separate bounded class combat, a three-slot personal stash and a permanent finale choice. A fresh lobby selects Gemward; saved choices and invitations retain their story. Existing pinned adventures remain available. [Runtime and authoring rules](docs/expedition-adventures.md) record the scope.
+
+- [x] Implement the authoritative exploration, route, encounter, stash and ending state in the existing command/snapshot path.
+- [x] Pass the full local unit/service suite: `rtk vitest run`, 695 tests; production build and `npm run art:check` passed. Verify the 112-clip opening library, including 16 new Gemward recordings, and all 10 narrator-opening tests.
+- [x] Complete the two-player Warehouse/Restore browser run through all three chapters: 21 checks, zero errors, reload, item spending, bounded combat/return, signed authored Spotlight, rewards and 320/390/1280 layouts including prepared release controls. The earlier scene regression passed 102 checks, including exact lost-response/reload/retry; its presentation fixtures remain separately labeled. See [verification scope](docs/expedition-adventures.md#verification-status).
+- [ ] Observe newcomers and pairs: can they explain “this interaction opened that route,” choose between countering and class support, spend a consumable, and state the finale's cost? Measure decisions and waiting; no enjoyment improvement has been established.
+- [ ] Verify physical phones and hosted persistence/Realtime after a separately authorized rollout. This working-tree expedition has not been deployed.
+
+Existing artwork is reused where it matches a target; unmatched objects use clear labels rather than unrelated props. Bespoke Gemward art and expanded generated story packs remain future work.
+
 ## Player clarity pass
 
 The [chapter choice pass](docs/stories/chapter-choices.md) extends the river's visible tradeoffs through all 12 chapters: shared preparation, optional rescues and recoveries, and building versus banking gains. New rooms use Briar v4 and the other stories' v2; released tables retain their behavior. The supplement records rules and verification evidence.
