@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { ArrowRight, Check, Clock3, Compass, Flag, Footprints, HelpCircle, LockKeyhole, MapPin } from 'lucide-react';
 import { journeyHighlights, journeyLocations, journeyMap, journeyTravelOptions } from '../../lib/dropinn/journey';
 import { remainingTurnSeconds } from '../../lib/dropinn/playerGuidance';
+import { buildStoryTable } from '../../lib/dropinn/storyTablePresentation';
 import { QUEST_ITEMS } from '../../lib/dropinn/expedition';
 import type { AdventureRoom } from '../../lib/dropinn/types';
 import { HeroAvatar } from './HeroAvatar';
@@ -18,6 +19,8 @@ export function GemwardJourney({ room, userId, now, loading, pending, onVote, on
   const options = journeyTravelOptions(room);
   const travel = room.expedition?.travel;
   const traveling = room.phase === 'travel' && !!travel;
+  const storyLed = room.adventureVersion === 3;
+  const story = storyLed ? buildStoryTable(room, userId) : undefined;
   const [selectedId, setSelectedId] = useState(map.currentNodeId);
   const inspector = useRef<HTMLElement>(null);
   const selected = map.nodes.find(node => node.id === selectedId) ?? map.nodes.find(node => node.id === map.currentNodeId)!;
@@ -45,8 +48,13 @@ export function GemwardJourney({ room, userId, now, loading, pending, onVote, on
     const named = sources.filter(event => event.actorName);
     return [...new Set((named.length ? named : sources).map(source => `${source.actorName ?? 'The party'} · ${places.find(place => place.id === source.journey?.locationId)?.label ?? source.journey?.locationId?.replace(/-/g, ' ') ?? 'along the journey'} · turn ${source.turn}`))];
   };
-  return <div className="gm-journey">
-    <div className="gm-journey-heading"><span className="gm-overline">A story taking shape</span><h3>Your path through Gemward</h3><p>{traveling ? 'The party is ready to move. Choose your next place together.' : 'Every path you took is written here. Discoveries can open another way.'}</p>{traveling && <div className="gm-travel-clock" role="timer"><Clock3 size={17} /><strong>{seconds}s</strong><span>{vote ? 'Your vote is in' : eligible ? 'Choose the party’s next stop' : 'The party is choosing; your seat joins next turn'}</span></div>}</div>
+  function inspectPlace(id: typeof map.currentNodeId) {
+    setSelectedId(id);
+    if (window.matchMedia('(max-width: 620px)').matches) requestAnimationFrame(() => inspector.current?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  }
+  return <div className={`gm-journey ${storyLed ? 'is-story-led' : ''}`}>
+    <div className="gm-journey-heading"><span className="gm-overline">A story taking shape</span><h3>{story && traveling ? story.question : 'Your path through Gemward'}</h3><p>{story && traveling ? story.situation : traveling ? 'The party is ready to move. Choose your next place together.' : 'Every path you took is written here. Discoveries can open another way.'}</p>{traveling && <div className="gm-travel-clock" role="timer"><Clock3 size={17} /><strong>{seconds}s</strong><span>{vote ? 'Your vote is in' : eligible ? 'Choose the party’s next stop' : 'The party is choosing; your seat joins next turn'}</span></div>}</div>
+    {storyLed && traveling && <nav className="gm-route-picker" aria-label="Choose a destination to inspect">{options.map(route => <button key={route.edgeId} type="button" data-journey-choice={route.toNodeId} aria-pressed={selectedId === route.toNodeId} onClick={() => inspectPlace(route.toNodeId)}>{route.label}<small>{route.available ? 'Inspect this route' : 'Discovery needed'}</small></button>)}</nav>}
     <div className="gm-journey-layout">
       <div className="gm-map-paper" aria-label="Branching adventure map">
         <span className="gm-map-chapter gm-map-chapter-3">III · A changed evening</span><span className="gm-map-chapter gm-map-chapter-2">II · Beyond the town</span><span className="gm-map-chapter gm-map-chapter-1">I · A light goes missing</span>

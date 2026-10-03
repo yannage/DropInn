@@ -1,5 +1,6 @@
 import type { TokenKind } from './types';
 import type { JourneyNodeId, JourneyTravel } from './journeyTypes';
+import type { StoryTableFactId, StoryTableResult, StoryTableRun } from './storyTableTypes';
 
 export type ConsumableKind = 'second-wind' | 'smoke' | 'favour' | 'dust' | 'binding';
 export interface ConsumableInstance { id: string; kind: ConsumableKind }
@@ -23,7 +24,9 @@ export interface ExpeditionBattle {
   status: 'queued' | 'active' | 'won' | 'escaped';
 }
 export interface ExpeditionState {
-  /** Present only for Gemward v2. The chapter index remains the reward boundary. */
+  /** Present only in pinned Gemward v3. Earlier versions never acquire these rules. */
+  storyTable?: StoryTableRun;
+  /** Present for Gemward v2 and v3. The chapter index remains the reward boundary. */
   currentNodeId?: JourneyNodeId;
   travel?: JourneyTravel;
   seed: string;
@@ -51,8 +54,11 @@ export interface ExpeditionInteraction {
   questItem?: string;
   consumable?: ConsumableKind;
   finaleChoice?: 'restore' | 'release';
+  storyFacts?: StoryTableFactId[];
+  storyPlan?: 'gather' | 'finish';
 }
 export interface ExpeditionResult {
+  storyTable?: StoryTableResult;
   locationId?: string;
   interactionId?: string;
   questItems?: string[];

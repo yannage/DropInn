@@ -6,7 +6,7 @@ import type { AdventureCommand, AdventureRoom, PlayerAction } from './types';
 
 let sequence = 0;
 const hero = (name: string) => ({ ...createCharacterProfile(name, 'fighter'), id: name });
-const initial = () => createAdventure(hero('Alice'), 'alice', 1000, 'JRN123', 'gemward');
+const initial = () => createAdventure(hero('Alice'), 'alice', 1000, 'JRN123', 'gemward', 2);
 const cmd = (room: AdventureRoom, type: AdventureCommand['type'], userId = 'alice', extra: Partial<AdventureCommand> = {}, now = room.updatedAt + 1) => reduceAdventure(room, { id: `journey-test-${++sequence}`, type, userId, ...extra }, now);
 const act = (room: AdventureRoom, action: PlayerAction = { token: 'assist', targetId: 'iris' }, userId = 'alice') => cmd(room, 'act', userId, { expectedTurn: room.turn, action });
 const next = (room: AdventureRoom) => cmd(room, 'tick', 'alice', {}, room.revealUntil!);

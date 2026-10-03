@@ -3,6 +3,7 @@ import { normalizeHero } from '../cosmetics';
 import { createExpedition, expeditionActionPreview, isExpedition } from './expedition';
 import { advanceExpeditionBoundary, advanceExpeditionChapter, expeditionChapterOutcome, resolveExpeditionRound, validateExpeditionAction } from './expeditionEngine';
 import { createJourney, isJourney, journeyActionPreview, journeyScene } from './journey';
+import { isStoryTable } from './storyTable';
 import { acceptJourneyVote, beginJourneyTravel, journeyChapterOutcome, journeyVotesReady, resolveJourneyRound, resolveJourneyTravel, TRAVEL_MS, validateJourneyAction, validateJourneyState } from './journeyEngine';
 import { chapterCredits } from './collection';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
@@ -67,7 +68,7 @@ function announceEnemyIntent(room: AdventureRoom) {
   const targets = uprightHumans.length ? uprightHumans : available;
   const target = targets[hash(`${room.id}:${room.turn}:threat`) % targets.length];
   if (target) room.enemyIntent = { turn: room.turn, sourceId: chapterOf(room).enemySource ?? (room.chapter === 1 ? 'pack' : 'gloamfang'),
-    targetActorId: target.actorId, baseDamage: 3 + Math.floor(room.danger / 4),
+    targetActorId: target.actorId, baseDamage: 3 + Math.floor(room.danger / 4) + (isStoryTable(room) && room.expedition?.routeId === 'road' ? 1 : 0),
     ...(room.mechanicsVersion === 1 ? { duelModifier: 2 + room.chapter + Math.floor(room.danger / 6) } : {}) };
 }
 
@@ -98,7 +99,7 @@ export function createAdventure(character: CharacterProfile, userId: string, now
     mechanicsVersion: 1, collectionVersion: 1, status: 'active', phase: 'choosing', chapter: 0, chapterRound: 1, turn: 1, deadline: now + ROUND_MS, revealUntil: null,
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   if (isExpedition(room)) room.expedition = createExpedition(room.id);
-  if (isJourney(room)) room.expedition = createJourney(room.id);
+  if (isJourney(room)) room.expedition = createJourney(room.id, room.adventureVersion);
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);

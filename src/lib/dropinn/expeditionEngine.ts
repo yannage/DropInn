@@ -1,6 +1,8 @@
 import type { AdventureRoom, PlayerAction, Seat, StoryEvent } from './types';
 import type { BattleStance, ConsumableKind, ExpeditionInteraction, ExpeditionResult } from './expeditionTypes';
 import { CONSUMABLES, FAVOUR_CHOICES, combatMoves, expeditionHash, expeditionInteractions, expeditionLocations, expeditionRoutes, expeditionScene, expeditionStash, QUEST_ITEMS } from './expedition';
+import { isStoryTable, storyTableConsumable, storyTableHas } from './storyTable';
+import { applyStoryTableIntention, closeStoryTableRound } from './storyTableEngine';
 
 const add = (items: string[], value: string) => { if (!items.includes(value)) items.push(value); };
 const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | 'turn' | 'chapter' | 'at'>) => room.events.push({ id: `${room.id}:${room.events.length}`, turn: room.turn, chapter: room.chapter, at: now, ...data });
@@ -52,6 +54,8 @@ export function validateExpeditionAction(room: AdventureRoom, userId: string, ac
     const definition = CONSUMABLES.find(candidate => candidate.id === item.kind)!;
     if (definition.when === 'combat' && !activeBattle(room) || definition.when === 'exploration' && activeBattle(room)) throw new Error('That consumable cannot be used here.');
     if (item.kind === 'favour' && (room.chapter !== 0 || !FAVOUR_CHOICES.some(choice => choice.id === metadata?.favourChoice))) throw new Error('Choose the delivery ledger or canal key for your town favour.');
+    if (isStoryTable(room) && !storyTableConsumable(room, item.kind, action).usable) throw new Error(storyTableConsumable(room, item.kind, action).reason);
+    if (isStoryTable(room) && item.kind === 'dust' && Object.entries(room.commits).some(([actorId, committed]) => actorId !== userId && expeditionStash(room, actorId).some(candidate => candidate.id === committed.expedition?.consumableId && candidate.kind === 'dust'))) throw new Error('Another player already attached Spark dust for this area. Keep yours for later.');
   }
   if (metadata?.favourChoice && item?.kind !== 'favour') throw new Error('A local favour is required for that item choice.');
   if (metadata?.rewardChoice !== undefined) {
@@ -108,6 +112,7 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
   const frozen: AdventureRoom = JSON.parse(JSON.stringify(room));
   const state = room.expedition!;
   const battle = activeBattle(frozen) ? state.battle! : undefined;
+  const storyTable = isStoryTable(room);
   const seats = room.seats.filter(seat => seat.kind === 'human').sort((a, b) => a.actorId.localeCompare(b.actorId));
   const share = 1 / Math.max(1, seats.length);
   const routeVotes: string[] = [];
@@ -142,6 +147,20 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
       if (success && action.proposal?.effect === 'distract') personalCover = Math.max(personalCover, 2);
       if (success && action.proposal?.effect === 'rescue') heal(room, seat, 2, now);
       text = `${seat.character.name} tries ${action.proposal!.label}: ${success ? 'the idea helps the party' : 'a complication still reveals a way forward'}.`;
+      if (storyTable && !battle) {
+        const location = action.expedition?.locationId ?? state.locationId;
+        const intention = runtime.interactions(frozen, location, action.targetId, action.proposal?.effect === 'reveal' ? 'investigate' : 'assist')[0];
+        if (success && intention) {
+          if (intention.questItem) { add(state.questItems, intention.questItem); if (!frozen.expedition!.questItems.includes(intention.questItem)) result.questItems = [intention.questItem]; }
+          result.storyTable = applyStoryTableIntention(room, frozen, intention);
+          result.locationId = location; result.interactionId = intention.id;
+          text = `${seat.character.name} tries ${action.proposal!.label}. ${result.storyTable.after}`;
+        } else {
+          result.storyTable = { factIds: [], before: 'This preparation was not complete.', after: 'The idea needs another approach. No new preparation is complete.', next: 'Try a supported practical intention next turn.' };
+          text = `${seat.character.name} tries ${action.proposal!.label}. ${result.storyTable.after}`;
+        }
+        if (room.chapter !== 1) progress = 0;
+      }
       room.players[seat.actorId].spotlightChapters.push(room.chapter);
     } else if (battle) {
       const move = combatMoves(seat.character.classKey, seats.length).find(candidate => candidate.token === action.token)!;
@@ -174,14 +193,32 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
       add(state.visited, locationId);
       add(state.discoveries, intention.id);
       result.locationId = locationId; result.interactionId = intention.id;
-      if (intention.questItem) { add(state.questItems, intention.questItem); result.questItems = [intention.questItem]; }
+      if (intention.questItem) { add(state.questItems, intention.questItem); if (!storyTable || !frozen.expedition!.questItems.includes(intention.questItem)) result.questItems = [intention.questItem]; }
       if (intention.consumable) result.reward = grantReward(room, seat.actorId, `npc:${action.targetId}`, intention.consumable);
       if (intention.finaleChoice && !frozen.expedition!.finaleChoice) finalVotes.push(intention.finaleChoice);
       progress = share;
       text = `${seat.character.name}: ${intention.label}. ${intention.description}`;
+      if (storyTable) {
+        result.storyTable = applyStoryTableIntention(room, frozen, intention);
+        if (result.reward) {
+          const gift = `${CONSUMABLES.find(item => item.id === result.reward!.item.kind)!.label} is ${state.stashes[seat.actorId].some(item => item.id === result.reward!.item.id) ? 'added to your stash' : 'offered for a stash replacement'}.`;
+          result.storyTable.after = result.storyTable.factIds.length || result.storyTable.repeated || result.questItems?.length ? `${result.storyTable.after} ${gift}` : gift;
+        }
+        text = `${seat.character.name}: ${intention.label}. ${result.storyTable.after}`;
+        if (room.chapter !== 1) progress = 0;
+      }
     }
-    if (consumed === 'favour') { const item = action.expedition!.favourChoice!; add(state.questItems, item); result.questItems = [...new Set([...(result.questItems ?? []), item])]; text += ` A local contact provides ${QUEST_ITEMS[item].label}; its route opens next turn.`; }
-    if (consumed === 'dust') progress *= 2;
+    if (consumed === 'favour') {
+      const item = action.expedition!.favourChoice!; add(state.questItems, item); result.questItems = [...new Set([...(result.questItems ?? []), item])]; text += ` A local contact provides ${QUEST_ITEMS[item].label}; its route opens next turn.`;
+      if (storyTable) {
+        const favour = applyStoryTableIntention(room, frozen, { id: 'local-favour', label: 'A local favour', description: '', storyFacts: [item as 'ledger-copy' | 'canal-key'] });
+        result.storyTable = { ...favour, factIds: [...new Set([...(result.storyTable?.factIds ?? []), ...favour.factIds])], after: `${result.storyTable?.after ?? ''} ${favour.after}`.trim(), ...(result.storyTable?.completion ? { completion: result.storyTable.completion } : {}) };
+      }
+    }
+    if (consumed === 'dust') {
+      if (storyTable) { state.storyTable!.extraOpportunity = true; result.storyTable = { ...result.storyTable!, extraOpportunity: true, after: `${result.storyTable!.after} Spark dust gives this area one extra preparation opportunity.` }; }
+      else progress *= 2;
+    }
     if (consumed === 'binding') progress += 2 * share;
     if (consumed) text += ` ${CONSUMABLES.find(item => item.id === consumed)!.label} is spent.`;
     if (action.expedition?.routeId) routeVotes.push(action.expedition.routeId);
@@ -192,7 +229,8 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
     player.actions++; player.xp += success ? 5 : 3;
     player.highlights = [...player.highlights, text].slice(-8);
     const timingApplies = action.token === 'spotlight' || battle && (action.token === 'investigate' && seat.character.classKey !== 'wizard' || action.targetKind === 'hero' || frozen.seats.find(candidate => candidate.actorId === seat.actorId)!.hp <= 0);
-    event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, success, contribution: true, ...(roll === undefined ? {} : { roll, modifier }), effect: battle ? `+${Number(progress.toFixed(2))} battle progress.${personalCover ? ` ${personalCover} protection; strongest wins.` : ''}` : `+${Number(progress.toFixed(2))} progress.`, result: { targetKind: action.targetKind ?? 'scene', targetId: action.targetId, token: action.token, executionBonus: timingApplies ? timing(action) : 0, progress: battle ? 0 : Number(progress.toFixed(2)), protection: personalCover, changed: !battle, expedition: result }, ...(!battle ? { change: { title: 'A discovery on the table', text: result.questItems?.map(item => QUEST_ITEMS[item].label).join(', ') || 'Your intention is recorded.', next: 'Use the new information on your next turn.' } } : {}) });
+    const changed = !battle && (!storyTable || !!result.storyTable?.factIds.length || !!result.storyTable?.completion || !!result.reward || !!consumed || !!result.questItems?.length);
+    event(room, now, { kind: 'action', actorId: seat.actorId, actorName: seat.character.name, text, success, contribution: true, ...(roll === undefined ? {} : { roll, modifier }), effect: battle ? `+${Number(progress.toFixed(2))} battle progress.${personalCover ? ` ${personalCover} protection; strongest wins.` : ''}` : storyTable ? result.storyTable?.after : `+${Number(progress.toFixed(2))} progress.`, result: { targetKind: action.targetKind ?? 'scene', targetId: action.targetId, token: action.token, executionBonus: timingApplies ? timing(action) : 0, progress: battle ? 0 : Number(progress.toFixed(2)), protection: personalCover, changed, expedition: result }, ...(changed ? { change: { title: result.storyTable?.completion ? 'The party is ready' : 'A discovery on the table', text: result.storyTable?.after ?? (result.questItems?.map(item => QUEST_ITEMS[item].label).join(', ') || 'Your intention is recorded.'), next: result.storyTable?.next ?? 'Use the new information on your next turn.' } } : {}) });
   }
   if (battle) {
     if (actualActions && room.flags.includes(`expedition-opening:${room.turn}`)) battleProgress += 1;
@@ -206,7 +244,13 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
       const target = room.seats.find(seat => seat.actorId === room.enemyIntent?.targetActorId);
       if (target) {
         const absentDefense = room.commits[target.actorId] ? 0 : 2;
-        const damage = Math.min(target.hp, Math.max(0, (room.enemyIntent?.baseDamage ?? 3) - cover - absentDefense));
+        const incoming = Math.max(0, (room.enemyIntent?.baseDamage ?? 3) - cover - absentDefense);
+        const lantern = storyTable && incoming > 0 && storyTableHas(room, 'packed-lantern') && !state.storyTable!.lanternSpent ? 1 : 0;
+        if (lantern) {
+          state.storyTable!.lanternSpent = true;
+          event(room, now, { kind: 'consequence', text: 'Oren’s packed lantern lights a sheltered step and prevents 1 damage. Its preparation is now spent.', result: { protection: 1, changed: true, expedition: { storyTable: { factIds: [], before: 'The packed lantern was ready.', after: 'Oren’s lantern prevented 1 damage from this strike.', next: 'The lantern preparation is spent; class protection remains available.', lanternSpent: true } } } });
+        }
+        const damage = Math.min(target.hp, Math.max(0, incoming - lantern));
         target.hp -= damage;
         event(room, now, { kind: 'consequence', actorId: target.actorId, actorName: target.character.name, text: damage ? `${target.character.name} takes ${damage} damage from the announced strike.` : `${target.character.name} is protected from the announced strike.`, result: { targetKind: 'hero', targetId: target.actorId, damage, hp: target.hp, protection: cover + absentDefense } });
       }
@@ -228,6 +272,7 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
   }
   state.explorationTurns++;
   room.progress = Math.round(room.progress * 100) / 100;
+  if (storyTable && (room.chapter === 0 || room.chapter === 2)) return closeStoryTableRound(room, now, actualActions);
   if (runtime.journey && room.chapter === 0) return state.explorationTurns >= 2 && room.progress >= 4 || state.explorationTurns >= 4;
   if (room.chapter === 0 && (routeVotes.length || state.explorationTurns >= 4)) {
     const tally = expeditionRoutes(frozen).map(route => ({ id: route.id, count: routeVotes.filter(id => id === route.id).length }));
@@ -261,7 +306,11 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
       }
     }
     state.battle = { id: `${state.seed}:${state.routeId}`, status: 'queued', round: 1, progress: state.routeId === 'warehouse' ? 1 : 0, goal: 6, stance: 'strike', returnLocationId: state.locationId };
-    event(room, now, { kind: 'consequence', text: 'Every exploration move settles before a watcher steps into the path. Battle begins next turn; the party will return here afterwards.', result: { changed: true }, change: { title: 'A watcher blocks the path', text: 'The party’s discoveries remain safe.', next: 'Prepare for a short battle next turn.' } });
+    if (storyTable && storyTableHas(room, 'watcher-tell')) {
+      state.battle.progress++;
+      event(room, now, { kind: 'consequence', text: 'Iris’s account of the watcher gives the party 1 starting battle progress.', result: { changed: true, expedition: { storyTable: { factIds: [], before: 'The party remembered Iris’s watcher tell.', after: 'The watcher tell gives 1 starting battle progress.', next: 'Read the announced stance and choose a class move.' } } } });
+    }
+    event(room, now, { kind: 'consequence', text: runtime.journey ? 'Every exploration move settles before a watcher steps into the path. Battle begins next turn; the party’s discoveries remain safe.' : 'Every exploration move settles before a watcher steps into the path. Battle begins next turn; the party will return here afterwards.', result: { changed: true }, change: { title: 'A watcher blocks the path', text: 'The party’s discoveries remain safe.', next: 'Prepare for a short battle next turn.' } });
   }
   if (room.chapter === 2) {
     if (runtime.journey) return state.explorationTurns >= 2 && room.progress >= 4 || state.explorationTurns >= 4;

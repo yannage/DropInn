@@ -4,6 +4,12 @@ import { createJourney, journeyMap, journeyPouch } from '../src/lib/dropinn/jour
 import type { AdventureRoom, PlayerAction } from '../src/lib/dropinn/types';
 import { createDropinnHandler } from './dropinn';
 
+// Historical service fixtures select their pinned creation version; gameplay still crosses the real handler.
+vi.mock('../src/lib/dropinn/engine', async importOriginal => {
+  const actual = await importOriginal<typeof import('../src/lib/dropinn/engine')>();
+  return { ...actual, createAdventure: (...args: Parameters<typeof actual.createAdventure>) => actual.createAdventure(...args.slice(0, 5) as [Parameters<typeof actual.createAdventure>[0], string, number, string?, string?], 2) };
+});
+
 type Variant = 'smugglers' | 'ward';
 async function service(variant: Variant = 'smugglers') {
   let now = 1000; let sequence = 0;

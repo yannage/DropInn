@@ -81,9 +81,21 @@ Verify private tables are absent from discovery/matching, code-only joins fail f
 
 ## Selectable stories and irreversible routes
 
-### Gemward v2 branching journey
+### Gemward v3 story table
 
-Run `npm run test:journey -- http://127.0.0.1:5203` with Vite running. `test:expedition` also runs the current journey check; the older expedition runner describes the pinned v1 interface. The v2 runner uses independent browser identities, the real isolated local command handler, and a controlled shared clock, without injecting gameplay snapshots.
+Run `npm run test:story-table -- http://127.0.0.1:5205` against an explicitly local Vite server. `test:journey` and `test:expedition` select this current runner. It uses two independent browser identities and the real isolated local command handler with a controlled clock; it does not inject gameplay snapshots or use hosted persistence.
+
+On the first screen, identify the missing prism and neighbours who need the light. Inspect Iris with Influence: pricing and evening news must offer different consequences. Preparation alone sends no action. After release and the on-table consequence, keep the recorded change readable through the next choosing turn. A lead found on an earlier turn enables **Set out together**; prepare and release it through the normal controls, allowing everyone’s accepted actions to settle before travel. Show factual readiness and remaining active rounds instead of a generic exploration progress meter.
+
+Complete both Warehouse → Beacon and peaceful Canal → Lantern square. Verify the shared pouch, provenance, practical preparations, both route votes, battle return, lost vote response/reload/exact retry, and final cost. Light and neighbours are distinct finale preparations; **Finish together** must be unavailable before both are ready, show the concrete sacrifice before release, and apply it only on completion. The six town/four finale active-round fallback must not count absent-only rounds or manufacture unfinished preparations. Reducer/service tests separately cover these fallback and command invariants, first personal gifts, repeated facts, late admission/departure, one-use lantern cover, watcher advantage and Dust’s one-extra-opportunity limit.
+
+Inspect first-screen, conversation, Gather and Finish states at 320×568, 390×844 and desktop, including enlarged narrative text. Keep story text, four tokens and release controls reachable; the compact reading region may scroll and must be keyboard-focusable. Reduced motion and reload show confirmed facts without replaying stale rewards. Source/art fingerprints at both ends must match. Evidence is `output/playwright/story-table-results.json` and companion screenshots; this is not physical-device, hosted Realtime or human comprehension evidence.
+
+Human review: after the first result ask what is wrong, what changed and what is now possible. Ask why the selected path was available and whose earlier preparation mattered later. At the ending ask what the party gave up and whether helping the neighbours changed their return. Observe uncoached solo newcomers, pairs and late arrivals before making claims about enjoyment or replay interest.
+
+### Pinned Gemward v2 branching journey
+
+Run `npm run test:journey:v2 -- http://127.0.0.1:5205` with Vite running. This historical runner pins its isolated server catalog to Gemward v2; production creation remains v3. The older expedition runner describes the pinned v1 interface. The v2 runner uses independent browser identities, the real isolated local command handler, and a controlled shared clock, without injecting gameplay snapshots.
 
 Check town exploration at separate local places, both route votes, warehouse combat and quiet canal recovery, and both finale destinations. Inspecting a map node must not send a command; confirming the route must. Ordinary reveals stay in the scene. Journey opens at the chapter boundary and records the actual trail, discovery sources, chapter highlights and the lasting finale cost. The shared quest pouch must agree on both screens and survive a reload; the prism stays held on arrival and is consumed only when restoration completes.
 

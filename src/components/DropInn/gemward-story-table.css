@@ -1,0 +1,41 @@
+/* Gemward v3 gives the current story a permanent, readable place at the table. */
+.gm-story-table{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.7fr);gap:12px 24px;max-width:1110px;margin:0 auto 7px;padding:7px 0;color:#334238}
+.gm-story-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:27px}
+.gm-story-heading>span{display:flex;align-items:center;gap:7px;font-family:Caveat,cursive;font-weight:800;font-size:23px;line-height:1.1}
+.gm-story-heading>button{display:grid;place-items:center;min-width:44px;min-height:44px;border:0;background:none;margin:-8px 0;flex:none}
+.gm-story-situation,.gm-story-question{font-size:14px;line-height:1.4;margin:5px 0 0;text-wrap:pretty}
+.gm-story-question{font-weight:750;color:#55683e}
+.gm-story-intentions{display:flex;flex-direction:column;justify-content:center;gap:5px}
+.gm-story-topics{display:flex;gap:6px}
+.gm-story-topics>button,.gm-story-plan>button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1;border:1px solid #a391626b;border-radius:8px 10px 7px 10px;background:#f2e7c6;padding:7px 10px;font-size:13px!important;line-height:1.25;text-align:left}
+.gm-story-topics>button>svg,.gm-story-plan>button>svg{flex:none}
+.gm-story-topics>button[aria-pressed=true],.gm-story-plan>button[aria-pressed=true]{background:#e1e5bf;border-color:#71824f}
+.gm-story-plan>button{width:100%;background:#e7d294;font-weight:750}
+.gm-story-plan>button:disabled{opacity:.65}
+.gm-story-plan small{display:block;font-size:12px;line-height:1.3;margin:4px 0;color:#69674d}
+.gm-story-known{display:flex;align-items:center;gap:4px;font-size:12px;line-height:1.3;margin:5px 0;color:#69744d}
+.gm-story-memory{display:flex;align-items:center;gap:5px;width:100%;min-height:44px;font-size:12px!important;line-height:1.25;text-align:left;background:none;border:0;border-top:1px dashed #9d8b5c50;padding:4px 0;margin-top:5px}
+.gm-story-memory>svg{flex:none}.gm-story-memory>span:first-of-type{font-weight:750}.gm-story-memory-copy{font-weight:400}.gm-story-last-marker{display:none}
+.gm-story-status{font-size:13px;line-height:1.35;margin:0;color:#6a714f}
+.gm-story-steps{display:flex;justify-content:center;gap:14px;list-style:none;padding:4px 0;margin:0 auto;max-width:1110px;border-bottom:1px solid #c7b78570}
+.gm-story-steps li{display:flex;align-items:center;gap:4px;font-size:11px;line-height:1.3;color:#8b8164}.gm-story-steps li>svg{flex:none}.gm-story-steps li>i{width:6px;height:6px;border:1px solid currentColor;border-radius:50%;flex:none}.gm-story-steps li.is-current{font-weight:800;color:#4f653e}.gm-story-steps li.is-current>i{background:currentColor}.gm-story-steps li.is-done{color:#5b7442}
+.gm-story-detail{font-size:14px;line-height:1.6}.gm-story-detail h3{font-family:Caveat,cursive;font-size:28px}.gm-story-detail section{border-top:1px dashed #b6a27280;margin-top:18px}.gm-story-detail ul{padding-left:20px}.gm-story-detail li{margin:14px 0}.gm-story-detail li strong{display:flex;gap:5px;align-items:center}.gm-story-detail li p{margin:4px 0}
+.gm-adventure.is-story-led .gm-story-objective{display:none}.gm-adventure.is-story-led .gm-action-bar{padding-top:0}.gm-adventure.is-story-led .gm-nearby{margin-top:0}
+.gm-adventure.is-story-led .gm-release-hint{font-size:18px}.gm-adventure.is-story-led .gm-release-hint br{display:none}
+.gm-adventure.is-story-led .gm-release-controls>.gm-primary:has(+*){font-size:13px}
+.gm-journey.is-story-led .gm-route-picker{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.gm-journey.is-story-led .gm-route-picker>button{min-height:44px;flex:1;border:1px solid #a9976a;border-radius:8px;background:#f6edcf;padding:8px 12px;text-align:left;font-size:13px;font-weight:750}
+.gm-journey.is-story-led .gm-route-picker>button[aria-pressed=true]{background:#dfe6ba;border-color:#6b8147}.gm-route-picker>button small{display:block;font-size:11px;font-weight:400;margin-top:3px}
+@media(max-width:620px){
+ .gm-adventure.is-story-led .gm-action-bar{padding:0 9px max(5px,env(safe-area-inset-bottom))}.gm-adventure.is-story-led .gm-scene-heading{top:4px}.gm-adventure.is-story-led .gm-stage{min-height:220px}
+ .gm-story-table{display:flex;flex-direction:column;gap:6px;padding:5px 0;margin-bottom:4px}.gm-story-heading{min-height:24px}.gm-story-heading>span{font-size:20px}.gm-story-heading>button{margin:-10px 0;min-height:44px}.gm-story-situation,.gm-story-question{font-size:13px;line-height:1.35;margin-top:3px}.gm-story-topics>button,.gm-story-plan>button{font-size:13px!important;padding:5px 7px}.gm-story-steps{gap:9px;padding:4px 0}.gm-story-steps li{font-size:10px;gap:3px}.gm-story-memory-copy{display:none}.gm-story-memory{min-height:0;margin:0;padding:3px 0;border:0}.gm-story-known{margin:0;font-size:12px}.gm-story-status{font-size:12px}.gm-story-intentions{gap:3px}.gm-story-plan small{font-size:12px;margin:3px 0}.gm-story-table.is-resting .gm-story-status{margin-top:2px}
+ .gm-adventure.is-story-led .gm-hand>button>span:last-of-type{font-size:10px;min-height:13px}.gm-adventure.is-story-led .gm-hand>button{min-height:58px}.gm-adventure.is-story-led .gm-release-controls{min-height:44px}.gm-adventure.is-story-led .gm-release-hint{font-size:17px;line-height:1.15}.gm-adventure.is-story-led .gm-piece-name{font-size:11px}.gm-adventure.is-story-led .gm-nearby button{font-size:11px}
+ .gm-journey.is-story-led .gm-journey-layout{display:flex;flex-direction:column;margin-top:6px;gap:12px}.gm-journey.is-story-led .gm-map-inspector{order:-1;border-top:0;padding:0}.gm-journey.is-story-led .gm-map-paper{height:300px;min-height:300px}.gm-journey.is-story-led .gm-journey-heading h3{font-size:24px}.gm-journey.is-story-led .gm-journey-heading>p{font-size:13px}.gm-journey.is-story-led .gm-map-inspector>p,.gm-journey.is-story-led .gm-route-cost{font-size:13px}.gm-journey.is-story-led .gm-route-picker{margin:10px 0;gap:5px}.gm-journey.is-story-led .gm-route-picker>button{padding:7px 6px;font-size:12px;min-width:85px}.gm-journey.is-story-led .gm-map-inspector>h3{font-size:25px}.gm-journey.is-story-led .gm-map-inspector>p{margin:7px 0}.gm-journey.is-story-led .gm-route-keys{margin:6px 0}
+}
+@media(max-width:620px) and (max-height:650px){
+ .gm-adventure.is-story-led .gm-stage{min-height:195px}.gm-adventure.is-story-led .gm-header{height:44px;flex-basis:44px}.gm-adventure.is-story-led .gm-hero-paint{height:39px}.gm-adventure.is-story-led .gm-hotspot{min-height:57px;height:25%}.gm-adventure.is-story-led .gm-piece-name{font-size:10px;line-height:1.15;padding:2px 4px}.gm-adventure.is-story-led .gm-hand>button{min-height:52px}.gm-adventure.is-story-led .gm-hand>button>span:last-of-type{font-size:9px}.gm-story-table{gap:3px;padding:3px 0}.gm-story-heading>span{font-size:19px}.gm-story-question{font-size:13px}.gm-story-memory{min-height:0}.gm-story-steps li{font-size:9px}.gm-adventure.is-story-led .gm-nearby button{min-height:44px;min-width:72px;font-size:10px}.gm-adventure.is-story-led .gm-party{bottom:2px}.gm-adventure.is-story-led .gm-confirmed-caption{bottom:57px}.gm-adventure.is-story-led .gm-enemy-intent{top:26px}.gm-adventure.is-story-led .gm-battle-allies{top:72%}
+}
+@media(prefers-reduced-motion:reduce){.gm-story-table *{scroll-behavior:auto!important}}
+.gm-story-budget{display:block;font-size:12px;line-height:1.25;color:#7b6c4d;text-align:right}
+@media(max-width:620px) and (max-height:650px){.gm-adventure.is-story-led .gm-story-table{max-height:calc(100dvh - 420px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}}
+@media(max-width:620px) and (max-height:650px){.gm-adventure.is-story-led:has(.gm-attached) .gm-story-table{max-height:calc(100dvh - 470px)}}

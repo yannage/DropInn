@@ -15,24 +15,28 @@ const root = process.cwd();
 const output = path.join(root, 'public/audio/narrator-openings');
 const manifestPath = path.join(root, 'src/lib/dropinn/narrator-openings.json');
 const hash = value => createHash('sha256').update(value).digest('hex');
-const MAX_BYTES = 20 * 1024 * 1024;
+// Total retained catalog, not a startup download: the runtime requests only
+// the selected voice's current sentence. Pinned openings remain addressable.
+const MAX_BYTES = 32 * 1024 * 1024;
 const FIRST_CLIP_BYTES = 350 * 1024;
 const ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-narrator-openings', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
 let metadata, jobs, firstSentences;
 try {
-  const { ADVENTURES } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
+  const { ADVENTURE_VERSIONS } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
   const { narratorSentences } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorAudio.ts');
   const { narratorNaturalVoices } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorVoices.ts');
   const { narratorModel, narratorRevision } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorModel.ts');
   metadata = { model: narratorModel, revision: narratorRevision, format: 'pcm16-wav', sampleRate: 24000, speed: 1 };
-  const intros = ADVENTURES.map(adventure => narratorSentences(adventure.chapters[0].intro));
+  // Released rooms keep their pinned opening even when discovery selects a new
+  // version. Deduplicate shared sentences, not the addressable story versions.
+  const intros = ADVENTURE_VERSIONS.map(adventure => narratorSentences(adventure.chapters[0].intro));
   firstSentences = new Set(intros.map(segments => segments[0]));
   const texts = [...new Set(intros.flat())];
   jobs = narratorNaturalVoices.flatMap(voice => texts.map(text => {
     const identity = hash(JSON.stringify([metadata.model, metadata.revision, voice.id, voice.embedding, voice.speedPrior, 1, text, 'pcm16-wav-v1']));
     return { text, voice: voice.id, speed: 1, url: `audio/narrator-openings/${identity}.wav` };
   }));
-  console.log(JSON.stringify({ adventures: ADVENTURES.length, segments: texts.length, wordsPerVoice: texts.join(' ').split(/\s+/).length, voices: narratorNaturalVoices.length, files: jobs.length, maxBytes: MAX_BYTES }));
+  console.log(JSON.stringify({ adventureVersions: ADVENTURE_VERSIONS.length, segments: texts.length, wordsPerVoice: texts.join(' ').split(/\s+/).length, voices: narratorNaturalVoices.length, files: jobs.length, maxBytes: MAX_BYTES }));
 } finally { await ssr.close(); }
 if (process.argv.includes('--plan')) process.exit(0);
 

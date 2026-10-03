@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import manifest from './narrator-openings.json';
-import { ADVENTURES } from './registry';
+import { ADVENTURE_VERSIONS } from './registry';
 import { narratorSentences } from './narratorAudio';
 import { narratorNaturalVoices } from './narratorVoices';
 import { narratorModel, narratorRevision } from './narratorModel';
@@ -28,10 +28,10 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe('instant authored opening recordings', () => {
-  it('covers every current first chapter and selected voice without a request during lookup', async () => {
+  it('covers every current and pinned first chapter and voice without a request during lookup', async () => {
     const { narratorOpeningClip } = await import('./narratorOpenings');
     expect(manifest.model).toBe(narratorModel); expect(manifest.revision).toBe(narratorRevision);
-    for (const adventure of ADVENTURES) for (const sentence of narratorSentences(adventure.chapters[0].intro)) {
+    for (const adventure of ADVENTURE_VERSIONS) for (const sentence of narratorSentences(adventure.chapters[0].intro)) {
       for (const voice of narratorNaturalVoices) {
         const clip = narratorOpeningClip(sentence, voice.id, 1);
         expect(clip, `${adventure.id}: ${voice.id}: ${sentence}`).toBeDefined();
@@ -62,12 +62,13 @@ describe('instant authored opening recordings', () => {
   });
   it('ships valid size-bounded files matching their content hashes', () => {
     const entries = manifest.clips as NarratorOpeningClip[];
-    const first = new Set(ADVENTURES.map(adventure => narratorSentences(adventure.chapters[0].intro)[0]));
+    const first = new Set(ADVENTURE_VERSIONS.map(adventure => narratorSentences(adventure.chapters[0].intro)[0]));
     expect(entries.length).toBeGreaterThan(0);
-    expect(entries.reduce((sum, entry) => sum + entry.bytes, 0)).toBeLessThanOrEqual(20 * 1024 * 1024);
+    expect(entries.reduce((sum, entry) => sum + entry.bytes, 0)).toBeLessThanOrEqual(32 * 1024 * 1024);
     for (const clip of entries) {
       const bytes = readFileSync(`public/${clip.url}`);
       expect(bytes.byteLength).toBe(clip.bytes);
+      expect(clip.bytes).toBeLessThanOrEqual(768 * 1024);
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(clip.sha256);
       expect(bytes.toString('ascii', 8, 16)).toBe('WAVEfmt ');
       expect(clip.bytes).toBe(44 + clip.sampleCount * 2);

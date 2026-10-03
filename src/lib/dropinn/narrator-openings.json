@@ -6,28 +6,6 @@
   "speed": 1,
   "clips": [
     {
-      "text": "Gemward’s beacon is dark.",
-      "voice": "Bella",
-      "speed": 1,
-      "url": "audio/narrator-openings/4482075111204f6e4da362faf1a2225d7ff03917fc87fc41f9cc34246d6b7f60.wav",
-      "bytes": 160444,
-      "sampleRate": 24000,
-      "sampleCount": 80200,
-      "duration": 3.341666666666667,
-      "sha256": "12c59fdb49720431c3bf5a76606246c80e97ea6b10d6bfbcb08dcbb1cd65216a"
-    },
-    {
-      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Bella",
-      "speed": 1,
-      "url": "audio/narrator-openings/7397d65b5b7ece8400a52556124c81afdf1ec56ff682e5e5cd5083ecd681d854.wav",
-      "bytes": 338044,
-      "sampleRate": 24000,
-      "sampleCount": 169000,
-      "duration": 7.041666666666667,
-      "sha256": "815c106862bb52ad3d82eb722d1d9cbb37a8f9e6bb3fe105c49246a00a4fae26"
-    },
-    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Bella",
       "speed": 1,
@@ -161,25 +139,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Jasper",
+      "voice": "Bella",
       "speed": 1,
-      "url": "audio/narrator-openings/719f112c66ee050f379b56e39345555affeef689106e67afa3e27c868532795f.wav",
-      "bytes": 107644,
+      "url": "audio/narrator-openings/4482075111204f6e4da362faf1a2225d7ff03917fc87fc41f9cc34246d6b7f60.wav",
+      "bytes": 160444,
       "sampleRate": 24000,
-      "sampleCount": 53800,
-      "duration": 2.2416666666666667,
-      "sha256": "580b22097b773a754b2617a0c12286523171d297fe91904f7eab9dbdf1db7d4b"
+      "sampleCount": 80200,
+      "duration": 3.341666666666667,
+      "sha256": "12c59fdb49720431c3bf5a76606246c80e97ea6b10d6bfbcb08dcbb1cd65216a"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Jasper",
+      "voice": "Bella",
       "speed": 1,
-      "url": "audio/narrator-openings/a67d7e83e1c5d52f523b9fafeff99a53318e770fd93b4c0dfa77e93da29ae7c2.wav",
-      "bytes": 245644,
+      "url": "audio/narrator-openings/7397d65b5b7ece8400a52556124c81afdf1ec56ff682e5e5cd5083ecd681d854.wav",
+      "bytes": 338044,
       "sampleRate": 24000,
-      "sampleCount": 122800,
-      "duration": 5.116666666666666,
-      "sha256": "54e93eada60d0e3b1fa0735aaec0db7bbc912837a68a980bd6ed3e39d5f9525b"
+      "sampleCount": 169000,
+      "duration": 7.041666666666667,
+      "sha256": "815c106862bb52ad3d82eb722d1d9cbb37a8f9e6bb3fe105c49246a00a4fae26"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/0362c1c78b4e6e97b6d530dfbb40de3d2025485941ee95b992abbd568e764053.wav",
+      "bytes": 278044,
+      "sampleRate": 24000,
+      "sampleCount": 139000,
+      "duration": 5.791666666666667,
+      "sha256": "83ed7302702f8f672690cedba90376ed451b9d25a58cc813438765a1c1f5f78c"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/629e62de6d2bf05f9dccba887fd7b63c424fd22e435ea988b07021d4ea0b10c4.wav",
+      "bytes": 255244,
+      "sampleRate": 24000,
+      "sampleCount": 127600,
+      "duration": 5.316666666666666,
+      "sha256": "1c4ecf2caf6c80f6051956e52d50853ddd9eb3d9f53569fc5eebe15de8e13566"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/4a25235492ddbb233851cd31959f3e77803fcc32a21749673cddec334c32aadd.wav",
+      "bytes": 171244,
+      "sampleRate": 24000,
+      "sampleCount": 85600,
+      "duration": 3.566666666666667,
+      "sha256": "fa9c3a757d3da04f1df702220e37273781d81c3e387e0e8fbca8945ecef3b3e8"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/a53c74696fafe65c26110d5eeb4c1a3a69d4f2c36e9edf3f69601946c1fd141f.wav",
+      "bytes": 141244,
+      "sampleRate": 24000,
+      "sampleCount": 70600,
+      "duration": 2.941666666666667,
+      "sha256": "7d03648f188c7c84642269ae688a6221239d5dfb3c94d5427f835bdf765bb2b9"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -315,25 +337,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Luna",
+      "voice": "Jasper",
       "speed": 1,
-      "url": "audio/narrator-openings/5672116a09251fba0648cce0e37f33345cedf3dbe2313abb70aed4084f050b9c.wav",
-      "bytes": 111244,
+      "url": "audio/narrator-openings/719f112c66ee050f379b56e39345555affeef689106e67afa3e27c868532795f.wav",
+      "bytes": 107644,
       "sampleRate": 24000,
-      "sampleCount": 55600,
-      "duration": 2.316666666666667,
-      "sha256": "cf0c69238fba1f10e7081acae459678b6687f5c27a55dcbc5d9075d0b806febd"
+      "sampleCount": 53800,
+      "duration": 2.2416666666666667,
+      "sha256": "580b22097b773a754b2617a0c12286523171d297fe91904f7eab9dbdf1db7d4b"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Luna",
+      "voice": "Jasper",
       "speed": 1,
-      "url": "audio/narrator-openings/6b1451ca3de27acc08e2bfdf37c4db5686942a5c90e10f6574c81bc570783fbf.wav",
-      "bytes": 257644,
+      "url": "audio/narrator-openings/a67d7e83e1c5d52f523b9fafeff99a53318e770fd93b4c0dfa77e93da29ae7c2.wav",
+      "bytes": 245644,
       "sampleRate": 24000,
-      "sampleCount": 128800,
-      "duration": 5.366666666666666,
-      "sha256": "52b173290c1da08a66ae2a4567442244fbe8cff6a4654657e7a00e4ad1672ecc"
+      "sampleCount": 122800,
+      "duration": 5.116666666666666,
+      "sha256": "54e93eada60d0e3b1fa0735aaec0db7bbc912837a68a980bd6ed3e39d5f9525b"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/eea20112cf6f7fad921c22c0eacb9d9d33eb26db05a4dd3a4fa6d9093b89de5d.wav",
+      "bytes": 178444,
+      "sampleRate": 24000,
+      "sampleCount": 89200,
+      "duration": 3.716666666666667,
+      "sha256": "fc456f3342a2fe0b61f068a5ffca189ef66a5ec3e33d88afe186a06788dd4032"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/311952b9b22d36556e7c16fd6563fc649c4850b21108a8f77e9238c5b02cdbb4.wav",
+      "bytes": 136444,
+      "sampleRate": 24000,
+      "sampleCount": 68200,
+      "duration": 2.841666666666667,
+      "sha256": "744977ced47c6c750a162c45407e037b42e61d795fa44dc074dd20ba75cf3279"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/99dd7b640c26b5c7dcf0466d696b7e9af7add1b60a1d5044b2bf03af293151bd.wav",
+      "bytes": 105244,
+      "sampleRate": 24000,
+      "sampleCount": 52600,
+      "duration": 2.191666666666667,
+      "sha256": "fdafdcf300ea93d5f89936519414306083ce994555af36fee9ef2635691056a8"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/7664dd72cafb5809d71c1d04b88a8bc04333d9a335c612aa330542312ce69380.wav",
+      "bytes": 90844,
+      "sampleRate": 24000,
+      "sampleCount": 45400,
+      "duration": 1.8916666666666666,
+      "sha256": "d9dc7a370a5b5451ca0cc47cf762f870dee01f73e939ee3909232f78d72caa82"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -469,25 +535,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Bruno",
+      "voice": "Luna",
       "speed": 1,
-      "url": "audio/narrator-openings/6c0833389c0c57dbf462b7d9af973da7a023bb6938927043ffcfa922c7a8d638.wav",
-      "bytes": 106444,
+      "url": "audio/narrator-openings/5672116a09251fba0648cce0e37f33345cedf3dbe2313abb70aed4084f050b9c.wav",
+      "bytes": 111244,
       "sampleRate": 24000,
-      "sampleCount": 53200,
-      "duration": 2.216666666666667,
-      "sha256": "a57b80c00651886a9f9073631d1a2daa6023d2108cb3323134738bea8aefb429"
+      "sampleCount": 55600,
+      "duration": 2.316666666666667,
+      "sha256": "cf0c69238fba1f10e7081acae459678b6687f5c27a55dcbc5d9075d0b806febd"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Bruno",
+      "voice": "Luna",
       "speed": 1,
-      "url": "audio/narrator-openings/98b8374fdfb7c82d20c73793ff2617a80fb7696b36709513bea35c6853f4d1d0.wav",
-      "bytes": 250444,
+      "url": "audio/narrator-openings/6b1451ca3de27acc08e2bfdf37c4db5686942a5c90e10f6574c81bc570783fbf.wav",
+      "bytes": 257644,
       "sampleRate": 24000,
-      "sampleCount": 125200,
-      "duration": 5.216666666666667,
-      "sha256": "47afafb3a33bed5ff036709a33cf7b6a1a56e7e2fe554833f2b87f3e62b3e2bd"
+      "sampleCount": 128800,
+      "duration": 5.366666666666666,
+      "sha256": "52b173290c1da08a66ae2a4567442244fbe8cff6a4654657e7a00e4ad1672ecc"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/819fe2a115198b5f395ede1317f449a4da25621fc158c4c09b7138e643413d0f.wav",
+      "bytes": 224044,
+      "sampleRate": 24000,
+      "sampleCount": 112000,
+      "duration": 4.666666666666667,
+      "sha256": "cb3f191d57449a338ca2f536a5381f089de459bd8e17480941d28884b9622162"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/5603ea6c63623e4f78b22a36c8887fe2ae9bd940d42979f1349fe90bbbd41f2c.wav",
+      "bytes": 149644,
+      "sampleRate": 24000,
+      "sampleCount": 74800,
+      "duration": 3.1166666666666667,
+      "sha256": "ba93f1ead7e4bde2bf7c067e5bc8cf334820fa4ca5c322a08aff180d3f9a8cb5"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/b2af1b05f5fab66adc8f995092cf272dc4597a01654a436a5a55543c427bf33d.wav",
+      "bytes": 140044,
+      "sampleRate": 24000,
+      "sampleCount": 70000,
+      "duration": 2.9166666666666665,
+      "sha256": "3aa3824274302c0a720cf044e64b170dfb20f9b78cbb2b4c37285206552ce1c1"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/7f0110975ea75181b1081dd4badee90480f0de9afd44d8878e51197e214673f2.wav",
+      "bytes": 99244,
+      "sampleRate": 24000,
+      "sampleCount": 49600,
+      "duration": 2.066666666666667,
+      "sha256": "1fcb36a24a93ac8e77fed6a5c8609b8e106ec209e937a3f2dcd3c1eb28aeca6c"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -623,25 +733,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Rosie",
+      "voice": "Bruno",
       "speed": 1,
-      "url": "audio/narrator-openings/0333552b4aa6b91c4d26b64e765668ac77fd8b3f26523b1dd47d0e0712852ce6.wav",
-      "bytes": 111244,
+      "url": "audio/narrator-openings/6c0833389c0c57dbf462b7d9af973da7a023bb6938927043ffcfa922c7a8d638.wav",
+      "bytes": 106444,
       "sampleRate": 24000,
-      "sampleCount": 55600,
-      "duration": 2.316666666666667,
-      "sha256": "0dd9eb19ae86d1140a2aaf6de9af6c22a811b69d1ce50dd32b2467792e2e63b0"
+      "sampleCount": 53200,
+      "duration": 2.216666666666667,
+      "sha256": "a57b80c00651886a9f9073631d1a2daa6023d2108cb3323134738bea8aefb429"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Rosie",
+      "voice": "Bruno",
       "speed": 1,
-      "url": "audio/narrator-openings/3df43b8eeadc9667a3927ad05387d61c5e6f30b12f58b95c8e24a70706f66391.wav",
-      "bytes": 304444,
+      "url": "audio/narrator-openings/98b8374fdfb7c82d20c73793ff2617a80fb7696b36709513bea35c6853f4d1d0.wav",
+      "bytes": 250444,
       "sampleRate": 24000,
-      "sampleCount": 152200,
-      "duration": 6.341666666666667,
-      "sha256": "8f88b0be4beecc20398e3c9855fc7d3b5239a1f3b30a5528ebb73bb0484ba048"
+      "sampleCount": 125200,
+      "duration": 5.216666666666667,
+      "sha256": "47afafb3a33bed5ff036709a33cf7b6a1a56e7e2fe554833f2b87f3e62b3e2bd"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/87e7aa88847492ecf2ab67bb5de3fda0029434d6b3a9555bb0f093f4ad86eaf5.wav",
+      "bytes": 180844,
+      "sampleRate": 24000,
+      "sampleCount": 90400,
+      "duration": 3.7666666666666666,
+      "sha256": "72d479549d9bc4a39a4969a9bd8c351774c59653ead737d6c73ffa461472ba7f"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/46e116b62ff42455723c4d2d881cb9853b739ff498e45f0d5257b33890717a0f.wav",
+      "bytes": 138844,
+      "sampleRate": 24000,
+      "sampleCount": 69400,
+      "duration": 2.8916666666666666,
+      "sha256": "ab0fe2c3c17ec5761808442ef11820f15b7c8e2435cf17f530d04bc9b175a713"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/1fe25db2b8937fdd6fd142e17bc476bcefa5624b8a92cd822b7d491d30682407.wav",
+      "bytes": 114844,
+      "sampleRate": 24000,
+      "sampleCount": 57400,
+      "duration": 2.3916666666666666,
+      "sha256": "3f709d4c71d4689522a58806002956cf08275c5cfd0ac1eea623a1b820913c70"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/5bfa6e4095477b767a8158efc730ac5d2b9f284e6424f493aacb20c5c99694d9.wav",
+      "bytes": 101644,
+      "sampleRate": 24000,
+      "sampleCount": 50800,
+      "duration": 2.1166666666666667,
+      "sha256": "352e4ce0f857298533a757138917ed5d816d040cf0af0922a5fb9d0a258ee4f1"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -777,25 +931,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Hugo",
+      "voice": "Rosie",
       "speed": 1,
-      "url": "audio/narrator-openings/1685271fb5355b0d9f7a2822dc3973f47df2413e694bb1ff5e30b0f52cf195f6.wav",
-      "bytes": 94444,
+      "url": "audio/narrator-openings/0333552b4aa6b91c4d26b64e765668ac77fd8b3f26523b1dd47d0e0712852ce6.wav",
+      "bytes": 111244,
       "sampleRate": 24000,
-      "sampleCount": 47200,
-      "duration": 1.9666666666666666,
-      "sha256": "9e9a8e4095bc76e1e928939af6b516514e91fe052105ebcde76f72bc6736143a"
+      "sampleCount": 55600,
+      "duration": 2.316666666666667,
+      "sha256": "0dd9eb19ae86d1140a2aaf6de9af6c22a811b69d1ce50dd32b2467792e2e63b0"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Hugo",
+      "voice": "Rosie",
       "speed": 1,
-      "url": "audio/narrator-openings/0ce34026e142460b284911d3fb66fbe0e1cb0d04752461c98db7bd0d5a995342.wav",
-      "bytes": 222844,
+      "url": "audio/narrator-openings/3df43b8eeadc9667a3927ad05387d61c5e6f30b12f58b95c8e24a70706f66391.wav",
+      "bytes": 304444,
       "sampleRate": 24000,
-      "sampleCount": 111400,
-      "duration": 4.641666666666667,
-      "sha256": "b0697afb6e3dac1257fb59949c699b53a2c5ec679f20f7c321006dd816cab512"
+      "sampleCount": 152200,
+      "duration": 6.341666666666667,
+      "sha256": "8f88b0be4beecc20398e3c9855fc7d3b5239a1f3b30a5528ebb73bb0484ba048"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/d045eed042e1c6cde941f197f2cad8716878bd244fec0906b9da3772a68e35e1.wav",
+      "bytes": 185644,
+      "sampleRate": 24000,
+      "sampleCount": 92800,
+      "duration": 3.8666666666666667,
+      "sha256": "37bb25a0346f0caf9d68f860a504f04a3b843721270e57ddeaaa54da9a19eba9"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/3ebb86bc1d878ba437ab660345b3ed974884080f95a780f416403a6206b97da4.wav",
+      "bytes": 152044,
+      "sampleRate": 24000,
+      "sampleCount": 76000,
+      "duration": 3.1666666666666665,
+      "sha256": "ff19a8fb1f22592de16b950c1541ec4c74768f7e5f1205e88e76da79dc711f41"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/baff8c4a98d284fb90fb41b1146b27e33185d13e01c037cf26ed28803e1537b4.wav",
+      "bytes": 135244,
+      "sampleRate": 24000,
+      "sampleCount": 67600,
+      "duration": 2.816666666666667,
+      "sha256": "345fc6fc114bafcdeadccf535149538bfae80343701e2952caef3b455121a158"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/e0a8713d2e59e06a4f8456dc07229974ec1d6557d2770b1102beb613a96b9a4d.wav",
+      "bytes": 101644,
+      "sampleRate": 24000,
+      "sampleCount": 50800,
+      "duration": 2.1166666666666667,
+      "sha256": "80c925166091cdc43a57fb4b75b015fccd5efb5c159b3f8986b8bcf2d0179895"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -931,25 +1129,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Kiki",
+      "voice": "Hugo",
       "speed": 1,
-      "url": "audio/narrator-openings/a286bf60c8f2ae0f3a48ae210c354ce73ab6bb2fe1845fd64fb02c5ce8a367b0.wav",
-      "bytes": 105244,
+      "url": "audio/narrator-openings/1685271fb5355b0d9f7a2822dc3973f47df2413e694bb1ff5e30b0f52cf195f6.wav",
+      "bytes": 94444,
       "sampleRate": 24000,
-      "sampleCount": 52600,
-      "duration": 2.191666666666667,
-      "sha256": "93956d2e5263e339d86dc59f74670f19a51f920909bef89c725a4399778d7586"
+      "sampleCount": 47200,
+      "duration": 1.9666666666666666,
+      "sha256": "9e9a8e4095bc76e1e928939af6b516514e91fe052105ebcde76f72bc6736143a"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Kiki",
+      "voice": "Hugo",
       "speed": 1,
-      "url": "audio/narrator-openings/3d8aefaf2487152a8dc241933a56b17ccbc200da69bdd5fa823cc0a34869bbc8.wav",
-      "bytes": 244444,
+      "url": "audio/narrator-openings/0ce34026e142460b284911d3fb66fbe0e1cb0d04752461c98db7bd0d5a995342.wav",
+      "bytes": 222844,
       "sampleRate": 24000,
-      "sampleCount": 122200,
-      "duration": 5.091666666666667,
-      "sha256": "c2d3d7d40225afd6fcbd4f4e6b8832d94ebec290b68b66b6f888d6b61a4ceafb"
+      "sampleCount": 111400,
+      "duration": 4.641666666666667,
+      "sha256": "b0697afb6e3dac1257fb59949c699b53a2c5ec679f20f7c321006dd816cab512"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/29e3af8a88b67b6917d1ea42d7e2184ee569bd4f2c51ba3973e1ed6f62f5fce0.wav",
+      "bytes": 180844,
+      "sampleRate": 24000,
+      "sampleCount": 90400,
+      "duration": 3.7666666666666666,
+      "sha256": "aeb91ff90d4666a50e5ed2830b81d3e5e4841433c32e11402a7211268ab99bf4"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/b9a19cd54a7d342e52ae32c2c66a589ac142ddb57c02897165c4478b793693e3.wav",
+      "bytes": 126844,
+      "sampleRate": 24000,
+      "sampleCount": 63400,
+      "duration": 2.6416666666666666,
+      "sha256": "1adc36d2064092ea77821ca8acc9949ed0e3772bd06b791f2fe82beb521e2e28"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/ac2945a325d12f925a1a0fbe2cddba040d18f0c34b85eb3330d0219ec8e512b4.wav",
+      "bytes": 100444,
+      "sampleRate": 24000,
+      "sampleCount": 50200,
+      "duration": 2.091666666666667,
+      "sha256": "c553b6bc8a9a3b7c13e6ea136d8686583811620142965956046d807be9dff1b9"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/78c7b8cd9540369ea460edf1b8f84a9668001b3cbebff4c6c8f06211fad95af3.wav",
+      "bytes": 80044,
+      "sampleRate": 24000,
+      "sampleCount": 40000,
+      "duration": 1.6666666666666667,
+      "sha256": "d0d36f1fa2b0f178b495fbe217c4be16ee144b1d24e82a4b184b3681a5e6d88b"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -1085,25 +1327,69 @@
     },
     {
       "text": "Gemward’s beacon is dark.",
-      "voice": "Leo",
+      "voice": "Kiki",
       "speed": 1,
-      "url": "audio/narrator-openings/10b3136bd2287748fc35933f0fd8b1d4a3bef7896d91c1900b3e69e3b11c2b3e.wav",
-      "bytes": 141244,
+      "url": "audio/narrator-openings/a286bf60c8f2ae0f3a48ae210c354ce73ab6bb2fe1845fd64fb02c5ce8a367b0.wav",
+      "bytes": 105244,
       "sampleRate": 24000,
-      "sampleCount": 70600,
-      "duration": 2.941666666666667,
-      "sha256": "c015e4d0d685dfdf3ccd7da152af8d826a1a8d25906307840da89efbcb4f2c81"
+      "sampleCount": 52600,
+      "duration": 2.191666666666667,
+      "sha256": "93956d2e5263e339d86dc59f74670f19a51f920909bef89c725a4399778d7586"
     },
     {
       "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
-      "voice": "Leo",
+      "voice": "Kiki",
       "speed": 1,
-      "url": "audio/narrator-openings/9401fd8c19cffc66ef16c8e69565d2a850fcd0e31708985ddb2915c41a6df94f.wav",
-      "bytes": 362044,
+      "url": "audio/narrator-openings/3d8aefaf2487152a8dc241933a56b17ccbc200da69bdd5fa823cc0a34869bbc8.wav",
+      "bytes": 244444,
       "sampleRate": 24000,
-      "sampleCount": 181000,
-      "duration": 7.541666666666667,
-      "sha256": "57fadc483beddc0d3837437d213e7e3e1e3d331a733d2257c01c38bc950c2d88"
+      "sampleCount": 122200,
+      "duration": 5.091666666666667,
+      "sha256": "c2d3d7d40225afd6fcbd4f4e6b8832d94ebec290b68b66b6f888d6b61a4ceafb"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/8d388ee13a367cbbfd435f60632882366d7fc57411b967c618aa943ae70a1ab8.wav",
+      "bytes": 191644,
+      "sampleRate": 24000,
+      "sampleCount": 95800,
+      "duration": 3.9916666666666667,
+      "sha256": "0fb44a83157994235851818e8d2d668a55ced69961b54d19153740b6a6b604d8"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/79dd243a83d036dbd22e6528a407c07da4002ffaffef8020c1680218ccff90c2.wav",
+      "bytes": 132844,
+      "sampleRate": 24000,
+      "sampleCount": 66400,
+      "duration": 2.7666666666666666,
+      "sha256": "6c816312b8726b4b45bdb6f95b9f11a70613a28a3d328ae59b406357b67b1c95"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/79b0d309f7000f165ce8b22c1a7f8a66c48e249563efafe8c3a68e05ba012a4d.wav",
+      "bytes": 116044,
+      "sampleRate": 24000,
+      "sampleCount": 58000,
+      "duration": 2.4166666666666665,
+      "sha256": "7f5820d47743181d5bb87311a0278371c4af3c305cd295f34bf3a2e0bc3fa5d4"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/57e36c0fb57cc2836093546875821705707641a8bf9d3c486c61142a638d39cc.wav",
+      "bytes": 92044,
+      "sampleRate": 24000,
+      "sampleCount": 46000,
+      "duration": 1.9166666666666667,
+      "sha256": "6fcff28f85ed37cd30ca1b78f60c064dad1bb2ceb74b474ee3a4afed21d0a5cc"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -1236,6 +1522,72 @@
       "sampleCount": 167800,
       "duration": 6.991666666666666,
       "sha256": "53651dc967e279512499d53e8cb428d8dca1b1ecd8c677d0fccd8328894073ac"
+    },
+    {
+      "text": "Gemward’s beacon is dark.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/10b3136bd2287748fc35933f0fd8b1d4a3bef7896d91c1900b3e69e3b11c2b3e.wav",
+      "bytes": 141244,
+      "sampleRate": 24000,
+      "sampleCount": 70600,
+      "duration": 2.941666666666667,
+      "sha256": "c015e4d0d685dfdf3ccd7da152af8d826a1a8d25906307840da89efbcb4f2c81"
+    },
+    {
+      "text": "Explore the shop, inn and docks to find the missing prism and choose a route together.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/9401fd8c19cffc66ef16c8e69565d2a850fcd0e31708985ddb2915c41a6df94f.wav",
+      "bytes": 362044,
+      "sampleRate": 24000,
+      "sampleCount": 181000,
+      "duration": 7.541666666666667,
+      "sha256": "57fadc483beddc0d3837437d213e7e3e1e3d331a733d2257c01c38bc950c2d88"
+    },
+    {
+      "text": "Gemward’s beacon goes dark as the evening ferry approaches.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/fbc52ff89dc2a964c6ff2dd1dcf2fd10e9ca8ad5c83187757d82ea70db33d52f.wav",
+      "bytes": 256444,
+      "sampleRate": 24000,
+      "sampleCount": 128200,
+      "duration": 5.341666666666667,
+      "sha256": "66b9fa5c608af668db0fe349d18a06a8b7d95308935d4ee0505a4a7aaab89e24"
+    },
+    {
+      "text": "Iris shows you an empty velvet stand.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/220a27167b777de2dd2ca5496438ddb7c1fcbe584eabeda97a34f7e8c6575fa2.wav",
+      "bytes": 178444,
+      "sampleRate": 24000,
+      "sampleCount": 89200,
+      "duration": 3.716666666666667,
+      "sha256": "449e94b5351152e60a2d3e0c05b2730dcb6ab42e27c340052e67677b3a206fb8"
+    },
+    {
+      "text": "“That light brings our neighbours home.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/e6cbea6705966f818e1753b14eb00121743cc5f19128368c8c666c4f7eb6934f.wav",
+      "bytes": 165244,
+      "sampleRate": 24000,
+      "sampleCount": 82600,
+      "duration": 3.441666666666667,
+      "sha256": "c37a9d72deb19aa982461f7b5c261b6a34e11030b5d8312fcf9320c9d55f1b7e"
+    },
+    {
+      "text": "Can you help us find it?”",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/55c1566a1247dfbdc6489e12e740013efe39e52bc33af460cef7e2574dacf9f8.wav",
+      "bytes": 124444,
+      "sampleRate": 24000,
+      "sampleCount": 62200,
+      "duration": 2.591666666666667,
+      "sha256": "2562a657b4143df9fb3675e43ccdc3cdd8a54806d54d8a79c9bfe6053a712a98"
     }
   ]
 }

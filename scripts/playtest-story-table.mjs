@@ -28,7 +28,11 @@ const fingerprintSources = [
   'src/components/DropInn/FrameAnimation.tsx', 'src/components/DropInn/LoadingInn.tsx',
   'src/components/DropInn/frame-animation.css', 'src/components/DropInn/loading-inn.css',
   'src/lib/dropinn/frameAnimation.ts', 'src/lib/dropinn/stagePlayback.ts',
+  'src/lib/dropinn/storyTable.ts', 'src/lib/dropinn/storyTablePresentation.ts',
+  'src/lib/dropinn/storyTableEngine.ts', 'src/lib/dropinn/storyTableContent.ts', 'src/lib/dropinn/storyTableTypes.ts',
+  'src/components/DropInn/GemwardStoryTable.tsx', 'src/components/DropInn/gemward-story-table.css',
   'src/lib/dropinn/journey.ts', 'src/lib/dropinn/journeyEngine.ts', 'src/lib/dropinn/engine.ts',
+  'src/lib/dropinn/expedition.ts', 'src/lib/dropinn/registry.ts', 'src/lib/dropinn/types.ts',
   'src/lib/dropinn/expeditionEngine.ts', 'src/store/adventureStore.ts', 'server/dropinn.ts',
 ];
 const fingerprint = async () => {
@@ -73,7 +77,7 @@ async function open(label) {
   contexts.push(context);
   await context.addInitScript(value => {
     const realNow = Date.now.bind(Date);
-    window.__journeyOffset = Number(localStorage.getItem('journey-qa-offset') ?? value);
+    window.__journeyOffset = Number(localStorage.getItem('story-table-qa-offset') ?? value);
     Date.now = () => realNow() + window.__journeyOffset;
   }, offset);
   const page = await context.newPage(); pages.push(page);
@@ -102,20 +106,19 @@ async function open(label) {
     }
     return route.fulfill({ status: response.status, contentType: 'application/json', body });
   });
-  await page.goto(`${base}/?session=journeyqa${label}`);
+  await page.goto(`${base}/?session=storytableqa${label}`);
   await page.locator('.di-lobby-play').waitFor();
   await page.locator('.di-lobby-play').click(); await settled(page);
   const snapshot = await state(page);
   assert.equal(snapshot.backend, 'local');
-  assert.equal(snapshot.room.adventureId, 'gemward'); assert.equal(snapshot.room.adventureVersion, 2);
+  assert.equal(snapshot.room.adventureId, 'gemward'); assert.equal(snapshot.room.adventureVersion, 3);
   return page;
 }
 async function closePanel(page) {
   await page.keyboard.press('Escape');
 }
 async function select(page, targetId, token = 'investigate', place, keyboard = false) {
-  // The accepted store snapshot can precede React's choosing render by a frame.
-  // Wait for an editable hand before touching a target that is inspectable at rest.
+  // Store synchronization is not yet proof that the choosing UI has rendered.
   await page.locator('.gm-hand [data-token]:not(:disabled)').first().waitFor();
   if (place) {
     const tab = page.locator(`[data-gemward-place="${place}"]`);
@@ -164,7 +167,7 @@ async function observedFlipbook(page, atlas) {
     const node = document.querySelector(`.gm-stage [data-frame-atlas="${atlas}"][data-frame-state="playing"] .di-frame-cells`);
     return node && getComputedStyle(node).backgroundPosition !== first;
   }, { atlas, first: observation.position }, { timeout: 1200 });
-  await page.screenshot({ path: `output/playwright/journey-confirmed-${atlas}-atlas.png` });
+  await page.screenshot({ path: `output/playwright/story-table-confirmed-${atlas}-atlas.png` });
   return { eventId: beat.event.id, position: observation.position, battleStatus: observation.room.expedition?.battle?.status, finishedEncounter: observation.finishedEncounter };
 }
 async function observedContactFallback(page, assetState) {
@@ -180,7 +183,7 @@ async function observedContactFallback(page, assetState) {
   assert.ok(beat?.event.result?.expedition?.battleProgress > 0);
   assert.equal(observation.eventId, beat.event.id);
   assert.equal(observation.ready, false);
-  await page.screenshot({ path: `output/playwright/journey-encounter-${assetState}-fallback.png` });
+  await page.screenshot({ path: `output/playwright/story-table-encounter-${assetState}-fallback.png` });
   return { eventId: beat.event.id, battleStatus: observation.room.expedition.battle.status };
 }
 async function settledEffects(page) {
@@ -211,7 +214,7 @@ async function advance(pair) {
   const room = (await state(pair[0])).room;
   assert.equal(room.phase, 'reveal');
   offset = Math.max(offset, room.revealUntil + 1 - Date.now());
-  for (const page of pages) await page.evaluate(value => { window.__journeyOffset = value; localStorage.setItem('journey-qa-offset', String(value)); }, offset);
+  for (const page of pages) await page.evaluate(value => { window.__journeyOffset = value; localStorage.setItem('story-table-qa-offset', String(value)); }, offset);
   for (const page of pair) await sync(page);
 }
 async function vote(page, toNodeId, expectedStatus = 200) {
@@ -220,7 +223,7 @@ async function vote(page, toNodeId, expectedStatus = 200) {
   const edge = room.expedition.travel.options.find(option => option.toNodeId === toNodeId);
   assert.ok(edge, `Available travel option ${toNodeId}`);
   const before = records.filter(record => record.command.type === 'vote-travel').length;
-  await page.locator(`[data-journey-node="${toNodeId}"]`).click();
+  await page.locator(`[data-journey-choice="${toNodeId}"]`).click();
   assert.equal(records.filter(record => record.command.type === 'vote-travel').length, before, 'Map inspection never commits a vote.');
   await commandClick(page, 'vote-travel', page.getByRole('button', { name: /Confirm (route|destination|vote)/i }), expectedStatus);
   return edge.edgeId;
@@ -235,26 +238,58 @@ async function layout(page, name, mode = 'scene') {
       targets: [...document.querySelectorAll('[data-scene-target]')].filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect().toJSON()),
       tokens: [...document.querySelectorAll('[data-token]')].filter(node => node.getClientRects().length).map(node => node.getBoundingClientRect().toJSON()),
       brokenImages: [...document.images].filter(image => image.getClientRects().length && !image.complete || image.getClientRects().length && !image.naturalWidth).map(image => new URL(image.src).pathname),
+      storyFont: Number.parseFloat(getComputedStyle(document.querySelector('[data-story-situation]')).fontSize),
+      release: document.querySelector('.gm-release-controls')?.getBoundingClientRect().toJSON(),
     }));
     assert.equal(size.overflow, false, `${name}/${width} horizontal overflow`);
     assert.deepEqual(size.brokenImages, [], `${name}/${width} missing visible artwork`);
     if (mode === 'scene') {
       assert.equal(size.tokens.length, 4, `${name}: four action tokens`);
+      assert.ok(size.storyFont >= 13, `${name}/${width}: narrative below 13px`);
+      assert.ok(size.release && size.release.bottom <= height + 1, `${name}/${width}: release outside viewport`);
       for (const rect of [...size.targets, ...size.tokens]) {
         assert.ok(rect.width >= 43 && rect.height >= 43, `${name}/${width}: interaction target below44px`);
         assert.ok(rect.top >= 0 && rect.bottom <= height + 1, `${name}/${width}: target outside viewport`);
       }
     }
-    await page.screenshot({ path: `output/playwright/journey-${name}-${width}.png`, animations: 'disabled' });
+    await page.screenshot({ path: `output/playwright/story-table-${name}-${width}.png`, animations: 'disabled' });
     note(`${name} layout ${width}×${height}`, { targets: size.targets.length });
   }
   await page.setViewportSize({ width: 390, height: 844 });
+}
+async function enlargedStory(page) {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const override = await page.addStyleTag({ content: '.gm-story-situation,.gm-story-question{font-size:18px!important}.gm-story-topics>button{font-size:16px!important}' });
+  await page.locator('[data-story-table]').focus();
+  const bounds = await page.evaluate(() => {
+    const story = document.querySelector('[data-story-table]');
+    const release = document.querySelector('.gm-release-controls');
+    return { overflow: document.documentElement.scrollWidth > innerWidth, readingOverflow: getComputedStyle(story).overflowY,
+      storyHeight: story.clientHeight, textHeight: story.scrollHeight, releaseBottom: release.getBoundingClientRect().bottom,
+      tokens: [...document.querySelectorAll('[data-token]')].map(node => node.getBoundingClientRect().toJSON()) };
+  });
+  assert.equal(bounds.overflow, false);
+  assert.ok(bounds.releaseBottom <= 569);
+  assert.equal(bounds.readingOverflow, 'auto');
+  for (const rect of bounds.tokens) assert.ok(rect.height >= 44 && rect.bottom <= 569);
+  await page.screenshot({ path: 'output/playwright/story-table-enlarged-text-320.png' });
+  await page.keyboard.press('End');
+  assert.ok(await page.locator('[data-gemward-interaction="iris:pricing"]').isVisible());
+  await override.evaluate(node => node.remove());
+  await page.setViewportSize({ width: 390, height: 844 });
+  note('Enlarged story text remains readable with keyboard scrolling while four tokens and release stay on screen', bounds);
 }
 
 async function journey(prefix, route, finale) {
   const a = await open(`${prefix}a`), b = await open(`${prefix}b`), pair = [a, b];
   assert.equal((await state(a)).room.code, (await state(b)).room.code);
-  if (prefix === 'first') await layout(a, 'shop');
+  if (prefix === 'first') {
+    assert.match(await a.locator('[data-story-situation]').innerText(), /beacon.*dark.*prism.*missing/i);
+    assert.match(await a.locator('[data-story-question]').innerText(), /missing prism/i);
+    assert.equal(await a.getByRole('progressbar', { name: 'Chapter progress' }).count(), 0);
+    await layout(a, 'shop');
+    note('The opening states the missing prism, dark beacon and human need without opening Story');
+  }
   // First host move admits the second identity at the next boundary.
   if (prefix === 'first') {
     assert.equal(atlasRequests.includes('firsta'), false, 'Reduced motion does not prewarm optional event sheets.');
@@ -263,7 +298,14 @@ async function journey(prefix, route, finale) {
     await prewarmRequest;
     assert.equal(await a.locator('.gm-stage [data-frame-atlas]').count(), 0, 'Prewarming never mounts an unconfirmed event effect.');
   }
-  await select(a, 'iris', 'investigate', 'shop', true); await commit(a);
+  await select(a, 'iris', 'influence', 'shop', true);
+  assert.equal(await a.locator('.gm-story-topics button').count(), 2, 'NPC intentions are visible on the main table.');
+  const beforeTopic = records.filter(record => record.command.type === 'act').length;
+  await a.locator('[data-gemward-interaction="iris:pricing"]').click();
+  assert.equal(records.filter(record => record.command.type === 'act').length, beforeTopic, 'Choosing a topic prepares only.');
+  if (prefix === 'first') await layout(a, 'conversation-prepared');
+  if (prefix === 'first') await enlargedStory(a);
+  await commit(a);
   if (prefix === 'first') {
     const discovery = await observedFlipbook(a, 'discovery');
     await settledEffects(a);
@@ -284,9 +326,26 @@ async function journey(prefix, route, finale) {
   note(`${prefix}: keyboard target and token preparation, explicit release`);
   let room = await allSame(pair);
   assert.equal(room.seats.filter(seat => seat.kind === 'human').length, 2);
-  for (let step = 0; room.phase === 'choosing' && room.chapter === 0 && step < 4; step++) {
+  assert.ok(await a.locator('[data-story-last-turn]').count(), 'Confirmed consequence survives into the next choosing turn.');
+  assert.match(await a.locator('.gm-story-copy').innerText(), /warehouse|delivery/i);
+  if (prefix === 'first') note('The discovery keeps its cause and next lead through the next choosing turn');
+  for (let step = 0; room.phase === 'choosing' && room.chapter === 0 && step < 3; step++) {
     await select(a, step === 0 ? 'nella' : 'iris', 'assist', 'shop');
     const spent = prefix === 'first' && step === 1 ? await attachSupply(a, 'dust', 'Spark dust') : prefix === 'first' && step === 2 ? await attachSupply(a, 'favour', 'Local favour') : undefined;
+    if (prefix === 'first' && step === 1) {
+      const beforeConflict = records.filter(record => record.command.type === 'act').length;
+      await a.locator('[data-story-plan]').click();
+      assert.equal(await a.getByRole('button', { name: 'Commit now', exact: true }).isDisabled(), true);
+      assert.match(await a.locator('[data-story-situation]').innerText(), /cannot extend.*setting out or finishing/i);
+      await layout(a, 'dust-cannot-close');
+      assert.equal(records.filter(record => record.command.type === 'act').length, beforeConflict);
+      assert.ok((await state(a)).room.expedition.stashes[(await state(a)).userId].some(item => item.id === spent));
+      await a.locator('.gm-attached button').filter({ hasText: 'Spark dust' }).click();
+      assert.equal(await a.getByRole('button', { name: 'Commit now', exact: true }).isEnabled(), true);
+      await select(a, 'iris', 'assist', 'shop');
+      assert.equal(await attachSupply(a, 'dust', 'Spark dust'), spent);
+      note('Dust cannot be released with Gather; its reason and removal control preserve the item until a preparation action is chosen');
+    }
     await commit(a);
     await sync(b); assert.equal((await state(b)).room.phase, 'choosing');
     await select(b, 'bram', 'assist', 'docks'); await commit(b);
@@ -301,6 +360,17 @@ async function journey(prefix, route, finale) {
     assert.equal(await a.getByRole('dialog', { name: /round|chronicle/i }).count(), 0);
     await advance(pair); room = await allSame(pair);
   }
+  assert.equal(room.phase, 'choosing', 'Ordinary support does not automatically dismiss the town once a lead exists.');
+  const beforeGather = records.filter(record => record.command.type === 'act').length;
+  await a.locator('[data-story-plan]').click();
+  assert.equal(records.filter(record => record.command.type === 'act').length, beforeGather);
+  if (prefix === 'first') await layout(a, 'gather-prepared');
+  await commit(a);
+  assert.equal(records.filter(record => record.page === `${prefix}a` && record.command.type === 'act').at(-1).command.action.expedition.interactionId, 'story-plan:gather');
+  await select(b, 'bram', 'assist', 'docks'); await commit(b);
+  room = await allSame(pair); assert.equal(room.phase, 'reveal');
+  await advance(pair); room = await allSame(pair);
+  note(`${prefix}: Gather is prepared explicitly, released once, and lets the other player's move resolve`);
   assert.equal(room.phase, 'travel');
   assert.ok(room.expedition.questItems.includes('ledger-copy') && room.expedition.questItems.includes('canal-key'));
   if (prefix === 'first') {
@@ -406,13 +476,22 @@ async function journey(prefix, route, finale) {
   assert.equal(room.expedition.currentNodeId, finale);
   assert.ok(room.expedition.questItems.includes('recovered-prism'), 'Travel commits an ending but does not consume its quest item prematurely.');
   if (prefix === 'first') await layout(a, 'finale');
-  for (let step = 0; room.status !== 'completed' && step < 4; step++) {
-    const { getScene } = await ssr.ssrLoadModule('/src/lib/dropinn/scene.ts');
-    const target = getScene(room).targets.find(target => target.tokens.includes('assist'));
-    await select(a, target.id, 'assist'); await commit(a); await select(b, target.id, 'assist'); await commit(b);
-    room = await allSame(pair);
-    if (room.status !== 'completed') { await advance(pair); room = await allSame(pair); }
-  }
+  await select(a, finale === 'beacon' ? 'beacon' : 'lanterns', 'assist'); await commit(a);
+  await select(b, finale === 'beacon' ? 'town' : 'neighbours', 'assist'); await commit(b);
+  room = await allSame(pair);
+  assert.equal(room.status, 'active', 'Readiness does not silently enact the ending.');
+  await advance(pair); room = await allSame(pair);
+  assert.ok(['light-ready', 'people-ready'].every(id => room.expedition.storyTable.facts.some(fact => fact.id === id)));
+  assert.ok(room.expedition.questItems.includes('recovered-prism'));
+  const beforeFinish = records.filter(record => record.command.type === 'act').length;
+  await a.locator('[data-story-plan]').click();
+  assert.equal(records.filter(record => record.command.type === 'act').length, beforeFinish, 'Preparing Finish cannot spend the prism.');
+  if (prefix === 'first') await layout(a, 'finish-prepared');
+  await commit(a);
+  assert.equal(records.filter(record => record.page === `${prefix}a` && record.command.type === 'act').at(-1).command.action.expedition.interactionId, 'story-plan:finish');
+  await select(b, 'keeper', 'assist'); await commit(b);
+  room = await allSame(pair);
+  note(`${prefix}: light and neighbours are prepared separately; explicit Finish enacts the chosen future`);
   assert.equal(room.status, 'completed'); assert.equal(room.outcomes.length, 3);
   assert.equal(room.expedition.questItems.includes('recovered-prism'), finale === 'lantern-square');
   for (const page of pair) assert.equal(room.players[(await state(page)).userId].keepsakes.length, 3);
@@ -427,7 +506,7 @@ async function journey(prefix, route, finale) {
   assert.equal(await a.locator('.gm-node-memory').count(), 0, 'Unvisited alternatives do not borrow the chosen route’s memories.');
   await a.locator(`[data-journey-node="${finale}"]`).click();
   if (prefix === 'first') await layout(a, 'completed-journey', 'map');
-  await a.screenshot({ path: `output/playwright/journey-${prefix}-ending.png`, animations: 'disabled' });
+  await a.screenshot({ path: `output/playwright/story-table-${prefix}-ending.png`, animations: 'disabled' });
   note(`${prefix}: ${finale} ending, quest consequences, three chapter rewards and recorded journey survive reload`);
   for (const page of pair) await page.close();
   pages.splice(pages.indexOf(a), 2);
@@ -435,12 +514,7 @@ async function journey(prefix, route, finale) {
 
 try {
   sourceFingerprint = await fingerprint();
-  ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-journey-tests', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
-  // This is the released-v2 regression fixture. Pin discovery inside this
-  // isolated service only; reducers and accepted snapshots stay production-real.
-  const registry = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
-  const gemward = registry.ADVENTURES.findIndex(item => item.id === 'gemward');
-  registry.ADVENTURES[gemward] = registry.adventureFor({ adventureId: 'gemward', adventureVersion: 2 });
+  ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-story-table-tests', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
   const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
   ({ stageTimeline } = await ssr.ssrLoadModule('/src/lib/dropinn/stagePlayback.ts'));
   handler = createDropinnHandler({ local: true, env: {}, now: clock, fetch: async () => { throw new Error('No external inference in journey QA.'); } });
@@ -451,10 +525,10 @@ try {
   assert.deepEqual(errors, []);
 } catch (error) {
   errors.push({ message: error.stack ?? String(error) }); process.exitCode = 1;
-  await pages[0]?.screenshot({ path: 'output/playwright/journey-failure.png', fullPage: true }).catch(() => {});
+  await pages[0]?.screenshot({ path: 'output/playwright/story-table-failure.png', fullPage: true }).catch(() => {});
 } finally {
   releaseEncounterImage();
-  await writeFile('output/playwright/journey-results.json', JSON.stringify({ backend: 'isolated local handler', sourceFingerprint, checks, errors, commands: records.map(({ page, command, status }) => ({ page, status, id: command.id, type: command.type, action: command.action, travel: command.travel })) }, null, 2));
+  await writeFile('output/playwright/story-table-results.json', JSON.stringify({ backend: 'isolated local handler', sourceFingerprint, checks, errors, commands: records.map(({ page, command, status }) => ({ page, status, id: command.id, type: command.type, action: command.action, travel: command.travel })) }, null, 2));
   for (const context of contexts) await context.close().catch(() => {});
   await browser?.close(); await ssr?.close();
   console.log(JSON.stringify({ checks: checks.length, errors }));

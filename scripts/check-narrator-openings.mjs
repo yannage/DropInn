@@ -17,6 +17,12 @@ const { narratorNaturalVoices } = await ssr.ssrLoadModule('/src/lib/dropinn/narr
 for (const adventure of ADVENTURES) for (const text of narratorSentences(adventure.chapters[0].intro)) {
   for (const voice of narratorNaturalVoices) assert.ok(manifest.clips.some(clip => clip.text === text && clip.voice === voice.id), `Missing ${voice.id} opening for ${adventure.id}.`);
 }
+const openingAdventure = ADVENTURES.find(adventure => adventure.id === 'gemward');
+assert.ok(openingAdventure, 'The Gemward opening must be available.');
+const openingSentences = narratorSentences(openingAdventure.chapters[0].intro);
+const openingClips = openingSentences.map(text => manifest.clips.find(clip => clip.text === text && clip.voice === 'Bella' && clip.speed === 1));
+assert.ok(openingClips.every(Boolean), 'The browser fixture needs every Gemward opening sentence.');
+const openingDuration = openingClips.reduce((sum, clip) => sum + clip.duration, 0);
 const fixedNow = Date.now();
 const handler = createDropinnHandler({ local: true, env: {}, now: () => fixedNow, fetch: async () => { throw Error('No server inference in this check.'); } });
 const browser = await chromium.launch({ headless: true });
@@ -45,6 +51,7 @@ async function fixture(name) {
     catch { /* A canceled context can close a deliberately held request. */ }
   });
   await page.addInitScript(engine => {
+    localStorage.setItem('dropinn:lobby-story:v1', 'gemward');
     localStorage.setItem('dropinn-narrator', JSON.stringify({ engine, naturalVoice: 'Bella', speed: 1, collapsed: false }));
     window.__opening = { playback: [], requests: [], inits: [], workers: 0, clicked: 0,
       finishInit(fail = false, stale = false) {
@@ -97,7 +104,7 @@ const listen = async page => {
   assert.equal(record.workers, 0, 'Opening starts while model transfer is held.');
   return record;
 };
-const complete = page => page.waitForFunction(() => window.__opening.playback.length === 2 && window.__opening.playback.every(item => item.ended), null, { timeout: 20000 });
+const complete = page => page.waitForFunction(count => window.__opening.playback.length === count && window.__opening.playback.every(item => item.ended), openingClips.length, { timeout: Math.max(20000, openingDuration * 1000 + 10000) });
 const noExtraPlayback = async (page, count) => {
   await page.waitForTimeout(350);
   assert.equal(await page.evaluate(() => window.__opening.playback.length), count);
@@ -117,7 +124,7 @@ try {
         await f.page.evaluate(() => window.__opening.finishInit());
         await f.page.waitForTimeout(100);
         await hidden(f.page, false);
-        await noExtraPlayback(f.page, 2);
+        await noExtraPlayback(f.page, openingClips.length);
         for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
           await f.page.setViewportSize(viewport);
           await f.page.getByRole('button', { name: 'Story settings', exact: true }).click();
@@ -142,15 +149,17 @@ try {
       } else {
         await f.page.evaluate(fail => window.__opening.finishInit(fail), scenario === 'preparation-failure');
         await complete(f.page);
-        await noExtraPlayback(f.page, 2);
+        await noExtraPlayback(f.page, openingClips.length);
         if (scenario === 'preparation-failure') assert.match(await f.page.locator('.di-narrator-error').textContent(), /opening can keep playing/);
       }
       assert.deepEqual(f.errors, []);
       const clips = f.requests.filter(url => url.includes('/audio/narrator-openings/'));
-      assert.ok(clips.length <= 2, 'Only this passage is loaded, not the whole library.');
-      results.push({ scenario, firstAudioMs: first.firstAudioMs, firstClipBytes: manifest.clips[0].bytes, audioRequests: clips.length, playback: await f.page.evaluate(() => window.__opening.playback), errors: f.errors });
+      assert.ok(clips.length <= openingClips.length, 'Only this passage is loaded, not the whole library.');
+      assert.ok(clips.every(url => openingClips.some(clip => new URL(url).pathname.endsWith(clip.url))), 'Only exact current Gemward sentences are requested.');
+      results.push({ scenario, adventureId: openingAdventure.id, adventureVersion: openingAdventure.version, expectedSegments: openingClips.length, firstAudioMs: first.firstAudioMs, firstClipBytes: openingClips[0].bytes, audioRequests: clips.length, playback: await f.page.evaluate(() => window.__opening.playback), errors: f.errors });
       console.log(JSON.stringify(results.at(-1)));
     } catch (error) {
+      console.error(JSON.stringify({ scenario, expectedSegments: openingClips.length, playback: await f.page.evaluate(() => window.__opening.playback), workerRequests: await f.page.evaluate(() => window.__opening.requests), audioRequests: f.requests.filter(url => url.includes('/audio/narrator-openings/')), narratorText: await f.page.getByRole('region', { name: 'Story narrator', exact: true }).textContent().catch(() => null), errors: f.errors }));
       await f.page.screenshot({ path: `output/playwright/narrator-openings-${scenario}-failure.png` });
       throw error;
     } finally { f.releaseModel(); await f.context.close(); }

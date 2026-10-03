@@ -2,15 +2,23 @@ import type { AdventureRoom, ChapterDefinition, PlayerAction, SceneTarget, Token
 import type { ExpeditionInteraction } from './expeditionTypes';
 import type { JourneyMapEdge, JourneyMapNode, JourneyNodeId, JourneyTravelOption } from './journeyTypes';
 import { createExpedition, expeditionActionPreview, expeditionInteractions, expeditionLocations, expeditionScene, expeditionTarget, GEMWARD_DEFINITION, QUEST_ITEMS } from './expedition';
+import { createStoryTable, getStoryTableState, isStoryTable, storyTableConsumable, storyTableInteractions } from './storyTable';
+import { GEMWARD_STORY_COPY } from './storyTableContent';
 export type { JourneyNodeId, JourneyMapNode, JourneyMapEdge, JourneyTravelOption, TravelVote } from './journeyTypes';
 
-export const isJourney = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'gemward' && room.adventureVersion === 2;
-export const createJourney = (seed: string) => ({ ...createExpedition(seed), currentNodeId: 'town' as const });
+export const isJourney = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'gemward' && (room.adventureVersion === 2 || room.adventureVersion === 3);
+export const createJourney = (seed: string, version = 2) => ({ ...createExpedition(seed), currentNodeId: 'town' as const, ...(version === 3 ? { storyTable: createStoryTable() } : {}) });
 export const JOURNEY_DEFINITION = { ...GEMWARD_DEFINITION, version: 2,
   pitch: 'Explore an illustrated town, unlock a shared branching journey, and decide the missing light’s future.',
   chapters: GEMWARD_DEFINITION.chapters.map((chapter, index) => ({ ...chapter,
     objective: ['Explore Gemward and prepare a lead together.', 'Recover the prism along the party’s chosen route.', 'Carry out the party’s decision and help the neighbours.'][index],
     progressGoal: index === 1 ? 8 : 4,
+  })),
+};
+export const STORY_TABLE_DEFINITION = { ...JOURNEY_DEFINITION, version: 3,
+  pitch: 'Follow a missing light, prepare your own departure, and bring your choices home.',
+  chapters: JOURNEY_DEFINITION.chapters.map((chapter, index) => ({ ...chapter,
+    ...(index === 0 ? { intro: GEMWARD_STORY_COPY.opening, situation: GEMWARD_STORY_COPY.opening, objective: GEMWARD_STORY_COPY.townObjective, catchUp: GEMWARD_STORY_COPY.townCatchUp } : index === 2 ? { objective: GEMWARD_STORY_COPY.finaleObjective } : {}),
   })),
 };
 export const JOURNEY_NODES: { id: JourneyNodeId; label: string; chapter: number; description: string; locations: string[] }[] = [
@@ -26,7 +34,7 @@ export const JOURNEY_EDGES = [
   ...(['warehouse', 'canal', 'road'] as const).flatMap(from => (['beacon', 'lantern-square'] as const).map(to => ({ id: `${from}-${to}`, from, to, requires: ['recovered-prism'] }))),
 ];
 export function journeyCost(room: AdventureRoom, to: JourneyNodeId): string {
-  if (to === 'road') return 'The open hill road costs time and travel supplies, adding 1 danger.';
+  if (to === 'road') return isStoryTable(room) ? 'The exposed hill road gives the watcher +1 damage on every announced battle strike.' : 'The open hill road costs time and travel supplies, adding 1 danger.';
   if (to === 'beacon') return room.expedition?.variant === 'smugglers'
     ? 'At completion the beacon consumes the prism: Gemward shines again, but the maker-mark evidence against the smugglers is destroyed.'
     : 'At completion the beacon absorbs the prism: the living spark survives and protects Gemward, but is bound to the beacon again.';
@@ -148,9 +156,9 @@ export function journeyTarget(locationId: string | undefined, targetId: string |
 }
 export function journeyInteractions(room: AdventureRoom, locationId: string, targetId: string, token: TokenKind): ExpeditionInteraction[] {
   if (room.expedition?.battle?.status === 'active') return [];
-  if (room.chapter !== 2) return expeditionInteractions(room, locationId, targetId, token).map(interaction => ({ ...interaction,
+  if (room.chapter !== 2) return storyTableInteractions(room, locationId, targetId, token, expeditionInteractions(room, locationId, targetId, token).map(interaction => ({ ...interaction,
     description: interaction.description.replace(/(becomes available|will be available|opens the warehouse route) next turn/g, '$1 when the party travels'),
-  }));
+  })));
   const node = room.expedition?.currentNodeId ?? 'beacon';
   if (locationId !== node) return [];
   const target = finaleTargets(node).find(target => target.id === targetId);
@@ -164,10 +172,11 @@ export function journeyInteractions(room: AdventureRoom, locationId: string, tar
     spark: { fight: 'Clear a safe release space', influence: 'Reassure the waiting neighbours', investigate: 'Check the prism’s maker mark', assist: 'Prepare a gentle release' },
     neighbours: { influence: 'Agree on the repair rota', investigate: 'Map the dark streets', assist: 'Distribute spare lanterns' },
   };
-  return [{ id: `${node}:${targetId}:${token}`, label: labels[targetId]?.[token] ?? 'Prepare the chosen future', description: `${target.context} ${journeyCost(room, node)} The travel decision is already recorded; this action helps carry it out.` }];
+  const explanatory = isStoryTable(room) ? token === 'influence' ? ({ beacon: 'Discuss the lens alignment', cradle: 'Discuss the prism fitting', lanterns: 'Discuss lantern sharing', spark: 'Discuss a gentle release' } as Record<string, string>)[targetId] : token === 'investigate' && targetId === 'neighbours' ? 'Inspect the evening route' : undefined : undefined;
+  return storyTableInteractions(room, locationId, targetId, token, [{ id: `${node}:${targetId}:${token}`, label: explanatory ?? labels[targetId]?.[token] ?? 'Prepare the chosen future', description: `${target.context} ${journeyCost(room, node)} The travel decision is already recorded; this action helps carry it out.` }]);
 }
 export function journeyScene(room: AdventureRoom, locationId?: string): ChapterDefinition {
-  if (!room.expedition) { const chapter = JOURNEY_DEFINITION.chapters[room.chapter]; return { ...chapter, situation: chapter.intro }; }
+  if (!room.expedition) { const chapter = (isStoryTable(room) ? STORY_TABLE_DEFINITION : JOURNEY_DEFINITION).chapters[room.chapter]; return { ...chapter, situation: chapter.intro }; }
   const node = room.expedition.currentNodeId ?? 'town';
   if (room.expedition.battle?.status === 'active') {
     const battle = expeditionScene(room, locationId);
@@ -177,12 +186,15 @@ export function journeyScene(room: AdventureRoom, locationId?: string): ChapterD
   const location = locationId ?? room.expedition.locationId;
   const scene = room.chapter < 2 ? expeditionScene(room, location) : { ...JOURNEY_DEFINITION.chapters[2], targets: finaleTargets(node), location: JOURNEY_NODES.find(item => item.id === node)!.label, intro: node === 'beacon' ? 'The party chose restoration. Prepare the beacon together; the prism remains safe until the final work is complete.' : 'The party chose release. Prepare shared lanterns and repairs before setting the light free.' };
   const cost = journeyCost(room, node);
-  return { ...scene, art: `gemward-v2-${location === 'tavern' ? 'inn' : location}`, progressGoal: room.chapter === 1 ? 8 : 4,
+  const table = isStoryTable(room) ? getStoryTableState(room) : undefined;
+  const opening = table && room.chapter === 0 ? GEMWARD_STORY_COPY.opening : undefined;
+  return { ...scene, ...(opening ? { intro: opening } : {}), art: `gemward-v2-${location === 'tavern' ? 'inn' : location}`, progressGoal: room.chapter === 1 ? 8 : 4,
     objective: room.phase === 'travel' ? 'Choose the party’s next destination together.' : room.chapter === 0 ? 'Follow leads and prepare the party. Then choose a route on the map.' : room.chapter === 2 ? node === 'beacon' ? 'Prepare the beacon and carry out the restoration.' : 'Prepare lanterns and carry out the release.' : scene.objective,
-    situation: room.chapter === 2 ? room.expedition.ending ?? `${scene.intro} ${cost}` : room.chapter === 1 && room.expedition.encounterResolved ? 'The prism is safe. After this reveal, choose its future and the party’s final destination on the map.' : scene.situation,
-    catchUp: room.phase === 'travel' ? `The chapter is settled. Choose one of the frozen routes; ties or silence use ${node === 'town' ? 'the open hill road' : 'Lantern square'}.` : room.chapter === 2 ? `${scene.intro} ${cost}` : scene.catchUp,
-    targets: scene.targets.map(target => { const changed = room.expedition!.discoveries.some(id => id.startsWith(`${node}:${target.id}:`)) || target.changed; return { ...target, changed,
-      context: room.chapter === 2 ? `${target.context} ${cost}` : target.context,
+    situation: room.chapter === 2 ? room.expedition.ending ?? `${scene.intro} ${cost}` : room.chapter === 1 && room.expedition.encounterResolved ? 'The prism is safe. After this reveal, choose its future and the party’s final destination on the map.' : opening ?? scene.situation,
+    catchUp: room.phase === 'travel' ? `The chapter is settled. Choose one of the frozen routes; ties or silence use ${node === 'town' ? 'the open hill road' : 'Lantern square'}.` : room.chapter === 2 ? `${scene.intro} ${cost}` : opening ? GEMWARD_STORY_COPY.townCatchUp : scene.catchUp,
+    ...(table && room.phase !== 'travel' && room.chapter !== 1 ? { objective: room.chapter === 0 ? GEMWARD_STORY_COPY.townObjective : GEMWARD_STORY_COPY.finaleObjective } : {}),
+    targets: scene.targets.map(target => { const changed = isStoryTable(room) ? room.events.some(entry => entry.result?.changed && entry.result.targetId === target.id && entry.journey?.locationId === location) : room.expedition!.discoveries.some(id => id.startsWith(`${node}:${target.id}:`)) || target.changed; return { ...target, changed,
+      context: room.chapter === 2 ? `${target.context} ${cost}` : isStoryTable(room) && target.id === 'price-board' ? 'The estimate explains what the beacon changes when it uses a prism.' : target.context,
       actionCues: Object.fromEntries(target.tokens.map(token => [token, journeyInteractions(room, location, target.id, token)[0]?.label ?? target.actionCues?.[token]])),
     }; }),
   };
@@ -192,5 +204,7 @@ export function journeyActionPreview(room: AdventureRoom, userId: string, action
   const location = action.expedition?.locationId ?? room.expedition?.locationId ?? 'shop';
   const options = journeyInteractions(room, location, action.targetId, action.token);
   const option = options.find(option => option.id === action.expedition?.interactionId) ?? options[0];
-  return { label: option?.label ?? 'Prepare an intention', description: option?.description ?? 'Choose a target and token.' };
+  const item = isStoryTable(room) && action.expedition?.consumableId ? room.expedition?.stashes[userId]?.find(item => item.id === action.expedition!.consumableId) : undefined;
+  const description = isStoryTable(room) && option?.id === 'warehouse:identify-buyer' && !room.expedition?.questItems.includes('buyer-evidence') ? 'Read the delivery record to learn who moved the prism. Prepare an approach to the guarded crate.' : option?.description ?? 'Choose a target and token.';
+  return { label: option?.label ?? 'Prepare an intention', description: description + (item ? ` ${storyTableConsumable(room, item.kind).description}` : '') };
 }
