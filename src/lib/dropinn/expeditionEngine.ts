@@ -1,8 +1,9 @@
 import type { AdventureRoom, PlayerAction, Seat, StoryEvent } from './types';
-import type { BattleStance, ConsumableKind, ExpeditionInteraction, ExpeditionResult } from './expeditionTypes';
+import type { ConsumableKind, ExpeditionInteraction, ExpeditionResult } from './expeditionTypes';
 import { CONSUMABLES, FAVOUR_CHOICES, combatMoves, expeditionHash, expeditionInteractions, expeditionLocations, expeditionRoutes, expeditionScene, expeditionStash, QUEST_ITEMS } from './expedition';
 import { isStoryTable, storyTableConsumable, storyTableHas } from './storyTable';
 import { applyStoryTableIntention, closeStoryTableRound } from './storyTableEngine';
+import { expeditionCombatMove } from './expeditionCombatMove';
 
 const add = (items: string[], value: string) => { if (!items.includes(value)) items.push(value); };
 const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | 'turn' | 'chapter' | 'at'>) => room.events.push({ id: `${room.id}:${room.events.length}`, turn: room.turn, chapter: room.chapter, at: now, ...data });
@@ -105,7 +106,6 @@ function heal(room: AdventureRoom, target: Seat, amount: number, now: number) {
   target.hp += healing;
   event(room, now, { kind: 'consequence', actorId: target.actorId, actorName: target.character.name, text: `${target.character.name} recovers ${healing} HP.`, result: { targetKind: 'hero', targetId: target.actorId, healing, hp: target.hp } });
 }
-const counter: Record<BattleStance, BattleStance> = { strike: 'trick', trick: 'guard', guard: 'strike' };
 
 /** Mutates only the already-cloned room. The caller retains command receipts, admission and the reveal lifecycle. */
 export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime = classic): boolean {
@@ -165,24 +165,19 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime
     } else if (battle) {
       const move = combatMoves(seat.character.classKey, seats.length).find(candidate => candidate.token === action.token)!;
       const wasDowned = frozen.seats.find(candidate => candidate.actorId === seat.actorId)!.hp <= 0;
-      if (action.targetKind === 'hero' || wasDowned) { personalCover = Math.max(personalCover, 2 + timing(action)); text = `${seat.character.name} protects the announced hero. Help remains useful while downed.`; }
+      const effect = expeditionCombatMove({ classKey: seat.character.classKey, token: action.token, stance: battle.stance, humanCount: seats.length, releaseMs: action.releaseMs, protect: action.targetKind === 'hero', downed: wasDowned });
+      progress = effect.progress;
+      personalCover = Math.max(personalCover, effect.protection);
+      if (effect.exchange === 'protect') { text = `${seat.character.name} protects the announced hero. Help remains useful while downed.`; }
       else if (move.stance) {
-        const winning = counter[move.stance] === battle.stance;
-        const points = winning ? 3 : move.stance === battle.stance ? 2 : 1;
-        const signature = winning && (seat.character.classKey === 'fighter' && move.stance === 'strike' || seat.character.classKey === 'rogue' && move.stance === 'trick') ? 1 : 0;
-        progress = (points + signature) * share;
-        if (move.stance === 'guard') personalCover = Math.max(personalCover, seat.character.classKey === 'wizard' ? 3 : 2 + timing(action));
-        if (winning && seat.character.classKey === 'cleric' && move.stance === 'strike') heal(room, seat, 1, now);
-        text = `${seat.character.name} uses ${move.label} against ${battle.stance}: ${points === 3 ? 'a winning counter' : points === 2 ? 'an even exchange' : 'a difficult exchange'}.${signature ? ` Their class adds ${Number(share.toFixed(2))} battle progress.` : ''}`;
+        if (effect.healSelf) heal(room, seat, effect.healSelf, now);
+        text = `${seat.character.name} uses ${move.label} against ${battle.stance}: ${effect.exchange === 'counter' ? 'a winning counter' : effect.exchange === 'even' ? 'an even exchange' : 'a difficult exchange'}.${effect.signature ? ` Their class adds ${Number(share.toFixed(2))} battle progress.` : ''}`;
       } else {
-        const classKey = seat.character.classKey;
-        progress = (classKey === 'wizard' ? battle.stance === 'guard' ? 3 : 2 : classKey === 'rogue' ? 2 : 1) * share;
-        if (classKey === 'fighter') personalCover = Math.max(personalCover, 4);
-        if (classKey === 'rogue') add(room.flags, `expedition-opening:${room.turn + 1}`);
-        if (classKey === 'cleric') {
+        if (effect.opensNextRound) add(room.flags, `expedition-opening:${room.turn + 1}`);
+        if (effect.healParty) {
           const mostWounded = [...frozen.seats].filter(candidate => candidate.kind === 'human').sort((a, b) => a.hp / a.character.maxHp - b.hp / b.character.maxHp || a.actorId.localeCompare(b.actorId))[0];
           const recipient = room.seats.find(candidate => candidate.actorId === mostWounded?.actorId);
-          if (recipient) heal(room, recipient, 3, now);
+          if (recipient) heal(room, recipient, effect.healParty, now);
         }
         text = `${seat.character.name} uses ${move.label}. ${move.description}`;
       }

@@ -1,0 +1,14 @@
+/* Reuse the painted tokens; threads and seals are functional tabletop markings. */
+.gm-placed-moves{position:absolute;inset:0;z-index:4;pointer-events:none}
+.gm-placed-threads{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.gm-placed-threads path{fill:none;stroke:#f9efd0;stroke-width:2;stroke-dasharray:3 5;stroke-linecap:round;opacity:.6;filter:drop-shadow(0 1px 1px #3e4635)}
+.gm-placed-counter{position:absolute;display:grid;place-items:center;width:29px;height:29px;transform:translate(-50%,-50%) rotate(7deg);border:1px solid #40543d;border-radius:47% 43% 49% 45%;background:#e3e5b9;box-shadow:1px 2px 0 #35452e66;color:#364b3b}
+.gm-placed-counter .di-token-art{width:25px;height:25px}
+.gm-placed-counter>small{position:absolute;right:-5px;bottom:-4px;min-width:13px;height:14px;line-height:14px;padding:0 2px;box-sizing:border-box;text-align:center;font-size:10px;font-weight:800;background:#fff6dc;border:1px solid #657052;border-radius:4px;transform:rotate(-7deg)}
+.gm-confirmed-caption>.gm-fact-stamp,.gm-fact-stamp{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:19px;line-height:1.1}
+.gm-fact-stamp>i{flex:none;display:grid;place-items:center;width:25px;height:25px;border:2px solid #55704e;border-radius:43% 48% 44% 47%;background:#e3ecc6;color:#3e5a3b;transform:rotate(-9deg);box-shadow:1px 1px 0 #fff8e0}
+.gm-fact-stamp.is-stamping>i{animation:gm-fact-stamp var(--stamp-duration,360ms) cubic-bezier(.15,.8,.3,1.2) var(--stamp-delay,0ms) both}
+@keyframes gm-fact-stamp{0%{opacity:0;transform:rotate(-16deg) scale(1.45)}45%{opacity:1;transform:rotate(-9deg) scale(.87)}75%{transform:rotate(-9deg) scale(1.07)}100%{opacity:1;transform:rotate(-9deg) scale(1)}}
+@media(max-width:620px){.gm-placed-counter{width:25px;height:25px}.gm-placed-counter .di-token-art{width:22px;height:22px}.gm-confirmed-caption>.gm-fact-stamp,.gm-fact-stamp{font-size:16px}.gm-fact-stamp>i{width:21px;height:21px}.gm-fact-stamp>i>svg{width:14px}}
+@media(prefers-reduced-motion:reduce){.gm-fact-stamp.is-stamping>i{animation:none}}
+.gm-adventure.is-quiet .gm-fact-stamp.is-stamping>i{animation:none}

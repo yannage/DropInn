@@ -6,6 +6,16 @@ The default V2 app includes live discovery, Play [selected story], saved heroes,
 
 The current scene-stage pass adds a fixed action dock, illustrated scene interactions, optional-reading drawers, announced combat intent, guaranteed Protect, timed release and persisted uncertain-move recovery. All three chapters use the new components and 17 new illustrations. Local tests, build and browser checks passed; see [scene playtest evidence](docs/scene-playtest.md) for the backend, scenarios and limitations. Hosted and human evidence remain separate.
 
+## Gemward whole-round experience — October 3, 2026
+
+The [whole-round follow-up](docs/story-table.md#playing-the-whole-round) makes friends' accepted intentions visible and gives waiting a small, optional tabletop activity. The story stays readable; unresolved actions remain intentions until the normal scene consequence. Existing rules, pinned versions and deadlines remain in place.
+
+- [x] Keep the accepted personal move visible, separate pending confirmation from acceptance, and label earlier history **Last round**. Show teammates' placed counters and a read-only **Moves on the table** list. Inspecting another location preserves the player's prepared token, target, topic and item.
+- [x] Explain duplicate/complementary preparations, accepted departure/finish plans and strongest party cover. Use the reducer's class calculation for combat forecasts. Block redundant concurrent Dust before release.
+- [x] Add a confirmed fact stamp using the existing playback contact time, expose shared reactions while waiting, and add opt-in local coaster flicking with pointer/keyboard control. Cancel stale gestures and close at the round boundary with focus on the story. The toy grants no rewards and cannot delay the party.
+- [x] Verify 821 unit/service tests, the production build and 87 final browser checks with zero errors. Both endings, exact retry/reload, keyboard/touch cancellation, prepared-move preservation and four-player crowding pass locally; 320/390px and desktop captures are reviewed. See [whole-round verification](docs/story-table.md#whole-round-verification) for the final source fingerprint and evidence boundaries.
+- [ ] Observe pairs coordinating from accepted moves, predicting their combat contribution and noticing the next story consequence after waiting. Compare reading, reactions and toy use without coaching. Automated checks cannot establish enjoyment or distraction; hosted and physical-device evidence remain separate.
+
 ## Gemward story table — October 3, 2026
 
 New rooms use [Gemward v3](docs/stories/gemward-v3.md). The [story table](docs/story-table.md) keeps the current problem and confirmed consequences readable between turns. An opening about the missing beacon and evening ferry establishes who needs help. Distinct leads and preparations replace generic town/finale progress; players can explicitly set out or finish together through ordinary prepared/released actions. Optional help carries into combat or the ending. The six-node route map, shared pouch and irreversible finale choice remain, with all v1/v2 rooms pinned to their existing rules.

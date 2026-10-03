@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Backpack, BookOpen, Check, ChevronRight, Clock3, Compass, Gem, Heart, Map, Menu, MessageCircle, Shield, Sparkles, Users, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Backpack, BookOpen, Check, ChevronRight, CircleDot, Clock3, Compass, Gem, Heart, Map, Menu, MessageCircle, Shield, Sparkles, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
 import { journeyActionPreview, journeyInteractions, journeyLocations, journeyPouch, journeyScene } from '../../lib/dropinn/journey';
 import { CONSUMABLES, QUEST_ITEMS, combatMoves, expeditionStash } from '../../lib/dropinn/expedition';
@@ -10,6 +10,8 @@ import { personalRollBeat } from '../../lib/dropinn/stagePlayback';
 import { FRAME_ATLASES } from '../../lib/dropinn/frameAnimation';
 import { storyTableConsumable } from '../../lib/dropinn/storyTable';
 import { buildStoryTable } from '../../lib/dropinn/storyTablePresentation';
+import { buildGemwardRound, type GemwardRoundIntent } from '../../lib/dropinn/gemwardRound';
+import { gemwardFactStamp } from '../../lib/dropinn/gemwardTableMarks';
 import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
 import { invitationUrl } from '../../lib/dropinn/invites';
 import type { AdventureRoom, PlayerAction } from '../../lib/dropinn/types';
@@ -34,10 +36,13 @@ import { GemwardPack, GemwardConsumable } from './GemwardPack';
 import { GemwardCombat } from './GemwardCombat';
 import { FrameAnimation } from './FrameAnimation';
 import { GemwardStoryTable, GemwardStorySteps, GemwardStoryDetail } from './GemwardStoryTable';
+import { GemwardRoundPanel } from './GemwardRoundPanel';
+import { GemwardPlacedMoves, GemwardFactStamp } from './GemwardTableMarks';
+import { TabletopFlick } from './TabletopFlick';
 import './gemward-adventure.css';
 
 const TOKENS: { kind: IllustratedToken; label: string }[] = [{ kind: 'fight', label: 'Fight' }, { kind: 'influence', label: 'Influence' }, { kind: 'investigate', label: 'Investigate' }, { kind: 'assist', label: 'Help' }];
-type Drawer = 'journey' | 'pouch' | 'stash' | 'party' | 'chat' | 'menu' | 'details' | 'inspect' | 'spotlight' | 'round' | 'story' | null;
+type Drawer = 'journey' | 'pouch' | 'stash' | 'party' | 'chat' | 'menu' | 'details' | 'inspect' | 'spotlight' | 'round' | 'story' | 'moves' | 'tableplay' | null;
 type Attachments = NonNullable<PlayerAction['expedition']>;
 
 export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: ReactNode }) {
@@ -58,7 +63,9 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   const [idea, setIdea] = useState('');
   const [spotlightTarget, setSpotlightTarget] = useState('');
   const [inspectedId, setInspectedId] = useState<string>();
+  const [inspectedLocationId, setInspectedLocationId] = useState<string>();
   const [drawer, setDrawer] = useState<Drawer>(null);
+  const restoreTableFocus = useRef(false);
   const [holding, setHolding] = useState(false);
   const [storyMode, setStoryMode] = useState<StoryScrollMode>('collapsed');
   const [narratorHost, setNarratorHost] = useState<HTMLDivElement | null>(null);
@@ -108,7 +115,8 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   const needsFavour = selectedItem?.kind === 'favour' && !attachments.favourChoice;
   const pouch = journeyPouch(room);
   const target = scene.targets.find(item => item.id === targetId);
-  const inspected = scene.targets.find(item => item.id === inspectedId);
+  const inspectedScene = inspectedLocationId ? journeyScene(room, inspectedLocationId) : scene;
+  const inspected = inspectedScene.targets.find(item => item.id === inspectedId);
   const topics = targetId && !inCombat ? journeyInteractions(room, locationId, targetId, token) : [];
   const moves = combatMoves(classKey, room.seats.filter(seat => seat.kind === 'human').length);
   const combatMove = moves.find(move => move.token === token);
@@ -123,7 +131,7 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
     : protectId && inCombat ? { token: 'assist', targetId: protectId, targetKind: 'hero', expedition: attachments }
     : targetId && (inCombat || topics.some(topic => topic.id === interactionId)) ? { token, targetId, targetKind: 'scene', expedition: { locationId, ...(!inCombat && interactionId ? { interactionId } : {}), ...attachments } } : null;
   const preview = preparedPlan ?? (selection?.token === 'spotlight' ? selection.proposal : selection ? journeyActionPreview(room, userId, selection) : undefined);
-  const itemIssue = selectedItem ? storyTableConsumable(room, selectedItem.kind, selection ?? undefined).reason : '';
+  const selectedItemIssue = selectedItem ? storyTableConsumable(room, selectedItem.kind, selection ?? undefined).reason : '';
   const actionOnTable = pending?.action ?? committed ?? selection;
   // The finished encounter stays on the table through its reveal, even though
   // the authoritative scene has already returned to the recovered route.
@@ -139,6 +147,36 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   const narrative = confirmed ? activeEvent ?? playback.landed.filter(event => event.change || event.kind === 'consequence').at(-1) ?? playback.landed.find(event => event.actorId === userId) : undefined;
   const storyRoom = room.phase === 'reveal' && !playback.settled && before.current?.id === room.id && before.current.turn === room.turn ? before.current : room;
   const storyTable = storyLed ? buildStoryTable(storyRoom, userId, actionOnTable ?? (targetId ? { token, targetId, targetKind: 'scene', expedition: { locationId } } : undefined)) : undefined;
+  const roundView = buildGemwardRound(room, userId, actionOnTable);
+  const itemIssue = selectedItemIssue || roundView.blockingReason;
+  const ownIntent = roundView.intents.find(intent => intent.actorId === userId);
+  const waitingAtTable = storyLed && room.status === 'active' && room.phase === 'choosing' && !!committed && !!self && !self.leaving && !pending;
+  const pendingPreview = pending && room.phase === 'choosing' ? journeyActionPreview(room, userId, pending.action) : undefined;
+  const submission = storyLed && room.phase === 'choosing' ? pendingPreview
+    ? { accepted: false, label: pendingPreview.label, description: 'Your exact move is saved while we check confirmation. Retry keeps the same choice and release.' }
+    : ownIntent ? { accepted: true, label: ownIntent.label, description: roundView.forecast?.summary ?? ownIntent.detail } : undefined : undefined;
+  const waitingLabel = roundView.waitingFor.length ? `Still choosing: ${roundView.waitingFor.join(', ')}.` : 'The party’s moves are ready.';
+  const factStamp = storyLed && gemwardFactStamp(playback.active, now, quiet, visible);
+
+  useEffect(() => {
+    if (drawer === 'tableplay' && !waitingAtTable || drawer === 'moves' && room.phase !== 'choosing') {
+      restoreTableFocus.current = true;
+      setDrawer(null);
+    }
+  }, [drawer, waitingAtTable, room.phase]);
+  useEffect(() => {
+    setDrawer(current => {
+      if (current !== 'tableplay' && current !== 'moves') return current;
+      restoreTableFocus.current = true;
+      return null;
+    });
+  }, [room.turn]);
+  useEffect(() => {
+    if (drawer || !restoreTableFocus.current) return;
+    restoreTableFocus.current = false;
+    const frame = requestAnimationFrame(() => stage.current?.closest('.gm-adventure')?.querySelector<HTMLElement>('[data-story-table]')?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [drawer]);
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 100); return () => window.clearInterval(timer); }, []);
   useEffect(() => {
@@ -165,7 +203,10 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   useEffect(() => { const cancel = () => { if (gesture.current) { gesture.current = undefined; setDrag(undefined); suppressClick.current = true; } }; window.addEventListener('blur', cancel); return () => window.removeEventListener('blur', cancel); }, []);
 
   function open(next: Drawer) { if (holding || drag) return; setStoryMode('collapsed'); setDrawer(next); }
-  function inspect(id: string) { setInspectedId(id); open('inspect'); }
+  function inspect(id: string) { setInspectedId(id); setInspectedLocationId(undefined); open('inspect'); }
+  function inspectMove(intent: GemwardRoundIntent) {
+    setInspectedLocationId(intent.locationId); setInspectedId(intent.targetId); setDrawer('inspect');
+  }
   function choose(id: string, kind = token, hero = false) {
     if (locked) { inspect(id); return; }
     if (self?.hp === 0 && kind !== 'assist') return;
@@ -265,27 +306,30 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
       {encounterContact && !quiet && playback.active && <FrameAnimation key={`encounter:${activeEvent!.id}`} atlas="encounter" durationMs={Math.min(600, playback.active.duration)} elapsedMs={Math.max(0, now - playback.active.start)} className="gm-encounter-flipbook" />}
       {confirmed && (received.length > 0 || receivedGift) && <div className="gm-discovery-receipts" role="status">{received.map(change => <div className="gm-discovery-receipt" key={`${change.event.id}:${change.itemId}`}><GemwardItem id={change.itemId} /><span><strong>{QUEST_ITEMS[change.itemId]?.label ?? 'Shared discovery'}</strong><small>{change.kind === 'spent' ? 'Used to change Gemward' : 'Added to the party pouch'}</small></span></div>)}{receivedGift && <div className="gm-discovery-receipt"><GemwardConsumable kind={receivedGift.item.kind} /><span><strong>{CONSUMABLES.find(item => item.id === receivedGift.item.kind)?.label}</strong><small>{state.offers[userId]?.some(offer => offer.id === receivedGift.id) ? 'A gift waits in your stash' : 'Added to your stash'}</small></span></div>}</div>}
       {showRoll && roll && <PersonalStageDice event={roll.event} elapsed={Math.max(0, now - roll.start)} stage={stage} quiet={quiet} />}
-      {confirmed && narrative && !showRoll && (!storyLed || !playback.settled) && <div className="gm-confirmed-caption" role="status" key={narrative.id}><span>{narrative.change?.title ?? (narrative.actorName ? `${narrative.actorName} made a difference` : 'The story moves')}</span><strong>{narrative.change?.next ?? narrative.text}</strong></div>}
+      {storyLed && <GemwardPlacedMoves room={room} userId={userId} locationId={renderedLocationId} stage={stage} visible={visible} />}
+      {confirmed && narrative && !showRoll && (!storyLed || !playback.settled) && <div className="gm-confirmed-caption" role="status" key={narrative.id}>{factStamp ? <GemwardFactStamp beat={playback.active} now={now} quiet={quiet} visible={visible} /> : <span>{narrative.change?.title ?? (narrative.actorName ? `${narrative.actorName} made a difference` : 'The story moves')}</span>}<strong>{narrative.change?.next ?? narrative.text}</strong></div>}
     </section>
     <section className="gm-action-bar" aria-label="Your four tokens and release controls">
-      {storyTable && <><GemwardStorySteps steps={storyTable.chapterSteps} /><GemwardStoryTable model={storyTable} topics={topics} selectedTopic={interactionId} selectedPlan={!!preparedPlan} disabled={locked} resting={rest} combat={showCombat} blockingReason={itemIssue} status={pending ? 'Your move is saved. Checking confirmation...' : joining ? 'You join at the next turn. Explore while you wait.' : self?.leaving ? 'Your last move will finish with the party.' : committed ? 'Move placed. Your friends are still choosing.' : needsFavour ? 'Choose a ledger or canal key in your stash.' : undefined} onTopic={setInteractionId} onPlan={preparePlan} onRead={() => open('story')} /></>}
+      {storyTable && <><GemwardStorySteps steps={storyTable.chapterSteps} /><GemwardStoryTable model={storyTable} topics={topics} selectedTopic={interactionId} selectedPlan={!!preparedPlan} disabled={locked} resting={rest} combat={showCombat} blockingReason={itemIssue} submission={submission} coordination={!pending ? roundView.notices[0]?.text : undefined} forecast={roundView.forecast?.summary} moveCount={roundView.intents.length} onMoves={() => open('moves')} status={pending ? 'Your move is saved. Checking confirmation...' : joining ? 'You join at the next turn. Explore while you wait.' : self?.leaving ? 'Your last move will finish with the party.' : waitingAtTable ? waitingLabel : needsFavour ? 'Choose a ledger or canal key in your stash.' : undefined} onTopic={setInteractionId} onPlan={preparePlan} onRead={() => open('story')} /></>}
       {!storyLed && <div className="gm-prepared" aria-live="polite"><div><strong>{status}</strong><p>{detail}</p></div>{selection && !rest && <button type="button" aria-label="Read this move and choose a topic" onClick={() => open('details')} disabled={holding}><span>{topics.length > 1 ? `${topics.length} topics` : 'Details'}</span><ChevronRight size={17} /></button>}</div>}
       <div className="gm-hand-row"><button type="button" className="gm-stash-button" onClick={() => open('stash')} disabled={holding} aria-label={`Your stash, ${stash.length} of 3 slots`}><Backpack size={23} /><span>{stash.length}/3</span>{!!state.offers[userId]?.length && <i />}</button><div className="gm-hand" aria-label="Your action tokens">{TOKENS.map(item => <button type="button" key={item.kind} data-token={item.kind} disabled={locked || self?.hp === 0 && item.kind !== 'assist' || !inCombat && !!target && !target.tokens.includes(item.kind)} aria-pressed={!spotlightAction && token === item.kind} className={`${!spotlightAction && token === item.kind ? 'is-selected' : ''} ${drag?.kind === item.kind ? 'is-lifted' : ''}`} aria-label={showCombat ? `${item.label}: ${moves.find(move => move.token === item.kind)?.label}` : item.label} onPointerDown={event => startDrag(event, item.kind)} onPointerMove={moveDrag} onPointerUp={event => endDrag(event)} onPointerCancel={event => endDrag(event, true)} onLostPointerCapture={event => { if (gesture.current?.id === event.pointerId) endDrag(event, true); }} onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } chooseToken(item.kind); }}><TokenArtwork token={item.kind} /><span>{showCombat ? moves.find(move => move.token === item.kind)?.label : item.label}</span></button>)}</div><button className="gm-spotlight-button" type="button" disabled={locked || spentSpotlight || self?.hp === 0} onClick={() => open('spotlight')} aria-label={spentSpotlight ? 'Spotlight used this chapter' : 'Create a Spotlight idea'}><Sparkles size={23} /><span>Spotlight</span></button>
-        <div className="gm-release-controls">{selection && !rest ? <TimedRelease key={`${room.id}:${room.turn}`} turn={room.turn} deadline={room.deadline} disabled={!canAct || loading || !!drawer || needsFavour || !!itemIssue} timingBonus={selection.token === 'spotlight' || inCombat && (!!protectId || self?.hp === 0 || combatMove?.stance === 'guard' && classKey !== 'wizard')} onCommit={commit} onHoldingChange={setHolding} /> : pending ? <button className="gm-primary" disabled={loading} onClick={() => void commitAction(pending.action)}>Retry the same move</button> : !completed && !self && !joining ? <button className="gm-primary" disabled={loading} onClick={() => void joinRoom(room.code)}>Rejoin this story</button> : traveling ? <button className="gm-primary" onClick={() => open('journey')}><Map size={18} />Choose the next path</button> : completed ? <button className="gm-primary" disabled={loading} onClick={() => void leaveRoom()}>Collect your recap <ArrowRight size={17} /></button> : canSkip ? <button className="gm-primary" disabled={skipVoted || skippingReveal} onClick={() => void skipReveal()}>{skipVoted ? 'Ready for the next turn' : 'Ready · next turn'}</button> : !self && !joining ? <button className="gm-primary" disabled={loading} onClick={() => void joinRoom(room.code)}>Join this story</button> : committed ? <span className="gm-waiting-seal"><Check size={20} />Move placed</span> : <span className="gm-release-hint">Place a token.<br />Make a little difference.</span>}</div>
+        <div className="gm-release-controls">{selection && !rest ? <TimedRelease key={`${room.id}:${room.turn}`} turn={room.turn} deadline={room.deadline} disabled={!canAct || loading || !!drawer || needsFavour || !!itemIssue} timingBonus={selection.token === 'spotlight' || inCombat && (!!protectId || self?.hp === 0 || combatMove?.stance === 'guard' && classKey !== 'wizard')} onCommit={commit} onHoldingChange={setHolding} /> : pending ? <button className="gm-primary" disabled={loading} onClick={() => void commitAction(pending.action)}>Retry the same move</button> : !completed && !self && !joining ? <button className="gm-primary" disabled={loading} onClick={() => void joinRoom(room.code)}>Rejoin this story</button> : traveling ? <button className="gm-primary" onClick={() => open('journey')}><Map size={18} />Choose the next path</button> : completed ? <button className="gm-primary" disabled={loading} onClick={() => void leaveRoom()}>Collect your recap <ArrowRight size={17} /></button> : canSkip ? <button className="gm-primary" disabled={skipVoted || skippingReveal} onClick={() => void skipReveal()}>{skipVoted ? 'Ready for the next turn' : 'Ready · next turn'}</button> : !self && !joining ? <button className="gm-primary" disabled={loading} onClick={() => void joinRoom(room.code)}>Join this story</button> : waitingAtTable ? <div className="gm-waiting-play" data-round-waiting><TableReactions room={room} tabletop /><button type="button" className="gm-waiting-toy" aria-label="Flick a counter while you wait" onClick={() => open('tableplay')}><CircleDot size={18} /><span>Flick a counter</span></button></div> : committed ? <span className="gm-waiting-seal"><Check size={20} />Move placed</span> : <span className="gm-release-hint">Place a token.<br />Make a little difference.</span>}</div>
       </div>
       {!rest && (selectedItem || attachments.rewardChoice) && <div className="gm-attached">{selectedItem && <button type="button" disabled={locked} onClick={() => setAttachments({ ...attachments, consumableId: undefined, favourChoice: undefined })}><GemwardConsumable kind={selectedItem.kind} /><span>{CONSUMABLES.find(item => item.id === selectedItem.kind)?.label}</span><X size={13} /></button>}{attachments.rewardChoice && <button type="button" disabled={locked} onClick={() => setAttachments({ ...attachments, rewardChoice: undefined })}><Check size={12} /><span>Gift choice</span><X size={13} /></button>}</div>}
       {error && <p className="gm-error" role="alert">{error}</p>}
     </section>
     <div className="gm-narrator-home"><Narrator room={room} compact pacedTurns={pacedTurns} onPacedTurns={setPacedTurns} suppressCue={false} deferCue={!playback.settled || !!releaseVisible} portalTarget={drawer === 'round' ? narratorHost : drawer === 'menu' ? menuNarratorHost : null} /></div>
-    {drawer && drawer !== 'round' && <SceneDrawer key={drawer} title={{ journey: 'Journey', pouch: 'Party pouch', stash: 'Your stash', party: 'Your party', chat: 'Table chat', menu: 'Around the table', details: 'Your move', inspect: 'A closer look', spotlight: 'A Spotlight idea', story: 'The story so far' }[drawer]} presentation={drawer === 'journey' ? 'dialog' : 'sheet'} onClose={() => setDrawer(null)}>
-      {drawer === 'story' && storyTable && <GemwardStoryDetail model={storyTable} />}
+    {drawer && drawer !== 'round' && <SceneDrawer key={drawer} title={{ journey: 'Journey', pouch: 'Party pouch', stash: 'Your stash', party: 'Your party', chat: 'Table chat', menu: 'Around the table', details: 'Your move', inspect: 'A closer look', spotlight: 'A Spotlight idea', story: 'The story so far', moves: 'Moves on the table', tableplay: 'A little table play' }[drawer]} presentation={drawer === 'journey' ? 'dialog' : 'sheet'} onClose={() => setDrawer(null)}>
+      {drawer === 'moves' && <GemwardRoundPanel model={roundView} userId={userId} onInspect={inspectMove} />}
+      {drawer === 'tableplay' && <><p className="gm-toy-story"><strong>{ownIntent?.label} · placed</strong>{storyTable?.situation}<br />{waitingLabel}</p><TabletopFlick roundKey={`${room.id}:${room.turn}`} active={waitingAtTable && visible} reducedMotion={quiet} defaultExpanded /></>}
+      {drawer === 'story' && storyTable && <GemwardStoryDetail model={storyTable} forecast={roundView.forecast?.detail} />}
       {drawer === 'journey' && <GemwardJourney key={state.travel?.id ?? state.currentNodeId} room={room} userId={userId} now={now} loading={loading} pending={travelPending} onVote={edgeId => void voteTravel(edgeId)} onClose={() => setDrawer(null)} />}
       {(drawer === 'stash' || drawer === 'pouch') && <GemwardPack room={room} userId={userId} mode={drawer} disabled={locked} attachments={attachments} action={actionOnTable} onChange={setAttachments} onClose={() => setDrawer(null)} />}
       {drawer === 'menu' && <div className="gm-menu"><div className="gm-menu-links"><button onClick={() => setDrawer('party')}><Users />Party & invitations</button><button onClick={() => setDrawer('chat')}><MessageCircle />Table chat</button><button onClick={() => setDrawer('round')} disabled={!lastRound && !pending && !committed}><BookOpen />Read the last round</button><button onClick={() => setDrawer('pouch')}><Gem />Party discoveries</button></div><div className="gm-menu-narrator" ref={setMenuNarratorHost} /><label className="gm-setting"><input type="checkbox" checked={quietEffects} onChange={event => { setQuietEffects(event.target.checked); try { localStorage.setItem('dropinn-effects', event.target.checked ? 'off' : 'on'); } catch {} }} />Reduce effects</label><button className="gm-setting" onClick={() => { setSound(!sound); setTableSound(!sound); }}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}{sound ? 'Table sounds on' : 'Table sounds off'}</button><TableReactions room={room} /><button className="gm-quiet-button" disabled={loading} onClick={() => void leaveRoom()}><ArrowLeft size={17} />Leave the table</button></div>}
       {drawer === 'party' && <div className="gm-party-panel"><p>Table <strong>{room.code}</strong>. Everyone chooses together; arrivals join at a turn boundary.</p><h3>Bring a friend</h3><p>{room.visibility === 'private' ? 'This private table needs the full invitation.' : 'Share this link to bring a friend into the story.'}</p><label htmlFor="gm-invitation">Full invitation link</label><input id="gm-invitation" readOnly value={invitationUrl(room, window.location.origin)} onFocus={event => event.target.select()} /><button className="gm-primary" onClick={() => void copyInvite()}>{copied ? 'Copied!' : 'Copy invitation'}</button>{room.seats.map(seat => <article key={seat.id}><HeroAvatar hero={seat.character} /><div><strong>{seat.character.name}{seat.actorId === userId ? ' · you' : ''}</strong><p>{CHARACTER_CLASS_PRESETS[seat.character.classKey].label} · {seat.hp}/{seat.character.maxHp} health</p><small>{seat.kind === 'companion' ? 'Rules-based companion' : seat.leaving ? 'Leaving at the boundary' : room.commits[seat.actorId] ? 'Move placed' : traveling && state.travel?.votes[seat.actorId] ? 'Route vote placed' : 'Choosing'}</small></div></article>)}<TableReactions room={room} /></div>}
       {drawer === 'chat' && chat}
       {drawer === 'details' && <div className="gm-detail"><h3>{preview?.label}</h3><p>{preview?.description}</p>{topics.length > 1 && <fieldset className="gm-topic-options"><legend>What will you ask?</legend>{topics.map(topic => <button key={topic.id} type="button" data-gemward-interaction={topic.id} disabled={locked} aria-pressed={interactionId === topic.id} onClick={() => setInteractionId(topic.id)}><strong>{topic.label}</strong><span>{topic.description}</span></button>)}</fieldset>}{target && <p>{target.context ?? target.description}</p>}{selectedItem && <p><strong>Packed with this move:</strong> {storyTableConsumable(room, selectedItem.kind).description}</p>}<p>Preparing is free. Use the release controls when you are ready to act.</p><button className="gm-primary" onClick={() => setDrawer(null)}>Return to my move <ArrowRight size={16} /></button></div>}
-      {drawer === 'inspect' && <div className="gm-detail"><h3>{inspected?.name ?? room.seats.find(seat => seat.actorId === inspectedId)?.character.name ?? 'The party’s encounter'}</h3><p>{inspected?.context ?? inspected?.description ?? scene.situation}</p><p>{scene.objective}</p><p>{rest ? 'Look around freely. Your submitted action remains saved exactly as released.' : 'Choose a token to prepare a way to help.'}</p></div>}
+      {drawer === 'inspect' && <div className="gm-detail"><span className="gm-overline">{inspectedScene.location}</span><h3>{inspected?.name ?? room.seats.find(seat => seat.actorId === inspectedId)?.character.name ?? 'The party’s encounter'}</h3><p>{inspected?.context ?? inspected?.description ?? inspectedScene.situation}</p><p>{inspectedScene.objective}</p><p>{rest ? 'Look around freely. Your submitted action remains saved exactly as released.' : selection ? 'Your prepared move is unchanged. Return to the table when you’re ready to release it.' : 'Return to the table and choose a token to prepare a way to help.'}</p></div>}
       {drawer === 'spotlight' && <div className="gm-spotlight"><p>One creative move per chapter. Work with something in the shared scene: <strong>{sharedScene.location}</strong>. Previewing spends nothing.</p><div className="gm-idea-suggestions">{spotlightSuggestions(room).map(suggestion => <button key={suggestion.label} disabled={proposing || !canAct} onClick={() => { setIdea(suggestion.idea); setSpotlightTarget(suggestion.targetId); clearProposal(); void propose(suggestion.idea, suggestion.targetId); }}><Sparkles size={16} />{suggestion.label}</button>)}</div><label htmlFor="gm-idea">Your idea</label><textarea id="gm-idea" maxLength={280} rows={3} value={idea} onChange={event => { setIdea(event.target.value); clearProposal(); }} /><label htmlFor="gm-idea-target">Use something in the scene</label><select id="gm-idea-target" value={spotlightTarget || sharedScene.targets[0]?.id} onChange={event => { setSpotlightTarget(event.target.value); clearProposal(); }}>{sharedScene.targets.map(piece => <option key={piece.id} value={piece.id}>{piece.name}</option>)}</select><button className="gm-primary" disabled={!idea.trim() || proposing || !canAct} onClick={() => void propose(idea.trim(), spotlightTarget || sharedScene.targets[0].id)}>{proposing ? 'Considering…' : 'Preview my idea'}</button>{spotlightPreview && <div role="status"><h3>{spotlightPreview.label}</h3><p>{spotlightPreview.description}</p>{spotlightPreview.supported ? <button className="gm-primary" disabled={!canAct} onClick={() => { setPreparedPlan(null); setSpotlightAction({ token: 'spotlight', targetId: spotlightPreview.targetId, proposal: spotlightPreview, targetKind: 'scene', expedition: { locationId: state.locationId } }); setLocationId(state.locationId); setTargetId(spotlightPreview.targetId); setDrawer(null); }}>Ready this Spotlight</button> : <p>Your turn is safe. Try another idea or a normal token.</p>}</div>}{error && <p role="alert">{error}</p>}</div>}
     </SceneDrawer>}
     {drawer === 'round' && <RoundScroll room={room} userId={userId} summary={lastRound} action={pending?.action ?? committed} pending={!!pending} loading={loading} error={error} historical={!confirmed && !pending && !committed} now={now} seconds={seconds} bypass={showAll || !pacedTurns} reducedMotion={quiet} canVote={canSkip} skipped={skipVoted} skipping={skippingReveal} onClose={() => setDrawer(null)} onShowAll={() => setShowAll(true)} onNext={() => void skipReveal()} onRetry={() => pending && void commitAction(pending.action)} onCollect={() => void leaveRoom()} narratorHost={setNarratorHost} />}

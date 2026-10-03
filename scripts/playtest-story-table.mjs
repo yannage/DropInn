@@ -12,13 +12,13 @@ assert.ok(origin.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(ori
 const base = origin.origin;
 await mkdir('output/playwright', { recursive: true });
 const checks = [], errors = [], records = [], contexts = [], pages = [];
-const faults = { loseVote: '', blockReads: '' };
+const faults = { loseVote: '', loseAct: '', blockReads: '' };
 const atlasRequests = [];
 let releaseEncounterImage;
 const encounterImageGate = new Promise(resolve => { releaseEncounterImage = resolve; });
-let browser, ssr, handler, stageTimeline, offset = 0;
+let browser, ssr, handler, stageTimeline, offset = 0, frozenNow;
 const note = (name, detail = {}) => { checks.push({ name, ...detail }); console.log(name); };
-const clock = () => Date.now() + offset;
+const clock = () => frozenNow ?? Date.now() + offset;
 const fingerprintSources = [
   'src/App.tsx', 'src/components/DropInn/DropInn.tsx',
   'src/components/DropInn/GemwardAdventure.tsx', 'src/components/DropInn/GemwardJourney.tsx',
@@ -31,6 +31,12 @@ const fingerprintSources = [
   'src/lib/dropinn/storyTable.ts', 'src/lib/dropinn/storyTablePresentation.ts',
   'src/lib/dropinn/storyTableEngine.ts', 'src/lib/dropinn/storyTableContent.ts', 'src/lib/dropinn/storyTableTypes.ts',
   'src/components/DropInn/GemwardStoryTable.tsx', 'src/components/DropInn/gemward-story-table.css',
+  'src/components/DropInn/GemwardRoundPanel.tsx', 'src/components/DropInn/gemward-round.css',
+  'src/components/DropInn/GemwardTableMarks.tsx', 'src/components/DropInn/gemward-table-marks.css',
+  'src/components/DropInn/TabletopFlick.tsx', 'src/components/DropInn/tabletop-flick.css',
+  'src/components/DropInn/TableReactions.tsx', 'src/components/DropInn/table-reactions.css',
+  'src/lib/dropinn/gemwardTableMarks.ts', 'src/lib/dropinn/gemwardRound.ts',
+  'src/lib/dropinn/tabletopFlick.ts', 'src/lib/dropinn/expeditionCombatMove.ts',
   'src/lib/dropinn/journey.ts', 'src/lib/dropinn/journeyEngine.ts', 'src/lib/dropinn/engine.ts',
   'src/lib/dropinn/expedition.ts', 'src/lib/dropinn/registry.ts', 'src/lib/dropinn/types.ts',
   'src/lib/dropinn/expeditionEngine.ts', 'src/store/adventureStore.ts', 'server/dropinn.ts',
@@ -68,8 +74,10 @@ async function sync(page) { await bind(page); await page.evaluate(() => window._
 async function allSame(pair) {
   for (const page of pair) await sync(page);
   const snapshots = await Promise.all(pair.map(state));
-  assert.equal(snapshots[0].room.revision, snapshots[1].room.revision);
-  assert.deepEqual(snapshots[0].room.expedition, snapshots[1].room.expedition);
+  for (const snapshot of snapshots.slice(1)) {
+    assert.equal(snapshots[0].room.revision, snapshot.room.revision);
+    assert.deepEqual(snapshots[0].room.expedition, snapshot.room.expedition);
+  }
   return snapshots[0].room;
 }
 async function open(label) {
@@ -78,7 +86,8 @@ async function open(label) {
   await context.addInitScript(value => {
     const realNow = Date.now.bind(Date);
     window.__journeyOffset = Number(localStorage.getItem('story-table-qa-offset') ?? value);
-    Date.now = () => realNow() + window.__journeyOffset;
+    window.__journeyFrozenNow = Number(localStorage.getItem('story-table-qa-frozen')) || null;
+    Date.now = () => window.__journeyFrozenNow ?? realNow() + window.__journeyOffset;
   }, offset);
   const page = await context.newPage(); pages.push(page);
   page.on('pageerror', error => errors.push({ page: label, message: error.message }));
@@ -104,6 +113,10 @@ async function open(label) {
       faults.loseVote = '';
       return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Intentional lost travel acknowledgement' }) });
     }
+    if (faults.loseAct === label && payload.command?.type === 'act' && response.status === 200) {
+      faults.loseAct = '';
+      return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Intentional lost action acknowledgement' }) });
+    }
     return route.fulfill({ status: response.status, contentType: 'application/json', body });
   });
   await page.goto(`${base}/?session=storytableqa${label}`);
@@ -117,6 +130,17 @@ async function open(label) {
 async function closePanel(page) {
   await page.keyboard.press('Escape');
 }
+// Long accessibility/layout probes hold only the injected clock, never a gameplay snapshot.
+async function holdClock() {
+  frozenNow = clock();
+  for (const page of pages) await page.evaluate(at => { window.__journeyFrozenNow = at; localStorage.setItem('story-table-qa-frozen', String(at)); }, frozenNow);
+}
+async function resumeClock() {
+  if (frozenNow === undefined) return;
+  offset = frozenNow - Date.now(); frozenNow = undefined;
+  for (const page of pages) await page.evaluate(value => { window.__journeyOffset = value; window.__journeyFrozenNow = null; localStorage.setItem('story-table-qa-offset', String(value)); localStorage.removeItem('story-table-qa-frozen'); }, offset);
+}
+const gameplay = room => Object.fromEntries(['id', 'adventureId', 'adventureVersion', 'status', 'phase', 'chapter', 'chapterRound', 'turn', 'deadline', 'revealUntil', 'progress', 'danger', 'flags', 'seats', 'players', 'pendingJoins', 'commits', 'enemyIntent', 'events', 'outcomes', 'expedition'].map(key => [key, room[key]]));
 async function select(page, targetId, token = 'investigate', place, keyboard = false) {
   // Store synchronization is not yet proof that the choosing UI has rendered.
   await page.locator('.gm-hand [data-token]:not(:disabled)').first().waitFor();
@@ -134,6 +158,22 @@ async function select(page, targetId, token = 'investigate', place, keyboard = f
   }
   assert.equal(records.filter(record => ['act', 'vote-travel'].includes(record.command.type)).length, before);
   assert.equal(await page.locator('.gm-stage [data-frame-atlas]').count(), 0, 'Preparing a move never starts a confirmed-event flipbook.');
+  assert.equal(await page.locator('[data-gemward-fact-stamp]').count(), 0, 'Preparing a move never stamps a story fact.');
+}
+async function observedFactStamp(page) {
+  await page.locator('[data-gemward-fact-stamp]').waitFor({ timeout: 6500 });
+  const observation = await page.evaluate(() => {
+    const stamp = document.querySelector('[data-gemward-fact-stamp]');
+    return { id: stamp.getAttribute('data-gemward-fact-stamp'), label: stamp.textContent, room: window.__journeyStore.getState().room,
+      at: Date.now(), animation: getComputedStyle(stamp.querySelector('i')).animationName };
+  });
+  const beat = stageTimeline(observation.room).find(beat => beat.event.id === observation.id);
+  assert.ok(beat?.event.result?.expedition?.storyTable?.factIds.length);
+  assert.ok(observation.at >= beat.start + beat.duration / 3 && observation.at < beat.start + beat.duration);
+  assert.match(observation.label, /Delivery ledger/);
+  assert.equal(observation.animation, 'gm-fact-stamp');
+  await page.screenshot({ path: 'output/playwright/story-table-confirmed-fact-stamp.png' });
+  note('A new confirmed preparation receives its factual ink seal only at the existing contact beat', { eventId: observation.id });
 }
 async function observedFlipbook(page, atlas) {
   const animation = page.locator(`.gm-stage [data-frame-atlas="${atlas}"][data-frame-state="playing"]`);
@@ -194,7 +234,7 @@ async function settledEffects(page) {
 }
 async function commandClick(page, type, locator, status = 200) {
   const response = page.waitForResponse(response => response.url() === `${base}/api/dropinn` && response.request().postDataJSON()?.command?.type === type);
-  await locator.click(); const received = await response;
+  const [received] = await Promise.all([response, locator.click()]);
   assert.equal(received.status(), status, await received.text()); await settled(page);
 }
 async function commit(page) { await commandClick(page, 'act', page.getByRole('button', { name: /^(Roll|Commit) now$/ })); }
@@ -240,6 +280,11 @@ async function layout(page, name, mode = 'scene') {
       brokenImages: [...document.images].filter(image => image.getClientRects().length && !image.complete || image.getClientRects().length && !image.naturalWidth).map(image => new URL(image.src).pathname),
       storyFont: Number.parseFloat(getComputedStyle(document.querySelector('[data-story-situation]')).fontSize),
       release: document.querySelector('.gm-release-controls')?.getBoundingClientRect().toJSON(),
+      story: document.querySelector('[data-story-table]')?.getBoundingClientRect().toJSON(),
+      moves: document.querySelector('[data-round-moves]')?.getBoundingClientRect().toJSON(),
+      toy: document.querySelector('.gm-waiting-toy')?.getBoundingClientRect().toJSON(),
+      toyFont: document.querySelector('.gm-waiting-toy') && Number.parseFloat(getComputedStyle(document.querySelector('.gm-waiting-toy')).fontSize),
+      reactions: [...document.querySelectorAll('[data-round-waiting] .di-reaction-buttons>button')].map(node => node.getBoundingClientRect().toJSON()),
     }));
     assert.equal(size.overflow, false, `${name}/${width} horizontal overflow`);
     assert.deepEqual(size.brokenImages, [], `${name}/${width} missing visible artwork`);
@@ -251,6 +296,12 @@ async function layout(page, name, mode = 'scene') {
         assert.ok(rect.width >= 43 && rect.height >= 43, `${name}/${width}: interaction target below44px`);
         assert.ok(rect.top >= 0 && rect.bottom <= height + 1, `${name}/${width}: target outside viewport`);
       }
+    }
+    if (name === 'waiting-accepted') {
+      assert.ok(size.moves && size.moves.top >= size.story.top && size.moves.bottom <= size.story.bottom + 1, `${width}: placed-moves link fits the default story viewport`);
+      assert.ok(size.toy.width >= 44 && size.toy.height >= 44 && size.toy.bottom <= height + 1, `${width}: optional toy has a visible44px control`);
+      if (width <= 620) assert.equal(size.toyFont, 10, `${width}: compact toy type size beats the inherited button font`);
+      for (const button of size.reactions) assert.ok(button.width >= 44 && button.height >= 44 && button.bottom <= height + 1, `${width}: shared reaction has a visible44px control`);
     }
     await page.screenshot({ path: `output/playwright/story-table-${name}-${width}.png`, animations: 'disabled' });
     note(`${name} layout ${width}×${height}`, { targets: size.targets.length });
@@ -280,6 +331,157 @@ async function enlargedStory(page) {
   note('Enlarged story text remains readable with keyboard scrolling while four tokens and release stay on screen', bounds);
 }
 
+async function waitingExperience(a, b) {
+  await holdClock();
+  const accepted = await allSame([a, b]), actorId = (await state(a)).userId;
+  assert.equal(accepted.phase, 'choosing');
+  assert.ok(accepted.commits[actorId]);
+  await a.locator('[data-round-submission="accepted"]').waitFor();
+  await b.locator(`[data-gemward-placed-move="${actorId}"]`).waitFor();
+  assert.equal(await a.locator(`[data-gemward-placed-move="${actorId}"]`).count(), 0, 'The local parked token is not duplicated by teammate counters.');
+  assert.equal(await b.locator(`[data-gemward-placed-move="${actorId}"]`).getAttribute('data-gemward-placed-target'), 'nella');
+  const ownLabel = await a.locator('.gm-story-heading').innerText();
+  await a.locator('[data-gemward-place="docks"]').click();
+  assert.equal(await a.locator('.gm-story-heading').innerText(), ownLabel, 'Browsing another stop keeps the accepted move readable.');
+  await layout(a, 'waiting-accepted');
+  await a.locator('[data-round-moves]').focus(); await a.keyboard.press('Enter');
+  const plans = a.getByRole('dialog', { name: 'Moves on the table', exact: true });
+  assert.equal(await plans.locator('[data-round-intent]').count(), 1);
+  assert.ok(await plans.locator(`[data-round-intent="${actorId}"]`).isVisible());
+  await layout(a, 'waiting-plans', 'panel');
+  await plans.getByRole('button', { name: /^Look at / }).click();
+  assert.equal(await plans.count(), 0);
+  await a.getByRole('dialog', { name: 'A closer look', exact: true }).waitFor();
+  await closePanel(a);
+  assert.deepEqual(gameplay((await state(a)).room), gameplay(accepted));
+  note('Accepted teammate counters and readable placed intentions persist while browsing; inspecting a plan does not replace a move');
+
+  const beforeReaction = gameplay((await state(a)).room);
+  await commandClick(a, 'react', a.getByRole('button', { name: 'React: Cheers!', exact: true }));
+  await sync(b);
+  const reaction = (await state(a)).room.reactions.at(-1);
+  for (const page of [a, b]) await page.locator(`[data-reaction-id="${reaction.id}"]`).waitFor();
+  assert.deepEqual(gameplay((await state(a)).room), beforeReaction);
+  assert.deepEqual(gameplay((await state(b)).room), beforeReaction);
+  assert.equal(await a.getByRole('button', { name: 'React: Cheers!', exact: true }).isDisabled(), true);
+  note('A real waiting cheer reaches both players while preserving commitments, deadline, XP and all gameplay fields');
+
+  const commandCount = records.length, beforeToy = gameplay((await state(a)).room);
+  await a.getByRole('button', { name: 'Flick a counter while you wait', exact: true }).click();
+  const toy = a.getByRole('dialog', { name: 'A little table play', exact: true }), lane = toy.locator('[data-flick-lane]');
+  await lane.waitFor();
+  await layout(a, 'waiting-flick', 'panel');
+  assert.equal(await toy.locator('[data-flick-counter]').count(), 1);
+  await lane.focus(); await a.keyboard.press('ArrowRight'); await a.keyboard.press('ArrowUp'); await a.keyboard.press('Enter');
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false', 'Reduced motion lands the local counter immediately.');
+  assert.notEqual(await toy.locator('[data-flick-result]').innerText(), 'Land the counter on the coaster.');
+  assert.match(await lane.getAttribute('aria-label'), /10° up.*76 percent/);
+  await lane.tap();
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false');
+  assert.equal(await toy.locator('[data-flick-counter]').count(), 1);
+  note('The waiting toy supports keyboard aim and touch tap with a static readable reduced-motion landing');
+
+  await a.emulateMedia({ reducedMotion: 'no-preference' });
+  await lane.focus(); await a.keyboard.press('Space');
+  await a.locator('[data-flick-lane][data-flick-running="true"]').waitFor();
+  await a.locator('[data-flick-lane][data-flick-running="false"]').waitFor();
+  await a.keyboard.down('Enter');
+  await a.locator('[data-flick-lane][data-flick-running="true"]').waitFor();
+  await a.locator('[data-flick-lane][data-flick-running="false"]').waitFor();
+  await a.keyboard.down('Enter');
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false', 'Holding a key must not automatically launch another shot after the first settles.');
+  await a.keyboard.up('Enter');
+  const box = await lane.boundingBox();
+  await a.mouse.move(box.x + box.width * .45, box.y + box.height * .55); await a.mouse.down();
+  await a.mouse.move(box.x + box.width * .45 - 35, box.y + box.height * .55 + 5, { steps: 5 }); await a.mouse.up();
+  await a.locator('[data-flick-lane][data-flick-running="true"]').waitFor();
+  await a.locator('[data-flick-lane][data-flick-running="false"]').waitFor();
+  assert.equal(await toy.locator('[data-flick-counter]').count(), 1);
+  // Cancel the real captured pointer. A synthetic cancellation is the browser's lifecycle event, not an injected game state.
+  await a.mouse.move(box.x + box.width * .45, box.y + box.height * .55); await a.mouse.down();
+  await a.mouse.move(box.x + box.width * .45 - 20, box.y + box.height * .55 + 2);
+  await lane.dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse' }); await a.mouse.up();
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false');
+  assert.equal(await toy.locator('[data-flick-result]').innerText(), 'Land the counter on the coaster.');
+  await a.mouse.move(box.x + box.width * .45, box.y + box.height * .55); await a.mouse.down();
+  await a.mouse.move(box.x + box.width * .45 - 20, box.y + box.height * .55 + 2);
+  await a.evaluate(() => window.dispatchEvent(new Event('blur'))); await a.mouse.up();
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false', 'Blur cancels the captured gesture and its following native click.');
+  assert.equal(await toy.locator('[data-flick-result]').innerText(), 'Land the counter on the coaster.');
+  await lane.focus(); await a.keyboard.press('Enter');
+  await a.locator('[data-flick-lane][data-flick-running="true"]').waitFor();
+  await a.evaluate(() => window.dispatchEvent(new Event('blur')));
+  assert.equal(await lane.getAttribute('data-flick-running'), 'false');
+  assert.equal(await toy.locator('[data-flick-result]').innerText(), 'Land the counter on the coaster.');
+  await a.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(records.length, commandCount, 'Toy input must never send a gameplay or reaction command.');
+  assert.deepEqual(gameplay((await state(a)).room), beforeToy);
+  await sync(b); assert.deepEqual(gameplay((await state(b)).room), beforeToy);
+  note('Bounded counter flight, drag release, cancellation and blur preserve the complete gameplay state and send no commands');
+  // Leave the optional toy open so the real second commitment must clear it at resolution.
+  await resumeClock();
+}
+
+async function uncertainMove(a, b, label) {
+  await holdClock();
+  faults.loseAct = label; faults.blockReads = label;
+  await commandClick(a, 'act', a.getByRole('button', { name: /^(Roll|Commit) now$/ }), 503);
+  await a.locator('[data-round-submission="pending"]').waitFor();
+  assert.equal(await a.getByRole('button', { name: 'Flick a counter while you wait', exact: true }).count(), 0);
+  assert.equal(await a.locator('[data-tabletop-flick]').count(), 0);
+  const sent = records.filter(record => record.page === label && record.command.type === 'act').at(-1).command;
+  await sync(b); const accepted = gameplay((await state(b)).room);
+  const saved = (await state(a)).pendingMove;
+  assert.deepEqual(JSON.parse(JSON.stringify(saved.action)), sent.action);
+  faults.loseAct = label;
+  await commandClick(a, 'act', a.getByRole('button', { name: 'Retry the same move', exact: true }), 503);
+  const retried = records.filter(record => record.page === label && record.command.type === 'act').at(-1).command;
+  assert.deepEqual(retried, sent, 'Uncertain retry must preserve the complete accepted command envelope.');
+  await sync(b); assert.deepEqual(gameplay((await state(b)).room), accepted);
+  await a.reload({ waitUntil: 'domcontentloaded' });
+  await a.getByRole('heading', { name: 'Your chair is still bookmarked.' }).waitFor();
+  await bind(a); await a.waitForFunction(() => window.__journeyStore.getState().ready);
+  assert.deepEqual((await state(a)).pendingMove.action, JSON.parse(JSON.stringify(saved.action)));
+  assert.equal(await a.getByRole('button', { name: 'Flick a counter while you wait', exact: true }).count(), 0);
+  faults.blockReads = ''; await sync(a);
+  assert.equal((await state(a)).pendingMove, null);
+  assert.deepEqual(gameplay((await state(a)).room), accepted);
+  await a.locator('[data-round-submission="accepted"]').waitFor();
+  await resumeClock();
+  note('Lost action acknowledgement stays explicitly pending with no toy; reload and exact retry recover the same move without duplicate state or rewards');
+}
+
+async function crowdedAccepted() {
+  const group = [];
+  for (const label of ['crowda', 'crowdb', 'crowdc', 'crowdd']) group.push(await open(label));
+  const [a, b, c, d] = group;
+  await select(a, 'iris', 'influence', 'shop'); await commit(a); await advance(group);
+  const room = await allSame(group);
+  assert.equal(room.seats.filter(seat => seat.kind === 'human').length, 4);
+  await holdClock();
+  for (const page of [a, b, c]) { await select(page, 'nella', 'assist', 'shop'); await commit(page); }
+  await sync(d);
+  await d.locator('[data-gemward-placed-move]').nth(2).waitFor();
+  assert.equal(await d.locator('[data-gemward-placed-move]').count(), 3);
+  const bounds = await d.locator('[data-scene-target]').evaluateAll(nodes => nodes.map(node => ({ id: node.getAttribute('data-scene-target'), rect: node.getBoundingClientRect().toJSON() })));
+  await d.evaluate(() => { window.__placedMarkNodes = [...document.querySelectorAll('[data-gemward-placed-move]')]; });
+  await sync(d); await sync(d);
+  assert.deepEqual(await d.locator('[data-scene-target]').evaluateAll(nodes => nodes.map(node => ({ id: node.getAttribute('data-scene-target'), rect: node.getBoundingClientRect().toJSON() }))), bounds, 'Repeated accepted-state snapshots cannot move any target or hero hit rectangle.');
+  assert.equal(await d.evaluate(() => window.__placedMarkNodes.every((node, index) => node === document.querySelectorAll('[data-gemward-placed-move]')[index])), true);
+  await layout(d, 'crowded-accepted');
+  await d.locator('[data-round-moves]').click();
+  assert.equal(await d.locator('[data-round-intent]').count(), 3);
+  await d.screenshot({ path: 'output/playwright/story-table-crowded-plans-390.png', animations: 'disabled' });
+  await closePanel(d);
+  await select(d, 'nella', 'assist', 'shop');
+  assert.match(await d.locator('[data-round-notice]').innerText(), /2 others.*recorded once/i);
+  await commit(d); await allSame(group);
+  for (const page of group) assert.equal(await page.locator('[data-gemward-placed-move]').count(), 0);
+  await resumeClock();
+  note('Three real accepted teammates share one target without moving hit areas or remounting markers; four-human resolution removes the pending counters');
+  for (const page of group) { await page.close(); pages.splice(pages.indexOf(page), 1); }
+}
+
 async function journey(prefix, route, finale) {
   const a = await open(`${prefix}a`), b = await open(`${prefix}b`), pair = [a, b];
   assert.equal((await state(a)).room.code, (await state(b)).room.code);
@@ -305,14 +507,16 @@ async function journey(prefix, route, finale) {
   assert.equal(records.filter(record => record.command.type === 'act').length, beforeTopic, 'Choosing a topic prepares only.');
   if (prefix === 'first') await layout(a, 'conversation-prepared');
   if (prefix === 'first') await enlargedStory(a);
+  const factStamp = prefix === 'first' ? observedFactStamp(a) : undefined;
   await commit(a);
   if (prefix === 'first') {
-    const discovery = await observedFlipbook(a, 'discovery');
+    const [discovery] = await Promise.all([observedFlipbook(a, 'discovery'), factStamp]);
     await settledEffects(a);
     assert.equal(await a.getByRole('dialog', { name: /round|chronicle/i }).count(), 0);
     await sync(a); await sync(a); assert.equal(await a.locator('.gm-stage [data-frame-atlas]').count(), 0);
     await a.reload({ waitUntil: 'domcontentloaded' }); await settled(a);
     assert.equal(await a.locator('.gm-stage [data-frame-atlas]').count(), 0, 'Reloading the settled reveal does not replay an old discovery.');
+    assert.equal(await a.locator('[data-gemward-fact-stamp]').count(), 0, 'Reloading does not replay a factual stamp.');
     await sync(b);
     assert.equal(await b.locator('.gm-stage [data-frame-atlas]').count(), 0);
     assert.ok((await state(b)).room.expedition.questItems.includes('ledger-copy'));
@@ -331,6 +535,11 @@ async function journey(prefix, route, finale) {
   if (prefix === 'first') note('The discovery keeps its cause and next lead through the next choosing turn');
   for (let step = 0; room.phase === 'choosing' && room.chapter === 0 && step < 3; step++) {
     await select(a, step === 0 ? 'nella' : 'iris', 'assist', 'shop');
+    if (prefix === 'first' && step === 0) {
+      await sync(b);
+      assert.equal(await b.locator('[data-gemward-placed-move]').count(), 0, 'Another player never sees a prepared draft as an accepted counter.');
+      assert.equal(await a.getByRole('button', { name: 'Flick a counter while you wait', exact: true }).count(), 0);
+    }
     const spent = prefix === 'first' && step === 1 ? await attachSupply(a, 'dust', 'Spark dust') : prefix === 'first' && step === 2 ? await attachSupply(a, 'favour', 'Local favour') : undefined;
     if (prefix === 'first' && step === 1) {
       const beforeConflict = records.filter(record => record.command.type === 'act').length;
@@ -346,10 +555,49 @@ async function journey(prefix, route, finale) {
       assert.equal(await attachSupply(a, 'dust', 'Spark dust'), spent);
       note('Dust cannot be released with Gather; its reason and removal control preserve the item until a preparation action is chosen');
     }
-    await commit(a);
+    if (prefix === 'first' && step === 2) await uncertainMove(a, b, `${prefix}a`);
+    else await commit(a);
     await sync(b); assert.equal((await state(b)).room.phase, 'choosing');
-    await select(b, 'bram', 'assist', 'docks'); await commit(b);
+    if (prefix === 'first' && step === 0) {
+      await waitingExperience(a, b);
+      await select(b, 'nella', 'assist', 'shop');
+      assert.match(await b.locator('[data-round-notice]').innerText(), /recorded once|shared discovery|already placed/i);
+      note('A matching accepted preparation explains overlap before the second player commits');
+    }
+    await select(b, prefix === 'first' && step === 0 ? 'nella' : 'bram', 'assist', prefix === 'first' && step === 0 ? 'shop' : 'docks');
+    if (prefix === 'first' && step === 1) {
+      const duplicateDust = await attachSupply(b, 'dust', 'Spark dust');
+      const previousCommands = records.length;
+      assert.equal(await b.getByRole('button', { name: 'Commit now', exact: true }).isDisabled(), true);
+      assert.match(await b.locator('[data-story-situation]').innerText(), /teammate.*Spark dust.*remove/i);
+      const preparedHeading = await b.locator('.gm-story-heading').innerText();
+      await b.locator('[data-round-moves]').click();
+      await b.getByRole('dialog', { name: 'Moves on the table', exact: true }).getByRole('button', { name: /^Look at / }).click();
+      await b.getByRole('dialog', { name: 'A closer look', exact: true }).waitFor();
+      await closePanel(b);
+      assert.equal(await b.locator('[data-gemward-place="docks"]').getAttribute('aria-pressed'), 'true', 'Read-only inspection of a shop move must retain a draft at the docks.');
+      assert.equal(await b.locator('[data-scene-target="bram"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await b.locator('[data-token="assist"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await b.locator('.gm-story-heading').innerText(), preparedHeading);
+      assert.ok(await b.locator('.gm-attached button').filter({ hasText: 'Spark dust' }).isVisible());
+      assert.equal(records.length, previousCommands);
+      note('Inspecting a teammate at another stop preserves the local target, token, topic and attached item');
+      await b.locator('.gm-attached button').filter({ hasText: 'Spark dust' }).click();
+      assert.equal(await b.getByRole('button', { name: 'Commit now', exact: true }).isEnabled(), true);
+      assert.equal(records.length, previousCommands);
+      assert.ok((await state(b)).room.expedition.stashes[(await state(b)).userId].some(item => item.id === duplicateDust));
+      note('A teammate’s accepted Spark dust disables a duplicate release and keeps the removable local item unspent');
+    }
+    await commit(b);
     room = await allSame(pair);
+    if (prefix === 'first' && step === 0) {
+      await a.getByRole('dialog', { name: 'A little table play', exact: true }).waitFor({ state: 'detached' });
+      assert.equal(await a.locator('[data-tabletop-flick]').count(), 0);
+      const focus = await a.evaluate(() => ({ story: document.activeElement?.matches('[data-story-table]'), visible: !!document.activeElement?.getClientRects().length }));
+      assert.equal(focus.story, true, 'Closing the toy at the round boundary returns focus to the current story.');
+      assert.equal(focus.visible, true);
+      note('A real round resolution closes optional table play and restores useful keyboard focus');
+    }
     if (spent) {
       assert.equal(room.expedition.stashes[(await state(a)).userId].some(item => item.id === spent), false);
       assert.equal(records.filter(record => record.page === `${prefix}a` && record.command.type === 'act').at(-1).command.action.expedition.consumableId, spent);
@@ -367,6 +615,11 @@ async function journey(prefix, route, finale) {
   if (prefix === 'first') await layout(a, 'gather-prepared');
   await commit(a);
   assert.equal(records.filter(record => record.page === `${prefix}a` && record.command.type === 'act').at(-1).command.action.expedition.interactionId, 'story-plan:gather');
+  if (prefix === 'first') {
+    await sync(b);
+    assert.match(await b.locator('[data-round-notice]').innerText(), /last move here.*accepted actions settle/i);
+    note('A teammate’s accepted departure makes the last preparation opportunity explicit');
+  }
   await select(b, 'bram', 'assist', 'docks'); await commit(b);
   room = await allSame(pair); assert.equal(room.phase, 'reveal');
   await advance(pair); room = await allSame(pair);
@@ -423,6 +676,7 @@ async function journey(prefix, route, finale) {
       if (verifyContact || verifyFinished) await a.emulateMedia({ reducedMotion: 'no-preference' });
       if (verifyFinished) await b.emulateMedia({ reducedMotion: 'no-preference' });
       await select(a, 'encounter', token);
+      if (!battleRounds && prefix === 'first') assert.match(await a.locator('[data-story-situation]').innerText(), /Winning counter: \+[\d.]+ battle progress\./);
       if (!battleRounds && prefix === 'first') await layout(a, 'combat-prepared');
       await commit(a);
       if (verifyContact) assert.equal(await a.locator('.gm-stage [data-frame-atlas]').count(), 0, 'An unconfirmed battle move has no result flipbook.');
@@ -521,6 +775,7 @@ try {
   browser = await chromium.launch({ headless: true });
   await journey('first', 'warehouse', 'beacon');
   await journey('second', 'canal', 'lantern-square');
+  await crowdedAccepted();
   assert.equal(await fingerprint(), sourceFingerprint, 'Source changed during captures; rerun against the final version.');
   assert.deepEqual(errors, []);
 } catch (error) {
