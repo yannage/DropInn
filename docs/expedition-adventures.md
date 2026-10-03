@@ -1,6 +1,18 @@
 # Expedition adventures
 
-Status: implemented and locally verified; not published. The story packet is [Gemward: The Missing Light](stories/gemward.md). The runtime contract below describes the new `gemward` version 1 definition, not a migration of existing rooms. Local verification establishes the scopes below; human pacing remains unmeasured.
+Gemward v2 is implemented and locally verified: all 746 unit/service tests, final production build, art checks and 36 Journey browser checks pass. Its [branching journey packet](stories/gemward-v2.md) records the current graph, art and ending contract. New rooms select v2; existing v1 rooms stay pinned. The v1 rules and verification below remain historical evidence for the [original packet](stories/gemward.md), not proof of v2 behavior. Neither version is published by this task; human pacing remains unmeasured.
+
+## Gemward v2 journey contract
+
+`journey.ts`, `journeyTypes.ts` and `journeyEngine.ts` add a six-node, nine-edge graph with two forks: town to warehouse/canal/road, then the selected middle destination to beacon/Lantern square. Town has shop, inn and docks scenes; eight bespoke plates cover all destinations. `GemwardAdventure.tsx`, `GemwardJourney.tsx` and `GemwardArt.tsx` own the v2 presentation; the earlier expedition components remain for pinned v1 rooms.
+
+Both travel boundaries open after the chapter reveal, using a separate 30-second authoritative phase. Options and electorate freeze at entry. A unique plurality wins; ties/no votes use road, then release at Lantern square. Votes do not use tokens, consume supplies, grant contribution credit or count as missed action turns. Accepted votes survive departure and exact retries; new arrivals wait for the destination boundary. The road's travel cost applies at transition. The finale's choice commits at travel, but prism consumption, binding/freeing, restoration and the ending apply only at chapter 3 completion.
+
+Town and finale use goal 4, minimum two exploration rounds and a four-round cap. Middle recovery closes its chapter directly after victory, escape or prepared canal bypass. It does not add v1's extra return-preparation action. Shared pouch projection records first acquisitions, all same-round discoverer sources, spends, unlocked edges and confirmed transitions. Quest evidence survives departures. Existing three-slot stash and class counter rules remain.
+
+V2 keeps ordinary waiting and confirmed results on the illustrated table. Chronicle opens on demand; Journey opens at a travel boundary and offers map, pouch and chapter highlights. This scope does not change the older stories' delayed automatic parchment. `npm run test:expedition` and `npm run test:journey` both invoke `scripts/playtest-journey.mjs`.
+
+Current v2 evidence: all 746 unit/service tests, final production build and art inventory check pass. The source-matched Journey browser runner passes 36 checks with zero errors through actual two-player Warehouse → Beacon and peaceful Canal → Lantern square paths, including lost travel acknowledgement/reload/exact duplicate, stash use, on-demand history, selected map memories, chapter rewards and 320/390/1280 layouts. Five narrator-opening browser scenarios use real WAV playback with held model transfer/mocked initialization; they make no live inference-latency claim. All eight art crops and twelve small cutouts were reviewed; live scene composition review covered shop, warehouse, beacon, canal and Lantern square. The final older-adventure browser regression passes 102 checks with zero failures, browser errors or external/model calls, including automatic narration, failure fallback, retry and subtitles; report: `output/playwright/scene-integration-results.json`. See the [packet's precise verification record](stories/gemward-v2.md#verification).
 
 ## Design purpose
 

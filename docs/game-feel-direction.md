@@ -2,6 +2,8 @@
 
 Implemented locally · 2026-09-29 · Hosted rollout and human enjoyment evaluation remain separate.
 
+Scope update · 2026-10-03: Gemward v2 uses the on-demand Chronicle and explicit Journey boundaries described below. Older adventures retain the delayed automatic parchment documented in this record; its historical checks do not establish v2 verification.
+
 **Show the consequence on the table before explaining it in history.**
 
 The core loop is **pick up a piece → aim → commit → watch the world react → spot the next opportunity**. Keep quiet intervals so ordinary actions, combinations and chapter endings have distinct weight. Preserve cooperative stories and handmade artwork.
@@ -10,13 +12,21 @@ The core loop is **pick up a piece → aim → commit → watch the world react 
 
 Four tokens are visible by default. Lift, pointer tilt, compatible targets, placement squash and invalid-drop return support selection. Dragging prepares a move; the existing hold/release control commits it. Target-first inspection, tap, keyboard, assisted timing and Roll now remain. Approach and explicit combination choices stay in the dock with benefit/risk information. Tokens park at committed targets; uncertain delivery keeps the saved-action retry path.
 
-Keep all four scene pieces and lower-edge heroes visible. Desktop targets are staggered; phones use two columns. The live round parchment opens automatically after the on-table result has had breathing room, following the human A/B preference. View scene dismisses it for that round, even across confirmation; history can be reopened explicitly. Waiting/readiness and a persistent consequence caption keep ordinary play on the table. Developed objects keep their changed artwork.
+Keep all four scene pieces and lower-edge heroes visible. Desktop targets are staggered; phones use two columns. In the earlier adventures, the live round parchment opens automatically after the on-table result has had breathing room, following the human A/B preference. View scene dismisses it for that round, even across confirmation; history can be reopened explicitly. Gemward v2 instead keeps ordinary waiting/results on the illustrated table and opens Chronicle only on demand. Waiting/readiness and a persistent consequence caption keep ordinary play on the table. Developed objects keep truthful artwork; a prepared beacon is still dark until restoration completes.
 
 Choosing lasts at most 60 seconds and resolves when everyone commits. The ten-second reveal/readiness contract is unchanged. `stagePlayback.ts` projects confirmed results using the resolution timestamp: first anticipation at 150ms, impact 300ms later, subsequent starts at most 1050ms apart, compressed to finish by 5750ms. Presentation caches the last choosing snapshot without modifying room state. Late snapshots project elapsed beats; reloads without that cache show the resolved board. Repeated events are deduplicated, and sound IDs survive component remounts. Reduced motion/effects show the complete outcome immediately.
 
 Fight lunges and recoils, Influence sends speech marks, Investigate reveals sparks/clues, and Help draws a connection. Display recorded objective progress, damage, healing and protection accurately; combat objective progress is never enemy HP. Credit the setup actor in combination results without awarding extra XP.
 
-## Effect budget and access
+## Gemward v2 journey presentation
+
+Eight distinct environment plates anchor freely browsable town scenes and later party destinations. NPCs, quest props and enemies remain independent illustrated pieces; backgrounds contain no interactive targets. Preparation, token release, confirmed effect and settled result remain distinct. The shared pouch records discoverers and the paths their objects opened. Journey presents the connected map, pouch and chapter highlights; Chronicle remains optional detailed reading, rather than interrupting each action.
+
+After chapter 1 and 2 reveals, Journey opens for a separate 30-second party travel decision. Frozen options and their costs are visible before a vote; unique plurality wins and tied/absent votes use road, then release at Lantern square. Travel is neither an ordinary token action nor a missed turn. Final travel selects restoration/release; the prism remains intact throughout finale preparation. Only chapter completion applies its irreversible cost and changes the closing image. Reduced motion preserves all state and explicit confirmation. See [v2 story contract](stories/gemward-v2.md).
+
+Current v2 evidence: all 746 unit/service tests, art checks and the final production build pass. The source-matched Journey runner passes 36 checks with zero errors across actual two-player Warehouse → Beacon and Canal → Lantern square paths, retry/reload, stash use, on-demand history, selected map memories and 320/390/1280 layouts. Five narrator-opening scenarios verify real WAV playback under controlled model availability, with no live inference-latency claim. `npm run test:journey` and `npm run test:expedition` both invoke the Journey runner; the [v2 packet](stories/gemward-v2.md#verification) records the precise scopes, including the still-separate older-adventure regression. Earlier evidence in this document remains scoped to its named build and adventure.
+
+## Effect budget and access (shared)
 
 Busy rounds compress the entire beat to its spacing, including contact, dice, travel, recoil and the sound window. This prevents an earlier active event from hiding a later one while preserving the 5.75-second playback ceiling.
 

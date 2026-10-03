@@ -77,7 +77,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await select(page,'investigate','tracks');await skip(page);await sync(page);
   await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,priorSpoken);
   const settledAt=await page.evaluate(async()=>{
-    const room=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room;
+    const room=window.__qaAdventureStore.getState().room;
     const beats=(await import('/src/lib/dropinn/stagePlayback.ts')).stageTimeline(room);
     return Math.max(...beats.map(beat=>beat.start+beat.duration));
   });
@@ -231,7 +231,7 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
     throw error;
   }
   const naturalStart=await page.evaluate(async()=>{
-    const room=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room;
+    const room=window.__qaAdventureStore.getState().room;
     const beats=(await import('/src/lib/dropinn/stagePlayback.ts')).stageTimeline(room);
     return {settledAt:Math.max(...beats.map(beat=>beat.start+beat.duration)),startedAt:window.__natural.requests.find(item=>item.type==='generate').at};
   });
@@ -241,13 +241,17 @@ export async function checkNarrator({page,select,skip,state,sync,readyNext,note}
   await page.evaluate(()=>window.__natural.failGenerate=true);
   const commitInvestigation=async()=>{
     const target=await page.evaluate(async()=>{
-      const room=(await import('/src/store/adventureStore.ts')).useAdventureStore.getState().room;
+      const room=window.__qaAdventureStore.getState().room;
       return (await import('/src/lib/dropinn/scene.ts')).getScene(room).targets.find(item=>item.tokens.includes('investigate')).id;
     });
     await select(page,'investigate',target);await skip(page);await sync(page);
   };
   await commitInvestigation();
-  await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,bridgeSpoken,{timeout:12000});
+  try { await page.waitForFunction(count=>window.__narratorSpeech.spoken.length>count,bridgeSpoken,{timeout:12000}); }
+  catch (error) {
+    note('narrator-fallback-diagnostic', await page.evaluate(() => ({ requests: window.__natural.requests.map(({assets,...request})=>request), spoken: window.__narratorSpeech.spoken, error: document.querySelector('.di-narrator-error')?.textContent, caption: document.querySelector('.di-narrator-words')?.textContent, control: [...document.querySelectorAll('button')].map(button=>button.getAttribute('aria-label')).filter(label=>label?.includes('narrator')) })));
+    throw error;
+  }
   assert.equal(await page.evaluate(()=>window.__narratorSpeech.spoken.at(-1).voice),'test-local','A failed natural sentence falls back to a verified local voice');
   assert.match(await page.locator('.di-narrator-error').textContent(),/Using your device voice because the natural voice could not continue/);
   await page.getByRole('button',{name:'Mute narrator',exact:true}).waitFor();

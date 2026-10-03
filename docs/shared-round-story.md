@@ -1,8 +1,10 @@
 # A shared story in each round
 
-> Current presentation (2026-09-29): the living tabletop supersedes the focused scene and automatic parchment described in this historical implementation record. Four tokens and the scene remain visible; approaches appear in the dock, committed tokens park at their targets, and confirmed consequences play on the stage. Open parchment explicitly for readable history. Timing, approach rules and exact retry semantics remain. See [the current game-feel contract](game-feel-direction.md).
+> Current presentation (2026-10-03): Gemward v2 keeps its illustrated scene visible for ordinary preparation, waiting and confirmed results; Chronicle opens on demand. Journey opens at explicit chapter travel boundaries with the connected map, shared pouch and highlights. Earlier adventures retain the refined delayed automatic parchment after their on-table result, with per-round dismissal. This historical record's immediate submission overlay is not the current universal rule. Timing, approach rules and exact retry semantics remain scoped to each version. See [the current game-feel contract](game-feel-direction.md).
 
 Implementation: 2026-09-21; illustrated scroll revision: 2026-09-27. Local verification results are recorded separately in `output/playwright`. This is an interface and authored-presentation change, not a new story, rule set, hosted release, or claim of measured comprehension.
+
+Gemward v2's two travel decisions have their own 30-second deadlines and frozen options/electorate; they neither spend a normal move nor grant action credit. The final destination records restoration/release, while the actual prism spend and irreversible outcome wait until finale completion. Its shared pouch and Journey highlights derive from acquisition, spend, unlock and transition events rather than reconstructed prose. All 746 current unit/service tests, art checks and the final build pass. The source-matched Journey browser runner passes 36 checks with zero errors across both two-player paths, including on-demand history, selected map memories, exact travel retry/reload and mobile layouts. The historical results below are not v2 evidence. See [the current packet and scoped evidence](stories/gemward-v2.md#verification).
 
 ## Design and motivation
 

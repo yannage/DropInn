@@ -1,0 +1,421 @@
+{
+  "style": "Approved Gemward v2 immersive handmade environments: irregular black MS Paint contours, broad fills and simple shadow depth; independent accurate cutouts.",
+  "date": "2026-10-03",
+  "resourcePlan": {
+    "environments": [
+      "shop",
+      "inn",
+      "docks",
+      "warehouse",
+      "canal",
+      "road",
+      "beacon",
+      "lantern-square"
+    ],
+    "questProps": [
+      "ledger",
+      "canal-key",
+      "prism",
+      "empty-gem-stand",
+      "price-board"
+    ],
+    "enemies": [
+      "hired-guard",
+      "ward-construct"
+    ],
+    "consumables": [
+      "second-wind",
+      "smoke",
+      "favour",
+      "dust",
+      "binding"
+    ]
+  },
+  "drafts": [
+    {
+      "id": "shop-initial",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-6af9e2ce-6c2d-49ac-a68f-4ed64e3511cd.png",
+      "prompt": "Use case: illustration-story. Create ONE background-only environment plate for DropInn's Gemward gem shop, wide 3:2 landscape 1536x1024. Whimsical old MS Paint mouse-drawn fantasy: visibly hesitant irregular black raster contours, clumsy lopsided architectural shapes, coarse natural jaggies, broad restrained flat cream, dusty teal, moss, coral and mustard fills. Preserve handmade awkwardness; do not polish into clean vectors, anime, or glossy mobile-game art. User-approved upgrade: immersive scene depth using a few broad flat cast-shadow shapes and overlapping architecture, not fine texture or painterly rendering. Scene: a little crooked timber-and-plaster jeweller's shop interior at evening, amber window light from high left, deep dusty-teal alcoves, a rear arched doorway and shallow empty wall shelves, timber ceiling beams. Architectural back wall and windows occupy upper third; the central floor is wide, inviting, uncluttered open space for four separate interactive character/prop cutouts. Main recognizable architecture inside central 60% width, mobile portrait crop friendly. Bottom 20% is simple muted floor for later HTML hero/token controls, with no foreground objects; near side doorway jambs may frame the extreme outer edges. Absolutely no characters, creatures, furniture targets, gems, gem stand, price board, ledger, keys, containers, text, signs, letters, symbols, UI, frames, logos or watermarks. Full bleed opaque environment, not a card, not a contact sheet. One location only.",
+      "review": "Rejected as overly fine-lined; simplified through built-in targeted edit before selection."
+    },
+    {
+      "id": "hired-guard-before-revision",
+      "kind": "enemy",
+      "purpose": "Gemward v2 hired guard illustrated cutout",
+      "file": "public/art/gemward-v2-hired-guard.png",
+      "runtimeFile": "public/art/gemward-v2-hired-guard.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-7d76fd5b-40b7-4cf8-9f3e-49691c2ed73a.png",
+      "prompt": "Transform the reference into this DIFFERENT single DropInn encounter character: ONE new hired warehouse guard character, entirely different person from the reference: a stocky middle-aged human with a tiny crooked moustache, one raised eyebrow and tired mismatched eyes. Dusty-teal patched guard tunic, dull mustard shoulder cape, lopsided gray kettle helmet, broad brown boots. One hand holds a short plain wooden baton pointing down, other hand held palm-out to block passage. Funny wary deadpan expression, approachable comic obstacle rather than cruel villain. Full standing silhouette including helmet and both feet. NO shepherd crook, orange hair, green robe, extra figures or reference identity. Preserve the source's lovingly awkward old MS Paint mouse-drawing language: thick truly-black irregular raster edges, lopsided anatomy, off-center expressive eyes, blunt uneven contours, broad flat muted bucket fills, very few interior marks. Avoid polished cartoons, vectors, chibi defaults, glossy3D, elaborate shading and texture. Square transparent-alpha cutout, entire opaque character centered with at least12% clear margins all around, feet intact. Readable at64–160px. No background scene, floor, ground shadow, text, badge, frame, watermark or sheet. One character only.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/mara.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Replaced after exact alpha bounds reached the canvas edge."
+    },
+    {
+      "id": "favour-before-revision",
+      "kind": "consumable",
+      "purpose": "Gemward v2 favour consumable cutout",
+      "file": "public/art/gemward-v2-favour.png",
+      "runtimeFile": "public/art/gemward-v2-favour.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f9f060fe-2e8f-4366-9340-1fa0d80bf657.png",
+      "prompt": "Create one standalone DropInn fantasy consumable cutout by replacing the gate subject from the reference with the object specified below, retaining its deliberately wonky mouse-drawn MS Paint style. Coarse uneven true-black outlines, charming asymmetry, broad simple flat colored fills with just one or two simple darker shadow shapes, no fine hatch or painterly texture, handmade not vector, friendly mobile game illustration. Entire single object centered with at least 15 percent transparent margin on every side, roughly square overall silhouette, no scene, no floor, no cast shadow outside object, no UI panel, no lettering, no human or animal. Actual transparent background. Readable at 48 pixels. One folded chunky cream letter, lopsided triangular envelope flap, tied with a coral ribbon and big muted gold wax seal. A tiny black simple hand-scribbled star on the seal, no other lettering. Loose ribbon ends remain close to the envelope, compact readable silhouette.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Replaced after exact alpha bounds reached the canvas edge."
+    },
+    {
+      "id": "inn-before-revision",
+      "kind": "environment",
+      "purpose": "Gemward v2 inn immersive environment plate",
+      "file": "public/art/gemward-v2-inn.png",
+      "runtimeFile": "public/art/gemward-v2-inn.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-28961804-05d8-445d-b2b5-7e81d8486e2b.png",
+      "prompt": "Transform the reference empty environment into ONE different DropInn background plate: a welcoming little fantasy inn common room at evening. Crooked dark timber beams, warm coral plaster, two recessed amber windows and a shallow unlit stone hearth built into the far upper-right wall, dusty-teal rear archway. Architectural ledges only, NO tables, chairs, benches, cups, movable lanterns or furniture. Broad plain honey-brown floor with soft blocky shadows; cozy lived-in architecture rather than abandoned ruin. Preserve the reference's handmade MS Paint style exactly: thick irregular truly-black wobbly contours, awkward lopsided broad shapes, flat restrained cream/moss/dusty-teal/coral/mustard/brown color areas, minimal interior marks. Depth comes from simple overlapping architecture and a few broad shadow blocks, never glossy shading or fine texture. Landscape3:2 1536x1024 opaque full bleed. Main identifiable architecture inside middle60% width for mobile portrait crop. Keep four separate NPC/prop overlay zones uncluttered and bottom20% quiet. Absolutely no characters, creatures, collectible or interactive objects, writing, UI, frames, logos, watermarks or tiny decorative clutter. Keep the scene inviting, dimensional and clearly distinct from the reference shop. One asset only, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Replaced to remove the baked-in interactive hearth."
+    }
+  ],
+  "assets": [
+    {
+      "id": "gemward-v2-shop",
+      "kind": "environment",
+      "purpose": "Gemward v2 shop immersive environment plate",
+      "file": "public/art/gemward-v2-shop.png",
+      "runtimeFile": "public/art/gemward-v2-shop.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-21edb2ed-4889-4642-af68-bf89e3a176a0.png",
+      "prompt": "Edit the first image, the empty gem-shop interior, to fit the handmade drawing style of the other two reference images (sheep and crooked gate are STYLE references only, never add them). Preserve the empty-room composition, windows, arches, open floor, warm evening light and architectural perspective. Strongly simplify: remove almost all floor cracks and texture, all fine woodgrain and speckling. Redraw architecture with much thicker uneven truly black mouse-drawn outlines and more awkward lopsided shapes, blunt corners, off-kilter arches, broad simple flat fills. Keep a small number of broad flat shadow blocks for depth. It must look like a lovingly awkward MS Paint adventure backdrop rather than a polished fantasy architectural sketch. No characters, furniture, interactive props, writing, UI, logo or watermark. Keep four overlay zones open and bottom20% quiet; opaque wide3:2 entire frame.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/sheep.png",
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. This location was included in the final two-player Journey live composition review. Phone/desktop checks cover the flow, not every scene at every size; all-eight-scene live coverage is not claimed."
+    },
+    {
+      "id": "gemward-v2-inn",
+      "kind": "environment",
+      "purpose": "Gemward v2 inn immersive environment plate",
+      "file": "public/art/gemward-v2-inn.png",
+      "runtimeFile": "public/art/gemward-v2-inn.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-0408d0e9-2576-44d0-ad99-264693b7ebbd.png",
+      "prompt": "Edit this environment background only to remove the stone fireplace / hearth from the far upper-right corner. Replace its entire shape with a continuous plain pale plaster wall and unobstructed wood floor matching nearby architecture. Preserve the charming handmade MS Paint style, warm amber lighting, irregular thick black contours, empty central floor, open lower half and all other architectural perspective exactly. This is an empty inn environment plate for separate interactive object overlays, so no hearth, fire, people, furniture, quest props, lettering, or new objects in the result. Opaque background.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "revisionOf": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-28961804-05d8-445d-b2b5-7e81d8486e2b.png",
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts.",
+      "editReferenceSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-28961804-05d8-445d-b2b5-7e81d8486e2b.png"
+    },
+    {
+      "id": "gemward-v2-docks",
+      "kind": "environment",
+      "purpose": "Gemward v2 docks immersive environment plate",
+      "file": "public/art/gemward-v2-docks.png",
+      "runtimeFile": "public/art/gemward-v2-docks.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-7aa76ee6-cd69-49ea-ae52-c53457177760.png",
+      "prompt": "Transform the reference empty environment into ONE different DropInn background plate: a quiet canal dock in a small crooked fantasy town at evening. View from a broad empty timber dock towards muted teal water and an old stone canal arch in the upper middle; timber waterside facades and reed banks at distant sides. Central60% contains water arch and broad docking platform. Foreground is a wide mostly plain wooden pier occupying lower55%, quiet bottom20%. No boats, lock mechanisms, ropes, crates, keys, signs, NPCs or movable props. Preserve the reference's handmade MS Paint style exactly: thick irregular truly-black wobbly contours, awkward lopsided broad shapes, flat restrained cream/moss/dusty-teal/coral/mustard/brown color areas, minimal interior marks. Depth comes from simple overlapping architecture and a few broad shadow blocks, never glossy shading or fine texture. Landscape3:2 1536x1024 opaque full bleed. Main identifiable architecture inside middle60% width for mobile portrait crop. Keep four separate NPC/prop overlay zones uncluttered and bottom20% quiet. Absolutely no characters, creatures, collectible or interactive objects, writing, UI, frames, logos, watermarks or tiny decorative clutter. Keep the scene inviting, dimensional and clearly distinct from the reference shop. One asset only, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-warehouse",
+      "kind": "environment",
+      "purpose": "Gemward v2 warehouse immersive environment plate",
+      "file": "public/art/gemward-v2-warehouse.png",
+      "runtimeFile": "public/art/gemward-v2-warehouse.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-37f9a27c-65c5-424e-94e7-1850c8de095f.png",
+      "prompt": "Transform the reference empty environment into ONE different DropInn background plate: the interior of a crooked old fantasy warehouse at evening. Heavy exposed black-outlined timber roof beams, dusty warm cream plaster, a high small amber window and open rear double-door arch admitting a distant sliver of teal dusk. Empty architectural storage alcoves at far sides, broad uncluttered warm-brown floor filling lower55%. No crates, handcarts, barrels, documents, doors-as-interactive-props, guards, people, furniture or clutter. Preserve the reference's handmade MS Paint style exactly: thick irregular truly-black wobbly contours, awkward lopsided broad shapes, flat restrained cream/moss/dusty-teal/coral/mustard/brown color areas, minimal interior marks. Depth comes from simple overlapping architecture and a few broad shadow blocks, never glossy shading or fine texture. Landscape3:2 1536x1024 opaque full bleed. Main identifiable architecture inside middle60% width for mobile portrait crop. Keep four separate NPC/prop overlay zones uncluttered and bottom20% quiet. Absolutely no characters, creatures, collectible or interactive objects, writing, UI, frames, logos, watermarks or tiny decorative clutter. Keep the scene inviting, dimensional and clearly distinct from the reference shop. One asset only, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. This location was included in the final two-player Journey live composition review. Phone/desktop checks cover the flow, not every scene at every size; all-eight-scene live coverage is not claimed."
+    },
+    {
+      "id": "gemward-v2-canal",
+      "kind": "environment",
+      "purpose": "Gemward v2 canal immersive environment plate",
+      "file": "public/art/gemward-v2-canal.png",
+      "runtimeFile": "public/art/gemward-v2-canal.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-14b6b125-a19b-4a00-a32d-6472b8a23bf2.png",
+      "prompt": "Transform the reference empty shop into ONE different DropInn environment plate: a hidden sheltered canal beneath a fantasy town, viewed from a broad empty stone landing. A low crooked stone bridge/arched tunnel and dusky teal water occupy upper third; moss-green bank and walls recede into deep blue-green distance. Warm tiny sky strip above distant houses, no decorative lamps. Foreground broad muted cream/gray stone landing fills lower55%, quiet simple bottom20%. No boats, ropes, keys, crates, handcarts, mooring objects or people. Preserve its handmade MS Paint aesthetic: thick irregular truly-black mouse-drawn outlines, lopsided simple geometry, blunt uneven joins and broad restrained flat fills. Depth from overlapping architectural layers and a few broad blocky cast shadows, not fine texture, polished painting, smooth vectors, gradients or glossy3D. Wide3:2 landscape1536x1024, opaque fullbleed. Main recognizable landmarks within middle60% width for mobile portrait crop; four overlay zones and lower20% kept uncluttered. Absolutely no people, creatures, questobjects, gameplay props, writing, labels, UI, borders, logos or watermarks. One complete environment, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. This location was included in the final two-player Journey live composition review. Phone/desktop checks cover the flow, not every scene at every size; all-eight-scene live coverage is not claimed."
+    },
+    {
+      "id": "gemward-v2-road",
+      "kind": "environment",
+      "purpose": "Gemward v2 road immersive environment plate",
+      "file": "public/art/gemward-v2-road.png",
+      "runtimeFile": "public/art/gemward-v2-road.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-cbfd3402-c318-478c-84f0-b9c483e1c609.png",
+      "prompt": "Transform the reference empty shop into ONE different DropInn environment plate: a broad winding hill road beyond a small crooked fantasy town at sunset. Empty warm-ochre road curves from the wide uncluttered foreground toward a distant small town silhouette in central upper third. Lopsided moss-green hills and a few simple dark teal bushes frame extreme sides; golden cream sky and a muted coral band near horizon. A few broad irregular shadows give layered depth. No carts, crates, signs, fences, characters, stones-as-targets or props. Preserve its handmade MS Paint aesthetic: thick irregular truly-black mouse-drawn outlines, lopsided simple geometry, blunt uneven joins and broad restrained flat fills. Depth from overlapping architectural layers and a few broad blocky cast shadows, not fine texture, polished painting, smooth vectors, gradients or glossy3D. Wide3:2 landscape1536x1024, opaque fullbleed. Main recognizable landmarks within middle60% width for mobile portrait crop; four overlay zones and lower20% kept uncluttered. Absolutely no people, creatures, questobjects, gameplay props, writing, labels, UI, borders, logos or watermarks. One complete environment, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-beacon",
+      "kind": "environment",
+      "purpose": "Gemward v2 beacon immersive environment plate",
+      "file": "public/art/gemward-v2-beacon.png",
+      "runtimeFile": "public/art/gemward-v2-beacon.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-20f46df2-eb06-404b-8f69-a97b75e844af.png",
+      "prompt": "Transform the reference empty shop into ONE different DropInn environment plate: an empty stone terrace around a fantasy town's beacon workshop at dusk, ready for a SEPARATE beacon object overlay. Crooked pale stone arcades at upper sides, a high simple rear wall with a large central open arch showing distant teal hills and town rooftops, dusty blue evening sky. Warm gray flagstone terrace fills lower55%; keep its center absolutely empty for separate beacon, keeper, prism cradle and people cutouts. Do NOT draw any beacon, pedestal, prism, lantern, brazier, statue, altar, character or interactive object. Quiet bottom20%. Preserve its handmade MS Paint aesthetic: thick irregular truly-black mouse-drawn outlines, lopsided simple geometry, blunt uneven joins and broad restrained flat fills. Depth from overlapping architectural layers and a few broad blocky cast shadows, not fine texture, polished painting, smooth vectors, gradients or glossy3D. Wide3:2 landscape1536x1024, opaque fullbleed. Main recognizable landmarks within middle60% width for mobile portrait crop; four overlay zones and lower20% kept uncluttered. Absolutely no people, creatures, questobjects, gameplay props, writing, labels, UI, borders, logos or watermarks. One complete environment, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. This location was included in the final two-player Journey live composition review. Phone/desktop checks cover the flow, not every scene at every size; all-eight-scene live coverage is not claimed."
+    },
+    {
+      "id": "gemward-v2-lantern-square",
+      "kind": "environment",
+      "purpose": "Gemward v2 lantern-square immersive environment plate",
+      "file": "public/art/gemward-v2-lantern-square.png",
+      "runtimeFile": "public/art/gemward-v2-lantern-square.webp",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10095-a978-7761-b05c-d92b22cfd7e5\\exec-cfc31076-48fe-4462-8aac-d69776395022.png",
+      "prompt": "Transform the reference empty shop into ONE different DropInn environment plate: an inviting empty fantasy town square in blue evening twilight. Crooked cream-and-coral timber-fronted houses around distant central alley, softly warm amber WINDOW light, lavender-blue sky and dusty teal upper shadows. The communal square is a broad warm-gray paved open space filling lower55%; architecture recedes in layers around it. No freestanding lanterns, poles, market stalls, tables, benches, characters, shop signs, text or props: shared lanterns and townspeople will be separate interactive cutouts. Quiet bottom20%. Preserve its handmade MS Paint aesthetic: thick irregular truly-black mouse-drawn outlines, lopsided simple geometry, blunt uneven joins and broad restrained flat fills. Depth from overlapping architectural layers and a few broad blocky cast shadows, not fine texture, polished painting, smooth vectors, gradients or glossy3D. Wide3:2 landscape1536x1024, opaque fullbleed. Main recognizable landmarks within middle60% width for mobile portrait crop; four overlay zones and lower20% kept uncluttered. Absolutely no people, creatures, questobjects, gameplay props, writing, labels, UI, borders, logos or watermarks. One complete environment, not a sheet.",
+      "reference": [
+        "public/art/gemward-v2-shop.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "review": "Viewed full generated output and browser contact sheet at landscape 3:2 and central portrait crops. Clear foreground and no baked interactive targets; distinct coherent location architecture. Opaque source and exact lossless WebP RGBA verified. This location was included in the final two-player Journey live composition review. Phone/desktop checks cover the flow, not every scene at every size; all-eight-scene live coverage is not claimed."
+    },
+    {
+      "id": "gemward-v2-ledger",
+      "kind": "quest-prop",
+      "purpose": "Gemward v2 ledger illustrated cutout",
+      "file": "public/art/gemward-v2-ledger.png",
+      "runtimeFile": "public/art/gemward-v2-ledger.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-75ad2fb0-5821-4014-a8de-126b1d1f7a62.png",
+      "prompt": "Transform the reference prop into a DIFFERENT single standalone game object: ONE open merchant delivery ledger, squat lopsided brown leather book with thick cream pages, very sparse uneven black row marks (nonlinguistic doodles, NO readable writing), one simple coral wax seal attached to upper-right page. Slight three-quarter view, broad recognizable open-book silhouette. No quill, extra paper, coins, background or surface. Preserve the DropInn hand-drawn MS Paint method of the reference: coarse uneven truly-black raster contours, awkward lopsided geometry, blunt irregular joins and broad almost-flat bucket fills; use very few interior marks. Do NOT retain any gate, rope, grass or reference subject. No polished vector icon, glossy fantasy loot badge, fine texture, realistic lighting or circular UI backing. Square1024x1024 composition, the object centered with at least15% totally empty margin on every edge. Actual transparent alpha background, no checkerboard or colored backdrop, object opaque. Full uncropped silhouette, recognizable at48–64px. One asset only, no sheet, text, watermarks or labels.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-canal-key",
+      "kind": "quest-prop",
+      "purpose": "Gemward v2 canal key illustrated cutout",
+      "file": "public/art/gemward-v2-canal-key.png",
+      "runtimeFile": "public/art/gemward-v2-canal-key.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-50eac38b-73ac-4bfd-9935-6130b7693fe6.png",
+      "prompt": "Transform the reference prop into a DIFFERENT single standalone game object: ONE old brass canal-lock key, oversized irregular round bow and two blunt uneven teeth, short slightly bent shaft, chunky dull mustard-gold with one simple darker side area. Tilt diagonally from lower-left to upper-right, full shape visible. No tag, ribbon, ring of multiple keys, background or surface. Preserve the DropInn hand-drawn MS Paint method of the reference: coarse uneven truly-black raster contours, awkward lopsided geometry, blunt irregular joins and broad almost-flat bucket fills; use very few interior marks. Do NOT retain any gate, rope, grass or reference subject. No polished vector icon, glossy fantasy loot badge, fine texture, realistic lighting or circular UI backing. Square1024x1024 composition, the object centered with at least15% totally empty margin on every edge. Actual transparent alpha background, no checkerboard or colored backdrop, object opaque. Full uncropped silhouette, recognizable at48–64px. One asset only, no sheet, text, watermarks or labels.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-prism",
+      "kind": "quest-prop",
+      "purpose": "Gemward v2 prism illustrated cutout",
+      "file": "public/art/gemward-v2-prism.png",
+      "runtimeFile": "public/art/gemward-v2-prism.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-52c1c909-c9ad-4466-8f73-48626b153efc.png",
+      "prompt": "Transform the reference prop into a DIFFERENT single standalone game object: ONE magical light prism, an irregular chunky faceted hexagonal teal crystal with cream and muted-gold flat interior facets, resting upright at a slight angle. Tiny single warm-gold spark visible inside the solid crystal as a simple shape. Strong thick black outline, no ethereal smoke or effects outside its silhouette. No base, cradle, jewellery, other gems or background. Preserve the DropInn hand-drawn MS Paint method of the reference: coarse uneven truly-black raster contours, awkward lopsided geometry, blunt irregular joins and broad almost-flat bucket fills; use very few interior marks. Do NOT retain any gate, rope, grass or reference subject. No polished vector icon, glossy fantasy loot badge, fine texture, realistic lighting or circular UI backing. Square1024x1024 composition, the object centered with at least15% totally empty margin on every edge. Actual transparent alpha background, no checkerboard or colored backdrop, object opaque. Full uncropped silhouette, recognizable at48–64px. One asset only, no sheet, text, watermarks or labels.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-empty-gem-stand",
+      "kind": "quest-prop",
+      "purpose": "Gemward v2 empty gem stand illustrated cutout",
+      "file": "public/art/gemward-v2-empty-gem-stand.png",
+      "runtimeFile": "public/art/gemward-v2-empty-gem-stand.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f6f3e4e5-c95a-4996-89b2-ef8616cba6d4.png",
+      "prompt": "Transform the reference prop into a DIFFERENT single standalone game object: ONE EMPTY small jeweller's display stand: a low wonky oval plum-red velvet cushion on a squat mustard-trimmed dark-brown wooden plinth, with a clearly EMPTY central indentation where a prism used to sit. Strong squat object silhouette, slight front three-quarter view. Absolutely no gem, crystal, dust spark, writing, glass case, people or extra objects. Preserve the DropInn hand-drawn MS Paint method of the reference: coarse uneven truly-black raster contours, awkward lopsided geometry, blunt irregular joins and broad almost-flat bucket fills; use very few interior marks. Do NOT retain any gate, rope, grass or reference subject. No polished vector icon, glossy fantasy loot badge, fine texture, realistic lighting or circular UI backing. Square1024x1024 composition, the object centered with at least15% totally empty margin on every edge. Actual transparent alpha background, no checkerboard or colored backdrop, object opaque. Full uncropped silhouette, recognizable at48–64px. One asset only, no sheet, text, watermarks or labels.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-price-board",
+      "kind": "quest-prop",
+      "purpose": "Gemward v2 price board illustrated cutout",
+      "file": "public/art/gemward-v2-price-board.png",
+      "runtimeFile": "public/art/gemward-v2-price-board.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-192371a9-4004-4121-8960-dc3ffdbf4dbb.png",
+      "prompt": "Transform the reference prop into a DIFFERENT single standalone game object: ONE small crooked wooden tabletop price board, rough brown frame on two tiny uneven wooden feet, cream board surface showing exactly three simple gem-shaped doodles with short nonlinguistic dark horizontal marks beside them. NO readable words, numbers, currency symbols or UI. Real physical illustrated shop prop, full board and feet visible. No gems lying beside it, no extra objects or background. Preserve the DropInn hand-drawn MS Paint method of the reference: coarse uneven truly-black raster contours, awkward lopsided geometry, blunt irregular joins and broad almost-flat bucket fills; use very few interior marks. Do NOT retain any gate, rope, grass or reference subject. No polished vector icon, glossy fantasy loot badge, fine texture, realistic lighting or circular UI backing. Square1024x1024 composition, the object centered with at least15% totally empty margin on every edge. Actual transparent alpha background, no checkerboard or colored backdrop, object opaque. Full uncropped silhouette, recognizable at48–64px. One asset only, no sheet, text, watermarks or labels.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-hired-guard",
+      "kind": "enemy",
+      "purpose": "Gemward v2 hired guard illustrated cutout",
+      "file": "public/art/gemward-v2-hired-guard.png",
+      "runtimeFile": "public/art/gemward-v2-hired-guard.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-a387761c-7ba4-4874-bb71-c5b1be7bd400.png",
+      "prompt": "Edit this single guard cutout only to improve transparent canvas clearance. Keep the exact same charming wonky hand-painted MS Paint guard design, irregular black outline, colors, bored face, baton and open hand. Show the complete helmet, boots and all silhouette edges. Make the entire character substantially smaller, occupying only the center 65 percent of the canvas height and width, surrounded by an absolutely empty transparent border at least 17 percent on all four sides. The bottom boots must have a large fully transparent margin beneath them, no marks or shadow at any canvas edge. One guard, no other objects or text. Actual alpha transparency.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/mara.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "revisionOf": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-7d76fd5b-40b7-4cf8-9f3e-49691c2ed73a.png",
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts.",
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-7d76fd5b-40b7-4cf8-9f3e-49691c2ed73a.png"
+    },
+    {
+      "id": "gemward-v2-ward-construct",
+      "kind": "enemy",
+      "purpose": "Gemward v2 ward construct illustrated cutout",
+      "file": "public/art/gemward-v2-ward-construct.png",
+      "runtimeFile": "public/art/gemward-v2-ward-construct.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-3dff8ef8-7a92-4c53-908f-33e7c8bf819f.png",
+      "prompt": "Transform the reference into this DIFFERENT single DropInn encounter character: ONE frightened magical ward construct, a new goofy creature unlike the reference wolves: a squat lopsided creature built from four chunky gray-blue stone blocks around a small warm-gold spark safely visible inside its open chest recess. Two mismatched worried eyes on a crooked simple stone head, short uneven stone arms, two broad blunt stone feet. Half-raised hands in a defensive startled pose. Sparse moss-green patches and dusty-teal edge planes, strong silly silhouette. NO wolf, dog, fur, fangs, pack, second creature, aggressive weapon or extra subjects. Preserve the source's lovingly awkward old MS Paint mouse-drawing language: thick truly-black irregular raster edges, lopsided anatomy, off-center expressive eyes, blunt uneven contours, broad flat muted bucket fills, very few interior marks. Avoid polished cartoons, vectors, chibi defaults, glossy3D, elaborate shading and texture. Square transparent-alpha cutout, entire opaque character centered with at least12% clear margins all around, feet intact. Readable at64–160px. No background scene, floor, ground shadow, text, badge, frame, watermark or sheet. One character only.",
+      "reference": [
+        "public/art/shadow-pack.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-second-wind",
+      "kind": "consumable",
+      "purpose": "Gemward v2 second wind consumable cutout",
+      "file": "public/art/gemward-v2-second-wind.png",
+      "runtimeFile": "public/art/gemward-v2-second-wind.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-506fb84d-a572-4afa-a40c-5cc663dd0539.png",
+      "prompt": "Create one standalone DropInn fantasy consumable cutout by replacing the gate subject from the reference with the object specified below, retaining its deliberately wonky mouse-drawn MS Paint style. Coarse uneven true-black outlines, charming asymmetry, broad simple flat colored fills with just one or two simple darker shadow shapes, no fine hatch or painterly texture, handmade not vector, friendly mobile game illustration. Entire single object centered with at least 15 percent transparent margin on every side, roughly square overall silhouette, no scene, no floor, no cast shadow outside object, no UI panel, no lettering, no human or animal. Actual transparent background. Readable at 48 pixels. A squat slightly lopsided coral-red healing flask, broad rounded glass body, short neck and chunky tan cork, small cream oval label with one simple red heart. Thick dark bottle edges, tiny muted cream highlight. It should look like a physical potion drawn by hand, not an app icon.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-smoke",
+      "kind": "consumable",
+      "purpose": "Gemward v2 smoke consumable cutout",
+      "file": "public/art/gemward-v2-smoke.png",
+      "runtimeFile": "public/art/gemward-v2-smoke.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27ceedcf-1cd2-4f82-acc8-e9882ae56149.png",
+      "prompt": "Create one standalone DropInn fantasy consumable cutout by replacing the gate subject from the reference with the object specified below, retaining its deliberately wonky mouse-drawn MS Paint style. Coarse uneven true-black outlines, charming asymmetry, broad simple flat colored fills with just one or two simple darker shadow shapes, no fine hatch or painterly texture, handmade not vector, friendly mobile game illustration. Entire single object centered with at least 15 percent transparent margin on every side, roughly square overall silhouette, no scene, no floor, no cast shadow outside object, no UI panel, no lettering, no human or animal. Actual transparent background. Readable at 48 pixels. A squat dusky blue-gray clay smoke bomb flask with two broad dark bands and a chunky gray cork. Tiny curled pale-gray wick attached at its neck, a plain cream circle painted on the body, no text or symbols. It should look like a physical clay item drawn by hand, not an app icon.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-favour",
+      "kind": "consumable",
+      "purpose": "Gemward v2 favour consumable cutout",
+      "file": "public/art/gemward-v2-favour.png",
+      "runtimeFile": "public/art/gemward-v2-favour.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f1a4ff8b-c4ca-4cd7-b64f-586e9ea3e007.png",
+      "prompt": "Edit this single envelope cutout only to improve transparent canvas clearance. Keep the exact same wonky cream folded letter with coral ribbon, chunky golden wax star seal and black hand-drawn MS Paint outlines. Shrink the entire envelope substantially so it occupies only the middle 65 percent of the canvas width and height. Leave a generous completely transparent margin at least 17 percent on all four sides, especially the left; absolutely no visible or partially transparent pixels may touch the edges. One envelope only, no extra objects, floor, shadow, text or background. Actual alpha transparency.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "revisionOf": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f9f060fe-2e8f-4366-9340-1fa0d80bf657.png",
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts.",
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f9f060fe-2e8f-4366-9340-1fa0d80bf657.png"
+    },
+    {
+      "id": "gemward-v2-dust",
+      "kind": "consumable",
+      "purpose": "Gemward v2 dust consumable cutout",
+      "file": "public/art/gemward-v2-dust.png",
+      "runtimeFile": "public/art/gemward-v2-dust.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27eb04f3-57c4-45a0-9f33-5ffbc434c242.png",
+      "prompt": "Create one standalone DropInn fantasy consumable cutout by replacing the gate subject from the reference with the object specified below, retaining its deliberately wonky mouse-drawn MS Paint style. Coarse uneven true-black outlines, charming asymmetry, broad simple flat colored fills with just one or two simple darker shadow shapes, no fine hatch or painterly texture, handmade not vector, friendly mobile game illustration. Entire single object centered with at least 15 percent transparent margin on every side, roughly square overall silhouette, no scene, no floor, no cast shadow outside object, no UI panel, no lettering, no human or animal. Actual transparent background. Readable at 48 pixels. A little mustard-gold cloth pouch with dusty teal drawstring and a wide uneven folded open mouth; inside it just three large pale yellow grains of magical dust, one little four-point sparkle within the pouch silhouette. Soft lumpy bag, broad simple warm shadow, no loose particles outside, no lettering.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    },
+    {
+      "id": "gemward-v2-binding",
+      "kind": "consumable",
+      "purpose": "Gemward v2 binding consumable cutout",
+      "file": "public/art/gemward-v2-binding.png",
+      "runtimeFile": "public/art/gemward-v2-binding.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f48678d7-f16b-47b2-8b9b-b83fd0e1dad2.png",
+      "prompt": "Create one standalone DropInn fantasy consumable cutout by replacing the gate subject from the reference with the object specified below, retaining its deliberately wonky mouse-drawn MS Paint style. Coarse uneven true-black outlines, charming asymmetry, broad simple flat colored fills with just one or two simple darker shadow shapes, no fine hatch or painterly texture, handmade not vector, friendly mobile game illustration. Entire single object centered with at least 15 percent transparent margin on every side, roughly square overall silhouette, no scene, no floor, no cast shadow outside object, no UI panel, no lettering, no human or animal. Actual transparent background. Readable at 48 pixels. A small wonky wooden spool wrapped in thick muted teal enchanted cord, one loose end makes a simple rounded loop beside the spool. Broad cream/gold wooden ends, three or four thick cord bands, compact solid physical silhouette. No runes or lettering, no effect glow.",
+      "reference": [
+        ".agents/skills/dropinn-art/assets/gate.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "review": "Viewed full generated output and browser contact sheet at 128, 64 and 48 pixels on pale parchment and dark green. Recognizable complete silhouette and transparent surrounds; no edge clipping. Exact lossless WebP RGBA and strict alpha bounds verified. Live integration scope is recorded in docs/stories/gemward-v2.md; this contact-sheet review does not claim that every scene or asset was exercised in browser layouts."
+    }
+  ],
+  "integrationReview": {
+    "date": "2026-10-03",
+    "browserChecks": 36,
+    "browserErrors": 0,
+    "backend": "isolated local handler",
+    "liveSceneComposition": [
+      "shop",
+      "warehouse",
+      "beacon",
+      "canal",
+      "lantern-square"
+    ],
+    "allEnvironmentCropsReviewed": true,
+    "cutoutSamplePixels": [
+      128,
+      64,
+      48
+    ],
+    "viewportWidths": [
+      320,
+      390,
+      1280
+    ],
+    "scope": "Root-reviewed final two-player Warehouse/Beacon and peaceful Canal/Lantern-square paths. Not a claim of live layout coverage for all eight environments. No hosted, physical-device or human enjoyment evidence."
+  }
+}

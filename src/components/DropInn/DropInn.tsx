@@ -56,6 +56,8 @@ import { SceneArt } from './SceneArt';
 import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
 import { ExpeditionAdventure } from './ExpeditionAdventure';
+import { GemwardAdventure } from './GemwardAdventure';
+import { isJourney } from '../../lib/dropinn/journey';
 import { isExpedition } from '../../lib/dropinn/expedition';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
 import { HeroCustomizer } from './HeroCustomizer';
@@ -727,6 +729,7 @@ function RoomCard({
 }
 
 function Adventure({ room }: { room: AdventureRoom }) {
+  if (isJourney(room)) return <GemwardAdventure room={room} chat={<Chat room={room} />} />;
   if (isExpedition(room)) return <ExpeditionAdventure room={room} chat={<Chat room={room} />} />;
   return <SceneAdventure room={room} chat={<Chat room={room} />} />;
 }

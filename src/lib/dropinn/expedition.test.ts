@@ -8,7 +8,7 @@ import type { AdventureCommand, AdventureRoom, PlayerAction } from './types';
 let commandId = 0;
 const hero = (name: string, classKey: CharacterClassKey = 'rogue') => ({ ...createCharacterProfile(name, classKey), id: name });
 function initial(classKey: CharacterClassKey = 'rogue', seed = 'fixed-gemward') {
-  const room = createAdventure(hero('Alice', classKey), 'alice', 1000, 'GEM123', 'gemward');
+  const room = createAdventure(hero('Alice', classKey), 'alice', 1000, 'GEM123', 'gemward', 1);
   room.id = 'gemward-test'; room.expedition = createExpedition(seed); return room;
 }
 const command = (room: AdventureRoom, type: AdventureCommand['type'], userId = 'alice', extra: Partial<AdventureCommand> = {}, now = room.updatedAt + 1) => reduceAdventure(room, { id: `expedition-test-${++commandId}`, type, userId, ...extra }, now);

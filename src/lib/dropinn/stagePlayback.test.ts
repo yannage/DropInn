@@ -31,6 +31,21 @@ function resolveChoice(before: AdventureRoom, action: PlayerAction) {
 }
 const landedAt = (beat: ReturnType<typeof stageTimeline>[number]) => beat.start + beat.duration / 3 + 1;
 describe('stage playback', () => {
+  it('plays confirmed shared discoveries even without a numerical result, without replay on reload', () => {
+    const before = createAdventure(createCharacterProfile('Hero', 'wizard'), 'a', 1000, 'DISCOVERY', 'gemward');
+    const room = reduceAdventure(before, { id: 'shared-ledger', type: 'act', userId: 'a', expectedTurn: before.turn, action: { token: 'investigate', targetId: 'iris' } }, 2000);
+    const gain = room.events.find(event => event.journey?.questChanges?.some(change => change.kind === 'gained'))!;
+    expect(gain).toBeDefined(); expect(gain.result).toBeUndefined();
+    const beat = stageTimeline(room).find(beat => beat.event.id === gain.id)!;
+    expect(beat).toBeDefined();
+    expect(stageProjection(room, before, beat.start + 1).active?.event.id).toBe(gain.id);
+    expect(stageProjection(room, before, landedAt(beat)).landed.some(event => event.id === gain.id)).toBe(true);
+    expect(beat.start + beat.duration - gain.at).toBeLessThanOrEqual(5750);
+    expect(stageProjection(room, undefined, beat.start).active).toBeUndefined();
+    expect(stageProjection(room, before, beat.start, true).landed.some(event => event.id === gain.id)).toBe(true);
+    room.events.push(structuredClone(gain));
+    expect(stageTimeline(room).filter(beat => beat.event.id === gain.id)).toHaveLength(1);
+  });
   it('gives the confirmed hit breathing room before automatic history', () => {
     const { room } = fixture(4);
     room.events.forEach((event, index) => { event.actorId = `actor-${index}`; });

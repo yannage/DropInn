@@ -7,10 +7,16 @@ import { createServer } from 'vite';
 const base = process.env.NARRATOR_TEST_URL ?? 'http://127.0.0.1:5200';
 if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(base)) throw Error('Use a loopback development server.');
 const manifest = JSON.parse(await readFile('src/lib/dropinn/narrator-openings.json', 'utf8'));
-assert.equal(manifest.clips.length, 96, 'Generate the full opening library before testing.');
+assert.ok(manifest.clips.length > 0, 'Generate the opening library before testing.');
 await mkdir('output/playwright', { recursive: true });
 const ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-narrator-openings', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
 const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
+const { ADVENTURES } = await ssr.ssrLoadModule('/src/lib/dropinn/registry.ts');
+const { narratorSentences } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorAudio.ts');
+const { narratorNaturalVoices } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorVoices.ts');
+for (const adventure of ADVENTURES) for (const text of narratorSentences(adventure.chapters[0].intro)) {
+  for (const voice of narratorNaturalVoices) assert.ok(manifest.clips.some(clip => clip.text === text && clip.voice === voice.id), `Missing ${voice.id} opening for ${adventure.id}.`);
+}
 const fixedNow = Date.now();
 const handler = createDropinnHandler({ local: true, env: {}, now: () => fixedNow, fetch: async () => { throw Error('No server inference in this check.'); } });
 const browser = await chromium.launch({ headless: true });
@@ -68,11 +74,17 @@ async function fixture(name) {
       terminate() { this.alive = false; }
     };
   }, ['preparation-failure', 'playback-failure'].includes(name) ? 'natural' : 'auto');
-  await page.goto(`${base}/?session=opening${name}${Date.now()}`);
-  await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
-  await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();
-  await page.getByRole('region', { name: 'Story narrator', exact: true }).waitFor();
-  assert.equal(requests.length, 0, 'Opening audio and model assets stay idle before Listen.');
+  try {
+    await page.goto(`${base}/?session=opening${name}${Date.now()}`);
+    await page.getByRole('button', { name: 'Play with friends', exact: true }).click();
+    await page.getByRole('button', { name: 'Start a friend table', exact: true }).click();
+    await page.getByRole('button', { name: 'Open adventure menu', exact: true }).click();
+    await page.getByRole('region', { name: 'Story narrator', exact: true }).waitFor();
+    assert.equal(requests.length, 0, 'Opening audio and model assets stay idle before Listen.');
+  } catch (error) {
+    await page.screenshot({ path: `output/playwright/narrator-openings-${name}-fixture-failure.png` });
+    releaseModel(); await context.close(); throw error;
+  }
   return { page, context, requests, errors, releaseModel };
 }
 
@@ -138,6 +150,9 @@ try {
       assert.ok(clips.length <= 2, 'Only this passage is loaded, not the whole library.');
       results.push({ scenario, firstAudioMs: first.firstAudioMs, firstClipBytes: manifest.clips[0].bytes, audioRequests: clips.length, playback: await f.page.evaluate(() => window.__opening.playback), errors: f.errors });
       console.log(JSON.stringify(results.at(-1)));
+    } catch (error) {
+      await f.page.screenshot({ path: `output/playwright/narrator-openings-${scenario}-failure.png` });
+      throw error;
     } finally { f.releaseModel(); await f.context.close(); }
   }
   await writeFile('output/playwright/narrator-openings.json', JSON.stringify({ evidence: 'Real WAV playback, held model transport and mock initialization; no subjective listening or physical phone claim.', results }, null, 2));

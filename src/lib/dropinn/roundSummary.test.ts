@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { latestRound, roundCallouts, roundSummaries } from './roundSummary';
+import { roundIllustrations } from './roundIllustrations';
 import { ADVENTURES } from './registry';
 import { getScene } from './scene';
 import type { AdventureRoom, StoryEvent } from './types';
@@ -58,6 +59,13 @@ describe('shared round story', () => {
     expect(summary.entries[0].math).toBe('15 + 2 = 17 vs 10 + 3 = 13');
     expect(summary.entries[0].consequence).toContain('The boat is afloat');
     expect(summary.entries[1].kind).toBe('consequence');
+  });
+  it('uses the recorded release location for Gemward finale history illustrations', () => {
+    const source = room([{ ...action, chapter: 2, result: { ...action.result, targetId: 'lanterns', expedition: { locationId: 'lantern-square' } } }], {
+      adventureId: 'gemward', adventureVersion: 2, chapter: 2,
+    });
+    const entry = latestRound(source)!.entries[0];
+    expect(roundIllustrations(source, 2, entry).target?.name).toBe('Shared lanterns');
   });
 });
 

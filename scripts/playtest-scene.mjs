@@ -75,20 +75,33 @@ async function setup(name, viewport) {
   return page;
 }
 async function state(page) {
-  return page.evaluate(async () => {
-    const store = (await import('/src/store/adventureStore.ts')).useAdventureStore.getState();
+  await bindStore(page);
+  return page.evaluate(() => {
+    const store = window.__qaAdventureStore.getState();
     return { userId: store.userId, character: store.character, room: store.room, pendingMove: store.pendingMove, loading: store.loading, proposal: store.proposal, error: store.error, restoringCode: store.restoringCode };
+  });
+}
+async function bindStore(page) {
+  // Vite may pin imports to an HMR timestamp even on a freshly opened tab.
+  // Import the module used by the rendered UI, never create a second bare-URL store.
+  // App loads DropInn lazily, so a reload's load event can precede this import.
+  await page.waitForFunction(() => performance.getEntriesByType('resource').some(entry => new URL(entry.name).pathname === '/src/store/adventureStore.ts'));
+  await page.evaluate(async () => {
+    const loaded = performance.getEntriesByType('resource').map(entry => new URL(entry.name))
+      .filter(url => url.origin === location.origin && url.pathname === '/src/store/adventureStore.ts')
+      .sort((a, b) => Number(b.searchParams.get('t') ?? 0) - Number(a.searchParams.get('t') ?? 0));
+    window.__qaAdventureStore = (await import(loaded[0].href)).useAdventureStore;
   });
 }
 async function waitForStore(page, predicate, options) {
   // Playwright checks immediate truthiness. An async predicate is a truthy
   // Promise, so import first and then poll the live store synchronously.
-  await page.evaluate(async () => { window.__qaAdventureStore = (await import('/src/store/adventureStore.ts')).useAdventureStore; });
+  await bindStore(page);
   await page.waitForFunction(predicate, undefined, options);
 }
 async function sync(page) {
   await waitForStore(page, () => !window.__qaAdventureStore.getState().loading);
-  await page.evaluate(async () => (await import('/src/store/adventureStore.ts')).useAdventureStore.getState().syncRoom());
+  await page.evaluate(() => window.__qaAdventureStore.getState().syncRoom());
 }
 async function openRound(page) {
   // Reopen history if this round was previously dismissed.
@@ -694,18 +707,18 @@ try {
   const fixtureEvent = (id, details) => ({ id: `qa-render-${id}`, turn: renderBase.turn, chapter: renderBase.chapter, at: clock(), kind: 'consequence', text: `Presentation fixture ${id}`, ...details });
   await waitForStore(a, () => { const store = window.__qaAdventureStore.getState(); return !store.syncing && !store.loading; });
   await a.evaluate(async () => {
-    const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+    const store = window.__qaAdventureStore;
     window.__qaRenderRestore = { room: store.getState().room, syncRoom: store.getState().syncRoom };
     store.setState({ syncRoom: async () => {} });
   });
   const fixture = async events => a.evaluate(async snapshot => {
-    const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+    const store = window.__qaAdventureStore;
     store.setState({ room: snapshot });
   }, { ...renderBase, mechanicsVersion: undefined, events });
   try {
     const landscapeViewports = [{ width: 844, height: 390 }, { width: 740, height: 360 }];
     await a.evaluate(async snapshot => {
-      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      const store = window.__qaAdventureStore;
       store.setState({ room: snapshot });
     }, { ...renderBase, chapter: 1, phase: 'choosing', progress: 8, danger: 0, events: [], outcomes: [],
       commits: { [renderVictim]: { token: 'assist', targetId: 'boat' } },
@@ -717,7 +730,7 @@ try {
     const chapelChoice = getScene(renderBase).choice;
     assert.ok(chapelChoice, 'The current chapel fixture includes its authored preparation choice');
     await a.evaluate(async snapshot => {
-      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      const store = window.__qaAdventureStore;
       store.setState({ room: snapshot });
     }, { ...renderBase, phase: 'choosing',
       commits: { [renderVictim]: { token: 'assist', targetId: 'ward' } },
@@ -730,7 +743,7 @@ try {
     await a.getByRole('button', { name: 'Back to scene', exact: true }).click();
     note('developed-bell-mobile-focus', { evidence: 'Client snapshot rendering only; developed river/chapel labels with active choice and human intent, including 844×390 and 740×360 containment/cross-row checks' });
     await a.evaluate(async snapshot => {
-      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      const store = window.__qaAdventureStore;
       store.setState({ room: snapshot });
     }, { ...renderBase, phase: 'choosing', commits: {}, deadline: clock() + 60_000,
       seats: renderBase.seats.map(seat => seat.actorId === renderVictim ? { ...seat, leaving: true, hp: Math.max(0, seat.character.maxHp - 2) } : seat) });
@@ -827,7 +840,7 @@ try {
     note('snapshot-chapter-keepsake-and-small-phone-fit', { evidence: 'Client snapshot rendering only' });
   } finally {
     await a.evaluate(async () => {
-      const store = (await import('/src/store/adventureStore.ts')).useAdventureStore;
+      const store = window.__qaAdventureStore;
       store.setState(window.__qaRenderRestore);
       delete window.__qaRenderRestore;
     });

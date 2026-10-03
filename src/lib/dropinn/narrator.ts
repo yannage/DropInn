@@ -26,6 +26,10 @@ function consequenceImportance(event: StoryEvent) {
 
 /** Authored history supplies facts. No generated promises, chat, or roll arithmetic. */
 export function narratorCue(room: AdventureRoom): NarratorCue {
+  if (room.phase === 'travel' && room.expedition?.travel) return {
+    id: `${room.id}:travel:${room.expedition.travel.id}`,
+    text: getScene(room).catchUp ?? 'The chapter is settled. Choose the party’s next destination on the Journey map.',
+  };
   const round = latestRound(room);
   if (round && round.chapter === room.chapter) {
     const outcome = room.outcomes.find(item => item.chapter === round.chapter);

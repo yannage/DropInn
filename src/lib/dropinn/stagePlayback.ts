@@ -5,7 +5,7 @@ import { choiceDefinition, choiceStatus } from './chapterChoices';
 
 export function stageEvents(room: AdventureRoom) {
   const seen = new Set<string>();
-  return room.events.filter(event => event.chapter === room.chapter && event.turn === room.turn && event.result
+  return room.events.filter(event => event.chapter === room.chapter && event.turn === room.turn && (event.result || event.journey?.questChanges?.length)
     && !seen.has(event.id) && !!seen.add(event.id));
 }
 export function stageTimeline(room: AdventureRoom) {

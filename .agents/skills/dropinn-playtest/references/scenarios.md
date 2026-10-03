@@ -81,6 +81,16 @@ Verify private tables are absent from discovery/matching, code-only joins fail f
 
 ## Selectable stories and irreversible routes
 
+### Gemward v2 branching journey
+
+Run `npm run test:journey -- http://127.0.0.1:5203` with Vite running. `test:expedition` also runs the current journey check; the older expedition runner describes the pinned v1 interface. The v2 runner uses independent browser identities, the real isolated local command handler, and a controlled shared clock, without injecting gameplay snapshots.
+
+Check town exploration at separate local places, both route votes, warehouse combat and quiet canal recovery, and both finale destinations. Inspecting a map node must not send a command; confirming the route must. Ordinary reveals stay in the scene. Journey opens at the chapter boundary and records the actual trail, discovery sources, chapter highlights and the lasting finale cost. The shared quest pouch must agree on both screens and survive a reload; the prism stays held on arrival and is consumed only when restoration completes.
+
+Interrupt a travel vote after server acceptance, suppress reads, and reload. The uncertain vote must keep its exact command ID, decision, edge and turn. Restore reads and compare command receipts and rewards; no travel decision earns action XP or chapter credit. Reducer/service tests separately cover tied and absent votes, frozen eligibility, departures, late admission and parked travel. Inspect shop, map, encounter and completion captures at 320×568, 390×844 and desktop. Verify keyboard selection and explicit release, four tokens, loaded artwork and 44px controls. Save the local report in `output/playwright/journey-results.json`; do not describe it as hosted persistence, Realtime or physical-phone evidence.
+
+### Earlier authored adventures
+
 Run `npm run test:adventures -- http://127.0.0.1:5198` with Vite running. This isolates the real local command handler, disables external calls and controls the shared clock. Its Vite SSR loader uses a separate dependency cache so it cannot invalidate the preview server's optimized modules. Use `STORY_ID` to focus one story during debugging; unset it for the complete report.
 
 For Teacup, Tomorrow and Orchard, create a private table, admit a second browser, complete all three chapters and reconnect in chapter two. At 390×844 and 320×568 verify four loaded scene cutouts, 44px targets, no document overflow, route preview before committing Help and the retained journal ending. Verify both routes, tied/no-input fallbacks, downed/departing voters, duplicate receipts and solo companion completion in `adventures.test.ts`. Matchmaking must never mix adventure IDs or versions; old snapshots retain Briar Glen.

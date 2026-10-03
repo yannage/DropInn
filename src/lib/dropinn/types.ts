@@ -1,6 +1,7 @@
 import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character';
 import type { ChapterCredit } from './collection';
 import type { ExpeditionAction, ExpeditionState, ExpeditionResult } from './expeditionTypes';
+import type { JourneyEvent, TravelVote } from './journeyTypes';
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
 export type ActionApproach = 'quick' | 'heavy' | 'guarded' | 'soothe' | 'distract' | 'trail' | 'study' | 'mend';
@@ -160,6 +161,7 @@ export interface Participant {
   highlights: string[];
 }
 export interface StoryEvent {
+  journey?: JourneyEvent;
   id: string;
   turn: number;
   chapter: number;
@@ -202,7 +204,7 @@ export interface AdventureRoom {
   revision: number;
   title: string;
   status: 'active' | 'parked' | 'completed';
-  phase: 'choosing' | 'reveal';
+  phase: 'choosing' | 'reveal' | 'travel';
   chapter: number;
   chapterRound: number;
   turn: number;
@@ -247,7 +249,8 @@ export interface RoomSummary {
 export interface AdventureCommand {
   inviteKey?: string;
   id: string;
-  type: 'join' | 'leave' | 'tick' | 'act' | 'react' | 'skip-reveal';
+  type: 'join' | 'leave' | 'tick' | 'act' | 'react' | 'skip-reveal' | 'vote-travel';
+  travel?: TravelVote;
   userId: string;
   expectedTurn?: number;
   expectedRevision?: number;

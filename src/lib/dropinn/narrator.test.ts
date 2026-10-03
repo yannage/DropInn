@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { narratorCaptions, narratorCue, narratorVoice, captionDuration } from './narrator';
 import type { AdventureRoom, StoryEvent } from './types';
+import { createExpedition } from './expedition';
 
 const action: StoryEvent={id:'a',chapter:0,turn:1,at:1000,kind:'action',actorId:'hero',actorName:'Wren',text:'Wren studies the tracks.',contribution:true,success:true,result:{targetId:'tracks',targetKind:'scene',progress:2},change:{title:'A clue in the mud',text:'A silver ward fragment lies among the claw marks.',next:'Follow the trail.'}};
 const room=(extra:Partial<AdventureRoom>={})=>({id:'room',phase:'choosing',chapter:0,turn:1,flags:[],events:[],outcomes:[],...extra} as AdventureRoom);
@@ -50,6 +51,19 @@ describe('storyteller cues',()=>{
   });
   it('does not let an unconfirmed choosing turn leak a future discovery',()=>{
     expect(narratorCue(room({events:[action]}))).toEqual(narratorCue(room()));
+  });
+  it('gives a travel decision a stable cue while votes arrive, distinct from ordinary rounds',()=>{
+    const source = room({ adventureId: 'gemward', adventureVersion: 2, phase: 'travel', expedition: {
+      ...createExpedition('narrator'), currentNodeId: 'town', travel: {
+        id: 'town-fork', fromNodeId: 'town', options: [{ edgeId: 'town-road', toNodeId: 'road', unlockEventIds: [], costIds: [] }],
+        fallbackEdgeId: 'town-road', eligibleActorIds: ['hero'], votes: {},
+      },
+    }});
+    const cue = narratorCue(source);
+    expect(cue.id).toBe('room:travel:town-fork');
+    expect(cue.text).toContain('hill road');
+    source.expedition!.travel!.votes.hero = { edgeId: 'town-road', actorName: 'Wren' };
+    expect(narratorCue(source)).toEqual(cue);
   });
   it('splits readable subtitle passages without dropping or inventing words',()=>{
     const text='Mara is safe. The shadow pack watches the river while the party studies the markings on a silver fragment found in the muddy tracks.';

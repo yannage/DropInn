@@ -8,6 +8,17 @@ The current scene-stage pass adds a fixed action dock, illustrated scene interac
 
 ## Gemward expedition — October 3, 2026
 
+The current [Gemward v2 journey](docs/stories/gemward-v2.md) adds a six-node connected map with two independent 30-second travel votes, shared pouch provenance/history, separate tower/square finales and an irreversible cost applied only at finale completion. Chronicle is on demand; Journey opens at travel. New rooms pin v2; existing v1 rooms keep the original behavior. Twenty bespoke raster illustrations now cover eight environments, five quest objects, two enemies and five supplies.
+
+- [x] Generate and integrate all twenty PNG/WebP pairs with exact prompt/provenance records; inspect full outputs, landscape/portrait crops and 128/64/48px cutouts on pale/dark surfaces. Verify alpha bounds and lossless RGBA equality; `npm run art:check` passes.
+- [x] Pass the current full Vitest suite: 746 unit/service tests, including v2 travel/provenance/deferred-cost coverage. The art inventory check also passes.
+- [x] Pass the final production build after all UI CSS/map-memory/narrator-copy changes. The source-matched Journey runner passes 36 checks, zero errors, through actual two-player Warehouse → Beacon and peaceful Canal → Lantern square paths, including lost vote acknowledgement/reload/exact duplicate, stash items, on-demand history, selected map memories, rewards and 320/390/1280 layouts. `test:journey` and `test:expedition` both run this harness.
+- [x] Pass five narrator-opening browser scenarios using real WAV playback with held model transfer/mocked initialization; visually check settings at 320/390. This is not a live inference-latency result.
+- [x] Pass the final broad earlier-adventure browser regression: 102 checks, zero failures, browser errors or external/model calls, including automatic narration, failure fallback, retry and subtitles. Earlier harness fixture-binding failures were resolved without gameplay changes. Report: `output/playwright/scene-integration-results.json`.
+- [ ] Observe the revised scene/map/pouch loop with newcomers and pairs. Hosted, physical-device and human enjoyment evidence remain separate.
+
+The following completed checks describe **Gemward v1**, before the v2 journey/visual overhaul:
+
 The working tree adds [Gemward: The Missing Light](docs/stories/gemward.md): three independently browsable town locations, shared quest discoveries, warehouse/canal/road chapter patterns, seeded smugglers/ward facts, separate bounded class combat, a three-slot personal stash and a permanent finale choice. A fresh lobby selects Gemward; saved choices and invitations retain their story. Existing pinned adventures remain available. [Runtime and authoring rules](docs/expedition-adventures.md) record the scope.
 
 - [x] Implement the authoritative exploration, route, encounter, stash and ending state in the existing command/snapshot path.
@@ -16,7 +27,7 @@ The working tree adds [Gemward: The Missing Light](docs/stories/gemward.md): thr
 - [ ] Observe newcomers and pairs: can they explain “this interaction opened that route,” choose between countering and class support, spend a consumable, and state the finale's cost? Measure decisions and waiting; no enjoyment improvement has been established.
 - [ ] Verify physical phones and hosted persistence/Realtime after a separately authorized rollout. This working-tree expedition has not been deployed.
 
-Existing artwork is reused where it matches a target; unmatched objects use clear labels rather than unrelated props. Bespoke Gemward art and expanded generated story packs remain future work.
+V1 reused existing matching artwork. V2 now includes bespoke environments, quest props, enemies and supplies; matching NPC illustrations remain reused. Expanded generated story packs remain future work.
 
 ## Player clarity pass
 

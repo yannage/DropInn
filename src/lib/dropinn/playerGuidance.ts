@@ -13,7 +13,7 @@ export type PlayerGuidanceStep = 'target' | 'move' | 'commit' | 'wait' | 'result
 /** A new snapshot can arrive between clock ticks; never display a longer turn. */
 export function remainingTurnSeconds(room: AdventureRoom, now: number) {
   const boundary = (room.phase === 'reveal' ? room.revealUntil : room.deadline) ?? room.deadline;
-  return Math.min(room.phase === 'reveal' ? 10 : 60, Math.max(0, Math.ceil((boundary - now) / 1000)));
+  return Math.min(room.phase === 'reveal' ? 10 : room.phase === 'travel' ? 30 : 60, Math.max(0, Math.ceil((boundary - now) / 1000)));
 }
 export interface PlayerGuidance {
   state: PlayerGuidanceState;

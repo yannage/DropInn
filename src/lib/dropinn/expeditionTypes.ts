@@ -1,4 +1,5 @@
 import type { TokenKind } from './types';
+import type { JourneyNodeId, JourneyTravel } from './journeyTypes';
 
 export type ConsumableKind = 'second-wind' | 'smoke' | 'favour' | 'dust' | 'binding';
 export interface ConsumableInstance { id: string; kind: ConsumableKind }
@@ -22,6 +23,9 @@ export interface ExpeditionBattle {
   status: 'queued' | 'active' | 'won' | 'escaped';
 }
 export interface ExpeditionState {
+  /** Present only for Gemward v2. The chapter index remains the reward boundary. */
+  currentNodeId?: JourneyNodeId;
+  travel?: JourneyTravel;
   seed: string;
   variant: 'smugglers' | 'ward';
   locationId: string;

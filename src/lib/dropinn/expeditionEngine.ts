@@ -6,13 +6,20 @@ const add = (items: string[], value: string) => { if (!items.includes(value)) it
 const event = (room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | 'turn' | 'chapter' | 'at'>) => room.events.push({ id: `${room.id}:${room.events.length}`, turn: room.turn, chapter: room.chapter, at: now, ...data });
 const activeBattle = (room: AdventureRoom) => room.expedition?.battle?.status === 'active';
 const timing = (action: PlayerAction) => Number.isInteger(action.releaseMs) && action.releaseMs! >= 650 && action.releaseMs! <= 950 ? 1 : 0;
-function selectedInteraction(room: AdventureRoom, action: PlayerAction): ExpeditionInteraction | undefined {
-  const options = expeditionInteractions(room, action.expedition?.locationId ?? room.expedition!.locationId, action.targetId, action.token);
+export interface ExpeditionRuntime {
+  journey?: boolean;
+  interactions: typeof expeditionInteractions;
+  locations: typeof expeditionLocations;
+  scene: typeof expeditionScene;
+}
+const classic: ExpeditionRuntime = { interactions: expeditionInteractions, locations: expeditionLocations, scene: expeditionScene };
+function selectedInteraction(room: AdventureRoom, action: PlayerAction, runtime = classic): ExpeditionInteraction | undefined {
+  const options = runtime.interactions(room, action.expedition?.locationId ?? room.expedition!.locationId, action.targetId, action.token);
   return action.expedition?.interactionId ? options.find(option => option.id === action.expedition!.interactionId) : options[0];
 }
 
 /** All eligibility uses the choosing snapshot. Nothing learned by another action unlocks a same-turn move. */
-export function validateExpeditionAction(room: AdventureRoom, userId: string, action: PlayerAction) {
+export function validateExpeditionAction(room: AdventureRoom, userId: string, action: PlayerAction, runtime = classic) {
   if (!room.expedition) throw new Error('This expedition is missing its saved run state.');
   const seat = room.seats.find(item => item.actorId === userId)!;
   const metadata = action.expedition;
@@ -28,14 +35,15 @@ export function validateExpeditionAction(room: AdventureRoom, userId: string, ac
     if (metadata?.interactionId) throw new Error('Hero protection has no conversation topic.');
   } else {
     const location = metadata?.locationId ?? room.expedition.locationId;
-    if (!expeditionLocations(room).some(item => item.id === location && item.available)) throw new Error('That location is not available in this chapter.');
-    const target = expeditionScene(room, location).targets.find(item => item.id === action.targetId);
+    if (!runtime.locations(room).some(item => item.id === location && item.available)) throw new Error('That location is not available in this chapter.');
+    const target = runtime.scene(room, location).targets.find(item => item.id === action.targetId);
     if (!target) throw new Error('Choose a target at this location.');
     if (action.token !== 'spotlight' && !target.tokens.includes(action.token)) throw new Error('Choose an available token.');
     if (activeBattle(room)) {
       if (metadata?.interactionId) throw new Error('Choose a battle move, not a conversation topic.');
-    } else if (action.token !== 'spotlight' && !selectedInteraction(room, action)) throw new Error('Choose a displayed intention for this target and token.');
+    } else if (action.token !== 'spotlight' && !selectedInteraction(room, action, runtime)) throw new Error('Choose a displayed intention for this target and token.');
   }
+  if (runtime.journey && metadata?.routeId !== undefined) throw new Error('Choose travel on the map after the chapter has settled.');
   if (metadata?.routeId !== undefined && (room.chapter !== 0 || !expeditionRoutes(room).some(route => route.id === metadata.routeId && route.available))) throw new Error('That route is not available yet. Discover its clue on an earlier turn.');
   const stash = expeditionStash(room, userId);
   const item = metadata?.consumableId ? stash.find(candidate => candidate.id === metadata.consumableId) : undefined;
@@ -96,7 +104,7 @@ function heal(room: AdventureRoom, target: Seat, amount: number, now: number) {
 const counter: Record<BattleStance, BattleStance> = { strike: 'trick', trick: 'guard', guard: 'strike' };
 
 /** Mutates only the already-cloned room. The caller retains command receipts, admission and the reveal lifecycle. */
-export function resolveExpeditionRound(room: AdventureRoom, now: number): boolean {
+export function resolveExpeditionRound(room: AdventureRoom, now: number, runtime = classic): boolean {
   const frozen: AdventureRoom = JSON.parse(JSON.stringify(room));
   const state = room.expedition!;
   const battle = activeBattle(frozen) ? state.battle! : undefined;
@@ -161,7 +169,7 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number): boolea
       }
       result.battleStance = battle.stance;
     } else {
-      const intention = selectedInteraction(frozen, action)!;
+      const intention = selectedInteraction(frozen, action, runtime)!;
       const locationId = action.expedition?.locationId ?? state.locationId;
       add(state.visited, locationId);
       add(state.discoveries, intention.id);
@@ -216,10 +224,11 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number): boolea
         if (reward) event(room, now, { kind: 'consequence', actorId: seat.actorId, actorName: seat.character.name, text: `${seat.character.name} earns ${CONSUMABLES.find(item => item.id === reward.item.kind)!.label}. ${state.stashes[seat.actorId].some(item => item.id === reward.item.id) ? 'It is in their stash.' : 'Their stash is full; a replacement offer is waiting.'}`, result: { expedition: { reward } } });
       }
     }
-    return false;
+    return runtime.journey ? !!state.encounterResolved : false;
   }
   state.explorationTurns++;
   room.progress = Math.round(room.progress * 100) / 100;
+  if (runtime.journey && room.chapter === 0) return state.explorationTurns >= 2 && room.progress >= 4 || state.explorationTurns >= 4;
   if (room.chapter === 0 && (routeVotes.length || state.explorationTurns >= 4)) {
     const tally = expeditionRoutes(frozen).map(route => ({ id: route.id, count: routeVotes.filter(id => id === route.id).length }));
     const best = Math.max(...tally.map(route => route.count));
@@ -244,7 +253,7 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number): boolea
           const reward = grantReward(room, seat.actorId, 'quiet-recovery', 'dust');
           if (reward) event(room, now, { kind: 'consequence', actorId: seat.actorId, actorName: seat.character.name, text: `${seat.character.name} earns Spark dust for the peaceful recovery.`, result: { expedition: { reward } } });
         }
-        return false;
+        return !!runtime.journey;
       }
       if (state.explorationTurns < 3) {
         event(room, now, { kind: 'consequence', text: state.questItems.includes('mooring-line') ? 'The mooring is ready. Next turn, distract the watcher or trace the light to recover the prism quietly.' : 'Help the landing or crate to set a mooring. A later distraction or investigation can avoid the encounter.', result: { changed: true } });
@@ -255,6 +264,7 @@ export function resolveExpeditionRound(room: AdventureRoom, now: number): boolea
     event(room, now, { kind: 'consequence', text: 'Every exploration move settles before a watcher steps into the path. Battle begins next turn; the party will return here afterwards.', result: { changed: true }, change: { title: 'A watcher blocks the path', text: 'The party’s discoveries remain safe.', next: 'Prepare for a short battle next turn.' } });
   }
   if (room.chapter === 2) {
+    if (runtime.journey) return state.explorationTurns >= 2 && room.progress >= 4 || state.explorationTurns >= 4;
     if (!state.finaleChoice) {
       const restore = finalVotes.filter(choice => choice === 'restore').length;
       const release = finalVotes.filter(choice => choice === 'release').length;

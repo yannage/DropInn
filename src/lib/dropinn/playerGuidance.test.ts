@@ -24,6 +24,10 @@ describe('player guidance follows the authoritative turn', () => {
     expect(remainingTurnSeconds(room, 3500)).toBe(9);
     expect(remainingTurnSeconds(room, 12000)).toBe(0);
     expect(remainingTurnSeconds(room, 13000)).toBe(0);
+    room.phase = 'travel'; room.deadline = 45000;
+    expect(remainingTurnSeconds(room, 14900)).toBe(30);
+    expect(remainingTurnSeconds(room, 16000)).toBe(29);
+    expect(remainingTurnSeconds(room, 45001)).toBe(0);
   });
   it('teaches target, move, then commitment without treating preparation as a submitted action', () => {
     const room = fresh();
