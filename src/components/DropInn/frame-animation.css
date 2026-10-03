@@ -1,0 +1,8 @@
+.di-frame-animation{display:inline-block;position:relative;width:120px;aspect-ratio:var(--frame-ratio,3 / 4);flex:none;pointer-events:none;overflow:hidden;vertical-align:middle;isolation:isolate}
+.di-frame-cells{display:block;position:absolute;inset:0;background-image:var(--frame-sheet);background-size:400% 200%;background-repeat:no-repeat;background-position:var(--frame-poster,0% 0%);animation:di-painted-frames var(--frame-duration,1120ms) steps(1,end) var(--frame-delay,0ms) var(--frame-iterations,1) both}
+.di-frame-cells.is-finished{animation:none;background-position:100% 100%}
+.di-frame-animation.is-frozen>.di-frame-cells{animation:none;background-position:var(--frame-poster,0% 0%)}
+.di-frame-fallback{position:absolute;inset:0;display:grid;place-items:center}.di-frame-fallback>img{width:70%;height:70%;object-fit:contain}
+/* Each percentage selects one complete painted cell. There is no movement between cells. */
+@keyframes di-painted-frames{0%{background-position:0% 0%}12.5%{background-position:33.333333% 0%}25%{background-position:66.666667% 0%}37.5%{background-position:100% 0%}50%{background-position:0% 100%}62.5%{background-position:33.333333% 100%}75%{background-position:66.666667% 100%}87.5%,100%{background-position:100% 100%}}
+@media(prefers-reduced-motion:reduce){.di-frame-animation>.di-frame-cells{animation:none;background-position:var(--frame-poster,0% 0%)}}

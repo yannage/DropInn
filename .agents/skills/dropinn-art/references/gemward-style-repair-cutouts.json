@@ -1,0 +1,775 @@
+{
+  "date": "2026-10-03",
+  "generator": "Codex built-in image_gen",
+  "styleAuthority": "Latest explicit user correction: existing sheep/wolves plus approved hero style A, crude broad mouse doodle shapes and restrained flat fills; no polished RPG illustration.",
+  "references": [
+    "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+    "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+    "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png"
+  ],
+  "assets": [
+    {
+      "id": "gemward-v2-ledger",
+      "file": "public/art/gemward-v2-ledger.png",
+      "runtimeFile": "public/art/gemward-v2-ledger.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one crooked open brown merchant ledger, two broad cream page shapes and a thick simple brown cover. Just three short uneven black row marks on each page, plus one plain coral seal blob at upper-right. No fine page layers or decorative symbols. Broad awkward open-book silhouette. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-ledger identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-ledger.png"
+      ],
+      "oldPngSha256": "ebe6930eadf3ce660b300aa2db61c45b480134dc1ddc425593e4c34a3ac51c4d",
+      "oldWebpSha256": "4dbaf7e09619672e9677a23d0aab96aa8998044b9ea9712179a5fde77770d4a4",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-75ad2fb0-5821-4014-a8de-126b1d1f7a62.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-1d4a6d39-2fb6-4029-8fc6-26118d2934d4.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "7215ccab2a43c610b0a18040cd7291564ce9950ca99053549ade58617b51894a",
+      "runtimeSha256": "e8453f3ec0249d55e560209ae9a1e85d5525fb3173a51e0396770ffc7be8c91a",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 119,
+        "top": 52,
+        "right": 1177,
+        "bottom": 1211
+      },
+      "alphaCounts": {
+        "transparent": 1131827,
+        "opaque": 577,
+        "partial": 440112
+      },
+      "pngBytes": 488043,
+      "webpBytes": 318114,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Two large pages, sparse row marks and coral seal read as a ledger.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 169,
+        "top": 333,
+        "right": 1102,
+        "bottom": 961
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-75ad2fb0-5821-4014-a8de-126b1d1f7a62.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Two large pages, sparse row marks and coral seal read as a ledger. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-canal-key",
+      "file": "public/art/gemward-v2-canal-key.png",
+      "runtimeFile": "public/art/gemward-v2-canal-key.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one very simple old mustard brass key tilted diagonally. One oversized lopsided loop with an open transparent hole, blunt crooked shaft and just two short square teeth. One flat mustard fill and black outline only; no highlight, no dimensional side plane, no engraving. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-canal-key identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-canal-key.png"
+      ],
+      "oldPngSha256": "1c3d748bb1134d5da8f5d6c2ad989ed67eb0b78f3fc4c5ebc4a809d50a48b1c2",
+      "oldWebpSha256": "1863581a659c223ea09923dd0241cd5cc300f565dc5e6c025c06a5284a99dceb",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-50eac38b-73ac-4bfd-9935-6130b7693fe6.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-efe0627a-65ff-4052-939a-3d0c1b4817c3.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "768495400b500f9e4a492b365ff1bd54b2b3e0f70b33910781cd59c784dda599",
+      "runtimeSha256": "a4b0946b31fa169d3691859c3ddc7818a426ae73710200726a25659dc3eb5596",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 210,
+        "top": 53,
+        "right": 1076,
+        "bottom": 1092
+      },
+      "alphaCounts": {
+        "transparent": 1369087,
+        "opaque": 805,
+        "partial": 202624
+      },
+      "pngBytes": 279141,
+      "webpBytes": 167854,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Loop remains visibly open and two blunt teeth read at 48 px.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 219,
+        "top": 292,
+        "right": 1073,
+        "bottom": 1068
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-50eac38b-73ac-4bfd-9935-6130b7693fe6.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Loop remains visibly open and two blunt teeth read at 48 px. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-prism",
+      "file": "public/art/gemward-v2-prism.png",
+      "runtimeFile": "public/art/gemward-v2-prism.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one chunky crooked teal light-prism crystal. Broad asymmetrical six-sided silhouette, split by ONLY TWO thick wonky black lines into three big FLAT color areas: dusty teal, pale teal, muted cream. One small flat mustard spark blob inside, no shine or sparkle effects. No base or jewelry. This must look like a crude hand-drawn rock, NOT a glossy faceted RPG gem. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-prism identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-prism.png"
+      ],
+      "oldPngSha256": "e9e54703d997a2783961c81fd75b6906239f61fa8faae7aeee75d02d25f90103",
+      "oldWebpSha256": "d4a67a28324ad098f255920fb2545a7939e4ac1a1fbd8ab4b88c2633cedf959c",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-52c1c909-c9ad-4466-8f73-48626b153efc.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-6fb50a44-65b5-4892-ac37-3e9c9467425c.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "d6c4f1ead7bf86146ed26285600d3c1056a4ec0eef773bbcdbf3a7f46f2e0433",
+      "runtimeSha256": "3ce1173623645aed501cbf3513b232a0851b4e4399363283848fede8341b08cd",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 97,
+        "top": 53,
+        "right": 1191,
+        "bottom": 1196
+      },
+      "alphaCounts": {
+        "transparent": 1219037,
+        "opaque": 298,
+        "partial": 353181
+      },
+      "pngBytes": 379279,
+      "webpBytes": 238282,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Three broad irregular planes replace glossy detail; interior gold spark remains visible.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 323,
+        "top": 197,
+        "right": 949,
+        "bottom": 1067
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-52c1c909-c9ad-4466-8f73-48626b153efc.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Three broad irregular planes replace glossy detail; interior gold spark remains visible. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-empty-gem-stand",
+      "file": "public/art/gemward-v2-empty-gem-stand.png",
+      "runtimeFile": "public/art/gemward-v2-empty-gem-stand.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one EMPTY jeweller display stand: a lopsided low plum-red cushion on a single simple brown wooden block with two blunt tiny feet. Draw the absent gem as ONE empty dark plum oval depression in the cushion. No gem or sparkle. No wood grain, ornate trim, tufting, folds or detailed perspective. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-empty-gem-stand identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-empty-gem-stand.png"
+      ],
+      "oldPngSha256": "d9d296a4cc8ba5d5dbd8f614f28699325d0fe4a76bdef950624ddcc78345f684",
+      "oldWebpSha256": "5a20c658e2fb2746255d1c8e35e4eb6f6abd61dbdaa9ad2cb1fce88cd82f58e9",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f6f3e4e5-c95a-4996-89b2-ef8616cba6d4.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-2f0a550f-716f-40b7-818b-78fa296202bb.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "3a0bcbe0eaec62c08e29443d4e8ca9bc0bb6d5c75a1a91deec78c9fbc58dcb35",
+      "runtimeSha256": "8ed90bb7b5ae0dba19729b0ec422fe274ff7f8c911521c4075ec17cfef1f840f",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 132,
+        "top": 343,
+        "right": 1075,
+        "bottom": 937
+      },
+      "alphaCounts": {
+        "transparent": 1240504,
+        "opaque": 587,
+        "partial": 331425
+      },
+      "pngBytes": 321643,
+      "webpBytes": 197262,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Empty plum depression remains readable; no gem accidentally added.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 197,
+        "top": 404,
+        "right": 1073,
+        "bottom": 922
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f6f3e4e5-c95a-4996-89b2-ef8616cba6d4.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Empty plum depression remains readable; no gem accidentally added. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-price-board",
+      "file": "public/art/gemward-v2-price-board.png",
+      "runtimeFile": "public/art/gemward-v2-price-board.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one crooked physical tabletop shop board: a plain cream rectangle with a very simple brown irregular frame and two short uneven feet. Inside, just three flat lopsided diamond gem doodles, each with one short black dash to its right. No numbers, letters, texture, nails, wood grain, facets or extra detail. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-price-board identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-price-board.png"
+      ],
+      "oldPngSha256": "ed3a9f11c2210e7724772e912251415298c2b4c13b2af368667032e8ab9c58c2",
+      "oldWebpSha256": "55f9187e2e533854ff38a0a9234f76de7a0ed34aa1d7a898e187fb358ab6cfd5",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-192371a9-4004-4121-8960-dc3ffdbf4dbb.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-a75744ed-6a7c-4822-a7b3-4cdcee4485ae.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "dc0a01a5d8432e06a8712c27bacf243d20095a67ff19f3bacf3b38cb3e687ea1",
+      "runtimeSha256": "f38ffa86ecf7a93bc1b0d6664dd9d96a76a5a97c55ec0be94a90c09460b17a98",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 113,
+        "top": 53,
+        "right": 1096,
+        "bottom": 1161
+      },
+      "alphaCounts": {
+        "transparent": 1130890,
+        "opaque": 1297,
+        "partial": 440329
+      },
+      "pngBytes": 497735,
+      "webpBytes": 324856,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Three simple colored diamonds and dash marks read as a physical price board; no text baked in.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 296,
+        "top": 260,
+        "right": 1012,
+        "bottom": 1115
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-192371a9-4004-4121-8960-dc3ffdbf4dbb.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Three simple colored diamonds and dash marks read as a physical price board; no text baked in. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-hired-guard",
+      "file": "public/art/gemward-v2-hired-guard.png",
+      "runtimeFile": "public/art/gemward-v2-hired-guard.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one goofy hired warehouse guard, full body. Very broad simple human silhouette: one large lopsided cream head, uneven off-center cream eyes with tiny black dot pupils, crooked gray bucket helmet, simple dusty-teal tunic blob, plain brown short boots, one tiny black moustache dash. One hand holds ONE short blunt wooden club pointing down, the other hand a simple raised lump saying stop. Few broad parts like the approved blue hero. No cape, belt, buckle, patches, fingers, seams, trousers detail, iris colors, muscles or detailed clothing. Goofy deadpan hired guard, not polished adventurer. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-hired-guard identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-hired-guard.png"
+      ],
+      "oldPngSha256": "9df789f711f55a476b16d9aa5600b367ff29f8d5e09ec50e20580d58a4d4c440",
+      "oldWebpSha256": "d5501e78b6bbdafb33fecc08dee3f99174d3563f068324cab3cd7d24f5fe8c10",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-a387761c-7ba4-4874-bb71-c5b1be7bd400.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-1d495ccf-d5d5-417b-a9e1-938030b1d89e.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "470262cf53d8e7292d4ce38e3c7d18a2474b427dfdeeb49c687a3469a25b3602",
+      "runtimeSha256": "3f586a6b3e8b548f6be1250144c42e99b9db761ef8b391eb40825f5d4e976340",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 91,
+        "top": 49,
+        "right": 1229,
+        "bottom": 1213
+      },
+      "alphaCounts": {
+        "transparent": 1223961,
+        "opaque": 983,
+        "partial": 347572
+      },
+      "pngBytes": 470463,
+      "webpBytes": 302478,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Wooden club and stop-hand are visible; large uneven eyes, plain tunic, no detailed RPG costume.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 265,
+        "top": 243,
+        "right": 1061,
+        "bottom": 1085
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-a387761c-7ba4-4874-bb71-c5b1be7bd400.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Wooden club and stop-hand are visible; large uneven eyes, plain tunic, no detailed RPG costume. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-ward-construct",
+      "file": "public/art/gemward-v2-ward-construct.png",
+      "runtimeFile": "public/art/gemward-v2-ward-construct.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one frightened goofy ward creature made from a few broad crooked gray stone blocks: lopsided head and body, two stubby arms and two broad uneven feet. Two simple mismatched off-center cream eyes with black dots and one tiny worried mouth. ONE plain mustard spark inside ONE black chest recess. One flat stone gray-blue fill for body, no joints, fingers, moss speckles, stone texture, cracks, highlights or edge planes. Awkward simple silhouette with one hand half-raised. No weapon. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-ward-construct identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-ward-construct.png"
+      ],
+      "oldPngSha256": "b63187bab4f41cb42cd87e88dc075f35a58a8b3b379cbe0e12922891cac760bc",
+      "oldWebpSha256": "abe2428daa9ee7396df6abf45500c6be3e1453f761408f293456b64b0be736a7",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-3dff8ef8-7a92-4c53-908f-33e7c8bf819f.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-9658ec2e-76fc-47ac-a3b0-2e741354d950.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "f6bfb70c0126329d4847ef740771a02d516f45c4b64dab23b1ea4144ef88df5d",
+      "runtimeSha256": "4e132263e6ca7f7e0b04718d0d529a1de1a1771566af68273ecbee284cbb5477",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 146,
+        "top": 52,
+        "right": 1054,
+        "bottom": 1149
+      },
+      "alphaCounts": {
+        "transparent": 1231511,
+        "opaque": 1399,
+        "partial": 339606
+      },
+      "pngBytes": 439692,
+      "webpBytes": 262246,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Broad stone parts and simple worried face; chest spark remains visible at small size.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 278,
+        "top": 239,
+        "right": 984,
+        "bottom": 1054
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-3dff8ef8-7a92-4c53-908f-33e7c8bf819f.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Broad stone parts and simple worried face; chest spark remains visible at small size. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-second-wind",
+      "file": "public/art/gemward-v2-second-wind.png",
+      "runtimeFile": "public/art/gemward-v2-second-wind.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one very simple lopsided squat coral healing potion bottle with short neck and a plain tan cork. One broad flat coral body, a cream label with one crude red heart, black outline. No glass shine, no highlights, no liquid waves, no cork texture. Broad blunt bottle silhouette. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-second-wind identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-second-wind.png"
+      ],
+      "oldPngSha256": "d5472f3f672c581e6f822aebed638e1cf5bc5d02995f4ade097ba0f66f8512b4",
+      "oldWebpSha256": "8adb8237bbd46c4d08e2f44a9d8b2792940cd88538341994a226a25b9d6ccbbb",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-506fb84d-a572-4afa-a40c-5cc663dd0539.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-8382b63d-778b-421f-b497-d3675fb0dcfc.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "20e80ace04325f3aebfebf6f07736aa61b89886227328c40f6540b15321bd3d2",
+      "runtimeSha256": "763451346760f7de375b4a4e687cb52439ad2f2c92e8edfec57445daeb9a73ed",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 210,
+        "top": 53,
+        "right": 1191,
+        "bottom": 1197
+      },
+      "alphaCounts": {
+        "transparent": 1234205,
+        "opaque": 933,
+        "partial": 337378
+      },
+      "pngBytes": 386415,
+      "webpBytes": 249758,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Coral bottle and heart label remain distinct at 48 px.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 299,
+        "top": 249,
+        "right": 965,
+        "bottom": 1033
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-506fb84d-a572-4afa-a40c-5cc663dd0539.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Coral bottle and heart label remain distinct at 48 px. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-smoke",
+      "file": "public/art/gemward-v2-smoke.png",
+      "runtimeFile": "public/art/gemward-v2-smoke.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one simple lopsided dusky blue-gray clay smoke flask with squat body, short neck, plain gray cork, and one short bent cream wick at the side of its neck. A single wide charcoal band across its belly, small plain cream circle label. Broad flat fills, no glass shine, no texture, no smoke clouds or fire. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-smoke identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-smoke.png"
+      ],
+      "oldPngSha256": "4da6512ce593cbb9eb0c512d7eb7b6b63908ecee28349fb878cc011cdd7c791e",
+      "oldWebpSha256": "c16180e00e03548d63100ddeecf845bb0b64831242ba2d0763e837147f651de0",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27ceedcf-1cd2-4f82-acc8-e9882ae56149.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-3bfc3651-6cad-4a9d-99c4-5af21f9036dc.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "9977e1472c35f016f188a17db40b907977f4f03adea2ff1d8c7d6ec1bfcd62bc",
+      "runtimeSha256": "f46324620bf5306d046ae7fa3f13c777db3de0580f91125847d3eb3b3895d90c",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 132,
+        "top": 51,
+        "right": 1137,
+        "bottom": 1213
+      },
+      "alphaCounts": {
+        "transparent": 1201820,
+        "opaque": 791,
+        "partial": 369905
+      },
+      "pngBytes": 424306,
+      "webpBytes": 262326,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Dusky flask, cream wick and single charcoal band distinguish it from the healing bottle.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 311,
+        "top": 227,
+        "right": 977,
+        "bottom": 1089
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27ceedcf-1cd2-4f82-acc8-e9882ae56149.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Dusky flask, cream wick and single charcoal band distinguish it from the healing bottle. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-favour",
+      "file": "public/art/gemward-v2-favour.png",
+      "runtimeFile": "public/art/gemward-v2-favour.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one crooked cream envelope with one blunt triangular flap line, a single coral ribbon band and one large flat mustard wax seal. No star inside seal, no extra folds or shadows, no writing. Broad simple lopsided rectangle, two short ribbon ends kept close to envelope. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-favour identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-favour.png"
+      ],
+      "oldPngSha256": "3dd4f57021d7051ad8f896c7a04e6861bd40d82afc9a38ddeb4434042a22842e",
+      "oldWebpSha256": "fad1fa04cf37d490d23c2d76172dfde4b0aebb019df05178244c9b4bb46c5baa",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f1a4ff8b-c4ca-4cd7-b64f-586e9ea3e007.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-6752a182-c952-4483-a22b-981de0bbed11.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "331b7484fbaeed0ed1df1e280da499f65ee6489ea78f2c33110d0b5146d35f2c",
+      "runtimeSha256": "64aec0ce4bcb44eb1f2ff338b98980c54dfa123245a788c2b698dcde163fa16a",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 132,
+        "top": 21,
+        "right": 1078,
+        "bottom": 1149
+      },
+      "alphaCounts": {
+        "transparent": 1255047,
+        "opaque": 777,
+        "partial": 316692
+      },
+      "pngBytes": 365059,
+      "webpBytes": 230790,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Envelope flap, coral ribbon and plain gold seal retain letter identity.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 263,
+        "top": 351,
+        "right": 990,
+        "bottom": 953
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f1a4ff8b-c4ca-4cd7-b64f-586e9ea3e007.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Envelope flap, coral ribbon and plain gold seal retain letter identity. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-dust",
+      "file": "public/art/gemward-v2-dust.png",
+      "runtimeFile": "public/art/gemward-v2-dust.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one little lumpy mustard cloth pouch, wide crooked mouth with THREE small flat pale-yellow dust grain blobs visible inside, one simple dusty-teal drawstring knot on the side. No sparkle, no highlights, no shading or fabric folds. Broad blunt bag silhouette. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-dust identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-dust.png"
+      ],
+      "oldPngSha256": "a6728df150d74ea8aa6333bc5ce6ec2e4564f68fbd6749d137a9d3eb764244a4",
+      "oldWebpSha256": "232cd868350904083e42e83746df93f80be9ae529e864632a1242005699499a7",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27eb04f3-57c4-45a0-9f33-5ffbc434c242.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-bd0bc326-23d9-4670-a247-616299903423.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "ac5c7fdfcb1c3d1b77bb76c4a9c1bb5ff16320c12a45ee8785098cd9cea8ebf0",
+      "runtimeSha256": "de327f8c05405602bcf4499002feea28ee25a2786e7d560b1cc383c493e9dffe",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 111,
+        "top": 52,
+        "right": 1197,
+        "bottom": 1102
+      },
+      "alphaCounts": {
+        "transparent": 1145490,
+        "opaque": 874,
+        "partial": 426152
+      },
+      "pngBytes": 492727,
+      "webpBytes": 325248,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Three pale grain blobs, open pouch mouth and teal tie are visible.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 262,
+        "top": 275,
+        "right": 1036,
+        "bottom": 1038
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-27eb04f3-57c4-45a0-9f33-5ffbc434c242.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Three pale grain blobs, open pouch mouth and teal tie are visible. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    },
+    {
+      "id": "gemward-v2-binding",
+      "file": "public/art/gemward-v2-binding.png",
+      "runtimeFile": "public/art/gemward-v2-binding.webp",
+      "prompt": "Use case: style-transfer. Redraw ONE DropInn game cutout in the actual drawing method of reference images 1–3: sheep, shadow wolves, and approved blue hero, which are STYLE ANCHORS ONLY. Match their broad crude MS Paint mouse-doodle shapes, truly black uneven raster outlines, blunt hesitant joins, funny awkward asymmetry and sparse flat bucket fills. The awkwardness must affect the whole silhouette, not a noise filter around a tidy cartoon. Image 4 is only the old subject/meaning reference, not the style. Redesign it more simply. Subject: one crude wooden spool: two irregular flat tan end shapes joined by a thick dusty-teal cord band. Just two thick uneven black winding lines, one short blunt cord loop alongside. No wood grain, cracks, glow, shadows or highlights. Broad lopsided compact silhouette. Use only a few flat restrained colors. Absolutely NO gradients, lighting, gloss, highlights, texture, hatching, shading, smooth vector-perfect curves, polished RPG detail or thin tiny decoration. Objects have NO face; only enemy characters have two very simple off-center mismatched eyes. Isolated single asset on ACTUAL alpha transparency; no background, white box, floor, shadow, badge, frame, UI, lettering or watermark. Full uncropped silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on every side. Readable at 48 pixels. Do not include the sheep, wolf, blue hero or extra subjects.",
+      "referenceRoles": [
+        "sheep primary drawing-method anchor",
+        "shadow-pack primary drawing-method anchor",
+        "hero-style-a approved drawing-method anchor",
+        "current gemward-v2-binding identity only"
+      ],
+      "references": [
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/sheep.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/shadow-pack.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/.agents/skills/dropinn-art/assets/hero-style-a.png",
+        "C:/Unity Projects/Sudoku Defense Unity Version/SudokuDefense/Sudoku Defense/DropInn/public/art/gemward-v2-binding.png"
+      ],
+      "oldPngSha256": "38040786056d83158d5c108e428ea28cdcd1fbcbe6cbec65eda33f7b324b69ac",
+      "oldWebpSha256": "370c5423c34b8ed374d79ddabeb19dfe48157b67140ae3e9e76a89a6c4512d2b",
+      "oldSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f48678d7-f16b-47b2-8b9b-b83fd0e1dad2.png",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-94cc-7c90-b9fe-5fde0bb6c347/exec-30ba9675-01c6-4553-94fe-37cfde714bfa.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "2c00dbe2e3b0032a9e8cf7ca701e76bd173dc21a150f45c0ebbfc6f8ef4b9f01",
+      "runtimeSha256": "a42df69ffcf2b7d40c1d12eb5ea06abdfa9700c65c83dc5ec0a8733e351df34f",
+      "generator": "Codex built-in image_gen",
+      "runtimeEncoding": "Sharp 0.35.4 WebP {lossless:true,exact:true,effort:6}; every decoded RGBA byte equals the preserved original generated PNG, including invisible RGB.",
+      "alphaBounds": {
+        "left": 162,
+        "top": 53,
+        "right": 1118,
+        "bottom": 1147
+      },
+      "alphaCounts": {
+        "transparent": 1241151,
+        "opaque": 1024,
+        "partial": 330341
+      },
+      "pngBytes": 392219,
+      "webpBytes": 249824,
+      "qa": {
+        "fullSize": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a.",
+        "thumbnailReview": "All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot.",
+        "reviewSheet": "output/cutout-repair/cutouts-128-64-48.png",
+        "specific": "Flat spool ends and teal cord loop remain recognizable.",
+        "alpha": "No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side.",
+        "runtime": "Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+      },
+      "visibleAlphaBounds": {
+        "threshold": 10,
+        "left": 295,
+        "top": 319,
+        "right": 1061,
+        "bottom": 944
+      },
+      "alphaExtrema": {
+        "min": 0,
+        "max": 255
+      },
+      "editReferenceSource": "C:/Users/Yanni/.codex/generated_images/01a10095-a978-7761-b05c-d92b22cfd7e5/exec-f48678d7-f16b-47b2-8b9b-b83fd0e1dad2.png",
+      "review": "All twelve original generated images inspected at full size; object identity, coarse irregular contours, broad shape design and sparse interior detail checked against sheep, shadow-pack and approved hero-style-a. All twelve inspected at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f using review-gemward-v2-art.mjs and Chromium screenshot. Flat spool ends and teal cord loop remain recognizable. No opaque background, visible halo or edge crop. Very faint alpha 1–9 scatter from generation exists outside the visible silhouette; preserved unmodified. Every nonzero-alpha pixel has canvas clearance; visible alpha>=10 silhouette has over 10% clearance on every side. Current filenames replaced without runtime code changes. Exact RGBA lossless derivative verified. Live scene/mobile review delegated to root/UI agent; not claimed here."
+    }
+  ],
+  "review": {
+    "all12FullSize": true,
+    "all12ThumbnailsOnBothBackgrounds": true,
+    "exactLosslessRGBA": true,
+    "originalToolMastersPreserved": true,
+    "sharedInventoryUntouched": true
+  }
+}

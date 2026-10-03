@@ -89,6 +89,12 @@ Check town exploration at separate local places, both route votes, warehouse com
 
 Interrupt a travel vote after server acceptance, suppress reads, and reload. The uncertain vote must keep its exact command ID, decision, edge and turn. Restore reads and compare command receipts and rewards; no travel decision earns action XP or chapter credit. Reducer/service tests separately cover tied and absent votes, frozen eligibility, departures, late admission and parked travel. Inspect shop, map, encounter and completion captures at 320×568, 390×844 and desktop. Verify keyboard selection and explicit release, four tokens, loaded artwork and 44px controls. Save the local report in `output/playwright/journey-results.json`; do not describe it as hosted persistence, Realtime or physical-phone evidence.
 
+The journey runner also checks the painted discovery and encounter atlases against recorded result windows. Drafts, repeated synchronization and reload must not replay them. Reduced motion must preserve discovery receipts and battle progress. Keep source and artwork stable while capturing: the runner fingerprints both.
+
+### Painted loading and event frames
+
+Run `npm run test:flipbooks` against local Vite on port 5204, or set `FLIPBOOK_TEST_URL` to another HTTP loopback origin. The runner holds the actual lazy game module to inspect its Suspense loading state, then releases it; it does not add a production delay. Verify eight discrete cell positions, a readable poster at 320/390px with reduced motion, hidden-tab recovery, no stale one-shot replay after delayed loading, and static fallback when the atlas request fails. Evidence is `output/playwright/flipbook-loading.json`. Use the journey runner separately for actual confirmed event integration.
+
 ### Earlier authored adventures
 
 Run `npm run test:adventures -- http://127.0.0.1:5198` with Vite running. This isolates the real local command handler, disables external calls and controls the shared clock. Its Vite SSR loader uses a separate dependency cache so it cannot invalidate the preview server's optimized modules. Use `STORY_ID` to focus one story during debugging; unset it for the complete report.

@@ -1,0 +1,279 @@
+{
+  "style": "Original DropInn sheep and wolves: crude uneven black raster contours, broad simple restrained fills and awkward silhouettes. Authored frame-by-frame poses, not transformations of one still.",
+  "date": "2026-10-03",
+  "resourcePlan": [
+    {
+      "subject": "Sheep bouncing in place",
+      "purpose": "Actual app/session loading and room-opening states",
+      "canvas": "1536x1024, four columns by two rows, actual alpha",
+      "action": "New eight-frame atlas; original sheep retained"
+    },
+    {
+      "subject": "Quest pouch pops open",
+      "purpose": "Confirmed shared discovery, once per accepted event",
+      "canvas": "1536x1024, four columns by two rows, actual alpha",
+      "action": "New eight-frame atlas"
+    },
+    {
+      "subject": "Playful contact puff",
+      "purpose": "Confirmed successful battle progress, once per accepted event",
+      "canvas": "1536x1024, four columns by two rows, actual alpha",
+      "action": "New eight-frame atlas"
+    }
+  ],
+  "drafts": [
+    {
+      "id": "sheep-loading-before-margin-correction",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-ab2de34e-1a0c-4467-b242-ddbc0acd8c7f.png",
+      "prompt": "Create ONE production animation sprite atlas for DropInn: a cute sheep loading loop. Match the attached original DropInn sheep and shadow wolves EXACTLY in their drawing vocabulary: very simple clumsy MS Paint mouse doodles, broad wonky flat cream wool and peach face, irregular blunt black raster contours, huge uneven off-center eyes, tiny stick legs, coral ears, one mustard bell. Do not polish the drawing; no detailed wool, fur, gradients, glossy light, texture, clean vector mascot or regular pixel-art grid. Preserve the sheep's recognizable asymmetry. Remove the sad tear for this happy waiting animation. Output a transparent-background 4-column by 2-row sprite sheet, eight equally sized cells in strict reading order, ideally 1536 by 1024 pixels total. No grid lines, no text or numbers, no backdrop, no ground line, no cast shadow. Each cell contains exactly ONE full sheep, same identity/size/camera, same baseline and centered horizontal pivot. Keep the full silhouette including ears and bell at least 15% inside every cell. This is eight DRAWN FRAMES, not eight unrelated designs. Animation: a small impatient bouncing trot IN PLACE; frame1 upright feet apart ears neutral; frame2 knees bend slightly body lowered ears rising; frame3 deepest squash eyes still open; frame4 push-off one leg tucked ears trail down; frame5 little airborne stretch feet tucked, bell swings right; frame6 descending ears lifted bell swings left; frame7 soft landing wide squash, eyes briefly blink; frame8 near upright, eyes reopen, ears settle, returning smoothly to frame1. Large recognizable pose changes but sheep remains entirely inside its own cell. Keep the center of each character aligned to the center of its cell. This exact 4x2 atlas will be stepped as an animation in the game. Only this sprite atlas, actual alpha transparency.",
+      "review": "Rejected because first sheep approached the right cell boundary. Targeted built-in correction retained poses with safer cell margins."
+    },
+    {
+      "prompt": "Create ONE production transparent SPRITE ATLAS for DropInn's gentle combat impact, with EIGHT discrete hand-drawn frames. Match the attached sheep and wolves' original coarse MS Paint doodle language: blunt irregular BLACK raster lines, awkward lopsided flat shapes, sparse marks, muted coral and mustard fills. No polished vector graphics, no gradients, glow, lighting, haze, texture, realistic explosion, violent imagery, or text. Output1536x1024 pixels, EXACT4columns x2rows, equal384x512 cells, frames in reading order. Every frame centered at its cell center (192,256), all marks at least72px inside every cell edge. No grid, no labels, no backdrop or floor. All outside drawing actual alpha0 transparent, flat drawing opaque. Sequence of ONE short comic contact puff: 1 a tiny black crooked four-point contact mark;2 small coral irregular starburst;3 larger wide mustard-centered starburst with black contour and2short black impactticks;4 broad lopsided cream puff with coral center and3blackmotionticks;5 puff breaks into3small cream cloud blobs spreading slightly;6 two tiny cream blobs and2crooked black ticks drifting apart;7 one tiny cream blob with1tick;8 a single very small black settle speck. It should feel playful like two tabletop pieces bumping, never threatening. Clearly distinct silhouette on every frame, compatible style and aligned center. Do not repeat the reference animal or add weapons/characters. This is a real eight-frame animation sheet, one source file, actual transparency.",
+      "id": "encounter-before-transparency-repair",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-b119767d-9cb4-49c7-8716-5c3dd7556afc.png",
+      "review": "Rejected: visible translucent background spilled across cell boundaries. Built-in alpha repair preserves the eight original drawings and isolates their contours."
+    }
+  ],
+  "assets": [
+    {
+      "generator": "Codex built-in image_gen",
+      "reference": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "transparent": true,
+      "columns": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 1024,
+      "id": "flipbook-sheep-loading",
+      "purpose": "Eight drawn poses of the original sheep bouncing while loading",
+      "file": "public/art/flipbook-sheep-loading.png",
+      "runtimeFile": "public/art/flipbook-sheep-loading.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-8817d9e3-4b83-4803-b0e5-51ea9d63530f.png",
+      "prompt": "Edit this exact 4-column by 2-row SHEEP ANIMATION ATLAS. Keep all eight poses, their order, the sheep identity, same simple crude black MS Paint outlines and flat colors. Maintain1536×1024 canvas and a strict invisible grid: columns384px wide, rows512px tall. IMPORTANT each sheep is presently too large for its cell. Redraw each whole sheep about25% smaller around that cell's center, giving a MINIMUM48px completely transparent gap inside all four edges of EACH384×512 cell. No sheep, ear, hoof or bell may cross x384,768,1152 or y512. Do not add grid lines. Maintain pose baselines/pivots so the frame animation is stable. Remove any soft gray/brown glow or halo around the sheep. All empty surroundings are true alpha0 transparency, no gradient or background. Sheep interiors and their heavy black lines must be fully opaque alpha255, with only normal edge antialiasing. Eight separate drawn animation poses retained, no text and no other objects.",
+      "editTarget": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-ab2de34e-1a0c-4467-b242-ddbc0acd8c7f.png",
+      "durationMs": 1120,
+      "loop": true,
+      "sha256": "b56da7787842476e5834671e065172cb211347bdfd8d78a267256effa501f635",
+      "runtimeSha256": "d7e91a78f71e1b6b68c1a467324c21eb17c4bf10c85dc158c9d4caf897f671f9",
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "visibleFrameBounds": [
+        [
+          66,
+          153,
+          344,
+          404
+        ],
+        [
+          60,
+          168,
+          328,
+          404
+        ],
+        [
+          51,
+          200,
+          324,
+          405
+        ],
+        [
+          63,
+          165,
+          335,
+          407
+        ],
+        [
+          62,
+          116,
+          345,
+          362
+        ],
+        [
+          65,
+          114,
+          328,
+          374
+        ],
+        [
+          51,
+          163,
+          337,
+          374
+        ],
+        [
+          60,
+          120,
+          333,
+          374
+        ]
+      ],
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against original PNG. No crop, resize, recolor or alpha cleanup.",
+      "review": "Eight distinct drawn frames reviewed at source size and through the real CSS atlas player on pale paper and dark backgrounds. Visible ink stays within every cell; no neighboring frame appears. Original alpha is preserved, including generator alpha1–4 noise outside ink. Exact PNG/WebP RGBA equality verified. Loading, reduced motion, hidden state and failed-image recovery verified separately in output/playwright/flipbook-loading.json; confirmed event integration is recorded in docs/gemward-art-polish.md."
+    },
+    {
+      "generator": "Codex built-in image_gen",
+      "reference": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "transparent": true,
+      "columns": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 1024,
+      "id": "flipbook-discovery",
+      "purpose": "Eight drawn pouch-pop frames for confirmed shared discoveries",
+      "file": "public/art/flipbook-discovery.png",
+      "runtimeFile": "public/art/flipbook-discovery.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-9f98d3a7-6e59-423c-9006-5a05c35b33ca.png",
+      "prompt": "Create ONE production sprite-sheet asset for DropInn: eight DRAWN FRAMES of a little quest pouch popping open with delight. Use attached sheep/wolf only as the art-style anchors: very crude endearing MS Paint mouse doodle, broad lopsided shapes, blunt irregular BLACK raster outlines, flat restrained brown, cream and mustard fills, very sparse interior marks. Do not make polished vector graphics or shiny RPG loot icons. This is ONE atlas,1536x1024 pixels,4 equal columns x2 equal rows in reading order (cells384x512). Each cell has exactly one same little cream cloth drawstring pouch with brown crooked cord, centered at x192 within cell and steady bottom baseline at y390. Keep every mark at least64px within each cell's border; no cross-cell overlap. Actual transparent alpha background, no ground, no shadow, no matte, no glow, no border, labels or text. All empty area fully transparent; drawing fully opaque. SAME POUCH, consistent silhouette/scale/camera. Sequence: frame1 closed soft pouch at rest; frame2 slight squash and cord tightens; frame3 pouch stretches up and mouth cracks open; frame4 mouth opens wide and one little mustard four-point star pops out; frame5 three uneven small gold stars jump higher, pouch settles down; frame6 two stars drift apart and shrink, cord falls loose; frame7 one tiny star settles toward the open mouth; frame8 pouch happily open at rest, no stars. No face, no coin, no gem, no actual reward object, no different items between frames. The broad handdrawn stars are simple flat shapes with black outlines, not glowing particle effects. The result will be animated by showing one cell at a time, so cell alignment and strict4x2 layout matter.",
+      "durationMs": 800,
+      "loop": false,
+      "sha256": "4a84e98754c34344b49e539f5dcb94e04bb530e24198c3771daa54d86780e86f",
+      "runtimeSha256": "dafa64d2367cb513557c6e261c044c76474f874eefd53c6873a2e42859d43e27",
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "visibleFrameBounds": [
+        [
+          94,
+          265,
+          333,
+          474
+        ],
+        [
+          71,
+          279,
+          333,
+          473
+        ],
+        [
+          69,
+          212,
+          314,
+          472
+        ],
+        [
+          83,
+          103,
+          328,
+          474
+        ],
+        [
+          93,
+          50,
+          337,
+          442
+        ],
+        [
+          85,
+          93,
+          336,
+          440
+        ],
+        [
+          80,
+          133,
+          344,
+          442
+        ],
+        [
+          79,
+          226,
+          336,
+          442
+        ]
+      ],
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against original PNG. No crop, resize, recolor or alpha cleanup.",
+      "review": "Eight distinct drawn frames reviewed at source size and through the real CSS atlas player on pale paper and dark backgrounds. Visible ink stays within every cell; no neighboring frame appears. Original alpha is preserved, including generator alpha1–4 noise outside ink. Exact PNG/WebP RGBA equality verified. Loading, reduced motion, hidden state and failed-image recovery verified separately in output/playwright/flipbook-loading.json; confirmed event integration is recorded in docs/gemward-art-polish.md."
+    },
+    {
+      "generator": "Codex built-in image_gen",
+      "reference": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "transparent": true,
+      "columns": 4,
+      "rows": 2,
+      "frames": 8,
+      "width": 1536,
+      "height": 1024,
+      "id": "flipbook-encounter",
+      "purpose": "Eight drawn contact-puff frames for successful confirmed encounter moves",
+      "file": "public/art/flipbook-encounter.png",
+      "runtimeFile": "public/art/flipbook-encounter.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-dcbbc9b7-10ae-4249-a6a1-9bbeb45ba151.png",
+      "prompt": "Repair this exact combat-puff4x2 animation atlas. Preserve the eight drawings, order, crude black MS Paint lines, colors and1536x1024size. Only fix transparency and safe margins: absolutely remove EVERY soft glow, shadow, haze and translucent background surrounding the ink. There must be ONLY crisp opaque drawings on transparent background, no soft alpha glow. Every pixel beyond an actual black contour or colored fill must be alpha0. Each frame stays centered in one384x512cell. In frame2 the current halo extends to neighboring cells: eliminate it completely. Keep visible marks at least48px from every cell boundary. Frames1 and8 are tiny black punctuation-like contact specks, not blank panels. Flat coral/cream/mustard fills only, no light rays or gradients. Do not change the composition or add any labels or grid lines. This is a technical sprite transparency repair, not a poster.",
+      "durationMs": 600,
+      "loop": false,
+      "editTarget": "C:/Users/Yanni/.codex/generated_images/01a10085-3a28-7b32-84f7-32cde9b90f76/exec-b119767d-9cb4-49c7-8716-5c3dd7556afc.png",
+      "sha256": "abc4c3199d0e6ed407dbca3f37dc2677da3d4c6e4555e53080e35861f5a8f0a9",
+      "runtimeSha256": "cda329b179c4d09a98f14f399b389b9d59753e97af599004ee015b77b2779007",
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "visibleFrameBounds": [
+        [
+          171,
+          268,
+          212,
+          315
+        ],
+        [
+          124,
+          216,
+          281,
+          376
+        ],
+        [
+          71,
+          178,
+          311,
+          415
+        ],
+        [
+          46,
+          120,
+          342,
+          433
+        ],
+        [
+          83,
+          95,
+          310,
+          341
+        ],
+        [
+          116,
+          138,
+          308,
+          300
+        ],
+        [
+          143,
+          166,
+          251,
+          288
+        ],
+        [
+          176,
+          216,
+          216,
+          259
+        ]
+      ],
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against original PNG. No crop, resize, recolor or alpha cleanup.",
+      "review": "Eight distinct drawn frames reviewed at source size and through the real CSS atlas player on pale paper and dark backgrounds. Visible ink stays within every cell; no neighboring frame appears. Original alpha is preserved, including generator alpha1–4 noise outside ink. Exact PNG/WebP RGBA equality verified. Loading, reduced motion, hidden state and failed-image recovery verified separately in output/playwright/flipbook-loading.json; confirmed event integration is recorded in docs/gemward-art-polish.md."
+    }
+  ]
+}

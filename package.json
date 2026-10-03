@@ -17,6 +17,7 @@
     "test:adventures": "node scripts/playtest-adventures.mjs",
     "test:expedition": "node scripts/playtest-journey.mjs",
     "test:journey": "node scripts/playtest-journey.mjs",
+    "test:flipbooks": "node scripts/playtest-flipbooks.mjs",
     "test:chapter-choices": "node scripts/playtest-chapter-choices.mjs",
     "test:cooperation": "node scripts/playtest-cooperation.mjs",
     "test:mobile-composition": "node scripts/playtest-mobile-composition.mjs",

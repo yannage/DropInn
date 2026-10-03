@@ -30,6 +30,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Gemward v2 graph, travel boundaries, shared pouch provenance and deferred ending | `src/lib/dropinn/journey.ts`, `journeyTypes.ts`, `journeyEngine.ts`, [v2 packet](docs/stories/gemward-v2.md) |
 | Gemward v2 illustrated table, Journey and art placement | `src/components/DropInn/GemwardAdventure.tsx`, `GemwardJourney.tsx`, `GemwardArt.tsx`, `gemward-adventure.css` |
 | Gemward v2 art sources, prompts and review | `public/art/gemward-v2-*`, `.agents/skills/dropinn-art/references/gemward-v2-prompts.json`, `scripts/encode-gemward-v2-art.py` and `scripts/review-gemward-v2-art.mjs` within the art skill |
+| Restored Gemward art direction and painted loading/discovery/contact frames | `src/components/DropInn/FrameAnimation.tsx`, `LoadingInn.tsx`, `src/lib/dropinn/frameAnimation.ts`, [art polish and verification](docs/gemward-art-polish.md) |
 | Briar Glen v3 supplies, safe/risky moves and chapel carryover | `src/lib/dropinn/river.ts`, `river.test.ts`, [river story packet](docs/stories/briar-glen-v3.md) |
 | Current chapter preparation, rescue and banking choices | `src/lib/dropinn/chapterChoices.ts`, `chapterChoiceContent.ts`, `chapterChoices.test.ts`, [chapter choice supplement](docs/stories/chapter-choices.md) |
 | Named committed plans, cooperation credit and exact success odds | `src/lib/dropinn/partyIntent.ts`, `actionOdds.ts`, `src/components/DropInn/party-decisions.css` |
@@ -76,6 +77,8 @@ React 18, TypeScript, Zustand, Vite, Supabase and Netlify remain the stack. Lega
 `npm run dev` provides both Vite and the local command service. The local repository is server memory: rooms and chat disappear when the development server restarts; browser hero data remains. Use `?session=host` and `?session=guest` for separate local identities.
 
 `npm run test:journey` and `npm run test:expedition` both run `scripts/playtest-journey.mjs` for current Gemward v2. Keep its evidence separate from prior v1 expedition checks.
+
+`npm run test:flipbooks` checks real loading, eight raster frames, reduced motion, hidden/late playback and failed-image recovery against local Vite on port 5204. Override the loopback origin with `FLIPBOOK_TEST_URL`. Confirmed discovery/contact playback is covered by `test:journey`.
 
 **Restart Vite after changing the server handler or its server-side dependencies.** The development plugin caches the loaded handler. `npm run preview` serves static assets only and does not provide `/api/dropinn`.
 

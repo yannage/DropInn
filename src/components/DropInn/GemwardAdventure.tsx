@@ -7,6 +7,7 @@ import { CONSUMABLES, QUEST_ITEMS, combatMoves, expeditionStash } from '../../li
 import { remainingTurnSeconds } from '../../lib/dropinn/playerGuidance';
 import { latestRound } from '../../lib/dropinn/roundSummary';
 import { personalRollBeat } from '../../lib/dropinn/stagePlayback';
+import { FRAME_ATLASES } from '../../lib/dropinn/frameAnimation';
 import { spotlightSuggestions } from '../../lib/dropinn/suggestions';
 import { invitationUrl } from '../../lib/dropinn/invites';
 import type { AdventureRoom, PlayerAction } from '../../lib/dropinn/types';
@@ -29,6 +30,7 @@ import { gemwardBackdrop, gemwardPlacement, GemwardItem, GemwardPiece } from './
 import { GemwardJourney } from './GemwardJourney';
 import { GemwardPack, GemwardConsumable } from './GemwardPack';
 import { GemwardCombat } from './GemwardCombat';
+import { FrameAnimation } from './FrameAnimation';
 import './gemward-adventure.css';
 
 const TOKENS: { kind: IllustratedToken; label: string }[] = [{ kind: 'fight', label: 'Fight' }, { kind: 'influence', label: 'Influence' }, { kind: 'investigate', label: 'Investigate' }, { kind: 'assist', label: 'Help' }];
@@ -70,6 +72,7 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   const stage = useRef<HTMLDivElement>(null);
   const reducedMotion = useLiveReducedMotion();
   const quiet = reducedMotion || quietEffects;
+  const warmedFlipbooks = useRef(false);
   const visible = useVisibleTable();
   const contact = useTableContact(quiet);
   const heroPlay = useHeroPlay();
@@ -115,8 +118,12 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
     : targetId && (inCombat || topics.some(topic => topic.id === interactionId)) ? { token, targetId, targetKind: 'scene', expedition: { locationId, ...(!inCombat && interactionId ? { interactionId } : {}), ...attachments } } : null;
   const preview = selection?.token === 'spotlight' ? selection.proposal : selection ? journeyActionPreview(room, userId, selection) : undefined;
   const actionOnTable = pending?.action ?? committed ?? selection;
-  const localEvent = activeEvent && (activeEvent.result?.targetKind === 'hero' || scene.targets.some(item => item.id === activeEvent.result?.targetId)) && (!activeEvent.journey?.locationId || activeEvent.journey.locationId === renderedLocationId) ? activeEvent : undefined;
+  // The finished encounter stays on the table through its reveal, even though
+  // the authoritative scene has already returned to the recovered route.
+  const renderedTargetIds = showCombat ? ['encounter', 'cover', 'opening', 'allies'] : scene.targets.map(item => item.id);
+  const localEvent = activeEvent && (activeEvent.result?.targetKind === 'hero' || renderedTargetIds.includes(activeEvent.result?.targetId ?? '')) && (!activeEvent.journey?.locationId || activeEvent.journey.locationId === renderedLocationId) ? activeEvent : undefined;
   const discovery = activeEvent?.journey?.questChanges?.find(item => item.kind === 'gained');
+  const encounterContact = showCombat && localEvent?.kind === 'action' && localEvent.result?.token !== 'assist' && (localEvent.result?.expedition?.battleProgress ?? 0) > 0;
   const received = playback.landed.flatMap(event => (event.journey?.questChanges ?? []).map(change => ({ ...change, event }))).slice(-3);
   const receivedGift = playback.landed.filter(event => event.actorId === userId && event.result?.expedition?.reward).at(-1)?.result?.expedition?.reward;
   const roll = personalRollBeat(room, userId);
@@ -125,6 +132,16 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
   const narrative = confirmed ? activeEvent ?? playback.landed.filter(event => event.change || event.kind === 'consequence').at(-1) ?? playback.landed.find(event => event.actorId === userId) : undefined;
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 100); return () => window.clearInterval(timer); }, []);
+  useEffect(() => {
+    if (quiet || warmedFlipbooks.current) return;
+    warmedFlipbooks.current = true;
+    // Warm optional result art without gating entry, input, or the shared clock.
+    for (const atlas of [FRAME_ATLASES.discovery, FRAME_ATLASES.encounter]) {
+      const image = new Image();
+      image.fetchPriority = 'low';
+      image.src = atlas.src;
+    }
+  }, [quiet]);
   useEffect(() => {
     setTargetId(undefined); setInteractionId(undefined); setProtectId(undefined); setAttachments({}); setSpotlightAction(null); setIdea(''); setSpotlightTarget(''); setHolding(false); setDrag(undefined); gesture.current = undefined; clearProposal(); setShowAll(false); setHint('Choose someone or something in the scene.');
   }, [room.turn, clearProposal]);
@@ -226,6 +243,8 @@ export function GemwardAdventure({ room, chat }: { room: AdventureRoom; chat: Re
       <StageEffects room={room} stage={stage} event={localEvent} elapsed={playback.active ? Math.max(0, now - playback.active.start) : 0} duration={playback.active?.duration} quiet={quiet} shake={!quiet} showDice={false} />
       {releaseVisible && release && <div className="gm-release-flight" style={{ left: release.x, top: release.y, animationDelay: `${-Math.max(0, now - release.at) / 1000}s` }} aria-label="Move released"><TokenArtwork token={release.token} /></div>}
       {discovery && !quiet && playback.active && <div className="gm-discovery-flight" key={`${activeEvent!.id}:${discovery.itemId}`} style={{ animationDelay: `${-Math.max(0, now - playback.active.start) / 1000}s` }} aria-hidden="true"><GemwardItem id={discovery.itemId} /></div>}
+      {discovery && !quiet && playback.active && <FrameAnimation key={`discovery:${activeEvent!.id}`} atlas="discovery" durationMs={Math.min(800, playback.active.duration)} elapsedMs={Math.max(0, now - playback.active.start)} className="gm-discovery-flipbook" />}
+      {encounterContact && !quiet && playback.active && <FrameAnimation key={`encounter:${activeEvent!.id}`} atlas="encounter" durationMs={Math.min(600, playback.active.duration)} elapsedMs={Math.max(0, now - playback.active.start)} className="gm-encounter-flipbook" />}
       {confirmed && (received.length > 0 || receivedGift) && <div className="gm-discovery-receipts" role="status">{received.map(change => <div className="gm-discovery-receipt" key={`${change.event.id}:${change.itemId}`}><GemwardItem id={change.itemId} /><span><strong>{QUEST_ITEMS[change.itemId]?.label ?? 'Shared discovery'}</strong><small>{change.kind === 'spent' ? 'Used to change Gemward' : 'Added to the party pouch'}</small></span></div>)}{receivedGift && <div className="gm-discovery-receipt"><GemwardConsumable kind={receivedGift.item.kind} /><span><strong>{CONSUMABLES.find(item => item.id === receivedGift.item.kind)?.label}</strong><small>{state.offers[userId]?.some(offer => offer.id === receivedGift.id) ? 'A gift waits in your stash' : 'Added to your stash'}</small></span></div>}</div>}
       {showRoll && roll && <PersonalStageDice event={roll.event} elapsed={Math.max(0, now - roll.start)} stage={stage} quiet={quiet} />}
       {confirmed && narrative && !showRoll && <div className="gm-confirmed-caption" role="status" key={narrative.id}><span>{narrative.change?.title ?? (narrative.actorName ? `${narrative.actorName} made a difference` : 'The story moves')}</span><strong>{narrative.change?.next ?? narrative.text}</strong></div>}

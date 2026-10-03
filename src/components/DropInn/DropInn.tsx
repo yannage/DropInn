@@ -28,7 +28,6 @@ import {
   Heart,
   Hand,
   Lightbulb,
-  LoaderCircle,
   MessageCircle,
   Search,
   Send,
@@ -57,6 +56,7 @@ import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
 import { ExpeditionAdventure } from './ExpeditionAdventure';
 import { GemwardAdventure } from './GemwardAdventure';
+import { LoadingInn } from './LoadingInn';
 import { isJourney } from '../../lib/dropinn/journey';
 import { isExpedition } from '../../lib/dropinn/expedition';
 import { HeroAvatar, HeroHatPreview } from './HeroAvatar';
@@ -389,13 +389,10 @@ export function DropInn() {
       )}
       {!ready ? (
         <main className="di-loading">
-          <Dices size={40} />
-          <h1>Pull up a chair.</h1>
-          <p>Opening the inn…</p>
-          <LoaderCircle className="di-spin" />
+          <LoadingInn label="Pull up a chair." detail="Opening the inn…" />
         </main>
       ) : restoringCode && !room ? (
-        <main className="di-loading"><Dices size={40} /><h1>Your chair is still bookmarked.</h1><p>Reconnecting to table {restoringCode}. Your saved hero stays here.</p></main>
+        <main className="di-loading"><LoadingInn label="Your chair is still bookmarked." detail={<>Reconnecting to table {restoringCode}. Your saved hero stays here.</>} /></main>
       ) : room ? (
         <Adventure key={room.id} room={room} />
       ) : (
@@ -526,8 +523,7 @@ function Lobby() {
             <div className="di-lobby-start">
               <div className="di-lobby-start-actions">
                 <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id)}>
-                  {loading ? <LoaderCircle className="di-spin" size={20} /> : <TabletopArtwork kind="dice" />}
-                  <span>{loading ? preparing ? 'Preparing a new telling…' : 'Opening your adventure…' : `Play ${adventure.title}`}</span>
+                  {loading ? <LoadingInn compact label={preparing ? 'Preparing a new telling…' : 'Opening your adventure…'} /> : <><TabletopArtwork kind="dice" /><span>{`Play ${adventure.title}`}</span></>}
                   <ArrowRight size={20} />
                 </button>
                 <button type="button" className="di-lobby-friends" aria-haspopup="dialog" disabled={loading} onClick={() => { clearError(); setFriends(true); }}>
@@ -644,7 +640,7 @@ function Lobby() {
           <section>
             <h3>Start a private table</h3>
             <p>Play {adventure.title} with companions, then invite up to three friends. Your table stays out of public discovery.</p>
-            <button type="button" className="di-button di-primary di-full" disabled={loading} onClick={() => void startFriendTable(adventure.id)}><Users size={17} />{loading ? 'Opening your table…' : 'Start a friend table'}</button>
+            <button type="button" className="di-button di-primary di-full" disabled={loading} onClick={() => void startFriendTable(adventure.id)}>{loading ? <LoadingInn compact label="Opening your table…" /> : <><Users size={17} />Start a friend table</>}</button>
             <small>Anyone with the full invitation can join.</small>
           </section>
           <section>
@@ -652,7 +648,7 @@ function Lobby() {
             <form onSubmit={event => { event.preventDefault(); if (code.trim()) void joinRoom(code.trim()); }}>
               <label htmlFor="room-code">Adventure code or invitation link</label>
               <input id="room-code" value={code} onChange={event => setCode(event.target.value)} placeholder="Code or invitation link" maxLength={2048} autoCapitalize="none" autoComplete="off" />
-              <button type="submit" className="di-button di-secondary" aria-label="Join adventure by code" disabled={!code.trim() || loading}>Join friends <ArrowRight size={17} /></button>
+              <button type="submit" className="di-button di-secondary" aria-label="Join adventure by code" disabled={!code.trim() || loading}>{loading ? <LoadingInn compact label="Join friends" /> : <>Join friends <ArrowRight size={17} /></>}</button>
             </form>
           </section>
           {error && <p role="alert" className="di-lobby-friend-error">{error}</p>}
