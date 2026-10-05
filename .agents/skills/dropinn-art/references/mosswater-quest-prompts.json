@@ -1,0 +1,165 @@
+{
+  "date": "2026-10-04",
+  "generator": "Codex built-in image_gen",
+  "styleAuthority": "User's preserved MS Paint style: preferred sheep/wolf art and approved hero style A; stage-village environment continuity.",
+  "references": [
+    "public/art/sheep.png",
+    "public/art/shadow-pack.png",
+    ".agents/skills/dropinn-art/assets/hero-style-a.png",
+    "public/art/stage-village.png"
+  ],
+  "assets": [
+    {
+      "id": "mosswater-well",
+      "file": "public/art/mosswater-well.png",
+      "runtimeFile": "public/art/mosswater-well.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "purpose": "Mosswater village well; neutral empty bucket and black opening allow truthful polluted/clean HTML state",
+      "prompt": "Use case: stylized-concept. Make ONE new transparent game prop for DropInn: a small roofless crooked stone well with one plain EMPTY wooden bucket hanging from a short rope over its rim. No roof and no supporting wooden frame. The rope can drape over the near rim into the well; the empty bucket rests against the outside rim. Thick lopsided ring of only five or six broad gray-beige stone shapes, black open hole with no visible water, uneven squat body. Plain brown bucket, no face, no symbols. Neutral reusable object: do NOT show polluted water, clean water, splashes, sparkles, poison or a repaired state. Style matches DropInn's viewed sheep.png, shadow-pack.png and approved hero-style-a.png: coarse, loose MS Paint mouse doodle, blunt irregular black contours with natural raster jaggies, awkward actual shapes, variable imperfect joins, a few broad restrained bucket fills. Very sparse interior lines. Not a polished cartoon or pixel-art grid. Composition: one complete isolated prop, centered in middle 65 percent of a square canvas, at least 15 percent empty transparent margin on all sides; recognizable at 64 pixels. Actual alpha transparency. No background, ground shadow, white rectangle, checkerboard, text, UI, gradients, gloss, hatching, detailed texture, decorative plants or additional subjects.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-58ce7e60-234b-421a-8385-de54b9990bfb.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        ".agents/skills/dropinn-art/assets/hero-style-a.png",
+        "public/art/stage-village.png"
+      ],
+      "sourceReferencesIncluded": false,
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit only the well prop in image 1. Images 2 and 3 are drawing-method references only: DropInn sheep and approved blue hero. Keep the same roofless stone well, black empty opening, empty bucket on rope, placement and transparent full canvas. Redraw its contours in the coarse irregular MS Paint mouse-doodle method of images 2 and 3: thicker blunt uneven black strokes, clumsy edges and large awkward simple shapes. REMOVE every faceted shadow shape on the stones: each stone should be one plain flat gray-beige bucket fill, with no interior shading, mottling or highlights. Keep only five or six big stone shapes. Simplify the rope to a single flat tan bent strip with at most two crossing marks. Bucket only three broad brown planks and one dark band. Preserve the readable object identity without polishing the geometry. No face, water, vegetation, scene, shadow, text, checkerboard, gradient or extra subject. Keep actual alpha transparency and wide intact margins. Do not draw either reference character.",
+        "source": "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-ad09ba6f-1414-43a2-b5c8-a89c51d5cae0.png",
+        "references": [
+          "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-58ce7e60-234b-421a-8385-de54b9990bfb.png",
+          "public/art/sheep.png",
+          ".agents/skills/dropinn-art/assets/hero-style-a.png"
+        ],
+        "reason": "Remove faceted stone shading and simplify marks to match coarse original game art."
+      },
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10089-b89b-76f0-8d01-77cf6ad88515\\exec-ad09ba6f-1414-43a2-b5c8-a89c51d5cae0.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        132,
+        53,
+        1109,
+        977
+      ],
+      "visibleAlphaBounds": [
+        252,
+        344,
+        1044,
+        936
+      ],
+      "sha256": "9b9e704b60b09165199fa4dd3ccb2b860ef1ba0718df12890ca7057041916982",
+      "runtimeSha256": "06199fc4dd4aa00777aeb19bb6f9c46fe9f754ce80aeadc57eee2c64550a8d32",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-art-review.png"
+    },
+    {
+      "id": "mosswater-mossback",
+      "file": "public/art/mosswater-mossback.png",
+      "runtimeFile": "public/art/mosswater-mossback.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "purpose": "Mosswater bog resident and encounter; neutral alert pose preserves one identity",
+      "prompt": "Use case: stylized-concept. Make ONE new transparent creature cutout for DropInn: a neutral alert little bog creature named Mossback. A lopsided pear-like moss-green body leaning slightly to one side, two deliberately mismatched off-center cream eyes with simple black dots, deadpan small crooked mouth, short clumsy arms and two tiny awkward brown feet. One funny detail only: a bent reed held sideways beneath the nose like a comically uneven mustache. It is a wary character who can be spoken to or fought, not a snarling monster; no attack pose, wound, rage, weapon or magical effect. Flat moss/olive-green body with at most one broad darker green patch, no fur, leaf texture, scales or moss micro-detail. Style matches DropInn's viewed sheep.png, shadow-pack.png and approved hero-style-a.png: coarse loose MS Paint mouse doodle, blunt irregular black contours with natural raster jaggies, awkward actual shapes and variable imperfect joins, broad restrained flat bucket fills. Do not clean it into a polished mascot or deliberate pixel-art grid. Composition: complete isolated full-body silhouette centered within middle 65 percent of a square canvas, at least 15 percent entirely empty transparent margin on all sides. Readable at 64 pixels. Actual alpha transparency; no background, shadow, checkerboard, badge, lettering, UI, gradients, highlights, gloss, hatching, texture or extra subjects.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-3948751e-429f-4779-867e-50da01ecef0a.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        ".agents/skills/dropinn-art/assets/hero-style-a.png",
+        "public/art/stage-village.png"
+      ],
+      "sourceReferencesIncluded": false,
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit only the creature in image 1; images 2 and 3 are drawing-method references only, the game's sheep and approved blue hero. Preserve the Mossback creature's distinctive tall lopsided leaning green pear body, unequal cream eyes and black pupils, tiny brown feet, short arms, deadpan mouth and single sideways reed mustache. Change its weak thin contours to match the references' bold blunt irregular black mouse-drawn raster contours and clumsy angular joins. Keep outline strength comparable to those references, not clean vector strokes or fuzzy filters. Remove the dark side patch and all directional shading: one broad restrained flat olive/moss fill for the whole body. Keep the same sparse features, do not add details or alter expression. Actual alpha transparent background and the full unchanged square canvas with generous clear margins. No shadow, scenery, lettering, texture, gradients, highlights, gloss, attack pose, weapons or extra subjects; do not draw the reference characters.",
+        "source": "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-5e687ba2-ecd5-4f9d-a177-9e4c74376f1a.png",
+        "references": [
+          "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-3948751e-429f-4779-867e-50da01ecef0a.png",
+          "public/art/sheep.png",
+          ".agents/skills/dropinn-art/assets/hero-style-a.png"
+        ],
+        "reason": "Strengthen thin contours and remove directional side shading while preserving creature identity."
+      },
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10089-b89b-76f0-8d01-77cf6ad88515\\exec-5e687ba2-ecd5-4f9d-a177-9e4c74376f1a.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        97,
+        53,
+        1210,
+        1214
+      ],
+      "visibleAlphaBounds": [
+        364,
+        237,
+        914,
+        1035
+      ],
+      "sha256": "5faaab322709f77c34b2baec65ea140f64b082a4e8dde78cf9fe1188bb385264",
+      "runtimeSha256": "90812201d2e323ec52e129f2f2f86af1b9cde73e29ee09f6aabf5d52c9d6efe6",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-art-review.png"
+    },
+    {
+      "id": "mosswater-dye-vat",
+      "file": "public/art/mosswater-dye-vat.png",
+      "runtimeFile": "public/art/mosswater-dye-vat.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "purpose": "Mosswater poison source; cracked bitterroot dye vat removed or marked resolved when source is sealed",
+      "prompt": "Use case: stylized-concept. Make ONE new transparent game prop for DropInn: a cracked squat wooden vat containing bitterroot dye, the visible source of polluted water. A broad clumsy brown tub with three simple plank divisions and two uneven dark bands, a plainly visible single zigzag crack on the lower right, one small mustard-olive dye blob leaking directly from that crack. The top has a single flat mustard-olive oval of dye. One vat only; no roof, machinery, pipes, surrounding puddle or scenery. No face and no text. It must be distinct from a well and readable at 64 pixels. Style matches DropInn's viewed sheep.png, shadow-pack.png and approved hero-style-a.png: coarse loose MS Paint mouse doodle, blunt irregular black outlines with natural raster jaggies, crooked broad shapes and variable imperfect joins, a few broad restrained flat bucket fills. Sparse marks, no woodgrain, fine seams, detailed texture, hatching, shading or gradients; no polished cartoon, vector-perfect geometry or deliberate pixel-art grid. Composition: full isolated prop centered in middle 65 percent of square canvas, at least 15 percent empty transparent margin on every side. Actual alpha transparency. No floor shadow, background, white rectangle, checkerboard, badge, lettering, UI, sparkle, glow or other subjects.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10089-b89b-76f0-8d01-77cf6ad88515/exec-7d2ef409-c765-4228-baa3-4e5b0c6384ce.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        ".agents/skills/dropinn-art/assets/hero-style-a.png",
+        "public/art/stage-village.png"
+      ],
+      "sourceReferencesIncluded": false,
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10089-b89b-76f0-8d01-77cf6ad88515\\exec-7d2ef409-c765-4228-baa3-4e5b0c6384ce.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        24,
+        52,
+        1210,
+        1214
+      ],
+      "visibleAlphaBounds": [
+        195,
+        284,
+        1062,
+        951
+      ],
+      "sha256": "ba50c861ca75e9bc6e7af98719bf001712a3434514676fa5342842f80be24df4",
+      "runtimeSha256": "fd7fb4486c156f688d15064c0985fd0717951926c701352d829feaba543bdd52",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-art-review.png"
+    }
+  ],
+  "referenceHashes": {
+    "public/art/sheep.png": "026bb0c61db71c29c664656bf062c1fc563b95d6ce5e6b2fa54ce6e75ded938d",
+    "public/art/shadow-pack.png": "56fefa8ebd53a6390192b0a2aed3491edd9e129bcec0966339234bd99f155326",
+    ".agents/skills/dropinn-art/assets/hero-style-a.png": "606e532d410fb2fcfa76625bcd15b77cdf82c4a70759b17bd582b307afe56e8a",
+    "public/art/stage-village.png": "c74d51e28ecd3450b4436dc616deba4293dcce47f3dd56c0d7e6007d0e5a9440"
+  }
+}

@@ -4,6 +4,8 @@ import { createExpedition, expeditionActionPreview, isExpedition } from './exped
 import { advanceExpeditionBoundary, advanceExpeditionChapter, expeditionChapterOutcome, resolveExpeditionRound, validateExpeditionAction } from './expeditionEngine';
 import { createJourney, isJourney, journeyActionPreview, journeyScene } from './journey';
 import { isStoryTable } from './storyTable';
+import { createQuestRun, isQuestRun, questRunScene } from './questRun';
+import { initializeQuestRun, reduceQuestRunCommand, validateQuestRunState } from './questRunEngine';
 import { acceptJourneyVote, beginJourneyTravel, journeyChapterOutcome, journeyVotesReady, resolveJourneyRound, resolveJourneyTravel, TRAVEL_MS, validateJourneyAction, validateJourneyState } from './journeyEngine';
 import { chapterCredits } from './collection';
 import type { CharacterClassKey, CharacterProfile, TraitSet } from '../character';
@@ -100,10 +102,12 @@ export function createAdventure(character: CharacterProfile, userId: string, now
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   if (isExpedition(room)) room.expedition = createExpedition(room.id);
   if (isJourney(room)) room.expedition = createJourney(room.id, room.adventureVersion);
+  if (isQuestRun(room)) room.questRun = createQuestRun(room.id);
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);
   event(room, now, { kind: 'chapter', text: adventure.chapters[0].intro });
+  if (isQuestRun(room)) initializeQuestRun(room, now);
   return room;
 }
 
@@ -439,7 +443,7 @@ function finishChapter(room: AdventureRoom, now: number) {
   const choice = choiceDefinition(room), state = choiceState(room);
   if (choice && state) recordChoiceState(room, choice, closeChoice(choice, state), now, true);
   const definition = chapterOf(room);
-  const expeditionOutcome = isJourney(room) ? journeyChapterOutcome(room) : isExpedition(room) ? expeditionChapterOutcome(room) : undefined;
+  const expeditionOutcome = isQuestRun(room) ? room.questRun!.pendingMilestone : isJourney(room) ? journeyChapterOutcome(room) : isExpedition(room) ? expeditionChapterOutcome(room) : undefined;
   const result = expeditionOutcome?.result ?? (room.progress >= definition.progressGoal ? 'success' : room.progress >= definition.progressGoal * 0.5 ? 'mixed' : 'setback');
   let text = expeditionOutcome?.text ?? definition.endings[result];
   if (adventureFor(room).id === 'briar-glen' && room.chapter === 2 && result === 'success') text = hasFlag(room, 'ward-repaired') ? 'The repaired ward answers the bell. Gloamfang’s shadow falls away, and the guardian bows as the captives return to Briar Glen.' : 'You drive Gloamfang from the chapel and lead the captives home. The villagers hang a new bell, grateful for the brave strangers who answered it.';
@@ -453,7 +457,7 @@ function finishChapter(room: AdventureRoom, now: number) {
   flag(room, `outcome:${room.chapter}:${result}`);
   // Necessary story facts arrive even when a chapter goes badly.
   flag(room, adventureFor(room).id === 'briar-glen' ? room.chapter === 0 ? 'river-lead' : room.chapter === 1 ? 'guardian-truth' : 'village-future' : `story:${definition.id}:complete`);
-  const contributors = new Set(room.events.filter(e => e.chapter === room.chapter && e.kind === 'action' && e.actorId && (e.contribution || e.roll !== undefined)).map(e => e.actorId));
+  const contributors = new Set(room.events.filter(e => (isQuestRun(room) || e.chapter === room.chapter) && e.kind === 'action' && e.actorId && (e.contribution || e.roll !== undefined)).map(e => e.actorId));
   for (const player of Object.values(room.players)) if (contributors.has(player.userId)) {
     player.xp += result === 'success' ? 15 : 10;
     if (!player.keepsakes.includes(definition.keepsake)) player.keepsakes.push(definition.keepsake);
@@ -617,13 +621,16 @@ export function reduceAdventure(original: AdventureRoom, command: AdventureComma
   if (original.appliedCommands.includes(command.id)) return original;
   if (isExpedition(original) && !original.expedition) throw new Error('This expedition is missing its saved run state.');
   if (isJourney(original)) validateJourneyState(original);
+  if (isQuestRun(original)) validateQuestRunState(original);
   if (command.expectedTurn !== undefined && command.expectedTurn !== original.turn && (command.type === 'act' || command.type === 'vote-travel')) throw new Error('This turn has ended. Choose an action for the current scene.');
   if (original.status === 'completed' && command.type !== 'leave') {
     if (command.type === 'tick') return original;
     throw new Error('This adventure is complete. Start another story.');
   }
   const room: AdventureRoom = JSON.parse(JSON.stringify(original));
-  if (command.type === 'vote-travel') {
+  if (isQuestRun(room)) {
+    if (!reduceQuestRunCommand(room, command, now, { normalizeCharacter: normalizedCharacter, seatPlayer, releasePlayer, fillCompanions, finishChapter })) return original;
+  } else if (command.type === 'vote-travel') {
     if (!isJourney(room)) throw new Error('This adventure does not use travel decisions.');
     if (command.expectedTurn === undefined) throw new Error('A travel vote must identify its turn.');
     acceptJourneyVote(room, command.userId, command.travel, now);
@@ -729,6 +736,7 @@ export function summarizeRoom(room: AdventureRoom): RoomSummary {
 }
 
 export function getCatchUp(room: AdventureRoom): string {
+  if (isQuestRun(room)) { const scene = questRunScene(room); return `${scene.catchUp ?? scene.situation} ${scene.objective}`; }
   const firstSentence = (text: string) => text.split(/[.!?](?:\s|$)/)[0];
   const outcome = room.outcomes.find(o => o.chapter === room.chapter);
   if (room.status === 'completed') return `${firstSentence(outcome?.text ?? 'The adventure is complete')}. Your contributions are saved in the chapter journal.`;

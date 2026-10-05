@@ -1806,6 +1806,54 @@
       "runtimeSha256": "cda329b179c4d09a98f14f399b389b9d59753e97af599004ee015b77b2779007",
       "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against original PNG. No crop, resize, recolor or alpha cleanup.",
       "review": "Eight distinct drawn frames reviewed at source size and through the real CSS atlas player on pale paper and dark backgrounds. Visible ink stays within every cell; no neighboring frame appears. Original alpha is preserved, including generator alpha1–4 noise outside ink. Exact PNG/WebP RGBA equality verified. Loading, reduced motion, hidden state and failed-image recovery verified separately in output/playwright/flipbook-loading.json; confirmed event integration is recorded in docs/gemward-art-polish.md."
+    },
+    {
+      "id": "mosswater-well",
+      "purpose": "Mosswater village well; neutral empty bucket and black opening allow truthful polluted/clean HTML state",
+      "file": "public/art/mosswater-well.png",
+      "runtimeFile": "public/art/mosswater-well.webp",
+      "generator": "Codex built-in image_gen",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "9b9e704b60b09165199fa4dd3ccb2b860ef1ba0718df12890ca7057041916982",
+      "runtimeSha256": "06199fc4dd4aa00777aeb19bb6f9c46fe9f754ce80aeadc57eee2c64550a8d32",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reference": "public/art/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-quest-prompts.json"
+    },
+    {
+      "id": "mosswater-mossback",
+      "purpose": "Mosswater bog resident and encounter; neutral alert pose preserves one identity",
+      "file": "public/art/mosswater-mossback.png",
+      "runtimeFile": "public/art/mosswater-mossback.webp",
+      "generator": "Codex built-in image_gen",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "5faaab322709f77c34b2baec65ea140f64b082a4e8dde78cf9fe1188bb385264",
+      "runtimeSha256": "90812201d2e323ec52e129f2f2f86af1b9cde73e29ee09f6aabf5d52c9d6efe6",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reference": "public/art/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-quest-prompts.json"
+    },
+    {
+      "id": "mosswater-dye-vat",
+      "purpose": "Mosswater poison source; cracked bitterroot dye vat removed or marked resolved when source is sealed",
+      "file": "public/art/mosswater-dye-vat.png",
+      "runtimeFile": "public/art/mosswater-dye-vat.webp",
+      "generator": "Codex built-in image_gen",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "sha256": "ba50c861ca75e9bc6e7af98719bf001712a3434514676fa5342842f80be24df4",
+      "runtimeSha256": "fd7fb4486c156f688d15064c0985fd0717951926c701352d829feaba543bdd52",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full dimensions and every decoded RGBA byte verified equal to untouched generated PNG.",
+      "review": "Inspected full-size and in Chromium at actual 256, 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Recognizable intact silhouette, no visible opaque backdrop or halo, clear canvas margins. Well has an empty black opening and bucket with no baked-in water state; Mossback remains neutral/alert; vat has a visible crack and small dye leak (fine details become subordinate at 48px). Alpha extrema 0–255. Original generated PNG preserved; every decoded RGBA byte matches lossless WebP. Live target placement and quest-state integration belong to the parent UI verification, not claimed here.",
+      "reference": "public/art/sheep.png",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-quest-prompts.json"
     }
   ]
 }

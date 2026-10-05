@@ -204,6 +204,61 @@
       "sha256": "7d03648f188c7c84642269ae688a6221239d5dfb3c94d5427f835bdf765bb2b9"
     },
     {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/20c0b6c74c31e5962507a252111646b642eacc8c05ae1bb3fa78289e417cd9e8.wav",
+      "bytes": 218044,
+      "sampleRate": 24000,
+      "sampleCount": 109000,
+      "duration": 4.541666666666667,
+      "sha256": "9cbf81731e916ecdd6537148101963f033913f83b8b63bc1924a71297604bd14"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/52463a89983444155b16391810782ec931390ab1950004d843fcd4f80477730e.wav",
+      "bytes": 203644,
+      "sampleRate": 24000,
+      "sampleCount": 101800,
+      "duration": 4.241666666666666,
+      "sha256": "9b535030622c8905c03c80d43bb5b52b22414e86ef6241a259a6b824bd06766f"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/40d53d90d14fd5e68323ad4713ca5332b84ebe0b1b477cf006ae160e06c57b92.wav",
+      "bytes": 148444,
+      "sampleRate": 24000,
+      "sampleCount": 74200,
+      "duration": 3.091666666666667,
+      "sha256": "6513c1a4d0c7c4b5fdcb9d85717e6bf0a0975b7846a3b8573c93c3fe385c56a9"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/6523c2aaced93345c6dff732b2e099d95a00ee0f3e09ae9f07e24c0410372cfe.wav",
+      "bytes": 156844,
+      "sampleRate": 24000,
+      "sampleCount": 78400,
+      "duration": 3.2666666666666666,
+      "sha256": "07846ece510ded875ffdfdaafaba86c5ca92fc88f210250a67c620cd29753781"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/1688db2bd6117543682ace74b409bb6afb148b11a6be27f4dfbba8bf4cdc4523.wav",
+      "bytes": 128044,
+      "sampleRate": 24000,
+      "sampleCount": 64000,
+      "duration": 2.6666666666666665,
+      "sha256": "b776793f353c9ab1ae6fd8066b62c3b9443e50c082380bb06c0c637f30d8d275"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Jasper",
       "speed": 1,
@@ -400,6 +455,61 @@
       "sampleCount": 45400,
       "duration": 1.8916666666666666,
       "sha256": "d9dc7a370a5b5451ca0cc47cf762f870dee01f73e939ee3909232f78d72caa82"
+    },
+    {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/1ac456c3cb0eb8504982fcc052c18012b8036b8cf9dc9d583188930b2e8bffa2.wav",
+      "bytes": 141244,
+      "sampleRate": 24000,
+      "sampleCount": 70600,
+      "duration": 2.941666666666667,
+      "sha256": "e3c980ce81ca2bd434f78b6a7ea3052a2214a6defd340f5ece3058b4ab0ab6a6"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/6c02f6893a1ebea4d2d5cb57cda77ddb564998592bd4ead2598934a098de2cec.wav",
+      "bytes": 118444,
+      "sampleRate": 24000,
+      "sampleCount": 59200,
+      "duration": 2.466666666666667,
+      "sha256": "aa80fca027da8ac3135fb4caf19b2a1c0350cea0a45dfcdc830efba8c5f123d7"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/df08081de351efb1221f5a0ea090603e72d282d6c4dcff8a56153d31b161dc10.wav",
+      "bytes": 98044,
+      "sampleRate": 24000,
+      "sampleCount": 49000,
+      "duration": 2.0416666666666665,
+      "sha256": "6e9769eaec73ec6cfd5966a2c9746ae5404d2f734d7214e1f852fede75dd2556"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/c9a6d12ac9653659b5cf8f6854a2f35328a51e45d1454eec8673161c23e312f0.wav",
+      "bytes": 89644,
+      "sampleRate": 24000,
+      "sampleCount": 44800,
+      "duration": 1.8666666666666667,
+      "sha256": "41db38cc07f16eab920d56b6404cacf9a2ce7a7c85d72e0faa313f0bdc3a88df"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/575bcee1c0728bed92e44f09623ba51ece4e4d8f56273443227f18212f645b10.wav",
+      "bytes": 87244,
+      "sampleRate": 24000,
+      "sampleCount": 43600,
+      "duration": 1.8166666666666667,
+      "sha256": "4a67f3f6a455992e53f9b25f315f4dc8d752e27d17d0eabab8aa0098d305545f"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -600,6 +710,61 @@
       "sha256": "1fcb36a24a93ac8e77fed6a5c8609b8e106ec209e937a3f2dcd3c1eb28aeca6c"
     },
     {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/c7da3f5a3b4d55fda8682bac6e46c50a6bea91dbf10f79473d7127f53465c1e2.wav",
+      "bytes": 158044,
+      "sampleRate": 24000,
+      "sampleCount": 79000,
+      "duration": 3.2916666666666665,
+      "sha256": "9f8dac5129341fbcc8652ad4c4da8a983ee1702a9f571107acbaf56da8b9fb56"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/8708a7a949bf600936ef8338572e97676a3d68fe74abcbd020184773d792b919.wav",
+      "bytes": 132844,
+      "sampleRate": 24000,
+      "sampleCount": 66400,
+      "duration": 2.7666666666666666,
+      "sha256": "2ce09c1cf1d72d52e24c9bcdaae347cce36cf85f542050a1e6ae714f0d15aa58"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/8478fbf3d25bebb84793e7dceca9de88efafbda31dea2991340f70844f1c5f71.wav",
+      "bytes": 105244,
+      "sampleRate": 24000,
+      "sampleCount": 52600,
+      "duration": 2.191666666666667,
+      "sha256": "699ddcb7b3506da45c53feac48ac7246fb7d90a1d959518ab1e9aca871331cf2"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/163d7371e4c62c50417c4791028d2ab98920faecb59468d40d88be0641f6410c.wav",
+      "bytes": 98044,
+      "sampleRate": 24000,
+      "sampleCount": 49000,
+      "duration": 2.0416666666666665,
+      "sha256": "ee164b8a76093d4f0b16fcfe1ec9c29cd3c79b8e71d676d621e33ec04ed64c64"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/75775c4c5b3c4962622badef6c31a159b124ecb576174a32b755742f2117ae4d.wav",
+      "bytes": 89644,
+      "sampleRate": 24000,
+      "sampleCount": 44800,
+      "duration": 1.8666666666666667,
+      "sha256": "b970e6c5783e95c60c7081da8f29542429a700751989e98d9942882cf7584be0"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Bruno",
       "speed": 1,
@@ -796,6 +961,61 @@
       "sampleCount": 50800,
       "duration": 2.1166666666666667,
       "sha256": "352e4ce0f857298533a757138917ed5d816d040cf0af0922a5fb9d0a258ee4f1"
+    },
+    {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/b34a145ce54015793892d4295d8a122633e9b56312eac77335b097b34894f7e8.wav",
+      "bytes": 150844,
+      "sampleRate": 24000,
+      "sampleCount": 75400,
+      "duration": 3.1416666666666666,
+      "sha256": "f6f21f8619afeca07a1d3f494443e68fd91794b09432ca44364110470998c028"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/e48940b96527c95baaadb25fcf9a02cded5a24ca26ad0ede9a9777a4454edcf1.wav",
+      "bytes": 118444,
+      "sampleRate": 24000,
+      "sampleCount": 59200,
+      "duration": 2.466666666666667,
+      "sha256": "1e598e15daaa7d72241c1f5b348965e04e80331466d4bcd0bf3f84040fd7d3e9"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/bf7744d35822df61f012f23ac104eb727f97bf60961db439d20a834ed4c529fa.wav",
+      "bytes": 108844,
+      "sampleRate": 24000,
+      "sampleCount": 54400,
+      "duration": 2.2666666666666666,
+      "sha256": "eb51f3f1d44c6b6b7aadc753e0b0e44f35b7e8e0dac0a1bf75d041cfe8c0d5c3"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/1cbe89ee4c28800ccc6f57bea28c0be4653262dfe06359df03c721668fb730d1.wav",
+      "bytes": 92044,
+      "sampleRate": 24000,
+      "sampleCount": 46000,
+      "duration": 1.9166666666666667,
+      "sha256": "fc2d1b06845dc4b85b678357969064c0c4499efe49fb35f5dbbf91e28e036688"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/7cde7694282fdb77b3e0644de8086729a3b0ea41238691e6fef3b165cc5e699c.wav",
+      "bytes": 75244,
+      "sampleRate": 24000,
+      "sampleCount": 37600,
+      "duration": 1.5666666666666667,
+      "sha256": "fbf341c10de1507f5d37830e4c9dfb21194fa2259464705d29acc8f8559606d3"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -996,6 +1216,61 @@
       "sha256": "80c925166091cdc43a57fb4b75b015fccd5efb5c159b3f8986b8bcf2d0179895"
     },
     {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/0e23d7ba81f6fb2938b1e4536df0dd720dc3e877bb47d0d27bddb2be17876640.wav",
+      "bytes": 149644,
+      "sampleRate": 24000,
+      "sampleCount": 74800,
+      "duration": 3.1166666666666667,
+      "sha256": "449fbc0966c6bdb10c7f30dd00e8ee98610b489d4ebad38641ea523bd62eb31b"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/f33ce39553b223dc2dead4eabc1b9fda5c9598531f6a8dfc607ac6436ef07cc8.wav",
+      "bytes": 126844,
+      "sampleRate": 24000,
+      "sampleCount": 63400,
+      "duration": 2.6416666666666666,
+      "sha256": "729fb023e16d1755ba1c5e005cb263d59c692eabd36f0bb20408ed96b74a7a45"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/eead136ca5488e3b79086275aa56751cdc4dde69ead825baae0c5d7cede1b269.wav",
+      "bytes": 110044,
+      "sampleRate": 24000,
+      "sampleCount": 55000,
+      "duration": 2.2916666666666665,
+      "sha256": "e547cc2911f64845153c84f47b14eada32e14732e00472c64dc374c23b80798c"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/abe7c6d821dec27dc9033292fcf35702e14ef2115b604a68a070d6eec33964d6.wav",
+      "bytes": 90844,
+      "sampleRate": 24000,
+      "sampleCount": 45400,
+      "duration": 1.8916666666666666,
+      "sha256": "f9d2085b92aed663a49c1a1d3c2020fbd6fba87ab00c4291e907b16c006a2a97"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/db9d9a924207885bf85aab7e5ebde1c2ed57681c56d4003144207bf72804a983.wav",
+      "bytes": 96844,
+      "sampleRate": 24000,
+      "sampleCount": 48400,
+      "duration": 2.0166666666666666,
+      "sha256": "09785d2d696308c2cc7fa8177f200a086ff550b1aa68ff3c69fa7ece0e33a67a"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Hugo",
       "speed": 1,
@@ -1192,6 +1467,61 @@
       "sampleCount": 40000,
       "duration": 1.6666666666666667,
       "sha256": "d0d36f1fa2b0f178b495fbe217c4be16ee144b1d24e82a4b184b3681a5e6d88b"
+    },
+    {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/cf3052f64bab2f58d95c3dc7f4ae50492cd20390a24bf877af5be14c7954d219.wav",
+      "bytes": 125644,
+      "sampleRate": 24000,
+      "sampleCount": 62800,
+      "duration": 2.6166666666666667,
+      "sha256": "0fc2f6123be83a927462e62ca8110addfca0458cbffbe9f1c0c2c8440b931979"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/9a163d0314de40152c4b9be8827da257b0f3f9e9b890a4aed1d11e71c1b8e105.wav",
+      "bytes": 106444,
+      "sampleRate": 24000,
+      "sampleCount": 53200,
+      "duration": 2.216666666666667,
+      "sha256": "e9b84d12151745f560b06616fda7ffd5f642034536cd6256678e2729dd7ecca1"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/9cd8d3923175517701cb736ea21a23d2cec5f85459f904fc00ca69cd215572c1.wav",
+      "bytes": 86044,
+      "sampleRate": 24000,
+      "sampleCount": 43000,
+      "duration": 1.7916666666666667,
+      "sha256": "eaf011acac2fea48a58296146b522b1106d4ca82877f45e6db1ad5b0800164c2"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/cdd10fecd27f578c1e0866ca2500cfbc3b3c72c03a6928ec065052a16be6dd36.wav",
+      "bytes": 87244,
+      "sampleRate": 24000,
+      "sampleCount": 43600,
+      "duration": 1.8166666666666667,
+      "sha256": "6c837a18f50dd85095b44ae222e1e35451175dfec2f61e8bb277bb8deb10c561"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/be31d966077f11b44b2587afec8faa028030469658b7cb19d9b2913bbcc7ab2b.wav",
+      "bytes": 71644,
+      "sampleRate": 24000,
+      "sampleCount": 35800,
+      "duration": 1.4916666666666667,
+      "sha256": "6d27e978f32a7ad0e3d3b5eb63d76b09376e68f5aef612258d32a5a8133747a5"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -1392,6 +1722,61 @@
       "sha256": "6fcff28f85ed37cd30ca1b78f60c064dad1bb2ceb74b474ee3a4afed21d0a5cc"
     },
     {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/3801148a9bc6a630258eae84d77135b84e6ffefdd4611a03d84967afa442c172.wav",
+      "bytes": 147244,
+      "sampleRate": 24000,
+      "sampleCount": 73600,
+      "duration": 3.066666666666667,
+      "sha256": "a2da7c2fde256ff8ee71c75585caf644914d1de732dc6cb76fa78f5db98f7833"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/39bb82f9b3c1bd2e4c0d0aa35ae01095b4d5dedb4b73eec5697eabf384bbbcd1.wav",
+      "bytes": 117244,
+      "sampleRate": 24000,
+      "sampleCount": 58600,
+      "duration": 2.441666666666667,
+      "sha256": "001e9c5fc61282c4e3ab042916415b0419eb01d4b676eb1e5bcc2bd3beecc535"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/e2c93a809d6365b6b0142cbdc432b686a2278fc3019562052531d52f5af413f2.wav",
+      "bytes": 96844,
+      "sampleRate": 24000,
+      "sampleCount": 48400,
+      "duration": 2.0166666666666666,
+      "sha256": "a633dd92576ce225962aa7a95717fa217a7cf93813ce654f89da13707474b36f"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/f0a432c8c87b6887ab59f9f98f5673da5492144a0b88d6b251366dcc4312cb3f.wav",
+      "bytes": 92044,
+      "sampleRate": 24000,
+      "sampleCount": 46000,
+      "duration": 1.9166666666666667,
+      "sha256": "20ac980f6c64074f08fb7013907b153bd7aeea3a471fd45f88f3f092c2515061"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/128e77a71a449c1f5e68378f86f572ed3b678569907db38bb9436d37f2489acb.wav",
+      "bytes": 87244,
+      "sampleRate": 24000,
+      "sampleCount": 43600,
+      "duration": 1.8166666666666667,
+      "sha256": "9898c16df6dadf4d24b9c5e69ed5dc871ba2f5e8f50ce41d25c5f440a02685e6"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Leo",
       "speed": 1,
@@ -1588,6 +1973,61 @@
       "sampleCount": 62200,
       "duration": 2.591666666666667,
       "sha256": "2562a657b4143df9fb3675e43ccdc3cdd8a54806d54d8a79c9bfe6053a712a98"
+    },
+    {
+      "text": "Mara catches your bucket before it reaches the well.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/62627a2a898ac354f1da9d10e5b913fab7c97b3c3ac4d220d690a42258ddc8d8.wav",
+      "bytes": 182044,
+      "sampleRate": 24000,
+      "sampleCount": 91000,
+      "duration": 3.7916666666666665,
+      "sha256": "6bf359a96fdd4a7f8d22998ebff3860fca34d1fd670bf1cf77fb3bef8a2ee326"
+    },
+    {
+      "text": "“The water turned bitter overnight.”",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/d7b074edb73e3da772b5c3ff596c86c6b9c1f3cc236255174c9be0d9f3f1782d.wav",
+      "bytes": 156844,
+      "sampleRate": 24000,
+      "sampleCount": 78400,
+      "duration": 3.2666666666666666,
+      "sha256": "9cc8d9aef088e52464103c57f9b827662e03cb8e24b9a6b5150b11c96319d78f"
+    },
+    {
+      "text": "A growl rolls up the rope.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/b73727826c50685c2ef24b5abfbe3f81c64741a1811597c8df809821868c1fcc.wav",
+      "bytes": 136444,
+      "sampleRate": 24000,
+      "sampleCount": 68200,
+      "duration": 2.841666666666667,
+      "sha256": "8441d912a9de11d25fd745adf45eaec3721070827b5c669fcfea0b95e2c2f4a3"
+    },
+    {
+      "text": "Her kettle is empty.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/709762c60c8ffea41c6d10a5aefbf4ffa168a6dda0135826a7a6bb8b01be9cbc.wav",
+      "bytes": 124444,
+      "sampleRate": 24000,
+      "sampleCount": 62200,
+      "duration": 2.591666666666667,
+      "sha256": "fdd4b68e32f699f8a8b6f5221fbfd88c7623d99c749addedc17b88a8ec14a0f8"
+    },
+    {
+      "text": "Where will you start?",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/bcd2575182740064163120539a96d1e12403a6bb4756c468f486ab12de592130.wav",
+      "bytes": 99244,
+      "sampleRate": 24000,
+      "sampleCount": 49600,
+      "duration": 2.066666666666667,
+      "sha256": "cb2c205f2d44af84e60f2a40ae75f5df8d7b281918409e3ee2dfaef8525a6d0a"
     }
   ]
 }

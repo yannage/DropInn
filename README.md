@@ -1,6 +1,6 @@
 # DropInn
 
-A cooperative tabletop adventure for a spare five minutes. Pick up a piece, aim, commit, and watch the world react. Join an adventure and leave whenever you need to. Empty seats are clearly labeled AI companions.
+A cooperative tabletop adventure you can drop into and leave whenever you need to. Take the lantern, make a discovery, and give the next hero something to work with. Empty seats are clearly labeled companions.
 
 ## Run locally
 
@@ -13,7 +13,20 @@ Vite serves both the interface and `/api/dropinn`, using the same command handle
 
 Open `/?session=host` and `/?session=guest` to simulate separate visitors. The optional `?room=CODE` link joins an existing adventure. The original prototype and saved legacy rooms remain available at `/?legacy=1`.
 
-## The loop
+## Mosswater: the new quest crawl
+
+Fresh lobbies select **Mosswater: The Well That Growled**. Remembered selections and existing rooms keep their story; use **Try the new Mosswater quest crawl** in the lobby to switch.
+
+- One clear shared quest: bring clean water back to the village.
+- One hero leads for two actions under a 45-second clock. Inspect freely, choose an intention, then confirm it. A discovery can open a follow-up in the same turn.
+- Six connected places offer supplies, checks, equipment, shortcuts and different remedies. The map records the route and what the party changed there; the quest pouch is shared.
+- Separate combat gives each human one Attack, Defend, class Spell or Mend before the announced enemy strike. Exploration resumes afterward.
+- Earn run levels, allocate Might/Wits/Heart, and choose gear that changes combat. While waiting, inspect the route, suggest a destination, manage your earned build, or react to a teammate.
+- Three resolutions preserve different costs: spend supplies on the polluted feed, give the mossback a new home, or reopen a longer clean-water route.
+
+The [Mosswater packet](docs/stories/mosswater-v1.md) describes its implemented rules, art and verification. `npm run test:quest -- http://127.0.0.1:5207` runs the maintained local two-player browser journey. The illustrative 10–15 minute full-run target still needs human playtesting. Old adventures remain available with their own pinned rules.
+
+## Earlier four-token adventures
 
 - **Play Now:** match an open adventure or start immediately with companions.
 - **Make it yours:** choose from six hero colors with a live preview. Your saved color follows your badge into the shared table without changing starting power or earned rewards.

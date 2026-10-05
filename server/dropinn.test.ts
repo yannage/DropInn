@@ -26,7 +26,7 @@ describe('adventure selection contract', () => {
     const invalid = await call('play', { character: hero, adventureId: 'made-up' });
     expect(invalid.status).toBe(400);
   });
-  it.each(ADVENTURES.slice(1))('signs authored Spotlight for $id without an inference call', async definition => {
+  it.each(ADVENTURES.slice(1).filter(definition => definition.id !== 'mosswater'))('signs authored Spotlight for $id without an inference call', async definition => {
     const { call, hero } = harness({ fetch: vi.fn(() => { throw new Error('No external inference'); }) });
     const { room } = await call('play', { character: hero, adventureId: definition.id, visibility: 'private' });
     const idea = spotlightSuggestions(room)[0];

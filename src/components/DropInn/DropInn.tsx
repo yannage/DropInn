@@ -56,6 +56,8 @@ import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneAdventure, SceneDrawer } from './SceneAdventure';
 import { ExpeditionAdventure } from './ExpeditionAdventure';
 import { GemwardAdventure } from './GemwardAdventure';
+import { QuestAdventure } from './QuestAdventure';
+import { isQuestRun } from '../../lib/dropinn/questRun';
 import { LoadingInn } from './LoadingInn';
 import { isJourney } from '../../lib/dropinn/journey';
 import { isExpedition } from '../../lib/dropinn/expedition';
@@ -472,7 +474,7 @@ function initialLobbyStory(): string {
     const saved = localStorage.getItem(lobbyStoryKey);
     if (saved && ADVENTURES.some(adventure => adventure.id === saved)) return saved;
   } catch { /* A browser preference must never prevent entering an adventure. */ }
-  return 'gemward';
+  return 'mosswater';
 }
 
 function Lobby() {
@@ -519,7 +521,8 @@ function Lobby() {
           <div className="di-lobby-intro-copy">
             <p className="di-lobby-welcome"><span aria-hidden="true" /> The door is always open</p>
             <h1>Pull up a chair.<br />Make a little<br className="di-lobby-title-break" /> <em>legend.</em></h1>
-            <p className="di-lobby-explanation">A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.</p>
+            <p className="di-lobby-explanation">{adventure.id === 'mosswater' ? 'A tiny cooperative quest for 1–4 players. Take the lantern, explore a place, and leave it changed. Fight, bargain, or find another way.' : 'A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.'}</p>
+            {adventure.id !== 'mosswater' && <button type="button" className="di-button di-secondary" disabled={loading} onClick={() => setAdventureId('mosswater')}><Compass size={18} />Try the new Mosswater quest crawl <ArrowRight size={16} /></button>}
             <div className="di-lobby-start">
               <div className="di-lobby-start-actions">
                 <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id)}>
@@ -542,7 +545,7 @@ function Lobby() {
             <article className="di-lobby-postcard" aria-labelledby="lobby-story-title">
               <div className="di-lobby-intro-art"><SceneArt scene={adventure.chapters[0].art} /><span className="di-lobby-art-label"><BookOpen size={14} /> Your next adventure</span></div>
               <div className="di-lobby-postcard-copy">
-                <div className="di-lobby-postcard-heading"><h2 id="lobby-story-title">{adventure.title}</h2><span className="di-lobby-chapters">3 chapters</span></div>
+                <div className="di-lobby-postcard-heading"><h2 id="lobby-story-title">{adventure.title}</h2><span className="di-lobby-chapters">{adventure.id === 'mosswater' ? '6 places · your route' : '3 chapters'}</span></div>
                 <p className="di-lobby-story-hook">{adventure.pitch}</p>
                 <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => setStoryChooser(true)}>Change story <ArrowRight size={15} /></button>
               </div>
@@ -556,12 +559,12 @@ function Lobby() {
         <div className="di-lobby-how-heading"><p className="di-eyebrow">A little courage is all it takes</p><h2 id="lobby-how-title">Small moves.<br /> Shared stories.</h2></div>
         <div className="di-lobby-how-content">
           <ol className="di-lobby-loop" aria-label="Each round">
-            <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> Pick a target</span></li>
+            <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> {adventure.id === 'mosswater' ? 'Look around' : 'Pick a target'}</span></li>
             <li><span className="di-lobby-step-art"><Swords size={25} aria-hidden="true" /></span><span><b>02</b> Choose a move</span></li>
-            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> Hold &amp; release</span></li>
+            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> {adventure.id === 'mosswater' ? 'Follow your lead' : 'Hold & release'}</span></li>
             <li><span className="di-lobby-step-art"><Sparkles size={25} aria-hidden="true" /></span><span><b>04</b> See what changed</span></li>
           </ol>
-          <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" /> Everyone chooses together · 60 seconds per round · Ready parties move sooner</p>
+          <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" />{adventure.id === 'mosswater' ? 'Two actions in your 45-second turn · Battles give every hero a move' : 'Everyone chooses together · 60 seconds per round · Ready parties move sooner'}</p>
         </div>
       </section>
 
@@ -569,7 +572,7 @@ function Lobby() {
         <summary>About {adventure.title} &amp; rewards</summary>
         <div className="di-lobby-story-details">
           <p>{adventure.pitch}</p>
-          <p className="di-fine">Three chapters · 1–4 adventurers · Contribute for as long as you like</p>
+          <p className="di-fine">{adventure.id === 'mosswater' ? 'One shared quest · 6 connected places · 3 different resolutions · Run builds and battle loot' : 'Three chapters · 1–4 adventurers · Contribute for as long as you like'}</p>
           <StoryRewards adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
           {adventure.id === 'briar-glen' && <div className="di-lobby-new-telling">
             <p>Try a fresh telling of this story with the same adventure rules.</p>
@@ -725,6 +728,7 @@ function RoomCard({
 }
 
 function Adventure({ room }: { room: AdventureRoom }) {
+  if (isQuestRun(room)) return <QuestAdventure room={room} chat={<Chat room={room} />} />;
   if (isJourney(room)) return <GemwardAdventure room={room} chat={<Chat room={room} />} />;
   if (isExpedition(room)) return <ExpeditionAdventure room={room} chat={<Chat room={room} />} />;
   return <SceneAdventure room={room} chat={<Chat room={room} />} />;

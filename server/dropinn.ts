@@ -7,6 +7,7 @@ import { normalizeHero } from '../src/lib/cosmetics';
 import { CHARACTER_CLASS_PRESETS, createCharacterProfile, heroAccent, type CharacterProfile } from '../src/lib/character';
 import type { AdventureCommand, AdventureRoom, ChatMessage, CreativeProposal, VisitRecap } from '../src/lib/dropinn/types';
 import { createAdventure, getVisitRecap, reduceAdventure, summarizeRoom, validateProposal } from '../src/lib/dropinn/engine';
+import { isQuestRun } from '../src/lib/dropinn/questRun';
 import { adventureFor, currentAdventure } from '../src/lib/dropinn/registry';
 import { interpretSpotlight, narrateOutcome, prepareVariation, validatePlayerText, type AIOptions, type AdventureVariation, type ServerEnv } from './ai';
 
@@ -375,13 +376,14 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       if (body.operation === 'command') {
         const input = body.command;
-        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react', 'skip-reveal', 'vote-travel'].includes(input.type)) throw new RequestError('That action is not supported.');
+        if (!input || typeof input.id !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.id) || !['act', 'leave', 'tick', 'react', 'skip-reveal', 'vote-travel', 'quest-act'].includes(input.type)) throw new RequestError('That action is not supported.');
         const command: AdventureCommand = { id: input.id, type: input.type, userId,
-          expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action, reaction: input.reaction, travel: input.travel };
+          expectedTurn: input.expectedTurn, expectedRevision: input.expectedRevision, action: input.action, reaction: input.reaction, travel: input.travel, questAction: input.questAction };
         room = await mutate(code, command,authUser.id);
         return reply({ room, messages: await messagesFor(code) });
       }
       if (body.operation === 'propose') {
+        if (isQuestRun(room)) throw new RequestError('This quest uses its authored scene choices.', 409);
         activeMembership(room, userId);
         if (room.phase !== 'choosing' || room.status !== 'active' || now() >= room.deadline || !room.players[userId].seatId) throw new RequestError('Wait for the next action window.', 409);
         if (room.players[userId].spotlightChapters.includes(room.chapter)) throw new RequestError('Your Spotlight token returns next chapter.', 409);

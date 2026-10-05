@@ -2,6 +2,7 @@ import type { CharacterProfile, CharacterClassKey, TraitSet } from '../character
 import type { ChapterCredit } from './collection';
 import type { ExpeditionAction, ExpeditionState, ExpeditionResult } from './expeditionTypes';
 import type { JourneyEvent, TravelVote } from './journeyTypes';
+import type { QuestAction, QuestEvent, QuestRunState } from './questRunTypes';
 
 export type TokenKind = 'fight' | 'influence' | 'investigate' | 'assist' | 'spotlight';
 export type ActionApproach = 'quick' | 'heavy' | 'guarded' | 'soothe' | 'distract' | 'trail' | 'study' | 'mend';
@@ -161,6 +162,7 @@ export interface Participant {
   highlights: string[];
 }
 export interface StoryEvent {
+  quest?: QuestEvent;
   journey?: JourneyEvent;
   id: string;
   turn: number;
@@ -186,6 +188,7 @@ export interface ChapterOutcome {
   at: number;
 }
 export interface AdventureRoom {
+  questRun?: QuestRunState;
   expedition?: ExpeditionState;
   chapterChoices?: Record<string, ChapterChoiceState>;
   riverSupplies?: { status: 'drifting' | 'spilled' | 'secured' | 'salvaged' | 'lost' };
@@ -249,7 +252,8 @@ export interface RoomSummary {
 export interface AdventureCommand {
   inviteKey?: string;
   id: string;
-  type: 'join' | 'leave' | 'tick' | 'act' | 'react' | 'skip-reveal' | 'vote-travel';
+  type: 'join' | 'leave' | 'tick' | 'act' | 'react' | 'skip-reveal' | 'vote-travel' | 'quest-act';
+  questAction?: QuestAction;
   travel?: TravelVote;
   userId: string;
   expectedTurn?: number;

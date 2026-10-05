@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createCharacterProfile, CHARACTER_CLASS_PRESETS, heroAccent, sanitizeCharacterName, type CharacterProfile, type CharacterClassKey } from '../lib/character';
 import { AdventureRequestError, adventureRequest, localPlay, subscribeAdventure, type AdventureRequest, type AdventureResponse } from '../lib/dropinn/api';
 import type { AdventureRoom, ChatMessage, CreativeProposal, PlayerAction, RoomSummary, VisitRecap, ReactionKind } from '../lib/dropinn/types';
+import type { QuestRunAction } from '../lib/dropinn/questRunTypes';
 import { getVisitRecap } from '../lib/dropinn/engine';
 import { ensureAnonymousUser, requireSupabaseClient } from '../lib/supabase/client';
 import { listSupabaseCharacters, updateSupabaseHeroIdentity } from '../lib/supabase/characters';
@@ -31,6 +32,27 @@ interface PendingTravel {
   decisionId: string;
   edgeId: string;
 }
+interface PendingQuest {
+  roomCode: string;
+  turn: number;
+  revision: number;
+  commandId: string;
+  action: QuestRunAction;
+}
+function validQuestAction(value: unknown): value is QuestRunAction {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const action = value as Record<string, unknown>;
+  const id = (key: string) => typeof action[key] === 'string' && (action[key] as string).length > 0 && (action[key] as string).length <= 200;
+  switch (action.kind) {
+    case 'interact': return id('targetId') && id('optionId');
+    case 'travel': return id('edgeId');
+    case 'loot': return id('offerId') && id('choiceId');
+    case 'upgrade': return ['might', 'wits', 'heart'].includes(String(action.attribute));
+    case 'combat': return ['attack', 'defend', 'spell', 'mend'].includes(String(action.move)) && (action.targetActorId === undefined || id('targetActorId'));
+    case 'pass': return true;
+    default: return false;
+  }
+}
 interface SavedPlayer {
   collection?: CollectionSnapshot;
   collectionReceipts?: string[];
@@ -45,6 +67,7 @@ interface SavedPlayer {
   seenOutcomes?: Record<string, number>;
   pendingAction?: PendingAction | null;
   pendingTravel?: PendingTravel | null;
+  pendingQuest?: PendingQuest | null;
 }
 function readSaved(): SavedPlayer {
   try {
@@ -60,7 +83,10 @@ function readSaved(): SavedPlayer {
       const travel = value.pendingTravel;
       const validTravel = travel?.roomCode === value.activeCode && Number.isInteger(travel?.turn)
         && Number.isInteger(travel?.revision) && ['commandId', 'decisionId', 'edgeId'].every(key => typeof travel?.[key] === 'string' && travel[key].length > 0 && travel[key].length <= 200);
-      return { receipts: {}, muted: [], activeCode: null, ...value, character: normalizeHero(value.character), pendingAction: validPending ? pending : null, pendingTravel: validTravel ? travel : null };
+      const quest = value.pendingQuest;
+      const validQuest = quest?.roomCode === value.activeCode && Number.isInteger(quest?.turn) && Number.isInteger(quest?.revision)
+        && typeof quest?.commandId === 'string' && quest.commandId.length > 0 && quest.commandId.length <= 200 && validQuestAction(quest.action);
+      return { receipts: {}, muted: [], activeCode: null, ...value, character: normalizeHero(value.character), pendingAction: validPending ? pending : null, pendingTravel: validTravel ? travel : null, pendingQuest: validQuest ? quest : null };
     }
   } catch { /* A damaged browser cache should never prevent joining. */ }
   // Retain an existing local hero when migrating from the original prototype.
@@ -117,6 +143,7 @@ interface AdventureState {
   proposal: CreativeProposal | null;
   pendingMove: { turn: number; action: PlayerAction } | null;
   pendingTravel: { turn: number; decisionId: string; edgeId: string } | null;
+  pendingQuest: { turn: number; action: QuestRunAction } | null;
   narration: { text: string; catchUp: string; turn: number } | null;
   loading: boolean;
   proposing: boolean;
@@ -140,6 +167,7 @@ interface AdventureState {
   syncRoom: () => Promise<void>;
   commitAction: (action: PlayerAction) => Promise<void>;
   voteTravel: (edgeId: string) => Promise<void>;
+  commitQuestAction: (action: QuestRunAction) => Promise<void>;
   leaveRoom: () => Promise<void>;
   propose: (idea: string, targetId: string) => Promise<void>;
   clearProposal: () => void;
@@ -177,6 +205,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     save();
     set({ pendingTravel: pending ? { turn: pending.turn, decisionId: pending.decisionId, edgeId: pending.edgeId } : null });
   };
+  const setPendingQuest = (pending: PendingQuest | null) => {
+    saved.pendingQuest = pending;
+    save();
+    set({ pendingQuest: pending ? { turn: pending.turn, action: pending.action } : null });
+  };
   // Browser storage can outlive an anonymous auth session. Resolve ownership
   // before admission instead of submitting a hero from a previous account.
   const ensureHostedHero = async () => {
@@ -191,8 +224,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       try {
         localStorage.setItem(`${storageKey}:${previousAccount}`,JSON.stringify(saved));
         const cached=JSON.parse(localStorage.getItem(`${storageKey}:${account.id}`) ?? 'null');
-        saved={...saved,activeCode:cached?.activeCode ?? null,receipts:cached?.receipts ?? {},pendingAction:cached?.pendingAction ?? null,pendingTravel:cached?.pendingTravel ?? null,collectionGoal:cached?.collectionGoal ?? null,pendingCraft:cached?.pendingCraft ?? null};
-      } catch {saved={...saved,activeCode:null,receipts:{},pendingAction:null,pendingTravel:null,collectionGoal:null,pendingCraft:null};}
+        saved={...saved,activeCode:cached?.activeCode ?? null,receipts:cached?.receipts ?? {},pendingAction:cached?.pendingAction ?? null,pendingTravel:cached?.pendingTravel ?? null,pendingQuest:cached?.pendingQuest ?? null,collectionGoal:cached?.collectionGoal ?? null,pendingCraft:cached?.pendingCraft ?? null};
+      } catch {saved={...saved,activeCode:null,receipts:{},pendingAction:null,pendingTravel:null,pendingQuest:null,collectionGoal:null,pendingCraft:null};}
     }
     const selected=account.heroes.find(hero=>hero.character.id===account.selectedCharacterId) ?? account.heroes[0];
     if(!selected) throw new Error('Your hero could not be loaded. Please retry.');
@@ -206,6 +239,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.seenOutcomes = {};
       setPendingAction(null);
       setPendingTravel(null);
+      setPendingQuest(null);
       set({ room:null, messages:[], proposal:null, narration:null, recaps: [], recap: null, newRewardHats: {}, mutedUserIds: [], seenOutcomes: {}, restoringCode: null, syncError: null });
     }
     saved.accountId=account.id;
@@ -288,6 +322,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       || room.status !== 'active' || room.expedition?.travel?.id !== travel.decisionId
       || room.expedition?.travel?.votes[get().userId] || room.appliedCommands.includes(travel.commandId)
       || room.players[get().userId]?.leftAt !== null)) setPendingTravel(null);
+    const quest = saved.pendingQuest;
+    const isBuildChoice = quest?.action.kind === 'upgrade' || quest?.action.kind === 'loot';
+    if (quest && (quest.roomCode !== room.code || !room.questRun || room.status !== 'active'
+      || room.appliedCommands.includes(quest.commandId) || room.players[get().userId]?.leftAt !== null
+      || !isBuildChoice && quest.turn !== room.turn)) setPendingQuest(null);
     if (changedTurn) proposalSequence++;
     set({ room, syncError: null, restoringCode: null, backend: response.backend, ...(response.messages ? { messages: mergeMessages(get().messages, response.messages) } : {}), ...(changedTurn ? { proposal: null, proposing: false, narration: null } : {}) });
     const participant = room.players[get().userId];
@@ -348,12 +387,12 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       catch(error){set({saveStatus:'failed',saveError:getErrorMessage(error,'Your account could not be loaded. Please retry.')});}
     },
     selectHero:id=>busy(async()=>{
-      if(get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel) throw new Error('Choose your hero between visits.');
+      if(get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel || saved.pendingQuest) throw new Error('Choose your hero between visits.');
       await adventureRequest({operation:'hero-select',characterId:id});
       await ensureHostedHero();await get().refreshRooms();
     }),
     signOut:()=>busy(async()=>{
-      if(get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel) throw new Error('Leave your table before signing out.');
+      if(get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel || saved.pendingQuest) throw new Error('Leave your table before signing out.');
       const {error}=await requireSupabaseClient().auth.signOut({scope:'local'});if(error) throw error;
       viewEpoch++;unsubscribe?.();unsubscribe=null;
       save();
@@ -365,6 +404,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     newRewardHats: {}, rooms: [], room: null, messages: [], recaps: [], recap: null, proposal: null, narration: null,
     pendingMove: saved.pendingAction?.roomCode === saved.activeCode ? { turn: saved.pendingAction.turn, action: saved.pendingAction.action } : null,
     pendingTravel: saved.pendingTravel?.roomCode === saved.activeCode ? { turn: saved.pendingTravel.turn, decisionId: saved.pendingTravel.decisionId, edgeId: saved.pendingTravel.edgeId } : null,
+    pendingQuest: saved.pendingQuest?.roomCode === saved.activeCode ? { turn: saved.pendingQuest.turn, action: saved.pendingQuest.action } : null,
     loading: false, proposing: false, reacting: false, skippingReveal: false, error: null, syncError: null, syncing: false, restoringCode: saved.activeCode, mutedUserIds: saved.muted,
     skipReveal: async () => {
       const room = get().room;
@@ -462,6 +502,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
         if (error instanceof AdventureRequestError && [403, 404].includes(error.status)) {
           setPendingAction(null);
           setPendingTravel(null);
+          setPendingQuest(null);
           saved.activeCode = null; save();
           unsubscribe?.(); unsubscribe = null;
           viewEpoch++;
@@ -475,6 +516,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     commitAction: action => busy(async () => {
       const room = get().room;
       if (!room) return;
+      if (room.questRun || saved.pendingQuest) throw new Error('Use the quest choices at your table.');
       if (saved.pendingTravel || room.phase === 'travel') throw new Error('Choose the party’s destination before preparing another action.');
       let pending = saved.pendingAction;
       if (pending && (pending.roomCode !== room.code || pending.turn !== room.turn)) { setPendingAction(null); pending = null; }
@@ -500,6 +542,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     }),
     voteTravel: edgeId => busy(async () => {
       const room = get().room;
+      if (room?.questRun || saved.pendingQuest) throw new Error('Use the quest map at your table.');
       const decision = room?.expedition?.travel;
       if (!room || room.phase !== 'travel' || !decision) throw new Error('That journey decision has ended.');
       if (saved.pendingAction) throw new Error('Your previous move is still being checked. Retry it before choosing a destination.');
@@ -523,6 +566,31 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       }
       if (saved.pendingTravel?.commandId === pending.commandId) setPendingTravel(null);
     }),
+    commitQuestAction: action => busy(async () => {
+      const room = get().room;
+      if (!room?.questRun) throw new Error('Open your quest before choosing a move.');
+      if (saved.pendingAction || saved.pendingTravel) throw new Error('Your previous move is still being checked. Retry it first.');
+      let pending = saved.pendingQuest;
+      if (pending && pending.roomCode !== room.code) { setPendingQuest(null); pending = null; }
+      if (pending && JSON.stringify(pending.action) !== JSON.stringify(action)) throw new Error('Your quest move is still being checked. Retry the same choice.');
+      if (!pending) {
+        if (!validQuestAction(action)) throw new Error('Choose one of the available quest actions.');
+        pending = { roomCode: room.code, turn: room.turn, revision: room.revision, commandId: crypto.randomUUID(), action: structuredClone(action) };
+        setPendingQuest(pending);
+      }
+      const epoch = viewEpoch;
+      try {
+        await accept(await request({ operation: 'command', roomCode: pending.roomCode, command: {
+          id: pending.commandId, type: 'quest-act', userId: get().userId, expectedTurn: pending.turn,
+          expectedRevision: pending.revision, questAction: pending.action,
+        } }), epoch);
+      } catch (error) {
+        if (error instanceof AdventureRequestError && [400, 401, 403, 404, 409, 422].includes(error.status)
+          && saved.pendingQuest?.commandId === pending.commandId) setPendingQuest(null);
+        throw error;
+      }
+      if (saved.pendingQuest?.commandId === pending.commandId) setPendingQuest(null);
+    }),
     leaveRoom: () => busy(async () => {
       const room = get().room;
       if (!room) return;
@@ -534,6 +602,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       unsubscribe?.(); unsubscribe = null;
       setPendingAction(null);
       setPendingTravel(null);
+      setPendingQuest(null);
       saved.activeCode = null; save();
       set({ room: null, restoringCode: null, syncError: null, messages: [], proposal: null, narration: null, recap });
       await get().refreshRooms();
@@ -541,6 +610,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     propose: async (idea, targetId) => {
       const room = get().room;
       if (!room || get().proposing) return;
+      if (room.questRun || saved.pendingQuest) { set({ error: 'Use the people and choices in this quest scene.' }); return; }
       if (room.phase === 'travel') { set({ error: 'Choose your destination before preparing a Spotlight idea.' }); return; }
       const epoch = viewEpoch;
       const sequence = ++proposalSequence;
@@ -574,7 +644,7 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       saved.muted = muted; save(); set({ mutedUserIds: muted });
     },
     setHero: (name, classKey, accent, customization) => busy(async () => {
-      if (get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel) throw new Error('Change your hero between visits.');
+      if (get().room || get().restoringCode || saved.pendingAction || saved.pendingTravel || saved.pendingQuest) throw new Error('Change your hero between visits.');
       const current = get().character!;
       const preset = CHARACTER_CLASS_PRESETS[classKey];
       let character: CharacterProfile = normalizeHero({ ...current, ...customization, name: sanitizeCharacterName(name) || 'Wren', classKey, hp: preset.hp, maxHp: preset.hp, traits: preset.traits, accent: heroAccent(accent ?? current.accent, classKey, current.cosmeticUnlocks?.items) });

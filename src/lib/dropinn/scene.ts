@@ -1,6 +1,7 @@
 import { adventureFor, chaptersFor } from './registry';
 import { expeditionScene, isExpedition } from './expedition';
 import { isJourney, journeyScene } from './journey';
+import { isQuestRun, questRunScene } from './questRun';
 import { briarTargetContext } from './briarContext';
 import { isRiverSuppliesChapter, riverStatus, riverTarget } from './river';
 import { choiceStatus, choiceTarget } from './chapterChoices';
@@ -79,6 +80,7 @@ function baseScene(room: AdventureRoom) {
 }
 
 export function getScene(room: AdventureRoom) {
+  if (isQuestRun(room)) return questRunScene(room);
   if (isJourney(room)) return journeyScene(room);
   if (isExpedition(room)) return expeditionScene(room);
   const scene = baseScene(room);
