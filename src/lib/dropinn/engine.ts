@@ -4,7 +4,7 @@ import { createExpedition, expeditionActionPreview, isExpedition } from './exped
 import { advanceExpeditionBoundary, advanceExpeditionChapter, expeditionChapterOutcome, resolveExpeditionRound, validateExpeditionAction } from './expeditionEngine';
 import { createJourney, isJourney, journeyActionPreview, journeyScene } from './journey';
 import { isStoryTable } from './storyTable';
-import { createQuestRun, isQuestRun, questRunScene } from './questRun';
+import { createQuestRun, isQuestRun, questContent, questRunScene } from './questRun';
 import { initializeQuestRun, reduceQuestRunCommand, validateQuestRunState } from './questRunEngine';
 import { acceptJourneyVote, beginJourneyTravel, journeyChapterOutcome, journeyVotesReady, resolveJourneyRound, resolveJourneyTravel, TRAVEL_MS, validateJourneyAction, validateJourneyState } from './journeyEngine';
 import { chapterCredits } from './collection';
@@ -102,11 +102,11 @@ export function createAdventure(character: CharacterProfile, userId: string, now
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   if (isExpedition(room)) room.expedition = createExpedition(room.id);
   if (isJourney(room)) room.expedition = createJourney(room.id, room.adventureVersion);
-  if (isQuestRun(room)) room.questRun = createQuestRun(room.id);
+  if (isQuestRun(room)) room.questRun = createQuestRun(room.id, room.adventureId);
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);
-  event(room, now, { kind: 'chapter', text: adventure.chapters[0].intro });
+  event(room, now, { kind: 'chapter', text: isQuestRun(room) ? questContent(room).opening : adventure.chapters[0].intro });
   if (isQuestRun(room)) initializeQuestRun(room, now);
   return room;
 }

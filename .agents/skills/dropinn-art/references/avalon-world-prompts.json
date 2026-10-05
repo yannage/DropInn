@@ -1,0 +1,452 @@
+{
+  "date": "2026-10-05",
+  "generator": "Codex built-in image_gen",
+  "styleAuthority": "User's preserved MS Paint direction; actual sheep/shadow-pack/Mara and stage-village, with current Mosswater continuity.",
+  "references": [
+    "public/art/sheep.png",
+    "public/art/shadow-pack.png",
+    "public/art/mara.png",
+    "public/art/stage-village.png",
+    "public/art/mosswater-scene-mill.png"
+  ],
+  "assets": [
+    {
+      "id": "avalon-scene-inn",
+      "purpose": "Empty woodland inn environment plate with centered landmark",
+      "file": "public/art/avalon-scene-inn.png",
+      "runtimeFile": "public/art/avalon-scene-inn.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "scene",
+      "prompt": "Use case: precise-object-edit. Create the Avalon woodland inn environment by changing the supplied DropInn empty village plate. Preserve its 3:2 landscape canvas, sparse coarse black mouse-drawn outlines, restrained cream/olive/muted teal/brown palette, and huge EMPTY foreground for independent game pieces. Replace the five houses with ONE crooked cream-and-brown timber inn centered in the upper third: lopsided brown roof, chimney, one dark doorway and two plain uneven windows. Put two broad lumpy woodland tree silhouettes behind it, one on either side, and low olive hills behind those. No tree bark texture, roof tiles, fences, signs, letters, people, creatures, lanterns, carts, loose objects or interactive elements baked into the background. Inn landmark occupies upper 35%; bottom 60% is plain muted pale green clearing with at most one crooked horizon line. The center crop must retain the inn in narrow mobile view. Preserve the original's awkward MS Paint hand-drawn actual shapes and broad flat bucket fills; no polished cartoon, vector, detailed scenery, gradients, glow, hatching or added texture. Full opaque background, no transparent edges.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-0b312396-0b26-4b4d-9c85-28011995e749.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-0b312396-0b26-4b4d-9c85-28011995e749.png",
+      "sourceReferences": [
+        "public/art/stage-village.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "visibleAlphaBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "sha256": "c0e60f3ad65a7a80f97a20228bee597e379a518009b6fd5808807e9135137007",
+      "runtimeSha256": "b6140d62ade47f586f4b684b173e3d00f58a34b77485fffb14c868dcaf2bd034",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected original full-size and Chromium full 3:2 composition, 195x300 portrait center crop and 280x115 banner crop. Same sparse palette and coarse contours as stage-village. Empty foreground and no actionable NPCs/props baked in. Inn, ford and quarry remain recognizable in portrait center crop. At center 35% the narrow inn banner clips roof top; use object-position:center top for short banners to retain the full inn. Opaque alpha255, intact full canvas. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-scene-review.png"
+    },
+    {
+      "id": "avalon-scene-ford",
+      "purpose": "Empty shallow ford environment plate; no NPC or cart baked in",
+      "file": "public/art/avalon-scene-ford.png",
+      "runtimeFile": "public/art/avalon-scene-ford.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "scene",
+      "prompt": "Use case: precise-object-edit. Change the supplied DropInn empty village landscape into Avalon's shallow river ford. Preserve its 3:2 full canvas, coarse black mouse-drawn contours, muted cream/olive/teal/brown colors, broad restrained fills and large EMPTY foreground for separate game pieces. Remove ALL houses. Across the upper third, draw a shallow muted dusty-teal river running horizontally between simple olive banks; a broad irregular pale tan stony ford crosses it at the CENTER and reaches the far bank, visibly a shallow crossing rather than a bridge. Only three broad blunt stone shapes within the ford, no small pebble texture. Behind it are two low olive hills and two lumpy teal tree or bush silhouettes. The crossing and river must remain visible in a narrow mobile center crop. Leave the bottom 60% almost entirely plain pale green/tan bank with at most one broken contour line. No NPCs, creatures, carts, tents, loose props, signs, fences, lamps or interactive objects. Imperfect original MS Paint actual shapes and joins, not polished vector or picturesque detailed scenery. No glossy water, gradient, lighting effect, hatching, texture, text or UI. Full opaque plate, no transparency.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-9b7391eb-ed36-40b6-8de8-5f24f36207ab.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-9b7391eb-ed36-40b6-8de8-5f24f36207ab.png",
+      "sourceReferences": [
+        "public/art/stage-village.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "visibleAlphaBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "sha256": "3f935560ba7fc3d6f88b69cd0f15dfeba108d3b3cab3fccff730d5502651bd09",
+      "runtimeSha256": "e12c70738e96eb3ca2a71e4c853695503d99ad7fe93c9e86659715dffdc1a016",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected original full-size and Chromium full 3:2 composition, 195x300 portrait center crop and 280x115 banner crop. Same sparse palette and coarse contours as stage-village. Empty foreground and no actionable NPCs/props baked in. Inn, ford and quarry remain recognizable in portrait center crop. At center 35% the narrow inn banner clips roof top; use object-position:center top for short banners to retain the full inn. Opaque alpha255, intact full canvas. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-scene-review.png"
+    },
+    {
+      "id": "avalon-scene-quarry",
+      "purpose": "Empty small green quarry environment plate",
+      "file": "public/art/avalon-scene-quarry.png",
+      "runtimeFile": "public/art/avalon-scene-quarry.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "scene",
+      "prompt": "Use case: precise-object-edit. Change this DropInn empty village plate into Avalon's abandoned green quarry. Preserve the full 3:2 landscape canvas and the same simple restrained MS Paint style: coarse crooked black contours, cream sky, muted olive hills, tan ground, broad flat fills. Remove every house. At the CENTER of the upper third draw a low shallow horseshoe-shaped old quarry face made of four broad uneven gray-beige stone steps, with one moss-green strip along the top and a simple tan opening/ramp entering between the two sides. It is a small overgrown working hollow, not a giant dramatic mine or cave. One lumpy muted teal bush at either side. Keep the landmark entirely in the upper 38%, recognizable in the narrow center crop. Bottom 60% is EMPTY pale tan clearing for independent game cutouts. No carts, tools, signs, characters, creatures, ladders, treasure, rock piles, loose props, rails, tiny cracks or action objects. Imperfect original mouse-drawn actual geometry, sparse interior lines, no polished vector or richly rendered fantasy scene. No texture, gradients, glossy shading, hatching, text or UI. Full opaque plate with no transparency.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-77481c7e-7a8f-4d26-849d-daed2743c27a.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-77481c7e-7a8f-4d26-849d-daed2743c27a.png",
+      "sourceReferences": [
+        "public/art/stage-village.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "visibleAlphaBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "sha256": "92de8e98dec8b67ba4bb70ba905ec4debea126817fa7938fc1c1f58f139f2df6",
+      "runtimeSha256": "6f99c85e3539bee49078ca86d8273f44d6d52df12f4de68e322f32f5231f5982",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected original full-size and Chromium full 3:2 composition, 195x300 portrait center crop and 280x115 banner crop. Same sparse palette and coarse contours as stage-village. Empty foreground and no actionable NPCs/props baked in. Inn, ford and quarry remain recognizable in portrait center crop. At center 35% the narrow inn banner clips roof top; use object-position:center top for short banners to retain the full inn. Opaque alpha255, intact full canvas. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-scene-review.png"
+    },
+    {
+      "id": "avalon-npc-courier",
+      "purpose": "Pip courier and carter; neutral human NPC with satchel",
+      "file": "public/art/avalon-npc-courier.png",
+      "runtimeFile": "public/art/avalon-npc-courier.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. Make ONE transparent full-body NPC cutout for DropInn's Avalon: Pip, a tired but helpful human courier and carter. An awkward lanky little person with medium warm-brown skin, two mismatched cream eyes with off-center black dots, a long simple nose, one small crooked mouth. Plain cream shirt, dusty teal short coat, brown trousers and clumsy unequal boots. One oversized tan mail satchel hangs across the body, closed and blank. A soft brown cap flops over one ear; this is the only funny detail. Neutral waiting pose, arms resting, not holding anything. Match the actual DropInn sheep, wolves and Mara style inspected in this conversation: crude loose MS Paint mouse drawing, heavy uneven black contours with natural jaggies, clumsy asymmetrical actual body shapes, broad flat muted bucket fills, very few interior marks. Human, no animal ears; do NOT make a rounded polished mascot. No clothing seams, intricate fingers, embroidery, weapon, magic, letter text or extra objects. Entire silhouette centered in middle 65 percent of square canvas with generous clear transparent margins; recognizable at 64px. Real alpha transparency. No scene, ground shadow, checkerboard, texture, hatching, gradients, gloss, UI or lettering.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-fcc6f3a9-a02a-4269-838b-29ca2ee6f822.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4d6c77ee-6e0d-49e7-a8de-25d5803f6803.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit the human NPC in image 1 to match the blunt, coarse, uneven MS Paint mouse-doodle drawing method of image 2, the actual DropInn sheep. Preserve the NPC's exact identity, skin tone, clothes, carried object, tall/short body proportions and pose. Redraw the MAIN contours much thicker and more irregular like the sheep, with clumsy actual angles and joins. Simplify the face to visibly mismatched off-center eyes, the existing nose and little mouth. Remove smooth elegant anatomy and neat small clothing folds. Use the same broad restrained colors, each region plain and flat; no gradients, shine or interior shading. Do not turn the human into a sheep, copy wool, or add animal features. Keep the whole figure entirely within middle 70% of a square canvas so there is at least 12% completely clear margin on every side, including hat and shoes. Keep real alpha transparency; no shadow, scenery, checkerboard, text or added subjects. A deliberately awkward hand-drawn human for the same game as image 2, not a polished mascot.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4d6c77ee-6e0d-49e7-a8de-25d5803f6803.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-fcc6f3a9-a02a-4269-838b-29ca2ee6f822.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Strengthen crude contours and awkward drawn shapes against the preserved sheep reference."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        428,
+        96,
+        875,
+        1197
+      ],
+      "sha256": "558b402147f480d63de12883ea7e1006cc9067208d33370ed701cd20c1bcd7ce",
+      "runtimeSha256": "2fd10a2c9c6c902d69a74f62ae6d22a20c3fbed97d0bdfc4ec304df95a030465",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-npc-warden",
+      "purpose": "Woodland warden; neutral human NPC",
+      "file": "public/art/avalon-npc-warden.png",
+      "runtimeFile": "public/art/avalon-npc-warden.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent full-body NPC for DropInn Avalon: a small round human woodland warden with pale warm skin, a crooked olive-green cap, mismatched cream eyes looking sideways, a broad silly nose, and a little deadpan mouth. Simple moss-green coat across a round belly, cream collar, two very short crooked brown trouser legs and unequal brown shoes. A plain straight walking stick in one hand, one large simple wooden button on coat. No other equipment. The person is welcoming and watchful, neither combatant nor uniformed police. Style is deliberately low-skill old Windows MS Paint with a mouse, exactly the coarse awkward drawing method of inspected DropInn sheep/wolf/Mara assets: exceptionally blunt uneven BLACK contours, clumsy off-center shapes, slightly overshot joins and natural raster jaggies. Broad restrained flat bucket fills, almost no interior marks. Imperfections must affect actual shape, not smooth mascot with textured outline. Complete human centered in middle 65% of square canvas, generous clear margin, legible at 64px. Real alpha transparency. No face shading, gradients, gloss, embroidery, fabric folds, detailed fingers, hatching, ground shadow, background, checkerboard, text, watermark or UI.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-369a0fe0-44f0-400b-8e52-8fdb76aaad33.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-5d7ea7c3-7b61-4ff6-9182-b3904a232fd4.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit the human NPC in image 1 to match the blunt, coarse, uneven MS Paint mouse-doodle drawing method of image 2, the actual DropInn sheep. Preserve the NPC's exact identity, skin tone, clothes, carried object, tall/short body proportions and pose. Redraw the MAIN contours much thicker and more irregular like the sheep, with clumsy actual angles and joins. Simplify the face to visibly mismatched off-center eyes, the existing nose and little mouth. Remove smooth elegant anatomy and neat small clothing folds. Use the same broad restrained colors, each region plain and flat; no gradients, shine or interior shading. Do not turn the human into a sheep, copy wool, or add animal features. Keep the whole figure entirely within middle 70% of a square canvas so there is at least 12% completely clear margin on every side, including hat and shoes. Keep real alpha transparency; no shadow, scenery, checkerboard, text or added subjects. A deliberately awkward hand-drawn human for the same game as image 2, not a polished mascot.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-5d7ea7c3-7b61-4ff6-9182-b3904a232fd4.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-369a0fe0-44f0-400b-8e52-8fdb76aaad33.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Strengthen crude contours and awkward drawn shapes against the preserved sheep reference."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        285,
+        136,
+        1010,
+        1134
+      ],
+      "sha256": "9ed9d72e9b093123f4ce1aa826cf775ab10647e991372fa53d874bb0ce1cdb3f",
+      "runtimeSha256": "e80b70cab219c5db4d8162c48715eee55a3b02f9dc1695d8cf9852891c8b38aa",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-npc-tinker",
+      "purpose": "Human repairer; neutral NPC with mallet",
+      "file": "public/art/avalon-npc-tinker.png",
+      "runtimeFile": "public/art/avalon-npc-tinker.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent full-body NPC cutout for DropInn Avalon: an older human tinker with a lopsided head, dark warm-brown skin, two off-center cream eyes of different sizes, a little gray hair tuft, broad crooked nose and amused small straight mouth. Plain dusty coral shirt, large muted tan work apron that hangs lower on one side, short dark-brown trousers and unequal boots. One broad blunt wooden mallet held low beside the body; opposite hand rests on apron. Only one oversized blank apron pocket. No spectacles, intricate tools, jewelry or extra props. Draw in the same deliberately clumsy old MS Paint mouse method as inspected DropInn sheep, shadow-pack and Mara: very blunt thick uneven black contours, awkward real shapes, uneven angles and joins, broad restrained flat bucket fills, few marks. Natural raster edges are welcome, no intentional pixel-art grid or polished mascot. Neutral friendly pose. Full silhouette centered within middle 65% of square canvas, wide clear margin, readable at 64px. Real alpha transparent background. No floor shadow, scene, checkerboard, text, UI, gradient, hatching, texture, glowing light, garment shading or anatomical detail.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-9d6692ac-d8ad-4a22-bdbe-24e3fa7f6032.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-a0f34647-e2b6-4907-b861-3ac836903187.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit the human NPC in image 1 to match the blunt, coarse, uneven MS Paint mouse-doodle drawing method of image 2, the actual DropInn sheep. Preserve the NPC's exact identity, skin tone, clothes, carried object, body proportions and pose. Redraw the MAIN contours much thicker and more irregular like the sheep, with clumsy actual angles and joins. Simplify the face to visibly mismatched off-center eyes, existing nose and small mouth. Remove smooth elegant anatomy and neat small clothing folds. Use the same broad restrained colors, each region plain and flat; no gradients, shine or interior shading. Do not turn the human into a sheep, copy wool, or add animal features. Keep the whole figure entirely within middle 70% of a square canvas so there is at least 12% completely clear margin on every side including head, carried prop and shoes. Real alpha transparency; no shadow, scenery, checkerboard, text or added subjects. A deliberately awkward hand-drawn human for the same game as image 2, not a polished mascot.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-a0f34647-e2b6-4907-b861-3ac836903187.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-9d6692ac-d8ad-4a22-bdbe-24e3fa7f6032.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Strengthen crude contours and awkward drawn shapes against the preserved sheep reference."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        300,
+        68,
+        924,
+        1208
+      ],
+      "sha256": "b66cfa22676a5fd911813453fe28a73d509864a94558f25cf9a8e8a6c122a02a",
+      "runtimeSha256": "19aa6130eb145b27d8536c99f7931fd97933427ce92017756a17a3134bd5878c",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-npc-innkeeper",
+      "purpose": "Wren woodland innkeeper; neutral human NPC with cup",
+      "file": "public/art/avalon-npc-innkeeper.png",
+      "runtimeFile": "public/art/avalon-npc-innkeeper.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent full-body NPC for DropInn Avalon: Wren, a kindly awkward human innkeeper. Warm pale peach skin, short untidy rusty-brown hair, two deliberately unequal cream eyes with black dots, a crooked little nose and small amused smile. A plain moss-green shirt under a big cream apron, muted brown skirt or trousers with a lopsided hem and small unequal brown shoes. One hand on hip; the other holds a single plain cream cup by its handle. No elaborate costume or other props. Match the inspected DropInn Mara, sheep and wolves: rough loose old MS Paint mouse drawing, chunky blunt uneven BLACK contours, clumsy asymmetrical body silhouette, coarse joins, natural raster edges, broad flat muted bucket fills, very sparse interior details. The actual shapes should look drawn with a mouse, not a smooth polished mascot. Full figure with cup intact in middle 65 percent of square canvas and wide transparent margin. Readable at 64px. Actual alpha transparency. No scene, floor shadow, checkerboard, text, emblem, magic, gloss, gradient, fabric shading, texture, hatching or jewelry.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-08cc2dd6-ad08-4d3b-9da0-e3c6889c3957.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-735ad8cc-27ae-4554-97fb-defeebd0c486.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit the human NPC in image 1 to match the blunt, coarse, uneven MS Paint mouse-doodle drawing method of image 2, the actual DropInn sheep. Preserve the NPC's exact identity, skin tone, clothes, carried object, body proportions and pose. Redraw the MAIN contours much thicker and more irregular like the sheep, with clumsy actual angles and joins. Simplify the face to visibly mismatched off-center eyes, existing nose and small mouth. Remove smooth elegant anatomy and neat small clothing folds. Use the same broad restrained colors, each region plain and flat; no gradients, shine or interior shading. Do not turn the human into a sheep, copy wool, or add animal features. Keep the whole figure entirely within middle 70% of a square canvas so there is at least 12% completely clear margin on every side including head, carried prop and shoes. Real alpha transparency; no shadow, scenery, checkerboard, text or added subjects. A deliberately awkward hand-drawn human for the same game as image 2, not a polished mascot.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-735ad8cc-27ae-4554-97fb-defeebd0c486.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-08cc2dd6-ad08-4d3b-9da0-e3c6889c3957.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Strengthen crude contours and awkward drawn shapes against the preserved sheep reference."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        287,
+        104,
+        928,
+        1182
+      ],
+      "sha256": "87a1b507fca8b3c1555905a5e0dbd6a5e5cbca42a0f80d0a227908630da6ce1f",
+      "runtimeSha256": "b92ad051ef29c7db01130b7e21c883da74fac6903cf55acfbc5f03e5d229ab6c",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-waybill",
+      "purpose": "Sealed blank waybill quest prop",
+      "file": "public/art/avalon-waybill.png",
+      "runtimeFile": "public/art/avalon-waybill.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent game prop for DropInn Avalon: a sealed folded cream paper waybill, a thick crooked folded rectangle with one bent corner, one diagonal flap line, one broad coral wax blob where it closes. Entirely blank paper, absolutely no letters, numbers, lines of writing, emblems or symbols. It must remain a sealed document, not a map or scroll. Coarse loose MS Paint mouse doodle matching inspected DropInn sheep and Mosswater inventory props: blunt uneven thick black contours, lopsided actual shape, flat muted cream and coral fills, only the one flap line. Full isolated silhouette centered within middle 65% of square canvas, wide clear margins, recognizable at 48–64px. Real alpha transparent background. No extra props, person, ground shadow, checkerboard, texture, gradients, gloss, hatching, border, UI or lettering.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-75c9ecd9-37f5-4872-9af3-fbcf5f6467d5.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-75c9ecd9-37f5-4872-9af3-fbcf5f6467d5.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        171,
+        338,
+        1108,
+        917
+      ],
+      "sha256": "5b297159b72077cad584d18da4c02580a4b67b8e81da9868b98bac402cf32e44",
+      "runtimeSha256": "aba84ff0bf64b4a55c2e8f1aa3024f4f336b07fb882691743039a6f5c7aebbe2",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-cart",
+      "purpose": "Neutral intact empty wooden handcart prop",
+      "file": "public/art/avalon-cart.png",
+      "runtimeFile": "public/art/avalon-cart.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent game prop for DropInn Avalon: a small plain wooden handcart with two big lopsided wheels and two short forward handles. Squat brown box bed, three broad plank divisions at most, dark brown uneven wheel circles with just one crossbar each. Seen from a simple awkward three-quarter angle so the empty open bed is visible. NEUTRAL intact cart: no cargo, damage, stuck wheel, motion, mud, rope, lantern or character. Match inspected DropInn sheep, gate and Mosswater props: rough old MS Paint mouse doodle, thick blunt irregular black contours, coarse actual shapes and uneven joins, broad restrained brown and tan bucket fills. Not a polished wagon illustration. Complete isolated silhouette centered in middle 65% of square canvas, generous empty margin on all sides, legible at 64px. Actual alpha transparency. No scenery, floor shadow, checkerboard, woodgrain, detailed spokes, text, face, UI, shading, gloss, gradients or hatching.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-3088434f-0ee9-4550-9889-5490381ad380.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-8f1dc3c8-7202-4d6c-9cdc-2cfddc83e469.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Simplify the empty wooden handcart in image 1 to match the crude coarse black mouse-drawing contours and sparse colors of DropInn's sheep in image 2. Preserve cart identity, empty open bed, two wheels and two short handles, entire transparent square canvas and composition. REMOVE every wood facet, pale upper edge, highlight and shadow face. Each broad plank should be one plain brown bucket fill with no interior lighting and at most two simple bed division lines. Strengthen main outline to blunt irregular true-black strokes like image 2; make both wheel circles and box corners genuinely awkward and lopsided rather than carefully constructed perspective. Wheel spokes just one crossbar each. No woodgrain, grain lines, cargo, animals, damage, added object, floor shadow, scene, checkerboard, text, gradient or gloss. Full neutral intact cart with wide transparent margin. Do not draw the sheep. Actual alpha transparency.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-8f1dc3c8-7202-4d6c-9cdc-2cfddc83e469.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-3088434f-0ee9-4550-9889-5490381ad380.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Remove faceted lighting; simplify and coarsen contours to match preserved sheep art."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        144,
+        331,
+        1133,
+        960
+      ],
+      "sha256": "bce3638eb5c83ca6147390c6473928a2cfe24cd3b6bdd6aed9c2c977bbc4a798",
+      "runtimeSha256": "90e29f0de3af2947c2b4ebfb135799e39b528b51c0ab321992e6b6ce94e19bdb",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-lantern",
+      "purpose": "Plain yellow lantern prop",
+      "file": "public/art/avalon-lantern.png",
+      "runtimeFile": "public/art/avalon-lantern.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent game prop for DropInn Avalon: a little lopsided old lantern with a broad dusty-brown frame, one crooked handle loop, a mustard-yellow single flat interior window and a simple small cream candle shape inside. One plain dark-brown base and top. Neutral reusable lantern, no surrounding glow, rays, sparks or scene lighting. Draw as a very sparse coarse MS Paint mouse doodle like inspected DropInn sheep and Mosswater props: very thick uneven black contours, awkward actual shapes, blunt irregular joins, broad flat restrained mustard/brown/cream fills, not polished icon geometry. Only one interior window, no fine metal cage, glass reflections, shading or texture. Entire isolated silhouette centered in middle 65% of square canvas, generous transparent margins, clear at 48–64px. Real alpha transparency. No ground shadow, checkerboard, text, face, UI, gradient, gloss, hatching, stars or extra subjects.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4a85e804-55ef-4261-b011-5f69d7507597.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4a85e804-55ef-4261-b011-5f69d7507597.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        348,
+        156,
+        907,
+        1100
+      ],
+      "sha256": "b348b825082f072462e2b97ded3a0d4a2f41ef3affd778e0df20ab101b52a464",
+      "runtimeSha256": "f8fe8dc295e3d82d36bcc19504f3bd9544b8e1ed09101ae666cae23f4d3df377",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-keepsake-knot",
+      "purpose": "Trail-knot keepsake with one green leaf",
+      "file": "public/art/avalon-keepsake-knot.png",
+      "runtimeFile": "public/art/avalon-keepsake-knot.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent keepsake prop for DropInn Avalon: a little plain trail knot made of two thick tan rope ends tied into one broad lopsided knot, with a single small moss-green leaf tucked into its top. Compact funny shape, short rope tails pointing left and down, leaf drawn with just one center stroke. No spiral rope texture, fibers, tiny lines, beads, symbols or additional objects. The whole item should use no more than five large simple regions. Match inspected DropInn sheep and Mosswater repair-kit art: coarse MS Paint mouse-drawn black contours, thick uneven joins, awkward broad geometry, restrained flat bucket fills, no polished cartoon icon. Complete isolated full silhouette in middle 65% of square canvas with wide transparent margins, legible at 48px. Actual alpha transparency. No scenery, floor shadow, checkerboard, text, UI, gradient, shine, shading, intricate texture, hatching or ornament.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4d6f8879-4795-408b-9c48-89fa7d12603c.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-4d6f8879-4795-408b-9c48-89fa7d12603c.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        272,
+        227,
+        967,
+        1018
+      ],
+      "sha256": "e2d5e2ef4b4fe42ea406e18feb7df7c40957a463f384929bd0916c746596e555",
+      "runtimeSha256": "0c7aeb5e3557b34771383f5b56a355e90e31599a370a441332df9dd157d85a2a",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-keepsake-leaf",
+      "purpose": "Flat copper-leaf keepsake",
+      "file": "public/art/avalon-keepsake-leaf.png",
+      "runtimeFile": "public/art/avalon-keepsake-leaf.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent keepsake for DropInn Avalon: a small flat copper leaf token, irregular and asymmetrical like a handmade souvenir. Broad dull copper-brown leaf shape with a short bent stem, one blunt dark central vein and two short side strokes. It is a flat plain metal memento with no shine, facets, bevel, gem, engraving, letters, symbol, loop or cord. Sparse coarse MS Paint mouse doodle matching inspected DropInn sheep and Mosswater keepsake style: thick uneven true-black contour, wobbly actual silhouette, natural raster jaggies, single muted copper bucket fill. No polished icon geometry. Complete isolated silhouette centered in middle 65% of square canvas with wide transparent clear margins, readable at 48px. Actual alpha transparency, no scene, floor shadow, checkerboard, text, UI, gradient, hatching, gloss, texture or additional objects.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-c4967751-5bfc-4296-830c-bad7031425d3.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-c4967751-5bfc-4296-830c-bad7031425d3.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        254,
+        96,
+        1006,
+        1159
+      ],
+      "sha256": "1e2ce00f84fa3e1bc08b657e9fdf9f64760937e57098a97f26527328539120d2",
+      "runtimeSha256": "41f12394fa73243818c5d436633af077fec1c0024fca5bc61400ca8456aa59b6",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    },
+    {
+      "id": "avalon-keepsake-cup",
+      "purpose": "Cream woodland-cup keepsake",
+      "file": "public/art/avalon-keepsake-cup.png",
+      "runtimeFile": "public/art/avalon-keepsake-cup.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent keepsake for DropInn Avalon: a small crooked cream woodland cup with an uneven rounded-square handle and one simple moss-green leaf mark on its front. The mark is only a solid lopsided leaf blob with one dark center stroke, no text. Broad low cup, dark empty mouth visible as one black uneven oval, slightly sloping base. No liquid, steam, metal trim, ornament or saucer. Same coarse loose MS Paint mouse-doodle style as inspected DropInn sheep, Mara and Mosswater props: blunt thick irregular black contour, awkward asymmetric actual shape, broad restrained cream/moss bucket fills, very few interior marks. No smooth vector or polished cartoon. Complete isolated cup centered within middle 65% of square canvas with generous transparent margins, clear at 48–64px. Real alpha transparency. No background, floor shadow, checkerboard, text, UI, shading, gloss, gradients, detailed texture or hatching.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-d1255d05-690e-4f6f-95d3-69f124a29ddf.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-d1255d05-690e-4f6f-95d3-69f124a29ddf.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "visibleAlphaBounds": [
+        158,
+        352,
+        1187,
+        938
+      ],
+      "sha256": "0c59e1c9a73ef8babea91887214078c3e55a8fa2afc3e9fe058c102d836735f9",
+      "runtimeSha256": "c4660fd81f4eba2066f9849fba6351c892586f07c677a2361d76f96510071f93",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; full canvas and every decoded RGBA byte verified equal to preserved original PNG.",
+      "review": "Inspected generated source and selected style edit at full size, plus Chromium at actual 128,64,48 CSS pixels on pale parchment #fff4d6 and dark #20352f. Four NPC identities, neutral empty cart, blank sealed waybill, lantern, knot/leaf/cup keepsakes are recognizable with coarse MS Paint contours and sparse flat fills. Fine NPC facial details are subordinate at 48px; use the usual larger scene-piece presentation for expressions. No visible opaque backdrop, halo or edge clipping. Real alpha 0-255; full original canvas preserved. Every decoded RGBA byte matches lossless WebP. Live integration/browser interaction is root-owned and not claimed here.",
+      "reviewArtifact": "output/playwright/avalon-cutout-review.png"
+    }
+  ],
+  "referenceHashes": {
+    "public/art/sheep.png": "026bb0c61db71c29c664656bf062c1fc563b95d6ce5e6b2fa54ce6e75ded938d",
+    "public/art/shadow-pack.png": "56fefa8ebd53a6390192b0a2aed3491edd9e129bcec0966339234bd99f155326",
+    "public/art/mara.png": "f265d66e1ba89d161687679cbed23dd7b43f5fdfc5e770df90df10bf33232090",
+    "public/art/stage-village.png": "c74d51e28ecd3450b4436dc616deba4293dcce47f3dd56c0d7e6007d0e5a9440",
+    "public/art/mosswater-scene-mill.png": "b2da95ff318a1ab753887961b29da11776aae92c82d3f6dd9e531077e203b078"
+  }
+}

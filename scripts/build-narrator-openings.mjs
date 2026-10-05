@@ -17,7 +17,9 @@ const manifestPath = path.join(root, 'src/lib/dropinn/narrator-openings.json');
 const hash = value => createHash('sha256').update(value).digest('hex');
 // Total retained catalog, not a startup download: the runtime requests only
 // the selected voice's current sentence. Pinned openings remain addressable.
-const MAX_BYTES = 32 * 1024 * 1024;
+// Retain every pinned recording plus Avalon's three authored arrivals. These
+// are requested one sentence/voice at a time, never downloaded as a catalog.
+const MAX_BYTES = 48 * 1024 * 1024;
 const FIRST_CLIP_BYTES = 350 * 1024;
 const ssr = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-narrator-openings', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
 let metadata, jobs, firstSentences;
@@ -26,10 +28,14 @@ try {
   const { narratorSentences } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorAudio.ts');
   const { narratorNaturalVoices } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorVoices.ts');
   const { narratorModel, narratorRevision } = await ssr.ssrLoadModule('/src/lib/dropinn/narratorModel.ts');
+  const { avalonContent, createAvalonEpisode } = await ssr.ssrLoadModule('/src/lib/dropinn/avalonContent.ts');
   metadata = { model: narratorModel, revision: narratorRevision, format: 'pcm16-wav', sampleRate: 24000, speed: 1 };
   // Released rooms keep their pinned opening even when discovery selects a new
   // version. Deduplicate shared sentences, not the addressable story versions.
-  const intros = ADVENTURE_VERSIONS.map(adventure => narratorSentences(adventure.chapters[0].intro));
+  const intros = [...ADVENTURE_VERSIONS.map(adventure => narratorSentences(adventure.chapters[0].intro)),
+    // Avalon has saved seeded arrivals. Include the authored opening variants,
+    // not just the registry's preview episode; lookup still requires exact prose.
+    ...Array.from({ length: 160 }, (_, index) => narratorSentences(avalonContent(createAvalonEpisode(`opening-${index}`)).opening))];
   firstSentences = new Set(intros.map(segments => segments[0]));
   const texts = [...new Set(intros.flat())];
   jobs = narratorNaturalVoices.flatMap(voice => texts.map(text => {

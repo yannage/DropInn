@@ -7,6 +7,7 @@ import { narratorSentences } from './narratorAudio';
 import { narratorNaturalVoices } from './narratorVoices';
 import { narratorModel, narratorRevision } from './narratorModel';
 import type { NarratorOpeningClip } from './narratorOpenings';
+import { avalonContent, createAvalonEpisode } from './avalonContent';
 
 const fixture: NarratorOpeningClip = { text: 'The evening bell rings over empty pens.', voice: 'Bella', speed: 1, url: '/audio/opening.wav', bytes: 52, sampleRate: 24000, sampleCount: 4, duration: 4 / 24000, sha256: '' };
 function wave() {
@@ -31,7 +32,9 @@ describe('instant authored opening recordings', () => {
   it('covers every current and pinned first chapter and voice without a request during lookup', async () => {
     const { narratorOpeningClip } = await import('./narratorOpenings');
     expect(manifest.model).toBe(narratorModel); expect(manifest.revision).toBe(narratorRevision);
-    for (const adventure of ADVENTURE_VERSIONS) for (const sentence of narratorSentences(adventure.chapters[0].intro)) {
+    const openings = [...ADVENTURE_VERSIONS.map(adventure => ({ id: adventure.id, text: adventure.chapters[0].intro })),
+      ...Array.from({ length: 160 }, (_, index) => ({ id: `avalon-${index}`, text: avalonContent(createAvalonEpisode(`opening-${index}`)).opening }))];
+    for (const adventure of openings) for (const sentence of narratorSentences(adventure.text)) {
       for (const voice of narratorNaturalVoices) {
         const clip = narratorOpeningClip(sentence, voice.id, 1);
         expect(clip, `${adventure.id}: ${voice.id}: ${sentence}`).toBeDefined();
@@ -64,7 +67,7 @@ describe('instant authored opening recordings', () => {
     const entries = manifest.clips as NarratorOpeningClip[];
     const first = new Set(ADVENTURE_VERSIONS.map(adventure => narratorSentences(adventure.chapters[0].intro)[0]));
     expect(entries.length).toBeGreaterThan(0);
-    expect(entries.reduce((sum, entry) => sum + entry.bytes, 0)).toBeLessThanOrEqual(32 * 1024 * 1024);
+    expect(entries.reduce((sum, entry) => sum + entry.bytes, 0)).toBeLessThanOrEqual(48 * 1024 * 1024);
     for (const clip of entries) {
       const bytes = readFileSync(`public/${clip.url}`);
       expect(bytes.byteLength).toBe(clip.bytes);

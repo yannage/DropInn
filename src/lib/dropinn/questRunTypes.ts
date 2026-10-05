@@ -1,12 +1,15 @@
 import type { AdventureRoom, SceneTarget } from './types';
+import type { AvalonConflictId, AvalonEpisode, AvalonOptionEffect } from './avalonTypes';
 
 export type QuestAttribute = 'might' | 'wits' | 'heart';
 export type QuestMove = 'attack' | 'defend' | 'spell' | 'mend';
-export type QuestEnding = 'isolate' | 'bargain' | 'repair';
+export type QuestEnding = 'isolate' | 'bargain' | 'repair' | 'return';
 export type QuestAction =
   | { kind: 'interact'; targetId: string; optionId: string }
   | { kind: 'travel'; edgeId: string }
   | { kind: 'pass' }
+  | { kind: 'follow-thread'; threadId: string }
+  | { kind: 'return-episode' }
   | { kind: 'combat'; move: QuestMove; targetActorId?: string }
   | { kind: 'loot'; offerId: string; choiceId: string }
   | { kind: 'upgrade'; attribute: QuestAttribute };
@@ -16,6 +19,7 @@ export interface QuestOption {
   requires?: string[]; absent?: string[]; discover?: string[]; items?: string[]; supplyDelta?: number;
   followUp?: string[]; encounter?: string; completeObjective?: 'investigate' | 'source'; ending?: QuestEnding;
   check?: { attribute: QuestAttribute; dc: number; success: string; failure: string; bonusSupplies?: number; damageOnFailure?: number; successDiscover?: string[] };
+  avalon?: AvalonOptionEffect;
 }
 export interface QuestTarget { id: string; name: string; context: string; artKey: string; options: QuestOption[] }
 export interface QuestNode { id: string; label: string; description: string; art: string; targets: QuestTarget[] }
@@ -51,14 +55,17 @@ export interface QuestRunState {
   completedObjectives: string[]; usedOptions: string[]; lootOffers: QuestLootOffer[];
   combat?: QuestCombat; ending?: { id: QuestEnding; text: string; sourceEventId: string };
   pendingMilestone?: { result: 'success' | 'mixed' | 'setback'; text: string };
+  avalon?: AvalonEpisode;
 }
 export interface QuestEvent {
-  kind: 'discovery' | 'follow-up' | 'travel' | 'combat' | 'loot' | 'upgrade' | 'pass' | 'ending';
+  kind: 'discovery' | 'follow-up' | 'travel' | 'combat' | 'loot' | 'upgrade' | 'pass' | 'ending' | 'director';
   nodeId: string; optionId?: string; move?: QuestMove; fromNodeId?: string; toNodeId?: string;
   factIds?: string[]; itemIds?: string[]; supplyDelta?: number; enemyDamage?: number;
+  spentItemIds?: string[];
   manaDelta?: number; runXp?: number; lootOfferId?: string; equipmentId?: string; attribute?: QuestAttribute;
   sourceEventId?: string; next?: string;
   encounterId?: string;
+  threadId?: AvalonConflictId;
   check?: { roll: number; modifier: number; dc: number; success: boolean };
 }
 export interface QuestRunView {

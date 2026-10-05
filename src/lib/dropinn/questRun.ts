@@ -1,9 +1,17 @@
 import type { CharacterClassKey } from '../character';
 import type { AdventureRoom, ChapterDefinition } from './types';
-import type { QuestAttribute, QuestHero, QuestMove, QuestOption, QuestRunState, QuestRunView } from './questRunTypes';
+import type { QuestAttribute, QuestHero, QuestMove, QuestOption, QuestRunContent, QuestRunState, QuestRunView } from './questRunTypes';
 import { QUEST_RUN_CONTENT as content } from './questRunContent';
+import { avalonContent, createAvalonEpisode, AVALON_THREADS } from './avalonContent';
 
-export const isQuestRun = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'mosswater' && room.adventureVersion === 1;
+export const isAvalon = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'avalon' && room.adventureVersion === 1;
+export const isQuestRun = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => (room.adventureId === 'mosswater' || room.adventureId === 'avalon') && room.adventureVersion === 1;
+/** Saved assignments, rather than a fresh roll, select every episode's content. */
+export function questContent(room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion' | 'questRun'>): QuestRunContent {
+  if (!isAvalon(room)) return content;
+  if (!room.questRun?.avalon) throw new Error('This Avalon episode is missing its saved world manifest.');
+  return avalonContent(room.questRun.avalon, room.questRun.facts.map(fact => fact.id));
+}
 export const QUEST_FOCUS_MS = 45_000;
 export const QUEST_COMBAT_MS = 25_000;
 export const QUEST_REVEAL_MS = 3_000;
@@ -21,20 +29,30 @@ export function createQuestHero(classKey: CharacterClassKey): QuestHero {
   const maxMana = classKey === 'wizard' || classKey === 'cleric' ? 3 : 2;
   return { level: 1, runXp: 0, points: 0, attributes: { ...attributes[classKey] }, mana: maxMana, maxMana, equipment: [] };
 }
-export function createQuestRun(seed: string): QuestRunState {
+export function createQuestRun(seed: string, adventureId = 'mosswater'): QuestRunState {
+  if (adventureId === 'avalon') {
+    const avalon = createAvalonEpisode(seed), episode = avalonContent(avalon);
+    return { schemaVersion: 1, seed, nodeId: episode.startNodeId, visitedNodeIds: [episode.startNodeId], focus: null,
+      heroes: {}, facts: [], items: [], supplies: 3, completedObjectives: [], usedOptions: [], lootOffers: [], avalon };
+  }
   return { schemaVersion: 1, seed, nodeId: content.startNodeId, visitedNodeIds: [content.startNodeId], focus: null,
     heroes: {}, facts: [{ id: questHash(seed) % 2 ? 'high-water' : 'low-water', sourceEventId: '', actorId: '', actorName: 'The conditions', nodeId: content.startNodeId }], items: [], supplies: 3, completedObjectives: [], usedOptions: [], lootOffers: [] };
 }
 export const questHas = (room: AdventureRoom, id: string) => !!room.questRun?.facts.some(fact => fact.id === id);
 export function questOptions(room: AdventureRoom, targetId: string): QuestOption[] {
+  const content = questContent(room);
   const state = room.questRun;
   if (!state || state.combat?.status === 'active' || room.status === 'completed') return [];
   const target = content.nodes.find(node => node.id === state.nodeId)?.targets.find(target => target.id === targetId);
   return (target?.options ?? []).filter(option => (option.requires ?? []).every(id => questHas(room, id))
     && !(option.absent ?? []).some(id => questHas(room, id))
-    && !state.usedOptions.includes(option.id));
+    && !state.usedOptions.includes(option.id)
+    && (!option.avalon?.promise || state.avalon?.promise?.status !== 'owed')
+    && (!option.avalon?.fulfillPromise || state.avalon?.promise?.id === option.avalon.fulfillPromise && state.avalon.promise.status === 'owed')
+    && (!option.avalon?.resolveThread || state.avalon?.threads.some(thread => thread.id === option.avalon!.resolveThread && thread.status === 'active')));
 }
 export function questMap(room: AdventureRoom) {
+  const content = questContent(room);
   const state = room.questRun!;
   const edges = content.edges.map(edge => ({ ...edge, available: edge.from === state.nodeId && (edge.requires ?? []).every(id => questHas(room, id)) && !(edge.absent ?? []).some(id => questHas(room, id)),
     reason: edge.from !== state.nodeId ? `Start from ${content.nodes.find(node => node.id === edge.from)?.label ?? edge.from}.` : (edge.absent ?? []).some(id => questHas(room, id)) ? 'A newer discovered route replaces this approach.' : (edge.requires ?? []).filter(id => !questHas(room, id)).map(id => content.facts[id]?.label ?? id).join(', '),
@@ -66,12 +84,18 @@ export function questCombatMoves(room: AdventureRoom, actorId: string): { id: Qu
   ];
 }
 export function questRunView(room: AdventureRoom, userId: string): QuestRunView {
+  const content = questContent(room);
   const state = room.questRun!; const focus = state.focus;
+  const activeThreads = state.avalon?.threads.filter(thread => thread.status === 'active') ?? [];
+  const avalonObjective = state.avalon && (state.avalon.threads.some(thread => thread.status === 'resolved')
+    ? 'Return to Larch Inn, or finish another open thread.'
+    : activeThreads.length ? activeThreads.map(thread => AVALON_THREADS[thread.id].question).join(' ')
+    : state.avalon.threads.some(thread => thread.status === 'discovered') ? 'Follow a discovered lead, or explore the hills.' : 'Look around. Find out what needs a hand.');
   return { activeActorId: focus?.actorId ?? null, activeActorName: focus ? room.players[focus.actorId]?.character.name ?? 'A hero' : 'No active hero',
     isActive: room.status === 'active' && room.phase === 'choosing' && focus?.actorId === userId,
     actionsRemaining: focus?.remaining ?? 0, node: content.nodes.find(node => node.id === state.nodeId)!, focusEndsAt: room.deadline,
     mode: room.status === 'completed' ? 'completed' : state.combat?.status === 'active' ? 'combat' : 'exploration',
-    objective: state.ending?.text ?? (!state.completedObjectives.includes('investigate') ? 'Find what is wrong with Mosswater’s well.' : !state.completedObjectives.includes('source') ? 'Find the source or confirm a clean supply.' : 'Choose how to give Mosswater clean water.'),
+    objective: state.ending?.text ?? avalonObjective ?? (!state.completedObjectives.includes('investigate') ? 'Find what is wrong with Mosswater’s well.' : !state.completedObjectives.includes('source') ? 'Find the source or confirm a clean supply.' : 'Choose how to give Mosswater clean water.'),
     followUp: state.followUp, hero: state.heroes[userId], lootOffers: state.lootOffers.filter(offer => offer.actorId === userId) };
 }
 export const QUEST_RUN_DEFINITION = {
@@ -81,15 +105,26 @@ export const QUEST_RUN_DEFINITION = {
     targets: content.nodes[0].targets.map(target => ({ id: target.id, name: target.name, description: target.context, context: target.context, artKey: target.artKey, tokens: ['investigate', 'assist'], effects: [], actionCues: { investigate: 'Inspect the scene freely', assist: 'Choose a displayed quest intention' } })),
     progressGoal: 1, combat: false, endings: { success: 'The party makes a lasting difference to Mosswater.', mixed: 'The party finds a way through the trouble.', setback: 'Mosswater has a safe way forward.' } })),
 };
+const avalonPreview = avalonContent(createAvalonEpisode('avalon-preview-v1'));
+export const AVALON_DEFINITION = {
+  id: avalonPreview.id, version: avalonPreview.version, title: avalonPreview.title, pitch: avalonPreview.pitch,
+  chapters: avalonPreview.chapters.map((chapter, index): ChapterDefinition => ({
+    ...QUEST_RUN_DEFINITION.chapters[index], ...chapter, location: 'Larch Hills of Avalon',
+    intro: avalonPreview.opening, situation: avalonPreview.opening, objective: 'Find a local trouble worth following.',
+    threat: 'Local troubles change only while the party takes meaningful turns.', art: avalonPreview.nodes.find(node => node.id === avalonPreview.startNodeId)!.art,
+    targets: [], endings: { success: 'Your choices leave a changed place in Avalon.', mixed: 'Some troubles are settled; other leads remain.', setback: 'The hills remember what the party discovered.' },
+  })),
+};
 export function questRunScene(room: AdventureRoom): ChapterDefinition {
-  const base = QUEST_RUN_DEFINITION.chapters[Math.min(2, room.chapter)]; const state = room.questRun;
+  const content = questContent(room);
+  const base = (isAvalon(room) ? AVALON_DEFINITION : QUEST_RUN_DEFINITION).chapters[Math.min(2, room.chapter)]; const state = room.questRun;
   if (!state) return base;
   const view = questRunView(room, ''); const enemy = state.combat && content.enemies[state.combat.enemyId];
   return { ...base, location: view.node.label, art: view.node.art, intro: state.ending?.text ?? view.node.description, situation: state.ending?.text ?? view.node.description,
     catchUp: `${view.objective} ${view.activeActorName} has the current turn.`, objective: view.objective, combat: view.mode === 'combat',
     ...(view.mode === 'combat' && enemy ? { enemySource: state.combat!.enemyId, threat: enemy.description } : {}),
-    targets: view.mode === 'combat' && enemy ? [{ id: state.combat!.enemyId, name: enemy.name, description: enemy.description, context: enemy.description, artKey: enemy.artKey, tokens: ['fight', 'assist'], effects: [] }]
-      : view.node.targets.map(target => ({ id: target.id, name: target.name, description: target.context, context: target.context, artKey: target.artKey, tokens: ['investigate', 'assist'], effects: [], changed: state.usedOptions.some(id => target.options.some(option => option.id === id)) })),
+    targets: view.mode === 'combat' && enemy ? [{ id: state.combat!.enemyId, name: enemy.name, description: enemy.description, context: enemy.description, artKey: enemy.artKey, tokens: ['fight', 'assist'], effects: [], actionCues: { fight: 'Choose Attack or your class spell', assist: 'Choose Defend or Mend' } }]
+      : view.node.targets.map(target => ({ id: target.id, name: target.name, description: target.context, context: target.context, artKey: target.artKey, tokens: ['investigate', 'assist'], effects: [], actionCues: { investigate: 'Inspect the scene freely', assist: 'Choose a displayed quest intention' }, changed: state.usedOptions.some(id => target.options.some(option => option.id === id)) })),
   };
 }
 export { QUEST_RUN_CONTENT } from './questRunContent';

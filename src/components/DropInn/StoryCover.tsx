@@ -2,6 +2,11 @@ import { SceneArt } from './SceneArt';
 
 /** Reuse the actual tabletop cast so the story's cover matches the game. */
 export function StoryCover({ adventureId, scene }: { adventureId: string; scene: string }) {
+  if (adventureId === 'avalon') return <div className="di-story-cover di-story-cover-avalon">
+    <SceneArt scene="avalon-scene-inn" />
+    <img className="di-story-cover-piece di-story-cover-well" src="/art/avalon-cart.webp" alt="" width={256} height={256} draggable={false} onError={event => { event.currentTarget.hidden = true; }} />
+    <img className="di-story-cover-piece di-story-cover-mossback" src="/art/avalon-npc-courier.webp" alt="" width={256} height={256} draggable={false} onError={event => { event.currentTarget.hidden = true; }} />
+  </div>;
   if (adventureId !== 'mosswater') return <SceneArt scene={scene} />;
   return <div className="di-story-cover">
     <SceneArt scene="stage-village" />

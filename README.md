@@ -13,9 +13,19 @@ Vite serves both the interface and `/api/dropinn`, using the same command handle
 
 Open `/?session=host` and `/?session=guest` to simulate separate visitors. The optional `?room=CODE` link joins an existing adventure. The original prototype and saved legacy rooms remain available at `/?legacy=1`.
 
-## Mosswater: the new quest crawl
+## Avalon: a familiar world, a different visit
 
-Fresh lobbies select **Mosswater: The Well That Growled**. Use **Change story** to compare its **Quest crawl** with Gemward’s **Story table** (v3) and **Branching map** (v2). Briar Glen, the other classic tales and Gemward’s original expedition remain selectable. The lobby remembers the exact edition; public play and friend tables start that edition, while invitations keep the invited room’s rules.
+Fresh lobbies select **Avalon: A Visit to the Larch Hills**. Six fixed places, two streams and a lake hold a saved, seeded visit: a different arrival, weather, visiting cast and two local troubles. Discoveries become shared leads. Follow what matters, spend supplies, make a promise or enter a separate party battle, then return to the inn when your visit has a story worth telling.
+
+The leads board shows what the party knows, where each lead came from, its next step, and the costs of unresolved trouble. Only rounds with meaningful exploration advance active pressures; waiting or leaving the room cannot invent story progress. Repairs, bargains and fights leave distinct changes on the table. Closing a visit preserves unfinished business instead of silently solving it.
+
+Avalon uses the same two-action turns, shared pouch, class combat, run builds and explicit release controls as Mosswater. Its [story packet](docs/stories/avalon-v1.md) documents the saved-world contract and authored possibilities. This is a bounded procedural adventure; human playtests are still needed to judge pacing and replay appeal.
+
+Run `npm run test:avalon -- http://127.0.0.1:5209` against your local Vite server for the maintained two-player journey. It covers shared leads, promises, supply limits, exact retries, absence/rejoin, return, all six places and the thirteen new illustrations at phone and desktop sizes. The runner uses an isolated local handler and does not establish hosted persistence or Realtime behavior.
+
+## Mosswater: the quest crawl
+
+Use **Change story** to compare Avalon’s **Living world**, **Mosswater: The Well That Growled** (**Quest crawl**), and Gemward’s **Story table** (v3) and **Branching map** (v2). Briar Glen, the other classic tales and Gemward’s original expedition remain selectable. The lobby remembers the exact edition; public play and friend tables start that edition, while invitations keep the invited room’s rules.
 
 - One clear shared quest: bring clean water back to the village.
 - One hero leads for two actions under a 45-second clock. Inspect freely, choose an intention, then confirm it. A discovery can open a follow-up in the same turn.

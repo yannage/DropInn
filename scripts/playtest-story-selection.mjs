@@ -6,7 +6,7 @@ import { createServer } from 'vite';
 
 // Real independent browser identities, production command handler, local memory.
 // The fixed clock keeps comparison screens stable; gameplay state is never injected.
-const origin = new URL(process.argv[2] ?? 'http://127.0.0.1:5208');
+const origin = new URL(process.argv[2] ?? 'http://127.0.0.1:5209');
 assert.ok(origin.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(origin.hostname)
   && origin.pathname === '/' && !origin.search && !origin.hash && !origin.username && !origin.password,
   'Use a plain HTTP loopback origin.');
@@ -15,10 +15,12 @@ const preferenceKey = 'dropinn:lobby-story:v1', now = Date.now();
 let ssr, browser, handler, sourceFingerprint, choices;
 const note = (name, details = {}) => { checks.push({ name, ...details }); console.log(name); };
 const editions = [
+  { id: 'avalon', version: 1, title: 'Avalon: A Visit to the Larch Hills', edition: 'Living world' },
   { id: 'mosswater', version: 1, title: 'Mosswater: The Well That Growled' },
-  { id: 'gemward', version: 3, edition: 'Story table' },
-  { id: 'gemward', version: 2, edition: 'Branching map' },
+  { id: 'gemward', version: 3, title: 'Gemward: The Missing Light', edition: 'Story table' },
+  { id: 'gemward', version: 2, title: 'Gemward: The Missing Light', edition: 'Branching map' },
 ];
+const questStyle = choice => ['avalon', 'mosswater'].includes(choice.adventureId ?? choice.id);
 
 async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -93,7 +95,7 @@ async function select(page, choice) {
   await page.getByRole('button', { name: 'Change story', exact: true }).click();
   await page.getByRole('button', { name: choiceLabel(choice), exact: true }).click();
   await page.waitForFunction(({ key, value }) => localStorage.getItem(key) === value, { key: preferenceKey, value: `${choice.id}@${choice.version}` });
-  assert.match(await page.locator('.di-lobby-postcard').innerText(), new RegExp(choice.id === 'mosswater' ? 'Mosswater' : 'Gemward'));
+  assert.equal(await page.locator('#lobby-story-title').textContent(), choice.title);
   if (choice.edition) assert.ok((await page.locator('.di-lobby-postcard').textContent()).includes(choice.edition));
 }
 async function layout(page, name, selector = '.di-lobby') {
@@ -133,18 +135,19 @@ async function enter(page, choice, privateTable = false) {
   assert.equal(response.backend, 'local');
   assert.equal(response.room.adventureId, choice.id); assert.equal(response.room.adventureVersion, choice.version);
   assert.equal(response.room.visibility ?? 'public', privateTable ? 'private' : 'public');
+  if (choice.id === 'avalon') assert.ok(response.room.questRun?.avalon, 'Avalon creates its own saved world manifest.');
   return response.room;
 }
 async function leave(page) {
   const { room } = await state(page);
   if (!room) return;
-  if (room.adventureId === 'mosswater') await page.getByRole('button', { name: 'Open expedition settings', exact: true }).click();
+  if (questStyle(room)) await page.getByRole('button', { name: 'Open expedition settings', exact: true }).click();
   else await page.getByRole('button', { name: 'Open adventure menu', exact: true }).click();
   await requestClick(page, 'command', page.getByRole('button', { name: 'Leave the table', exact: true }));
   await page.getByRole('button', { name: 'Back to the inn', exact: true }).click(); await settled(page, false);
 }
 async function invitation(page, choice) {
-  if (choice.id === 'mosswater') {
+  if (questStyle(choice)) {
     await page.getByRole('button', { name: 'Open expedition settings', exact: true }).click();
     await page.getByRole('button', { name: 'Party & invitation', exact: true }).click();
     const link = await page.getByRole('textbox', { name: 'Bring a friend', exact: true }).inputValue();
@@ -166,9 +169,14 @@ try {
   console.log('Story selection QA: opening two local browser identities');
   browser = await chromium.launch({ headless: true });
   const a = await open('a'), b = await open('b');
+  for (const page of [a, b]) {
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), preferenceKey), 'avalon@1');
+    assert.equal(await page.locator('#lobby-story-title').textContent(), editions[0].title);
+  }
+  note('Fresh visitors preview Avalon while existing preferences remain independent');
   await a.getByRole('button', { name: 'Change story', exact: true }).click();
   choices = await a.getByRole('button', { name: /^Select story:/ }).evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label')));
-  assert.ok(choices.length >= 8, `All current stories and prior Gemward editions must remain selectable: ${choices.length}`);
+  assert.equal(choices.length, 9, 'All nine current stories and comparison editions remain selectable.');
   for (const choice of editions) assert.equal(await a.getByRole('button', { name: choiceLabel(choice), exact: true }).count(), 1);
   await layout(a, 'picker', '.di-lobby-story-picker'); await a.keyboard.press('Escape');
   for (const choice of editions) {
@@ -177,18 +185,18 @@ try {
     assert.equal(await a.evaluate(key => localStorage.getItem(key), preferenceKey), `${choice.id}@${choice.version}`);
     if (choice.edition) assert.ok((await a.locator('.di-lobby-postcard').textContent()).includes(choice.edition));
     assert.match(await a.locator('.di-lobby-collection').innerText(), /This adventure awards keepsakes/,
-      'Mosswater and Gemward must not promise the Thread reward reserved for classic tales.');
+      'Avalon, Mosswater and Gemward must not promise the Thread reward reserved for classic tales.');
     await layout(a, `${key}-lobby`);
     note(`${key}: selected edition remembered after reload`);
-    if (choice.id === 'mosswater') {
+    if (questStyle(choice)) {
       await a.locator('.di-lobby-story-options > summary').click();
-      assert.equal(await a.locator('.di-lobby-story-options .di-keepsake-art img').count(), 3, 'Each Mosswater milestone has its own illustrated keepsake.');
-      await layout(a, 'mosswater-rewards');
+      assert.equal(await a.locator('.di-lobby-story-options .di-keepsake-art img').count(), 3, `Each ${choice.id} milestone has its own illustrated keepsake.`);
+      await layout(a, `${choice.id}-rewards`);
     }
     const publicRoom = await enter(a, choice);
     await select(b, choice); const matchedRoom = await enter(b, choice);
     assert.equal(matchedRoom.code, publicRoom.code); assert.notEqual((await state(a)).userId, (await state(b)).userId);
-    await layout(a, `${key}-table`, choice.id === 'mosswater' ? '.qr-adventure' : '.gm-adventure');
+    await layout(a, `${key}-table`, questStyle(choice) ? '.qr-adventure' : '.gm-adventure');
     await b.reload(); await settled(b); assert.equal((await state(b)).room.code, publicRoom.code);
     assert.equal((await state(b)).room.adventureVersion, choice.version);
     note(`${key}: independent public player matches exact release and restores its pin after reload`);
@@ -196,7 +204,7 @@ try {
     await select(a, choice); const privateRoom = await enter(a, choice, true);
     assert.notEqual(privateRoom.code, publicRoom.code);
     const link = await invitation(a, choice);
-    const different = choice.id === 'mosswater' ? editions[1] : editions[0]; await select(b, different);
+    const different = editions.find(edition => edition.id !== choice.id); await select(b, different);
     await b.getByRole('button', { name: 'Play with friends', exact: true }).click();
     const input = b.getByRole('textbox', { name: 'Adventure code or invitation link', exact: true });
     await input.fill(privateRoom.code);
@@ -209,8 +217,9 @@ try {
     note(`${key}: private creation uses selected release; full invitation preserves pin despite another selected story`);
     await leave(b); await leave(a);
   }
-  for (const [legacy, current] of [['gemward', 'gemward@3'], ['briar-glen', 'briar-glen@4'], ['unavailable-story@91', 'mosswater@1']]) {
-    const page = await open(`saved${legacy === 'gemward' ? 'gem' : legacy === 'briar-glen' ? 'briar' : 'bad'}`, legacy);
+  const savedChoices = [['gemward', 'gemward@3'], ['briar-glen', 'briar-glen@4'], ['mosswater@1', 'mosswater@1'], ['unavailable-story@91', 'avalon@1']];
+  for (const [index, [legacy, current]] of savedChoices.entries()) {
+    const page = await open(`saved${index}`, legacy);
     await page.waitForFunction(({ key, value }) => localStorage.getItem(key) === value, { key: preferenceKey, value: current });
     note(`Stored selection ${legacy}: resolves to ${current}`);
   }

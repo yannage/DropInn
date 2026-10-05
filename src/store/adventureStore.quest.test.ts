@@ -17,17 +17,37 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-async function setup() {
+async function setup(adventureId = 'mosswater') {
   const { useAdventureStore: store } = await import('./adventureStore');
   const { createAdventure } = await import('../lib/dropinn/engine');
-  const room = createAdventure(createCharacterProfile('Fern', 'rogue'), store.getState().userId, 1000, 'QUEST', 'mosswater');
+  const room = createAdventure(createCharacterProfile('Fern', 'rogue'), store.getState().userId, 1000, 'QUEST', adventureId);
   const respond = () => ({ backend: 'local', room: structuredClone(room), rooms: [], recaps: [] });
   mocks.request.mockImplementation(async () => respond());
-  await store.getState().initialize(); await store.getState().playNow('mosswater');
+  await store.getState().initialize(); await store.getState().playNow(adventureId);
   return { store, room, respond };
 }
 
 describe('durable quest command transport', () => {
+  it.each([{ kind: 'follow-thread', threadId: 'bitter-water' }, { kind: 'return-episode' }] as QuestRunAction[])('restores the exact Avalon $kind envelope after a lost response', async action => {
+    const { store, room, respond } = await setup('avalon');
+    const commands: AdventureCommand[] = [];
+    mocks.request.mockImplementation(async payload => {
+      if (payload.command?.type === 'quest-act') {
+        commands.push(structuredClone(payload.command));
+        if (commands.length === 1) throw new TypeError('Response lost');
+        room.appliedCommands.push(payload.command.id);
+      }
+      return respond();
+    });
+    await store.getState().commitQuestAction(action);
+    vi.resetModules();
+    const { useAdventureStore: restored } = await import('./adventureStore');
+    expect(restored.getState().pendingQuest?.action).toEqual(action);
+    await restored.getState().initialize();
+    await restored.getState().commitQuestAction(restored.getState().pendingQuest!.action);
+    expect(commands).toHaveLength(2); expect(commands[1]).toEqual(commands[0]);
+    expect(restored.getState().pendingQuest).toBeNull();
+  });
   it('restores and retries the complete frozen envelope after response loss and a newer revision', async () => {
     const { store, room, respond } = await setup();
     const commands: AdventureCommand[] = [];

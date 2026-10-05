@@ -8,7 +8,7 @@ const scenes = {
 
 export function sceneArtwork(scene: string) {
   return scenes[scene as keyof typeof scenes] ?? {
-    src: `/art/${/^(stage-|gemward-|mosswater-)/.test(scene) ? scene : `stage-${scene}`}.webp`,
+    src: `/art/${/^(stage-|gemward-|mosswater-|avalon-)/.test(scene) ? scene : `stage-${scene}`}.webp`,
     description: 'An illustrated adventure setting.',
   };
 }
@@ -25,5 +25,6 @@ export function SceneArt({ scene = 'village', className = '' }: {
   }
   return <img className={`di-scene-art di-scene-${scene} ${className}`}
     src={art.src} alt={art.description} width={1536} height={1024}
+    style={scene === 'avalon-scene-inn' ? { objectPosition: 'center top' } : undefined}
     draggable={false} decoding="async" onError={() => setFailedSource(art.src)} />;
 }

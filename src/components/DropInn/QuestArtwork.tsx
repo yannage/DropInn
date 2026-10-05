@@ -9,6 +9,7 @@ export const QUEST_SCENES: Record<string, string> = {
   'herb-bank': 'stage-river', 'hill-spring': 'mosswater-scene-hill-spring',
 };
 export const QUEST_ITEM_ART: Record<string, string> = {
+  'carter-waybill': 'avalon-waybill', 'reed-bundle': 'tall-reeds.png',
   'stained-cloth': 'mosswater-stained-cloth', 'repair-tools': 'mosswater-repair-kit',
   'clean-sample': 'mosswater-clean-sample', 'reed-shield': 'mosswater-reed-shield',
   'sluice-hook': 'mosswater-sluice-hook', 'amber-focus': 'mosswater-amber-focus',
@@ -42,6 +43,6 @@ export function QuestItemArtwork({ id }: { id: string }) {
   const art = QUEST_ITEM_ART[id];
   const [failed, setFailed] = useState<string>();
   return <span className="qr-item-art" aria-hidden="true">{art && failed !== art
-    ? <img src={`/art/${art}.webp`} alt="" width={72} height={72} draggable={false} onError={() => setFailed(art)} />
+    ? <img src={`/art/${art}${/\.(png|webp)$/.test(art) ? '' : '.webp'}`} alt="" width={72} height={72} draggable={false} onError={() => setFailed(art)} />
     : <Backpack size={24} />}</span>;
 }

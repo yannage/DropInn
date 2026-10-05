@@ -1,6 +1,8 @@
 import type { AdventureCommand, AdventureRoom, StoryEvent } from './types';
 import type { QuestAction, QuestAttribute, QuestEvent, QuestLifecycle } from './questRunTypes';
-import { createQuestHero, questCombatMoves, questCombatNumbers, questHash, questMap, questOptions, QUEST_COMBAT_MS, QUEST_FOCUS_MS, QUEST_GEAR, QUEST_REVEAL_MS, QUEST_RUN_CONTENT as content } from './questRun';
+import { createQuestHero, isAvalon, questContent, questCombatMoves, questCombatNumbers, questHash, questMap, questOptions, QUEST_COMBAT_MS, QUEST_FOCUS_MS, QUEST_GEAR, QUEST_REVEAL_MS } from './questRun';
+import { AVALON_THREADS, AVALON_PROMISES, avalonReturnText, createAvalonEpisode } from './avalonContent';
+import type { AvalonConflictId, AvalonOptionEffect } from './avalonTypes';
 
 const humans = (room: AdventureRoom) => room.seats.filter(seat => seat.kind === 'human' && !seat.leaving);
 function event(room: AdventureRoom, now: number, data: Omit<StoryEvent, 'id' | 'turn' | 'chapter' | 'at'>) {
@@ -10,9 +12,90 @@ function fact(room: AdventureRoom, id: string, source: StoryEvent) {
   const state = room.questRun!;
   if (!state.facts.some(item => item.id === id)) state.facts.push({ id, sourceEventId: source.id, actorId: source.actorId ?? '', actorName: source.actorName ?? 'The party', nodeId: state.nodeId });
 }
+function avalonOpportunities(room: AdventureRoom) {
+  const episode = room.questRun?.avalon; if (!episode) return;
+  const interest = (id: string) => Object.values(episode.director.interest).reduce((sum, values) => sum + (values[id] ?? 0), 0);
+  episode.director.opportunities = episode.threads.filter(thread => thread.status === 'discovered' || thread.status === 'active')
+    .sort((a, b) => interest(b.id) - interest(a.id) || a.id.localeCompare(b.id)).map(thread => thread.id).slice(0, 2);
+}
+function noteAvalonAction(room: AdventureRoom, actorId: string, meaningful: boolean, threadId?: AvalonConflictId) {
+  const episode = room.questRun?.avalon; if (!episode || !meaningful) return;
+  episode.director.meaningful = true;
+  if (!episode.director.acted.includes(actorId)) episode.director.acted.push(actorId);
+  if (threadId) {
+    episode.director.interest[actorId] ??= {};
+    // A second click by the same person cannot outweigh another person's interest.
+    episode.director.interest[actorId][threadId] = 1;
+  }
+  avalonOpportunities(room);
+}
+function finishAvalonFocus(room: AdventureRoom, actorId: string | undefined, now: number) {
+  const state = room.questRun!, episode = state.avalon; if (!episode || !actorId || room.status === 'parked') return;
+  const director = episode.director;
+  if (!director.finished.includes(actorId)) director.finished.push(actorId);
+  const eligible = director.participants.filter(id => humans(room).some(seat => seat.actorId === id));
+  if (!eligible.length) {
+    director.participants = humans(room).map(seat => seat.actorId); director.finished = []; director.acted = []; director.meaningful = false; director.interest = {}; return;
+  }
+  if (!eligible.every(id => director.finished.includes(id))) return;
+  if (director.meaningful && director.acted.some(id => eligible.includes(id))) {
+    director.cycle++;
+    for (const thread of episode.threads.filter(thread => thread.status === 'active' && thread.pressure < 3)) {
+      thread.pressure++;
+      const definition = AVALON_THREADS[thread.id];
+      const spent = thread.pressure === 3 ? Math.min(1, state.supplies) : 0; state.supplies -= spent;
+      if (thread.pressure === 3) thread.pressureSupplySpent = spent > 0;
+      const source = event(room, now, { kind: 'consequence', text: thread.pressure === 3 && !spent
+        ? `No shared supply remains to send for ${definition.title.toLowerCase()}. The request remains recorded; no aid or reward is claimed. Every solution remains available.`
+        : `${definition.pressureWarnings[thread.pressure - 1]}${thread.pressure === 3 ? ' Every solution remains available.' : ''}`,
+        quest: { kind: 'director', nodeId: state.nodeId, threadId: thread.id, supplyDelta: spent ? -spent : 0, ...(thread.pressure === 3 ? { factIds: [definition.pressureFact] } : {}) }, result: { changed: true } });
+      if (thread.pressure === 3) fact(room, definition.pressureFact, source);
+    }
+    avalonOpportunities(room);
+  }
+  director.participants = humans(room).map(seat => seat.actorId); director.finished = []; director.acted = []; director.meaningful = false; director.interest = {};
+}
+function applyAvalonEffect(room: AdventureRoom, effect: AvalonOptionEffect | undefined, source: StoryEvent, now: number, hooks: QuestLifecycle) {
+  const episode = room.questRun?.avalon; if (!episode || !effect) return;
+  const record = (id: string) => { fact(room, id, source); source.quest!.factIds ??= []; if (!source.quest!.factIds.includes(id)) source.quest!.factIds.push(id); };
+  for (const threadId of new Set([effect.discoverThread, ...(effect.discoverThreads ?? [])].filter(Boolean))) {
+    const thread = episode.threads.find(thread => thread.id === threadId);
+    if (thread?.status === 'hidden') { thread.status = 'discovered'; thread.sourceEventId = source.id; }
+  }
+  if (effect.promise) {
+    if (!AVALON_PROMISES[effect.promise] || episode.promise?.status === 'owed') throw new Error('Keep the party’s current promise before accepting another.');
+    episode.promise = { id: effect.promise, status: 'owed', sourceEventId: source.id };
+    record(`promise:${effect.promise}`);
+  }
+  if (effect.fulfillPromise) {
+    if (episode.promise?.id !== effect.fulfillPromise || episode.promise.status !== 'owed') throw new Error('There is no matching promise to keep.');
+    episode.promise.status = 'kept';
+    if (effect.fulfillPromise === 'washpond-reeds') {
+      room.questRun!.items = room.questRun!.items.filter(id => id !== 'reed-bundle');
+      source.quest!.spentItemIds = ['reed-bundle'];
+    }
+    record(`promise-kept:${effect.fulfillPromise}`);
+  }
+  if (effect.resolveThread) {
+    const thread = episode.threads.find(thread => thread.id === effect.resolveThread);
+    if (!thread || thread.status !== 'active' || !effect.resolutionId || !AVALON_THREADS[thread.id].resolutions[effect.resolutionId]) throw new Error('Follow this lead before choosing its resolution.');
+    thread.status = 'resolved'; thread.resolutionId = effect.resolutionId; thread.sourceEventId = source.id;
+    record(`resolved:${thread.id}`);
+    milestone(room, 'source', source.text, now, hooks);
+  }
+  avalonOpportunities(room);
+}
 export function validateQuestRunState(room: AdventureRoom) {
   const state = room.questRun;
-  if (!state || state.schemaVersion !== 1 || !content.nodes.some(node => node.id === state.nodeId) || !Array.isArray(state.facts) || !Array.isArray(state.completedObjectives)) throw new Error('This quest is missing its saved run state.');
+  if (!state || state.schemaVersion !== 1 || !Array.isArray(state.facts) || !Array.isArray(state.completedObjectives)) throw new Error('This quest is missing its saved run state.');
+  if (isAvalon(room)) {
+    const episode = state.avalon;
+    const canonical = (value: unknown): string => JSON.stringify(value, (_key, item) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
+    if (!episode || episode.schemaVersion !== 1 || !episode.manifest || canonical(episode.manifest) !== canonical(createAvalonEpisode(state.seed).manifest)
+      || !Array.isArray(episode.threads) || episode.threads.length !== 2 || new Set(episode.threads.map(thread => thread.id)).size !== episode.threads.length
+      || episode.threads.some(thread => !episode.manifest.conflictIds.includes(thread.id) || !['hidden', 'discovered', 'active', 'resolved'].includes(thread.status) || !Number.isInteger(thread.pressure) || thread.pressure < 0 || thread.pressure > 3)) throw new Error('This Avalon world version or saved episode is unavailable.');
+  }
+  if (!questContent(room).nodes.some(node => node.id === state.nodeId)) throw new Error('This quest is missing its saved run state.');
 }
 function ensureHeroes(room: AdventureRoom) {
   for (const seat of humans(room)) room.questRun!.heroes[seat.actorId] ??= createQuestHero(seat.character.classKey);
@@ -45,6 +128,12 @@ function focus(room: AdventureRoom, actorId: string | undefined, now: number, re
 }
 export function initializeQuestRun(room: AdventureRoom, now: number) {
   ensureHeroes(room); focus(room, humans(room)[0]?.actorId, now);
+  const content = questContent(room);
+  if (room.questRun!.avalon) {
+    room.questRun!.avalon.director.participants = humans(room).map(seat => seat.actorId);
+    event(room, now, { kind: 'consequence', text: content.nodes.find(node => node.id === room.questRun!.nodeId)!.description, quest: { kind: 'discovery', nodeId: room.questRun!.nodeId } });
+    return;
+  }
   const condition = room.questRun!.facts[0];
   const source = event(room, now, { kind: 'consequence', text: content.facts[condition.id]?.description ?? `${condition.id} changes which paths are open.`, quest: { kind: 'discovery', nodeId: room.questRun!.nodeId, factIds: [condition.id] } });
   condition.sourceEventId = source.id;
@@ -83,6 +172,7 @@ function heal(room: AdventureRoom, actorId: string, amount: number, now: number)
   event(room, now, { kind: 'consequence', actorId, actorName: seat.character.name, text: `${seat.character.name} recovers ${healing} HP.`, result: { targetKind: 'hero', targetId: actorId, healing, hp: seat.hp } });
 }
 function startCombat(room: AdventureRoom, enemyId: string, now: number) {
+  const content = questContent(room);
   const state = room.questRun!, actor = state.focus!;
   const order = humans(room).map(seat => seat.actorId); const mossback = enemyId === 'mossback'; const hp = (mossback ? 10 : 8) + (mossback ? 6 : 5) * order.length;
   state.combat = { id: `${room.id}:encounter:${enemyId}`, enemyId, round: 1, order, actedActorIds: [], enemyHp: hp, enemyMaxHp: hp, enemyArmor: mossback ? 1 : 0, status: 'active',
@@ -92,8 +182,12 @@ function startCombat(room: AdventureRoom, enemyId: string, now: number) {
   focus(room, order[0], now, 1, QUEST_COMBAT_MS); announce(room);
 }
 function finishCombat(room: AdventureRoom, won: boolean, now: number) {
+  const content = questContent(room);
   const state = room.questRun!, combat = state.combat!; combat.status = won ? 'won' : 'escaped';
-  const source = event(room, now, { kind: 'consequence', text: won ? `${content.enemies[combat.enemyId].name} retreats. The blocked place is now accessible; the village still needs clean water.` : `At the sixth exchange, the party slips past the tired creature. ${state.supplies ? 'One supply is lost' : 'No supplies remain'}; the village still needs clean water.`,
+  const text = isAvalon(room)
+    ? won ? `${content.enemies[combat.enemyId].name} retreats. The blocked place is now accessible. Follow the discoveries in this place.` : `At the sixth exchange, the party slips past the tired creature. ${state.supplies ? 'One supply is lost' : 'No supplies remain'}. The discovered leads remain available.`
+    : won ? `${content.enemies[combat.enemyId].name} retreats. The blocked place is now accessible; the village still needs clean water.` : `At the sixth exchange, the party slips past the tired creature. ${state.supplies ? 'One supply is lost' : 'No supplies remain'}; the village still needs clean water.`;
+  const source = event(room, now, { kind: 'consequence', text,
     result: { changed: true }, quest: { kind: 'combat', nodeId: state.nodeId, encounterId: combat.id, factIds: [`encounter-cleared:${combat.enemyId}`, `${won ? 'defeated' : 'escaped'}:${combat.enemyId}`] } });
   for (const id of source.quest!.factIds!) fact(room, id, source);
   if (!won) state.supplies = Math.max(0, state.supplies - 1);
@@ -158,7 +252,7 @@ function resolveCombat(room: AdventureRoom, actorId: string, action: Extract<Que
 }
 function validateActionShape(action: QuestAction | undefined) {
   if (!action || typeof action !== 'object' || Array.isArray(action)) throw new Error('Choose a valid quest action.');
-  const keys: Record<string, string[]> = { interact: ['kind', 'targetId', 'optionId'], travel: ['kind', 'edgeId'], pass: ['kind'], combat: ['kind', 'move', 'targetActorId'], loot: ['kind', 'offerId', 'choiceId'], upgrade: ['kind', 'attribute'] };
+  const keys: Record<string, string[]> = { interact: ['kind', 'targetId', 'optionId'], travel: ['kind', 'edgeId'], pass: ['kind'], 'follow-thread': ['kind', 'threadId'], 'return-episode': ['kind'], combat: ['kind', 'move', 'targetActorId'], loot: ['kind', 'offerId', 'choiceId'], upgrade: ['kind', 'attribute'] };
   const allowed = keys[action.kind];
   if (!allowed || Object.keys(action).some(key => !allowed.includes(key)) || Object.values(action).some(value => typeof value !== 'string' || !value.length || value.length > 200)) throw new Error('Choose a valid quest action.');
 }
@@ -186,6 +280,7 @@ function buildAction(room: AdventureRoom, actorId: string, action: Extract<Quest
   event(room, now, { kind: 'consequence', actorId, actorName: room.players[actorId].character.name, text, quest: details, result: { changed: true } });
 }
 function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks: QuestLifecycle) {
+  const content = questContent(room);
   const action = command.questAction; validateActionShape(action);
   if (action!.kind === 'loot' || action!.kind === 'upgrade') { buildAction(room, command.userId, action! as Extract<QuestAction, {kind:'loot'|'upgrade'}>, now); return; }
   const state = room.questRun!, actor = state.focus;
@@ -197,6 +292,26 @@ function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks:
     resolveCombat(room, command.userId, action! as Extract<QuestAction, {kind:'combat'}>, now, hooks); return;
   }
   if (action!.kind === 'combat') throw new Error('There is no battle here.');
+  if (action!.kind === 'follow-thread') {
+    const episode = state.avalon;
+    const thread = episode?.threads.find(thread => thread.id === (action as Extract<QuestAction, {kind: 'follow-thread'}>).threadId);
+    if (!episode || !thread || thread.status !== 'discovered' || !episode.director.opportunities.includes(thread.id)) throw new Error('Choose a discovered lead from the current opportunities.');
+    if (episode.threads.filter(thread => thread.status === 'active').length >= 2) throw new Error('Finish an active thread before following another.');
+    thread.status = 'active'; actor.remaining--; delete state.followUp;
+    const definition = AVALON_THREADS[thread.id];
+    const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: true,
+      text: `${seat.character.name} follows ${definition.title}. ${definition.question} ${definition.pressureWarnings[0]}`,
+      quest: { kind: 'follow-up', nodeId: state.nodeId, threadId: thread.id, factIds: [`following:${thread.id}`], sourceEventId: thread.sourceEventId }, result: { changed: true } });
+    fact(room, `following:${thread.id}`, source); rewardAction(room, command.userId, source, true); noteAvalonAction(room, command.userId, true, thread.id); reveal(room, now); return;
+  }
+  if (action!.kind === 'return-episode') {
+    if (!state.avalon || state.nodeId !== 'larch-inn' || !state.avalon.threads.some(thread => thread.status === 'resolved')) throw new Error('Resolve a thread, then return to Larch Inn to close this visit.');
+    const text = avalonReturnText(state.avalon);
+    const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: true, text: `${seat.character.name} brings the party’s story home. ${text}`,
+      quest: { kind: 'ending', nodeId: state.nodeId }, result: { changed: true } });
+    state.ending = { id: 'return', text, sourceEventId: source.id }; actor.remaining = 0; delete state.followUp;
+    rewardAction(room, command.userId, source, true); milestone(room, 'resolve', text, now, hooks); room.status = 'completed'; reveal(room, now); return;
+  }
   if (action!.kind === 'pass') {
     actor.remaining = 0; delete state.followUp;
     event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, text: `${seat.character.name} passes the focus.`, contribution: false, quest: { kind: 'pass', nodeId: state.nodeId } });
@@ -209,7 +324,7 @@ function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks:
     if (firstVisit) state.visitedNodeIds.push(edge.to); actor.remaining--; delete state.followUp;
     const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: firstVisit, text: `${seat.character.name} leads the party to ${content.nodes.find(node => node.id === edge.to)!.label}. ${edge.description}`,
       quest: { kind: 'travel', nodeId: edge.to, optionId: edge.id, fromNodeId: from, toNodeId: edge.to }, result: { changed: true } });
-    rewardAction(room, command.userId, source, firstVisit); reveal(room, now); return;
+    rewardAction(room, command.userId, source, firstVisit); noteAvalonAction(room, command.userId, firstVisit); reveal(room, now); return;
   }
   const interaction = action as Extract<QuestAction, {kind:'interact'}>;
   const option = questOptions(room, interaction.targetId).find(option => option.id === interaction.optionId);
@@ -221,15 +336,23 @@ function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks:
   const check = option.check ? { roll, modifier: state.heroes[command.userId].attributes[option.check.attribute], dc: option.check.dc, success: roll + state.heroes[command.userId].attributes[option.check.attribute] >= option.check.dc } : undefined;
   const facts = [...new Set([...(option.discover ?? []), ...(check?.success ? option.check?.successDiscover ?? [] : [])])].filter(id => !state.facts.some(fact => fact.id === id));
   const items = (option.items ?? []).filter(id => !state.items.includes(id)); state.items.push(...items);
-  const supplies = Math.min(6, Math.max(0, state.supplies + (option.supplyDelta ?? 0) + (check?.success ? option.check?.bonusSupplies ?? 0 : 0))) - state.supplies; state.supplies += supplies;
-  const meaningful = !!(facts.length || items.length || supplies || option.followUp?.length || option.encounter || option.completeObjective || option.ending || check);
-  const resultText = `${option.result}${check ? ` ${check.success ? option.check!.success : option.check!.failure}` : ''}`;
+  const offeredSupplies = (option.supplyDelta ?? 0) + (check?.success ? option.check?.bonusSupplies ?? 0 : 0);
+  const supplies = Math.min(6, Math.max(0, state.supplies + offeredSupplies)) - state.supplies; state.supplies += supplies;
+  const meaningful = !!(facts.length || items.length || supplies || option.followUp?.length || option.encounter || option.completeObjective || option.ending || option.avalon || check);
+  const excess = Math.max(0, offeredSupplies - supplies);
+  const supplyReceipt = isAvalon(room) && (option.supplyDelta ?? 0) > 0
+    ? supplies > 0 ? `The party gains ${supplies} shared ${supplies === 1 ? 'supply' : 'supplies'}.${excess ? ` ${excess} extra ${excess === 1 ? 'supply is' : 'supplies are'} left behind.` : ''} `
+      : `The shared pack is full; ${excess} ${excess === 1 ? 'supply is' : 'supplies are'} left behind. `
+    : '';
+  const resultText = `${supplyReceipt}${option.result}${check ? ` ${check.success ? option.check!.success : option.check!.failure}` : ''}`;
   const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: meaningful, text: `${seat.character.name}: ${resultText}`,
-    quest: { kind: option.ending ? 'ending' : state.followUp?.optionIds.includes(option.id) ? 'follow-up' : 'discovery', nodeId: state.nodeId, optionId: option.id, factIds: facts, itemIds: items, supplyDelta: supplies, ...(check ? { check } : {}) }, result: { changed: meaningful },
+    quest: { kind: option.ending ? 'ending' : state.followUp?.optionIds.includes(option.id) ? 'follow-up' : 'discovery', nodeId: state.nodeId, optionId: option.id, factIds: facts, itemIds: items, supplyDelta: supplies, ...(option.avalon?.threadId ? { threadId: option.avalon.threadId } : {}), ...(check ? { check } : {}) }, result: { changed: meaningful },
     change: { title: option.label, text: resultText, next: option.followUp?.length ? 'The discovery opens a follow-up choice.' : 'The party can use this result on its next decision.' } });
   for (const id of facts) fact(room, id, source);
   state.followUp = option.followUp?.length ? { id: `${source.id}:follow-up`, targetId: interaction.targetId, optionIds: option.followUp, sourceEventId: source.id } : undefined;
   rewardAction(room, command.userId, source, meaningful);
+  applyAvalonEffect(room, option.avalon, source, now, hooks);
+  noteAvalonAction(room, command.userId, meaningful, option.avalon?.threadId);
   if (check && !check.success && option.check?.damageOnFailure) damageTarget(room, command.userId, option.check.damageOnFailure, now, 'the failed approach');
   if (option.completeObjective) milestone(room, option.completeObjective, option.result, now, hooks);
   if (option.ending) {
@@ -251,11 +374,11 @@ function advance(room: AdventureRoom, now: number, hooks: QuestLifecycle) {
     const resume = state.combat.resumeFocus; state.lastActorId = state.combat.resumeAfterActorId; delete state.combat;
     admit(room, now, hooks);
     if (resume && resume.remaining > 0 && resume.remainingMs > 0 && humans(room).some(seat => seat.actorId === resume.actorId)) { focus(room, resume.actorId, now, resume.remaining, resume.remainingMs); return; }
-    focus(room, nextActor(room, state.lastActorId), now); return;
+    finishAvalonFocus(room, state.lastActorId, now); focus(room, nextActor(room, state.lastActorId), now); return;
   }
   if (old && old.remaining > 0 && now < old.endsAt && humans(room).some(seat => seat.actorId === old.actorId)) { room.deadline = old.endsAt; return; }
   state.lastActorId = old?.actorId ?? state.lastActorId; delete state.followUp;
-  admit(room, now, hooks); focus(room, nextActor(room, state.lastActorId), now);
+  admit(room, now, hooks); finishAvalonFocus(room, state.lastActorId, now); focus(room, nextActor(room, state.lastActorId), now);
 }
 function leave(room: AdventureRoom, actorId: string, now: number, hooks: QuestLifecycle, inactive = false) {
   const player = room.players[actorId]; if (!player || player.leftAt !== null && !player.seatId) return false;
@@ -294,6 +417,10 @@ export function reduceQuestRunCommand(room: AdventureRoom, command: AdventureCom
     player.leftAt = null;
     if (room.status === 'parked') {
       hooks.seatPlayer(room, player, now); ensureHeroes(room); room.status = 'active'; room.turn++; room.phase = 'choosing'; room.revealUntil = null;
+      if (room.questRun!.avalon) {
+        const director = room.questRun!.avalon!.director;
+        director.participants = humans(room).map(seat => seat.actorId); director.finished = []; director.acted = []; director.meaningful = false; director.interest = {};
+      }
       if (room.questRun!.combat?.status === 'active') {
         const combat = room.questRun!.combat!; if (!combat.order.includes(command.userId) || combat.actedActorIds.includes(command.userId)) { combat.order = [command.userId]; combat.actedActorIds = []; }
         // A different hero can resume an empty table. Announce the preserved strike

@@ -476,7 +476,7 @@ function initialLobbyStory(): string {
   try {
     return storyChoiceKey(selectedStory(localStorage.getItem(lobbyStoryKey)));
   } catch { /* A browser preference must never prevent entering an adventure. */ }
-  return 'mosswater@1';
+  return 'avalon@1';
 }
 
 function Lobby() {
@@ -505,6 +505,7 @@ function Lobby() {
   const [passOpen, setPassOpen] = useState(false);
   useEffect(() => { const open = () => setPassOpen(true); window.addEventListener('dropinn-open-story-pass', open); return () => window.removeEventListener('dropinn-open-story-pass', open); }, []);
   const adventure = selectedStory(storyKey);
+  const questStyle = ['avalon', 'mosswater'].includes(adventure.id);
   useEffect(() => {
     try { localStorage.setItem(lobbyStoryKey, storyChoiceKey(adventure)); }
     catch { /* Story selection still works when browser storage is unavailable. */ }
@@ -523,7 +524,7 @@ function Lobby() {
           <div className="di-lobby-intro-copy">
             <p className="di-lobby-welcome"><span aria-hidden="true" /> The door is always open</p>
             <h1>Pull up a chair.<br />Make a little<br className="di-lobby-title-break" /> <em>legend.</em></h1>
-            <p className="di-lobby-explanation">{adventure.id === 'mosswater' ? 'A tiny cooperative quest for 1–4 players. Take the lantern, explore a place, and leave it changed. Fight, bargain, or find another way.' : 'A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.'}</p>
+            <p className="di-lobby-explanation">{adventure.id === 'avalon' ? 'A little woodland adventure for 1–4 players. Arrive somewhere new, follow a rumor, and decide what your party will change.' : adventure.id === 'mosswater' ? 'A tiny cooperative quest for 1–4 players. Take the lantern, explore a place, and leave it changed. Fight, bargain, or find another way.' : 'A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.'}</p>
             <div className="di-lobby-start">
               <div className="di-lobby-start-actions">
                 <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id, adventure.version)}>
@@ -561,12 +562,12 @@ function Lobby() {
         <div className="di-lobby-how-heading"><p className="di-eyebrow">A little courage is all it takes</p><h2 id="lobby-how-title">Small moves.<br /> Shared stories.</h2></div>
         <div className="di-lobby-how-content">
           <ol className="di-lobby-loop" aria-label="Each round">
-            <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> {adventure.id === 'mosswater' ? 'Look around' : 'Pick a target'}</span></li>
+            <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> {questStyle ? 'Look around' : 'Pick a target'}</span></li>
             <li><span className="di-lobby-step-art"><Swords size={25} aria-hidden="true" /></span><span><b>02</b> Choose a move</span></li>
-            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> {adventure.id === 'mosswater' ? 'Follow your lead' : 'Hold & release'}</span></li>
+            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> {questStyle ? 'Follow your lead' : 'Hold & release'}</span></li>
             <li><span className="di-lobby-step-art"><Sparkles size={25} aria-hidden="true" /></span><span><b>04</b> See what changed</span></li>
           </ol>
-          <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" />{adventure.id === 'mosswater' ? 'Two actions in your 45-second turn · Battles give every hero a move' : 'Everyone chooses together · 60 seconds per round · Ready parties move sooner'}</p>
+          <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" />{questStyle ? 'Two actions in your 45-second turn · Battles give every hero a move' : 'Everyone chooses together · 60 seconds per round · Ready parties move sooner'}</p>
         </div>
       </section>
 
@@ -574,7 +575,7 @@ function Lobby() {
         <summary>About {adventure.title} &amp; rewards</summary>
         <div className="di-lobby-story-details">
           <p>{adventure.pitch}</p>
-          <p className="di-fine">{adventure.id === 'mosswater' ? 'One shared quest · 6 connected places · 3 different resolutions · Run builds and battle loot' : 'Three chapters · 1–4 adventurers · Contribute for as long as you like'}</p>
+          <p className="di-fine">{adventure.id === 'avalon' ? '6 familiar places · Different arrivals & local troubles · Shared discoveries, promises and lasting choices' : adventure.id === 'mosswater' ? 'One shared quest · 6 connected places · 3 different resolutions · Run builds and battle loot' : 'Three chapters · 1–4 adventurers · Contribute for as long as you like'}</p>
           <StoryRewards adventureId={adventure.id} adventureVersion={adventure.version} collectionVersion={1} />
           {adventure.id === 'briar-glen' && <div className="di-lobby-new-telling">
             <p>Try a fresh telling of this story with the same adventure rules.</p>
@@ -610,7 +611,7 @@ function Lobby() {
 
           <section className="di-lobby-collection" aria-label="Your collection">
             <div className="di-section-heading"><h2>Your collection</h2><button type="button" className="di-lobby-change" aria-label="Your discoveries" aria-haspopup="dialog" onClick={() => setJournal(true)}>Discoveries</button></div>
-            <p>{['mosswater', 'gemward'].includes(adventure.id) ? 'This adventure awards keepsakes. Play a classic tale to earn Thread for new looks.' : 'Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.'}</p>
+            <p>{['avalon', 'mosswater', 'gemward'].includes(adventure.id) ? 'This adventure awards keepsakes. Play a classic tale to earn Thread for new looks.' : 'Contribute to a chapter. Earn 1 Thread when it ends. Every outcome counts.'}</p>
             <span className="di-thread-goal">{threadBalance(collection)} Thread to spend</span>
             <CollectionGoal />
             <NextLook compact />
@@ -625,7 +626,7 @@ function Lobby() {
       {storyChooser && <Modal title="Choose a story" onClose={() => setStoryChooser(false)}>
         <div className="di-lobby-story-picker">
           <p className="di-eyebrow">Different ways to make a little legend</p><h2>Choose a story</h2>
-          <p>Try Mosswater’s quest crawl or return to an earlier adventure. Your selected edition is remembered for next time.</p>
+          <p>Visit Avalon’s living woodland, try Mosswater’s quest crawl, or return to an earlier adventure. Your selected edition is remembered for next time.</p>
           <div className="di-lobby-story-choices" role="group" aria-label="Story choices">
             {STORY_CHOICES.map(item => <article key={storyChoiceKey(item)} data-story-choice={storyChoiceKey(item)} className={storyChoiceKey(item) === storyChoiceKey(adventure) ? 'is-selected' : ''}>
               <StoryCover adventureId={item.id} scene={item.chapters[0].art} />

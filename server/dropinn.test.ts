@@ -5,6 +5,7 @@ import { CHAPTERS } from '../src/lib/dropinn/content';
 import { createDropinnHandler } from './dropinn';
 import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
 import { ADVENTURES, currentAdventure } from '../src/lib/dropinn/registry';
+import { isQuestRun } from '../src/lib/dropinn/questRun';
 
 describe('adventure selection contract', () => {
   it('matches explicit Gemward releases only with the same pinned version', async () => {
@@ -89,7 +90,7 @@ describe('adventure selection contract', () => {
     const invalid = await call('play', { character: hero, adventureId: 'made-up' });
     expect(invalid.status).toBe(400);
   });
-  it.each(ADVENTURES.slice(1).filter(definition => definition.id !== 'mosswater'))('signs authored Spotlight for $id without an inference call', async definition => {
+  it.each(ADVENTURES.slice(1).filter(definition => !isQuestRun({ adventureId: definition.id, adventureVersion: definition.version })))('signs authored Spotlight for $id without an inference call', async definition => {
     const { call, hero } = harness({ fetch: vi.fn(() => { throw new Error('No external inference'); }) });
     const { room } = await call('play', { character: hero, adventureId: definition.id, visibility: 'private' });
     const idea = spotlightSuggestions(room)[0];
@@ -98,6 +99,12 @@ describe('adventure selection contract', () => {
     expect(proposal.supported).toBe(true);
     const commit = await call('command', { roomCode: room.code, command: { id: 'signed-new-story', type: 'act', expectedTurn: room.turn, action: { token: 'spotlight', targetId: idea.targetId, proposal, releaseMs: 800 } } });
     expect(commit.status).toBe(200);
+  });
+  it.each(['mosswater', 'avalon'])('keeps $id on its authored quest actions instead of accepting Spotlight', async adventureId => {
+    const { call, hero } = harness();
+    const { room } = await call('play', { character: hero, adventureId, visibility: 'private' });
+    const result = await call('propose', { roomCode: room.code, targetId: 'invented-target', idea: 'Invent a quest reward.' });
+    expect(result.status).toBe(409); expect(result.error).toContain('authored scene choices');
   });
 });
 

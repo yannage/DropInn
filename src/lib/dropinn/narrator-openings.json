@@ -259,6 +259,72 @@
       "sha256": "b776793f353c9ab1ae6fd8066b62c3b9443e50c082380bb06c0c637f30d8d275"
     },
     {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/bb519674a7740a7b32fcc6c4170660c8f326c1b1bd77837edc7d3afc769a4f64.wav",
+      "bytes": 234844,
+      "sampleRate": 24000,
+      "sampleCount": 117400,
+      "duration": 4.891666666666667,
+      "sha256": "c70eba75d8a8acf8531c0da53f75bb142756f55a2a3a211bb41a691a70cf0d44"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/02ef0124e17b3fd380075995b06bae39dd73d6e792562b14228e15f7891dc7e4.wav",
+      "bytes": 399244,
+      "sampleRate": 24000,
+      "sampleCount": 199600,
+      "duration": 8.316666666666666,
+      "sha256": "46f3210640a5033064b2621d3e5cd6d16e7f30328dc746be4388848b34f16e56"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/0157a7db97bf7037ed5e0fc6d5bfdbca8b4a87097f96dea47ee421fd842bab1a.wav",
+      "bytes": 332044,
+      "sampleRate": 24000,
+      "sampleCount": 166000,
+      "duration": 6.916666666666667,
+      "sha256": "3a9397adfea471c6c4838cbc7149ada3210fc5c95be7c00be4b6a17c3f45dcb4"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/7d3211881c28d559eb72fb8430dca043afd633309c82655e00f5112f0f2fdf3d.wav",
+      "bytes": 244444,
+      "sampleRate": 24000,
+      "sampleCount": 122200,
+      "duration": 5.091666666666667,
+      "sha256": "7c0d3a14a01de685980425e8c6c3bd1703273b1fecb08c77d649015f2e1e8f51"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/bbfd97514bab251cb64e1b22ccac32aa1c630bf615bd9f910424ab2d30f3f19f.wav",
+      "bytes": 246844,
+      "sampleRate": 24000,
+      "sampleCount": 123400,
+      "duration": 5.141666666666667,
+      "sha256": "110ef01c3dadeb27cc9241ca14e63d855eb684684bd625c21bea0f50ce5cf7a2"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Bella",
+      "speed": 1,
+      "url": "audio/narrator-openings/bc998c388632eaefa939f0afe3ac0fb01ba0f1815990e7c43a86ab6fb1af127e.wav",
+      "bytes": 302044,
+      "sampleRate": 24000,
+      "sampleCount": 151000,
+      "duration": 6.291666666666667,
+      "sha256": "c2c97a559fceb8d24248d37c66578e8ba818c660a0e70a16a4386f7dd47b334b"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Jasper",
       "speed": 1,
@@ -510,6 +576,72 @@
       "sampleCount": 43600,
       "duration": 1.8166666666666667,
       "sha256": "4a67f3f6a455992e53f9b25f315f4dc8d752e27d17d0eabab8aa0098d305545f"
+    },
+    {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/66f2b7b53ef4167ad2c31be576eb7523a7ac2e72d82e35caf1375d89ba51848e.wav",
+      "bytes": 146044,
+      "sampleRate": 24000,
+      "sampleCount": 73000,
+      "duration": 3.0416666666666665,
+      "sha256": "638be77e7adab004e8f90a2992fb37dccf7c0dd5d4b6c19273d303c29fbd7fd8"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/02f9463e30e4f4b9c09db62ecbdc70f21b02d56f4f66b0efef959c392ad8f075.wav",
+      "bytes": 234844,
+      "sampleRate": 24000,
+      "sampleCount": 117400,
+      "duration": 4.891666666666667,
+      "sha256": "552fcc6ac37326d817440d05e38593eff64c4bc97d905f49922c1b5d677e06a9"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/e6b22ea4e57e4b27a9beeb431f678080c74eaca31ece755e7618436800cd6a4e.wav",
+      "bytes": 180844,
+      "sampleRate": 24000,
+      "sampleCount": 90400,
+      "duration": 3.7666666666666666,
+      "sha256": "fd6e2429d88e06341f77c8b16d7f6d7bdaf31f6a2c9f0351d8f550951197269e"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/28b6a535253a3695bbbc817282b0048de67b16a5e02fb519565f263cc46a00e9.wav",
+      "bytes": 122044,
+      "sampleRate": 24000,
+      "sampleCount": 61000,
+      "duration": 2.5416666666666665,
+      "sha256": "fcb75e1c5a406ad75a1c771ae70337203a31846402143fafacefc1f61ada4547"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/ed689eb3a1716b4395f14039b74e2ba1cb58b3dca3d07268aa7fffcb9c408d91.wav",
+      "bytes": 147244,
+      "sampleRate": 24000,
+      "sampleCount": 73600,
+      "duration": 3.066666666666667,
+      "sha256": "924930c2c3e7e7c7f477788b5fc7e2fdac5b5645093df25b3a1fdbfd414f0d29"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Jasper",
+      "speed": 1,
+      "url": "audio/narrator-openings/ba023ed2b20cb147066f9eb43e532db59b071bda529b2fa5175aa1e749de60e8.wav",
+      "bytes": 189244,
+      "sampleRate": 24000,
+      "sampleCount": 94600,
+      "duration": 3.941666666666667,
+      "sha256": "aa84cc1c4f01d856103b49d31eada93a11cabc78a2687d6a1e7fba610eb4a055"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -765,6 +897,72 @@
       "sha256": "b970e6c5783e95c60c7081da8f29542429a700751989e98d9942882cf7584be0"
     },
     {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/b21627cbb2f31de4dc31af8d1b832a23d959d8d1021de971a0099e851c3a2630.wav",
+      "bytes": 172444,
+      "sampleRate": 24000,
+      "sampleCount": 86200,
+      "duration": 3.591666666666667,
+      "sha256": "59999d0e3f2bba533a394158bd8f93ae3183c69e6aa54792a2d3b58fe6855b8f"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/92b71b70918d3eb68b684dafe7bc091879760e4c4686a02e935ba41cebaac46f.wav",
+      "bytes": 262444,
+      "sampleRate": 24000,
+      "sampleCount": 131200,
+      "duration": 5.466666666666667,
+      "sha256": "43bdebbaababe8e2cd19b1c6134cae081cbb09a1ab7de29b15e96b90b2c155cc"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/9d1bb00a23d7159ff3be4e8b875a308d9321d86654e4b5379bff2b5c629ea27c.wav",
+      "bytes": 245644,
+      "sampleRate": 24000,
+      "sampleCount": 122800,
+      "duration": 5.116666666666666,
+      "sha256": "0b3b910fae25a2dbcba59ec56269cca5366c97e7da86d19386d3fec4ddc0743a"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/e63535c164841cb986af50cdfcab387ae830e27ab8358a339d2915fb5f7966c9.wav",
+      "bytes": 150844,
+      "sampleRate": 24000,
+      "sampleCount": 75400,
+      "duration": 3.1416666666666666,
+      "sha256": "84cd030ec38edc6f6a82308bd8ce1f110dd1dd04f54088d128048914bbf98927"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/ac1527de32b7a51c84802db8e9028b16af8792ac0e46f75ecc91035ff91aaf7a.wav",
+      "bytes": 192844,
+      "sampleRate": 24000,
+      "sampleCount": 96400,
+      "duration": 4.016666666666667,
+      "sha256": "1c85b2da3c916c4de853e6045ecf99f1ee3bee2787a9bfb3260e5d24d9813307"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Luna",
+      "speed": 1,
+      "url": "audio/narrator-openings/5bd7dbc3b3a7dce1b9320b93843e77456f058e0d7f064400dbdf1d46a8bf68ee.wav",
+      "bytes": 190444,
+      "sampleRate": 24000,
+      "sampleCount": 95200,
+      "duration": 3.966666666666667,
+      "sha256": "7898b93750b41144324c11f56779be53d7de9440ef254d4cbcd0529db7f3b273"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Bruno",
       "speed": 1,
@@ -1016,6 +1214,72 @@
       "sampleCount": 37600,
       "duration": 1.5666666666666667,
       "sha256": "fbf341c10de1507f5d37830e4c9dfb21194fa2259464705d29acc8f8559606d3"
+    },
+    {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/16ac697602125460e8341372ddf2f3d0a7d07c5753eb0deb29244dd99ef625e0.wav",
+      "bytes": 153244,
+      "sampleRate": 24000,
+      "sampleCount": 76600,
+      "duration": 3.191666666666667,
+      "sha256": "688a15d149901fdb136f4fb60bdb1833b2e770bd03b2e1cd231133d6a9c6c6f7"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/428a4fde195b42b49792c1d0092e6c35c3dd376c5731f545b9b1a333c9bb2483.wav",
+      "bytes": 260044,
+      "sampleRate": 24000,
+      "sampleCount": 130000,
+      "duration": 5.416666666666667,
+      "sha256": "2c646da47dbd5939131e6b8737a46f9e802adf679e0222e6410e4262a363072c"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/04fe8d05dc20d6544c6e54476efde664118cc4dd1b3206eb33d693b562a25ea7.wav",
+      "bytes": 190444,
+      "sampleRate": 24000,
+      "sampleCount": 95200,
+      "duration": 3.966666666666667,
+      "sha256": "76f5852f148f8a5f5c21e8698a8ac9ad333190f834e5025d220e63bf43c32cd1"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/3a8f4346e4cbed8dd9ce802593a83be1b5c1fdfae149ce47e87e802e03c7ff25.wav",
+      "bytes": 120844,
+      "sampleRate": 24000,
+      "sampleCount": 60400,
+      "duration": 2.5166666666666666,
+      "sha256": "59b4ee40cc25d5e9a1dd973ce585ebb357f5fc01869f60e257fd6018fab5991f"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/62e56615cc276988b5104099f3ad851962ec2e489379ec6d840727f1fcc786cf.wav",
+      "bytes": 153244,
+      "sampleRate": 24000,
+      "sampleCount": 76600,
+      "duration": 3.191666666666667,
+      "sha256": "92cb5abf0761a270d119abdd8d642825fd289d7c5ddaa31ac08c649828590e03"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Bruno",
+      "speed": 1,
+      "url": "audio/narrator-openings/cdc2b99ba45f2f5112e6dc96158a244c52dd0b0ca1b6ffc2a7f615e99ee92207.wav",
+      "bytes": 176044,
+      "sampleRate": 24000,
+      "sampleCount": 88000,
+      "duration": 3.6666666666666665,
+      "sha256": "cb8eb35c7b09efb70bc550bd6f39c63bfff88ee7126b1460207ee235f4817389"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -1271,6 +1535,72 @@
       "sha256": "09785d2d696308c2cc7fa8177f200a086ff550b1aa68ff3c69fa7ece0e33a67a"
     },
     {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/a823ce54501867e9f5feceeeedb95cca7d0e902b35ed3cac4d6d23b94612c217.wav",
+      "bytes": 168844,
+      "sampleRate": 24000,
+      "sampleCount": 84400,
+      "duration": 3.5166666666666666,
+      "sha256": "7d0afe8c515298a48c8422b426deeb95b246eb0a6d4972e3e57eda194fd81577"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/3a833b330876170da208473d66e75cc502fd311fda96efcdd49f43783ba58c02.wav",
+      "bytes": 255244,
+      "sampleRate": 24000,
+      "sampleCount": 127600,
+      "duration": 5.316666666666666,
+      "sha256": "3641420b9561ceaedb1505312ae574f800b7a5110c24258a844084bcf53966a3"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/07def99dac57a3509079761c5f9c4a6a64a9a202708bc4d75ddaa125ef50d649.wav",
+      "bytes": 232444,
+      "sampleRate": 24000,
+      "sampleCount": 116200,
+      "duration": 4.841666666666667,
+      "sha256": "e4535886ebf5d107102db77512177679b7a01e0cb77a5bb455dfa9df87e1f53f"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/2bb661875a19c342b35fcd262fef4b8d65c6277b051931cf529867deb8a2dd05.wav",
+      "bytes": 160444,
+      "sampleRate": 24000,
+      "sampleCount": 80200,
+      "duration": 3.341666666666667,
+      "sha256": "9c4a37096fda31a1a8df26b11e355140f0cdf27a3d13e5db535e8bedd6a69407"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/56b05a3f30114460aa99f27b2df90dbb6cb57a8c9fdeccc8a76285bfea3d4280.wav",
+      "bytes": 170044,
+      "sampleRate": 24000,
+      "sampleCount": 85000,
+      "duration": 3.5416666666666665,
+      "sha256": "79bd9a6e9e3e7c5a4ca395accc194be9f91139eae7f917091f6d3da957296892"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Rosie",
+      "speed": 1,
+      "url": "audio/narrator-openings/bc2224ca7efd82a1a6a65593e358772fc1f335f0a563d33e81e7f602d17c8395.wav",
+      "bytes": 227644,
+      "sampleRate": 24000,
+      "sampleCount": 113800,
+      "duration": 4.741666666666666,
+      "sha256": "ad666ca79384f2bbe9b7f96ed45af4c4963fabd207cfe525fe34667580080dd0"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Hugo",
       "speed": 1,
@@ -1522,6 +1852,72 @@
       "sampleCount": 35800,
       "duration": 1.4916666666666667,
       "sha256": "6d27e978f32a7ad0e3d3b5eb63d76b09376e68f5aef612258d32a5a8133747a5"
+    },
+    {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/39de3ef3a26074d5d206b70fc223df4e739184b9fb9d9479ed04c12dbfaaeb8f.wav",
+      "bytes": 126844,
+      "sampleRate": 24000,
+      "sampleCount": 63400,
+      "duration": 2.6416666666666666,
+      "sha256": "2fceba9eae718e67fe939966388440d25fe38deb6e83f3e35b7e584f45dd485c"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/25102c0b63d4eac402a045578a46be265c93361260889a47dfe42d972919a613.wav",
+      "bytes": 215644,
+      "sampleRate": 24000,
+      "sampleCount": 107800,
+      "duration": 4.491666666666666,
+      "sha256": "c4f8b1fcca3f8df403be22c0158fe07a2b049b1c95f18885246b4703b85a8aad"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/97f2aeec999552fc68377bfb3ff897443bcfa3480a664378dc86e76b92738b60.wav",
+      "bytes": 161644,
+      "sampleRate": 24000,
+      "sampleCount": 80800,
+      "duration": 3.3666666666666667,
+      "sha256": "e8971e2eaab862e0daf587ad52e2cbe9e1c2e1ea1e9eaf536845cd8ba1fcdc17"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/984c413ab80e3f9c01b35a34fcd33459a1bf697de1e174362a9ac8b70ace2441.wav",
+      "bytes": 120844,
+      "sampleRate": 24000,
+      "sampleCount": 60400,
+      "duration": 2.5166666666666666,
+      "sha256": "4de055cadd66194062f4c00d1c60ca63e4215f3913a6e962bcdd8e0d51aaf9da"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/0dc34d92fabfe53912498e5207fc8fbb2465a3a1f50434f4d1308b0599bc5984.wav",
+      "bytes": 137644,
+      "sampleRate": 24000,
+      "sampleCount": 68800,
+      "duration": 2.8666666666666667,
+      "sha256": "f33c23bba3ecf570996e4ea6243767543fcdc11b9265e516667d80aa02372c57"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Hugo",
+      "speed": 1,
+      "url": "audio/narrator-openings/54c825b63cb8d6e0251b1df8d41410d12cd2a653eadc710b49fffe4a7bbf469d.wav",
+      "bytes": 154444,
+      "sampleRate": 24000,
+      "sampleCount": 77200,
+      "duration": 3.216666666666667,
+      "sha256": "9588d57f309c96df8a8b3302ac038833f1592002e356a8991351abf4f166c7eb"
     },
     {
       "text": "The evening bell rings over empty pens.",
@@ -1777,6 +2173,72 @@
       "sha256": "9898c16df6dadf4d24b9c5e69ed5dc871ba2f5e8f50ce41d25c5f440a02685e6"
     },
     {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/d73c55ace7817d7b77f0c2f48e4379b9816e2e7a174de153f21f0761079afe46.wav",
+      "bytes": 136444,
+      "sampleRate": 24000,
+      "sampleCount": 68200,
+      "duration": 2.841666666666667,
+      "sha256": "5a59b072d77ff8d18ce32074b9a0697a41dd1180ce1c96c2ea8d6d88c7b75469"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/bc23357509901669fdf6e94827e239f0b735911c994fbeb9a8f1798b6c396316.wav",
+      "bytes": 226444,
+      "sampleRate": 24000,
+      "sampleCount": 113200,
+      "duration": 4.716666666666667,
+      "sha256": "2951b10f696e7dcaecbe0529d2227cfee96cc6916eb307e5ed7068e4279fc06c"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/d3995255a313afdb92e2339f887648df3c2e2cd9af35605b0f74a684c10728d5.wav",
+      "bytes": 192844,
+      "sampleRate": 24000,
+      "sampleCount": 96400,
+      "duration": 4.016666666666667,
+      "sha256": "13aca652c744541ab299169d35276f976fdc86c8c34621654932915e81f1198f"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/aca4e76980c07722e351ddf60f61ff081dbfabd510f36da38b29efbbd446105a.wav",
+      "bytes": 125644,
+      "sampleRate": 24000,
+      "sampleCount": 62800,
+      "duration": 2.6166666666666667,
+      "sha256": "607fdb5153a74d923ef81b1585997e4e4372355ec02671d803228f9eb84b5b58"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/ac417577cf67711331f9a88550f16e1f3cb5afc88c95909e41034e493adf130a.wav",
+      "bytes": 141244,
+      "sampleRate": 24000,
+      "sampleCount": 70600,
+      "duration": 2.941666666666667,
+      "sha256": "3daaf886d819024436231835a7c3bd07776df031675771a830194c336d59dd5d"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Kiki",
+      "speed": 1,
+      "url": "audio/narrator-openings/fc03cef1038bb73a17ff903b25950f803f583b4309e8aef7f70b3996e2a39782.wav",
+      "bytes": 168844,
+      "sampleRate": 24000,
+      "sampleCount": 84400,
+      "duration": 3.5166666666666666,
+      "sha256": "40b66a9b308f1be09dc2caa00dd9daaddf0b8ed895a2389093df4954a31fc8ba"
+    },
+    {
       "text": "The evening bell rings over empty pens.",
       "voice": "Leo",
       "speed": 1,
@@ -2028,6 +2490,72 @@
       "sampleCount": 49600,
       "duration": 2.066666666666667,
       "sha256": "cb2c205f2d44af84e60f2a40ae75f5df8d7b281918409e3ee2dfaef8525a6d0a"
+    },
+    {
+      "text": "Your boots reach the dry stones at Old Ford.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/c9665777fe59613207c82e55d9e6605c6cc0075a9942a812eefe7e4cb0784f44.wav",
+      "bytes": 194044,
+      "sampleRate": 24000,
+      "sampleCount": 97000,
+      "duration": 4.041666666666667,
+      "sha256": "7e84be76d4b47d704bcae79a87a19fbc4a466fcd986d483074b42e57f62c6f85"
+    },
+    {
+      "text": "A delivery slip flaps beside fresh wheel marks; its carter has not arrived.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/e1d3dcc8d13979839e31ce4845ff0270a852d72cb6fb32fbf7af4d665f7e7862.wav",
+      "bytes": 321244,
+      "sampleRate": 24000,
+      "sampleCount": 160600,
+      "duration": 6.691666666666666,
+      "sha256": "a7e5266da22704c1a9b1612d2e99afc007d49558ee8c5342a743b43dff69ba86"
+    },
+    {
+      "text": "Look at what is here, learn a lead, and decide where the party goes next.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/5319725b77fc1b75b29150c7e9501812e17fa6df1d88d6acd3c6b40f5008b5db.wav",
+      "bytes": 278044,
+      "sampleRate": 24000,
+      "sampleCount": 139000,
+      "duration": 5.791666666666667,
+      "sha256": "8f48d8fb4630ce2ef6563df2c232e0f656ffc90c4c4bd3cdda0e2b77e92e75da"
+    },
+    {
+      "text": "Wren slides you a seat at the Larch Inn.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/2f2e9b9ab19d501d7a129844ea16938cb3e18fe23497b4e92944b26c4ef397e8.wav",
+      "bytes": 164044,
+      "sampleRate": 24000,
+      "sampleCount": 82000,
+      "duration": 3.4166666666666665,
+      "sha256": "188546928ff52f9f18145c6b752a6488985d77345625d7cd081c7eccfa72e080"
+    },
+    {
+      "text": "A yellow stain reaches the drinking pails.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/f77988cb82f9c8b1c89ded7446ad3bb98774135cf7f28e7367106ff88c8bf232.wav",
+      "bytes": 197644,
+      "sampleRate": 24000,
+      "sampleCount": 98800,
+      "duration": 4.116666666666666,
+      "sha256": "9ad670d0944a910eebfb8e8513450ba7f54b28cb6a10156c81cf5cad806fa277"
+    },
+    {
+      "text": "You step onto a dry shelf beside the Merewater reeds.",
+      "voice": "Leo",
+      "speed": 1,
+      "url": "audio/narrator-openings/92b527204cbb673e26a2feeec4c075fdf07c7a3112f9ff637ef18e39f938a2cf.wav",
+      "bytes": 233644,
+      "sampleRate": 24000,
+      "sampleCount": 116800,
+      "duration": 4.866666666666666,
+      "sha256": "15aea7829a658132f701d89d1f4747277fd49d17a9e312c85564304795375fb7"
     }
   ]
 }

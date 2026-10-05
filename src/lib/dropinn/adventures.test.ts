@@ -18,7 +18,7 @@ describe('adventure registry and routes', () => {
   });
   // These assertions describe the fixed three-chapter, first-turn branch rules.
   // Expedition routes and interrupt/resume battles have their own reducer suite.
-  for (const definition of ADVENTURES.filter(item => item.id !== 'briar-glen' && item.id !== 'gemward' && item.id !== 'mosswater')) {
+  for (const definition of ADVENTURES.filter(item => item.id !== 'briar-glen' && item.id !== 'gemward' && !['mosswater', 'avalon'].includes(item.id))) {
     it.each(definition.chapters[2].branch!.options)(`${definition.id} completes route $id with one human and companions`, option => {
       let room = createAdventure(hero, 'alice', 1000, 'STORY1', definition.id);
       for (let rounds = 0; room.status !== 'completed' && rounds < 32; rounds++) {

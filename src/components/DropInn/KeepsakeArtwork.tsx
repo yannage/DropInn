@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Star } from 'lucide-react';
 
 const keepsakeArt = new Map([
+  ['Avalon’s trail knot', '/art/avalon-keepsake-knot.webp'],
+  ['Avalon’s copper leaf', '/art/avalon-keepsake-leaf.webp'],
+  ['Avalon’s return cup', '/art/avalon-keepsake-cup.webp'],
   ['Mara’s copper bell', '/art/keepsake-copper-bell.png'],
   ['A silver river reed', '/art/keepsake-silver-reed.png'],
   ['The guardian’s moonstone', '/art/keepsake-moonstone.png'],

@@ -8,6 +8,7 @@ import { ADVENTURE_VERSIONS } from '../../lib/dropinn/registry';
 import { QUEST_RUN_CONTENT } from '../../lib/dropinn/questRunContent';
 import { QUEST_SCENES, QUEST_ITEM_ART, questPieceArtwork, questPiecePresentation } from './QuestArtwork';
 import type { QuestRunState } from '../../lib/dropinn/questRunTypes';
+import { avalonContent, createAvalonEpisode } from '../../lib/dropinn/avalonContent';
 
 describe('homemade adventure artwork', () => {
   it('resolves every pinned chapter and Mosswater place to a real asset', () => {
@@ -15,7 +16,31 @@ describe('homemade adventure artwork', () => {
       expect(existsSync(`public${sceneArtwork(chapter.art).src}`), `${story.id}@${story.version}: ${chapter.art}`).toBe(true);
     }
     for (const node of QUEST_RUN_CONTENT.nodes) expect(existsSync(`public${sceneArtwork(QUEST_SCENES[node.id]).src}`), node.id).toBe(true);
-    for (const [id, file] of Object.entries(QUEST_ITEM_ART)) expect(existsSync(`public/art/${file}.webp`), id).toBe(true);
+    for (const [id, file] of Object.entries(QUEST_ITEM_ART)) expect(existsSync(`public/art/${file}${/\.(png|webp)$/.test(file) ? '' : '.webp'}`), id).toBe(true);
+  });
+
+  it('renders every seeded Avalon cast, place, outcome and keepsake with a real illustration', () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const episode = createAvalonEpisode(`art-${seed}`);
+      const views = [avalonContent(episode), ...episode.threads.flatMap(thread => {
+        const outcomes = thread.id === 'bitter-water' ? ['seal', 'bargain', 'haul'] : thread.id === 'missing-carter' ? ['repair', 'brace', 'leave'] : ['feed', 'fence', 'fight'];
+        return outcomes.map(resolutionId => { const copy = structuredClone(episode); const changed = copy.threads.find(item => item.id === thread.id)!; changed.status = 'resolved'; changed.resolutionId = resolutionId; return avalonContent(copy); });
+      })];
+      for (const content of views) {
+        for (const node of content.nodes) {
+          expect(existsSync(`public${sceneArtwork(node.art).src}`), node.id).toBe(true);
+          for (const target of node.targets) {
+            const file = target.artKey!;
+            expect(existsSync(`public/art/${file}${/\.(png|webp)$/.test(file) ? '' : '.webp'}`), target.id).toBe(true);
+          }
+        }
+        for (const chapter of content.chapters) {
+          const html = renderToStaticMarkup(<KeepsakeArtwork name={chapter.keepsake} />);
+          const src = html.match(/src="([^"]+)"/)?.[1];
+          expect(src).toBeTruthy(); expect(existsSync(`public${src}`)).toBe(true);
+        }
+      }
+    }
   });
 
   it('shows truthful quest states without replacing the original pinned story data', () => {

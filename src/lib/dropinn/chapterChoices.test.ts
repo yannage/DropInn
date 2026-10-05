@@ -5,6 +5,7 @@ import { ADVENTURES, adventureFor, chaptersFor } from './registry';
 import { choiceActionPreview, choiceCreditText, choiceDefinition, choiceState, choiceStatus, choiceTarget } from './chapterChoices';
 import { developScene, getScene } from './scene';
 import type { AdventureCommand, AdventureRoom, PlayerAction } from './types';
+import { isQuestRun } from './questRun';
 
 type Mode = 'prepare' | 'rescue' | 'press';
 let serial = 0;
@@ -65,7 +66,7 @@ function all(room: AdventureRoom, action: (source: AdventureRoom) => PlayerActio
 describe('authored chapter choices', () => {
   it('pins new definitions without adding choices to historical adventures', () => {
     expect(ADVENTURES.find(adventure => adventure.id === 'briar-glen')?.version).toBe(4);
-    for (const adventure of ADVENTURES.filter(item => !['gemward', 'mosswater'].includes(item.id))) {
+    for (const adventure of ADVENTURES.filter(item => item.id !== 'gemward' && !isQuestRun({ adventureId: item.id, adventureVersion: item.version }))) {
       const historical = adventureFor({ adventureId: adventure.id, adventureVersion: adventure.id === 'briar-glen' ? 3 : 1 });
       expect(historical.chapters.every(chapter => !chapter.choice)).toBe(true);
       expect(adventure.chapters.every(chapter => !!chapter.choice || !!chapter.riverSupplies)).toBe(true);

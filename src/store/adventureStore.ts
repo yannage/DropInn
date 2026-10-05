@@ -46,10 +46,11 @@ function validQuestAction(value: unknown): value is QuestRunAction {
   switch (action.kind) {
     case 'interact': return id('targetId') && id('optionId');
     case 'travel': return id('edgeId');
+    case 'follow-thread': return id('threadId');
     case 'loot': return id('offerId') && id('choiceId');
     case 'upgrade': return ['might', 'wits', 'heart'].includes(String(action.attribute));
     case 'combat': return ['attack', 'defend', 'spell', 'mend'].includes(String(action.move)) && (action.targetActorId === undefined || id('targetActorId'));
-    case 'pass': return true;
+    case 'pass': case 'return-episode': return true;
     default: return false;
   }
 }

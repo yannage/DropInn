@@ -50,7 +50,7 @@ export function StoryRewards({ adventureId, adventureVersion, chapter, collectio
   const mobile = useMobileLayout();
   const [expanded, setExpanded] = useState(false);
   const content = <div className="di-story-rewards" aria-label="Story rewards">
-    {!!keepsakes.length && <p><strong>Keepsakes from your adventure</strong><span>{adventureId === 'mosswater' ? 'Contribute to a milestone to take its memory home. Equipment and attribute points last for this expedition.' : 'Help shape a chapter and take its keepsake home.'}</span></p>}
+    {!!keepsakes.length && <p><strong>Keepsakes from your adventure</strong><span>{['avalon', 'mosswater'].includes(adventureId ?? '') ? 'Contribute to a milestone to take its memory home. Equipment and attribute points last for this expedition.' : 'Help shape a chapter and take its keepsake home.'}</span></p>}
     {keepsakes.map(item => <div className="di-story-hat" key={item.id}><KeepsakeArtwork name={item.keepsake} /><span><strong>{item.keepsake}</strong><small>{item.title}</small></span></div>)}
     {rewards.hats.map(({ hat, chapter: title, owned }) => <div className="di-story-hat" key={hat.id}><HeroHatPreview hat={hat} /><span><strong>{hat.label}</strong><small>{owned ? 'Collected' : 'Hat to unlock'} · {title}</small></span></div>)}
     {rewards.earnsThread && <>

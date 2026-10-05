@@ -81,6 +81,14 @@ Verify private tables are absent from discovery/matching, code-only joins fail f
 
 ## Selectable stories and irreversible routes
 
+### Avalon v1 saved world
+
+Run `npm run test:avalon -- http://127.0.0.1:5209` against a local Vite server. The maintained runner controls only time and routes requests through an isolated real handler; it never injects gameplay snapshots. Pair it with `test:story-selection` and `test:quest` for edition pins and the shared Mosswater lifecycle.
+
+Inspect six fixed places and waterways without spending an action. Discover a local lead, prepare Follow, and verify only the release control commits it. Keep two threads open, compare both clients' shared pouch and resolved manifest after retry/reload, pass through idle turns, and rejoin an unchanged episode. Fill the supply pack before gathering reeds: previews and receipts must report only the actual gain while retaining the quest item. Keep the washpond promise and consume its reeds once; choose the carter's cargo-left cost and a herd solution. Return explicitly at the inn, naming unresolved business without revealing an undiscovered secret or claiming an unkept promise.
+
+Capture the leads/promise itself, all six scene/map previews and thirteen Avalon assets at 320/390/1280px. Check rectangular map hitboxes for overlap, not just visible circles. Reduced motion and reloading must not replay old rewards. The seeded atlas, all nine resolutions, JSON-safe manifest validation and zero-supply pressure are also covered by reducer/content/service tests. These checks establish local behavior; uncoached human understanding and enjoyment remain separate evidence.
+
 ### Gemward v3 story table
 
 Run `npm run test:story-table -- http://127.0.0.1:5205` against an explicitly local Vite server. `test:journey` and `test:expedition` select this current runner. It uses two independent browser identities and the real isolated local command handler with a controlled clock; it does not inject gameplay snapshots or use hosted persistence.

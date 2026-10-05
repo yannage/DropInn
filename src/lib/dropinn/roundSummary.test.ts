@@ -4,6 +4,7 @@ import { roundIllustrations } from './roundIllustrations';
 import { ADVENTURES } from './registry';
 import { getScene } from './scene';
 import type { AdventureRoom, StoryEvent } from './types';
+import { createQuestRun, isQuestRun } from './questRun';
 
 const action: StoryEvent = { id:'a', chapter:0, turn:2, at:1000, kind:'action', actorId:'old-player', actorName:'Wren', text:'Wren succeeds: study a weakness at the stranded boat.', roll:15, modifier:2, success:true, contribution:true, result:{targetId:'boat',targetKind:'scene',token:'investigate',progress:1,insight:2} };
 const room = (events: StoryEvent[], extra: Partial<AdventureRoom> = {}) => ({ id:'table',chapter:0,turn:2,phase:'reveal',events,outcomes:[],seats:[],players:{},flags:[], ...extra } as AdventureRoom);
@@ -73,6 +74,7 @@ describe('authored inspection coverage', () => {
   for (const adventure of ADVENTURES) it(`${adventure.id}: all original and developed targets explain valid moves`, () => {
     adventure.chapters.forEach((chapter, index) => {
       const source = room([], {adventureId:adventure.id,adventureVersion:adventure.version,chapter:index});
+      if (isQuestRun(source)) source.questRun = createQuestRun('inspection-coverage', adventure.id);
       for (const flags of [[], [...chapter.targets.map(item=>`developed:${item.id}`),'mara-helped','tracks-read','gate-cleared','herd-calmed','boat-freed','reed-path','ferryman-spoke','ward-repaired','bell-rung','captives-guided']]) {
         const scene = getScene({...source,flags});
         expect(scene.situation).toBeTruthy();
