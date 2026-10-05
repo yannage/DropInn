@@ -1,0 +1,212 @@
+{
+  "date": "2026-10-05",
+  "request": "Complete Mosswater's story art coverage with keepsake rewards, a truthful sealed-well ending state and a sheltered spring target.",
+  "generator": "Codex built-in image_gen",
+  "assets": [
+    {
+      "id": "mosswater-keepsake-cup",
+      "purpose": "Marked-cup keepsake reward for Mosswater's investigation milestone; not a gameplay inventory item.",
+      "file": "public/art/mosswater-keepsake-cup.png",
+      "runtimeFile": "public/art/mosswater-keepsake-cup.webp",
+      "prompt": "Use case: stylized-concept. Make ONE isolated transparent game prop cutout for DropInn Mosswater. Match the three actual style reference images: existing sheep and wolves for the bold irregular hand-drawn black raster contours, and the existing well for simple prop construction and restrained colors. Do not include any of the reference subjects. Deliberately loose, clumsy MS Paint mouse doodle with awkward actual shapes, uneven strokes and joins, natural raster jaggies and very few interior marks. Broad flat bucket fills only. Do not clean into vector art, polished cartoon, glossy mascot or tiny shaded pixel art. Single whole readable silhouette centered in middle 65 percent of a square canvas, minimum 15 percent empty margin on all sides. Clearly recognizable at 64 pixels. Actual alpha transparency around opaque object. No text, numbers, letters, UI, watermarks, background, shadow, checkerboard, gradient, material texture, hatching, small decoration, face or extra subjects. Subject: one small crooked cream ceramic drinking cup with one lopsided loop handle. An unmistakable broad uneven mustard-yellow horizontal test mark crosses the outside of the cup. Plain dark empty interior; no water. Only a single short brown chip on the rim as the funny imperfect detail. Thick black irregular outline, three or four simple broad regions, no writing or emblem.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-6b1333da-6ca7-48f0-a93c-ed348465b8d7.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        "public/art/mosswater-well.png"
+      ],
+      "reference": "public/art/sheep.png",
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-rewards-states-prompts.json",
+      "review": "Inspected full-size output against existing sheep, shadow-pack and Mosswater well. Reviewed Chromium at 256/128/64/48 CSS pixels on parchment #fff4d6 and dark #20352f. Intact recognizable silhouettes, wide margins, real transparent surroundings and no visible backdrop or halo. The sealed well retains original identity while boards and a rope X clearly close its opening. Spring pool and keepsakes remain sparse and readable. Source alpha preserved unchanged; every decoded RGBA byte equals the lossless WebP. Live placement and reward integration are verified separately by the parent task.",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        292,
+        53,
+        1194,
+        953
+      ],
+      "visibleAlphaBounds": [
+        294,
+        338,
+        1043,
+        950
+      ],
+      "sha256": "740a95cc3678969da67cb78b8f1cc0c9cb6d53ba498502e46d61c3a454104bcc",
+      "runtimeSha256": "cb1445d9714e6ce79f190baf64158a102879237e4a0903c2df29b9e06b0ff3a3",
+      "runtimeBytes": 226714,
+      "runtimeEncoding": "Lossless WebP; full dimensions, source alpha and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-keepsake-reed",
+      "purpose": "Knotted-reed keepsake reward for Mosswater's source milestone.",
+      "file": "public/art/mosswater-keepsake-reed.png",
+      "runtimeFile": "public/art/mosswater-keepsake-reed.webp",
+      "prompt": "Use case: stylized-concept. Make ONE isolated transparent game prop cutout for DropInn Mosswater. Match the three actual style reference images: existing sheep and wolves for the bold irregular hand-drawn black raster contours, and the existing well for simple prop construction and restrained colors. Do not include any of the reference subjects. Deliberately loose, clumsy MS Paint mouse doodle with awkward actual shapes, uneven strokes and joins, natural raster jaggies and very few interior marks. Broad flat bucket fills only. Do not clean into vector art, polished cartoon, glossy mascot or tiny shaded pixel art. Single whole readable silhouette centered in middle 65 percent of a square canvas, minimum 15 percent empty margin on all sides. Clearly recognizable at 64 pixels. Actual alpha transparency around opaque object. No text, numbers, letters, UI, watermarks, background, shadow, checkerboard, gradient, material texture, hatching, small decoration, face or extra subjects. Subject: one broad moss-green reed tied into a single large visibly crooked loop knot, with two blunt flat tapered ends pointing in different directions. One end bends awkwardly. A simple clear self-crossing knot with just two black interior strokes; no woven basket pattern. The uneven green reed is the whole object, no ribbons, string, vegetation bunch, charms or stems around it. Big broad readable silhouette.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-71a92e6d-279c-419e-8e4d-a092a2f3b3ab.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        "public/art/mosswater-well.png"
+      ],
+      "reference": "public/art/sheep.png",
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-rewards-states-prompts.json",
+      "review": "Inspected full-size output against existing sheep, shadow-pack and Mosswater well. Reviewed Chromium at 256/128/64/48 CSS pixels on parchment #fff4d6 and dark #20352f. Intact recognizable silhouettes, wide margins, real transparent surroundings and no visible backdrop or halo. The sealed well retains original identity while boards and a rope X clearly close its opening. Spring pool and keepsakes remain sparse and readable. Source alpha preserved unchanged; every decoded RGBA byte equals the lossless WebP. Live placement and reward integration are verified separately by the parent task.",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        113,
+        53,
+        1168,
+        1150
+      ],
+      "visibleAlphaBounds": [
+        176,
+        296,
+        1081,
+        960
+      ],
+      "sha256": "b887a7271440022657721651c976530606b8b6ebe9e332251198de1c61c407a9",
+      "runtimeSha256": "6df7f4fc004ad74176d99ed9675ac3e075099e90dd9968d529ef8ebec67f93b8",
+      "runtimeBytes": 177140,
+      "runtimeEncoding": "Lossless WebP; full dimensions, source alpha and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-keepsake-token",
+      "purpose": "Well-token keepsake reward for Mosswater's resolution milestone.",
+      "file": "public/art/mosswater-keepsake-token.png",
+      "runtimeFile": "public/art/mosswater-keepsake-token.webp",
+      "prompt": "Use case: stylized-concept. Make ONE isolated transparent game prop cutout for DropInn Mosswater. Match the three actual style reference images: existing sheep and wolves for the bold irregular hand-drawn black raster contours, and the existing well for simple prop construction and restrained colors. Do not include any of the reference subjects. Deliberately loose, clumsy MS Paint mouse doodle with awkward actual shapes, uneven strokes and joins, natural raster jaggies and very few interior marks. Broad flat bucket fills only. Do not clean into vector art, polished cartoon, glossy mascot or tiny shaded pixel art. Single whole readable silhouette centered in middle 65 percent of a square canvas, minimum 15 percent empty margin on all sides. Clearly recognizable at 64 pixels. Actual alpha transparency around opaque object. No text, numbers, letters, UI, watermarks, background, shadow, checkerboard, gradient, material texture, hatching, small decoration, face or extra subjects. Subject: one lopsided flat mustard-brown wooden token disc with a single punched hole near the top. In the center is one thick dark crude ring symbol resembling the open mouth of a well; no letters or numbers. Disc outline wobbly and asymmetrical. Keep it extremely plain: broad fill, dark punched hole, broad black ring as the sole symbol. No woodgrain, bevel, medallion ornament or shine.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-10494350-ae54-4353-a3e6-125f13f3a79b.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        "public/art/mosswater-well.png"
+      ],
+      "reference": "public/art/sheep.png",
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-rewards-states-prompts.json",
+      "review": "Inspected full-size output against existing sheep, shadow-pack and Mosswater well. Reviewed Chromium at 256/128/64/48 CSS pixels on parchment #fff4d6 and dark #20352f. Intact recognizable silhouettes, wide margins, real transparent surroundings and no visible backdrop or halo. The sealed well retains original identity while boards and a rope X clearly close its opening. Spring pool and keepsakes remain sparse and readable. Source alpha preserved unchanged; every decoded RGBA byte equals the lossless WebP. Live placement and reward integration are verified separately by the parent task.",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        113,
+        53,
+        1119,
+        1214
+      ],
+      "visibleAlphaBounds": [
+        270,
+        273,
+        1000,
+        992
+      ],
+      "sha256": "38f9a972ada5e1911502cc8454c6b477db7ee1b734b778c71c9edfcb019a4659",
+      "runtimeSha256": "44678ca77e703b10688faa6250d92a26334da9f6af143e96fdb54739ded838a4",
+      "runtimeBytes": 249796,
+      "runtimeEncoding": "Lossless WebP; full dimensions, source alpha and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-spring-pool",
+      "purpose": "Accurate interactive sheltered spring cutout for the hill-spring water test target.",
+      "file": "public/art/mosswater-spring-pool.png",
+      "runtimeFile": "public/art/mosswater-spring-pool.webp",
+      "prompt": "Use case: stylized-concept. Make ONE isolated transparent game prop cutout for DropInn Mosswater. Match the three actual style reference images: existing sheep and wolves for the bold irregular hand-drawn black raster contours, and the existing well for simple prop construction and restrained colors. Do not include any of the reference subjects. Deliberately loose, clumsy MS Paint mouse doodle with awkward actual shapes, uneven strokes and joins, natural raster jaggies and very few interior marks. Broad flat bucket fills only. Do not clean into vector art, polished cartoon, glossy mascot or tiny shaded pixel art. Single whole readable silhouette centered in middle 65 percent of a square canvas, minimum 15 percent empty margin on all sides. Clearly recognizable at 64 pixels. Actual alpha transparency around opaque object. No text, numbers, letters, UI, watermarks, background, shadow, checkerboard, gradient, material texture, hatching, small decoration, face or extra subjects. Subject: one little irregular dusty-teal freshwater spring pool enclosed by only five large lopsided gray-beige stones, seen at a shallow angle. One tiny plain flat moss-green patch between the back stones. Water is a single calm opaque dusty-teal region with one short crooked cream ripple line, no sparkle, blue glow, reflection, bubbles or splash. The full pool edge is enclosed and readable, isolated on transparency. No riverbanks, scenery, reeds, characters, flasks or tools.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-64cb458f-519f-4263-8af4-066832c4cb4a.png",
+      "visualReferences": [
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png",
+        "public/art/mosswater-well.png"
+      ],
+      "reference": "public/art/sheep.png",
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-rewards-states-prompts.json",
+      "review": "Inspected full-size output against existing sheep, shadow-pack and Mosswater well. Reviewed Chromium at 256/128/64/48 CSS pixels on parchment #fff4d6 and dark #20352f. Intact recognizable silhouettes, wide margins, real transparent surroundings and no visible backdrop or halo. The sealed well retains original identity while boards and a rope X clearly close its opening. Spring pool and keepsakes remain sparse and readable. Source alpha preserved unchanged; every decoded RGBA byte equals the lossless WebP. Live placement and reward integration are verified separately by the parent task.",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        144,
+        248,
+        1049,
+        1037
+      ],
+      "visibleAlphaBounds": [
+        228,
+        336,
+        1047,
+        940
+      ],
+      "sha256": "33840da5fb0e996f373ecf53b3196796f0799aedc9ebe6080e5521fb25fc16b1",
+      "runtimeSha256": "95d5dbba12637a3a47559bfad8d67f227c24f624a84dd6ebedc2b71265cf98d2",
+      "runtimeBytes": 259842,
+      "runtimeEncoding": "Lossless WebP; full dimensions, source alpha and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-well-sealed",
+      "purpose": "Sealed village well variant for the alternate spring-supply ending, retaining the original well identity.",
+      "file": "public/art/mosswater-well-sealed.png",
+      "runtimeFile": "public/art/mosswater-well-sealed.webp",
+      "prompt": "Use case: precise-object-edit. Edit the FIRST reference image, DropInn's roofless stone well with an empty bucket. Other images are drawing-style references only. Preserve the entire square transparent canvas, exact well body and bucket identity, coarse irregular black MS Paint mouse contours and restrained broad gray-beige and brown colors. Change ONLY the well opening and hanging rope: close the open black mouth completely with three broad clumsy flat brown boards lying across its rim, and secure those boards with a simple broad tan rope X. The bucket remains outside the well in its existing position, empty and inactive. The image must unmistakably mean 'sealed well, do not draw water here'. No lock icon, painted text, signs, banners, ticks, magic, water, extra props or people. Preserve wide transparent margins and the full silhouette. Avoid new shading, clean vector geometry, realistic planks, woodgrain, texture, gloss or decorative details. Actual alpha transparency.",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-22d55ec9-cd79-4c58-9ea4-2d43e0c5a6b0.png",
+      "visualReferences": [
+        "public/art/mosswater-well.png",
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "reference": "public/art/mosswater-well.png",
+      "generator": "Codex built-in image_gen",
+      "transparent": true,
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-rewards-states-prompts.json",
+      "review": "Inspected full-size output against existing sheep, shadow-pack and Mosswater well. Reviewed Chromium at 256/128/64/48 CSS pixels on parchment #fff4d6 and dark #20352f. Intact recognizable silhouettes, wide margins, real transparent surroundings and no visible backdrop or halo. The sealed well retains original identity while boards and a rope X clearly close its opening. Spring pool and keepsakes remain sparse and readable. Source alpha preserved unchanged; every decoded RGBA byte equals the lossless WebP. Live placement and reward integration are verified separately by the parent task.",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        146,
+        53,
+        1198,
+        1212
+      ],
+      "visibleAlphaBounds": [
+        252,
+        344,
+        1044,
+        937
+      ],
+      "sha256": "1ef9c26d76bdd50415c3bf7f63f191913d7f4b73e1d340fa97a90c4c71b4642b",
+      "runtimeSha256": "8d2e6ec2735fdab905f4c807cb7468c6964a1873b270552f522b2c09294af4a2",
+      "runtimeBytes": 274734,
+      "runtimeEncoding": "Lossless WebP; full dimensions, source alpha and exact RGBA pixels verified against PNG source."
+    }
+  ]
+}

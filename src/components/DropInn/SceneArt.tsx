@@ -6,12 +6,19 @@ const scenes = {
   chapel: { src: '/art/scene-chapel.png', description: 'A wonky old chapel with a leaning bell tower and three little ward stones.' },
 };
 
+export function sceneArtwork(scene: string) {
+  return scenes[scene as keyof typeof scenes] ?? {
+    src: `/art/${/^(stage-|gemward-|mosswater-)/.test(scene) ? scene : `stage-${scene}`}.webp`,
+    description: 'An illustrated adventure setting.',
+  };
+}
+
 /** Local illustrations share a crop-safe composition across banners and cards. */
 export function SceneArt({ scene = 'village', className = '' }: {
   scene?: string;
   className?: string;
 }) {
-  const art = scenes[scene as keyof typeof scenes] ?? { src: `/art/stage-${scene}.webp`, description: 'An illustrated adventure setting.' };
+  const art = sceneArtwork(scene);
   const [failedSource, setFailedSource] = useState<string>();
   if (failedSource === art.src) {
     return <div className={`di-scene-art di-scene-fallback ${className}`} aria-hidden="true" />;

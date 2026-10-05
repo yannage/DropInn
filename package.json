@@ -20,6 +20,7 @@
     "test:journey:v2": "node scripts/playtest-journey.mjs",
     "test:story-table": "node scripts/playtest-story-table.mjs",
     "test:quest": "node scripts/playtest-quest-run.mjs",
+    "test:story-selection": "node scripts/playtest-story-selection.mjs",
     "test:flipbooks": "node scripts/playtest-flipbooks.mjs",
     "test:chapter-choices": "node scripts/playtest-chapter-choices.mjs",
     "test:cooperation": "node scripts/playtest-cooperation.mjs",

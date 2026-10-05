@@ -4,9 +4,72 @@ import type { AdventureRoom, PlayerAction } from '../src/lib/dropinn/types';
 import { CHAPTERS } from '../src/lib/dropinn/content';
 import { createDropinnHandler } from './dropinn';
 import { spotlightSuggestions } from '../src/lib/dropinn/suggestions';
-import { ADVENTURES } from '../src/lib/dropinn/registry';
+import { ADVENTURES, currentAdventure } from '../src/lib/dropinn/registry';
 
 describe('adventure selection contract', () => {
+  it('matches explicit Gemward releases only with the same pinned version', async () => {
+    const { call, hero } = harness();
+    const v2 = await call('play', { character: hero, adventureId: 'gemward', adventureVersion: 2 });
+    const v3 = await call('play', { character: hero, adventureId: 'gemward', adventureVersion: 3 });
+    expect(v2.status).toBe(200);
+    expect(v3.status).toBe(200);
+    expect(v2.room).toMatchObject({ adventureId: 'gemward', adventureVersion: 2 });
+    expect(v3.room).toMatchObject({ adventureId: 'gemward', adventureVersion: 3 });
+    expect(v2.room.code).not.toBe(v3.room.code);
+    for (const opened of [v2, v3]) {
+      const matched = await call('play', { character: hero, adventureId: 'gemward', adventureVersion: opened.room.adventureVersion }, 'player_two');
+      expect(matched.status).toBe(200);
+      expect(matched.room.code).toBe(opened.room.code);
+      expect((await call('read', { roomCode: opened.room.code })).room.adventureVersion).toBe(opened.room.adventureVersion);
+    }
+    const current = await call('play', { character: hero, adventureId: 'gemward' }, 'player_three');
+    expect(current.room.adventureVersion).toBe(currentAdventure('gemward').version);
+    expect(current.room.code).toBe(v3.room.code);
+    const history = await call('history');
+    expect(history.recaps.filter((entry: { adventureId: string }) => entry.adventureId === 'gemward').map((entry: { adventureVersion: number }) => entry.adventureVersion).sort()).toEqual([2, 3]);
+  });
+
+  it.each([2, 3])('opens a private Gemward v%i table and preserves its invitation pin', async adventureVersion => {
+    const { call, hero } = harness();
+    const opened = await call('play', { character: hero, adventureId: 'gemward', adventureVersion, visibility: 'private' });
+    expect(opened.status).toBe(200);
+    expect(opened.room).toMatchObject({ adventureId: 'gemward', adventureVersion, visibility: 'private' });
+    const denied = await call('join', { character: hero, roomCode: opened.room.code }, 'player_two');
+    expect(denied.status).toBe(409);
+    const joined = await call('join', { character: hero, roomCode: opened.room.code, inviteKey: opened.room.inviteKey,
+      adventureId: 'mosswater', adventureVersion: 999 }, 'player_two');
+    expect(joined.status).toBe(200);
+    expect(joined.room).toMatchObject({ code: opened.room.code, adventureId: 'gemward', adventureVersion });
+    const separate = await call('play', { character: hero, adventureId: 'gemward', adventureVersion }, 'player_three');
+    expect(separate.room.code).not.toBe(opened.room.code);
+  });
+
+  it.each([
+    { adventureVersion: 2 },
+    { adventureId: '', adventureVersion: 2 },
+    { adventureId: 'gemward', adventureVersion: null },
+    { adventureId: 'gemward', adventureVersion: '2' },
+    { adventureId: 'gemward', adventureVersion: 0 },
+    { adventureId: 'gemward', adventureVersion: -1 },
+    { adventureId: 'gemward', adventureVersion: 2.5 },
+    { adventureId: 'gemward', adventureVersion: 999 },
+    { adventureId: 'mosswater', adventureVersion: 2 },
+    { adventureId: 'made-up', adventureVersion: 1 },
+  ])('rejects an invalid explicit release: %j', async selection => {
+    const { call, hero } = harness();
+    const result = await call('play', { character: hero, ...selection });
+    expect(result.status).toBe(400);
+    expect(result.error).toMatch(/available adventure/);
+    expect((await call('history')).recaps).toHaveLength(0);
+  });
+
+  it('keeps the default current adventure when both selection fields are omitted', async () => {
+    const { call, hero } = harness();
+    const result = await call('play', { character: hero });
+    expect(result.status).toBe(200);
+    expect(result.room).toMatchObject({ adventureId: currentAdventure().id, adventureVersion: currentAdventure().version });
+  });
+
   it('isolates matchmaking by story and preserves identity through read and history', async () => {
     const { call, hero } = harness();
     const codes = new Set<string>();

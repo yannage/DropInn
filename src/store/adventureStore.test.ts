@@ -40,6 +40,29 @@ async function setup() {
 }
 
 describe('adventure client recovery', () => {
+  it.each(['playNow', 'startFriendTable'] as const)('sends an explicit release through %s without pinning invitations to it', async entry => {
+    const { store, room } = await setup();
+    mocks.request.mockClear();
+    await store.getState()[entry]('gemward', 2);
+    expect(mocks.request).toHaveBeenCalledWith(expect.objectContaining({ operation: 'play', adventureId: 'gemward', adventureVersion: 2,
+      visibility: entry === 'startFriendTable' ? 'private' : undefined }));
+    mocks.request.mockClear();
+    await store.getState().joinRoom(room.code, 'invitation-key');
+    const [join] = mocks.request.mock.calls.find(([payload]) => payload.operation === 'join')!;
+    expect(join).toMatchObject({ operation: 'join', roomCode: room.code, inviteKey: 'invitation-key' });
+    expect(join.adventureId).toBeUndefined();
+    expect(join.adventureVersion).toBeUndefined();
+  });
+
+  it('leaves the current release decision to the server when no version is supplied', async () => {
+    const { store } = await setup();
+    mocks.request.mockClear();
+    await store.getState().playNow('gemward');
+    const [play] = mocks.request.mock.calls.find(([payload]) => payload.operation === 'play')!;
+    expect(play.adventureId).toBe('gemward');
+    expect(play.adventureVersion).toBeUndefined();
+  });
+
   it.each(['resolved move', 'synchronized reveal', 'joined reveal'] as const)('keeps %s narration local without requesting generated text', async source => {
     const { store, room } = await setup();
     const { reduceAdventure } = await import('../lib/dropinn/engine');

@@ -1,0 +1,12 @@
+.di-story-edition{display:inline-block;margin-bottom:8px;padding:4px 9px;border:1px solid #abb78c;border-radius:5px;background:#e9edcd;color:#3e5335;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.di-lobby-edition-note{font-size:12px;line-height:1.6;color:#5c644f;margin:10px 0 16px}
+.di-lobby-story-choices>article[data-story-choice="mosswater@1"]{background:#f3f3db}
+.di-story-cover{position:relative;overflow:hidden;isolation:isolate;background:#c0d5cd}
+.di-story-cover>.di-scene-art{display:block;width:100%;height:100%;object-fit:cover}
+.di-story-cover>img.di-story-cover-piece{position:absolute;pointer-events:none;object-fit:contain;height:80%;width:45%;bottom:-4%;filter:drop-shadow(0 3px 0 #303e3820)}
+.di-story-cover-well{left:12%}
+.di-story-cover-mossback{right:9%;transform:rotate(5deg)}
+.di-lobby-story-choices .di-story-cover{height:140px;border-radius:6px}
+.di-lobby-story-choices .di-story-cover>.di-scene-art{height:100%}
+.di-lobby-intro-art>.di-story-cover{width:100%;height:100%}
+.di-lobby-story-choices .di-story-hat .di-keepsake-art{width:48px;height:48px;flex:none}

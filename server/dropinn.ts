@@ -15,6 +15,7 @@ interface RequestBody {
   bundleId?: string; orderId?: string;
   recipeId?: string; commandId?: string;
   adventureId?: string;
+  adventureVersion?: number;
   operation: AccountOperation | 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';
   claimToken?: string;
   sessionId?: string; roomCode?: string; characterId?: string; character?: CharacterProfile;
@@ -309,7 +310,18 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
       }
       if (body.operation === 'play' || body.operation === 'join') {
         let selected;
-        try { selected = currentAdventure(body.operation === 'play' ? body.adventureId : undefined); }
+        // A requested release only affects new play. Invitations always resolve
+        // their saved room, regardless of the visitor's lobby selection.
+        if (body.operation === 'play' && body.adventureVersion !== undefined
+          && (typeof body.adventureId !== 'string' || !body.adventureId
+            || !Number.isSafeInteger(body.adventureVersion) || body.adventureVersion < 1)) {
+          throw new RequestError('Choose an available adventure and version.');
+        }
+        try {
+          selected = body.operation === 'play' && body.adventureVersion !== undefined
+            ? adventureFor({ adventureId: body.adventureId, adventureVersion: body.adventureVersion })
+            : currentAdventure(body.operation === 'play' ? body.adventureId : undefined);
+        }
         catch { throw new RequestError('Choose an available adventure.'); }
         if (body.variationId && selected.id !== 'briar-glen') throw new RequestError('Prepared tellings are available for Briar Glen only.');
         if (body.visibility !== undefined && !['public', 'private'].includes(body.visibility)) throw new RequestError('Choose a public or friend table.');
@@ -355,7 +367,7 @@ export function createDropinnHandler(options: HandlerOptions = {}): (request: Re
           if (!variation) throw new RequestError('That prepared telling expired. Prepare it again.', 409);
         }
         for (let attempt = 0; attempt < 8; attempt++) {
-          const room = createAdventure(character, userId, now(), undefined, selected.id);
+          const room = createAdventure(character, userId, now(), undefined, selected.id, selected.version);
           if (body.visibility === 'private') {
             room.visibility = 'private';
             room.inviteKey = crypto.randomUUID().replace(/-/g, '');

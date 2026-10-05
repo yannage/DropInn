@@ -12,10 +12,20 @@ assert.ok(origin.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(ori
 const base = origin.origin, checks = [], errors = [], records = [], contexts = [], pages = [];
 const faults = { loseAction: '', blockReads: '' };
 const capturedCombat = new Set();
+const checkedScenes = new Set(), checkedGear = new Set();
+const sceneArt = { 'well-yard': 'stage-village', watercourse: 'mosswater-scene-watercourse',
+  'old-conduit': 'mosswater-scene-arch', 'derelict-mill': 'mosswater-scene-mill',
+  'herb-bank': 'stage-river', 'hill-spring': 'mosswater-scene-hill-spring' };
+const itemArt = { 'stained-cloth': 'mosswater-stained-cloth', 'repair-tools': 'mosswater-repair-kit',
+  'clean-sample': 'mosswater-clean-sample', 'reed-shield': 'mosswater-reed-shield',
+  'sluice-hook': 'mosswater-sluice-hook', 'amber-focus': 'mosswater-amber-focus' };
 let now = Date.now(), handler, ssr, browser, sourceFingerprint, questCombatMoves;
 const note = (name, detail = {}) => { checks.push({ name, ...detail }); console.log(name); };
 const sourceFiles = ['src/App.tsx', 'src/components/DropInn/DropInn.tsx', 'src/components/DropInn/QuestAdventure.tsx',
-  'src/components/DropInn/quest-adventure.css', 'src/components/DropInn/TargetArtwork.tsx',
+  'src/components/DropInn/quest-adventure.css', 'src/components/DropInn/quest-art.css', 'src/components/DropInn/TargetArtwork.tsx',
+  'src/components/DropInn/QuestArtwork.tsx', 'src/components/DropInn/SceneArt.tsx',
+  'src/components/DropInn/KeepsakeArtwork.tsx', 'src/components/DropInn/HeroProgression.tsx', 'src/components/DropInn/StoryCover.tsx',
+  'src/lib/dropinn/storySelection.ts',
   'src/components/DropInn/FrameAnimation.tsx', 'src/components/DropInn/frame-animation.css',
   'src/components/DropInn/TableReactions.tsx', 'src/components/DropInn/TableContact.tsx', 'src/components/DropInn/SceneAdventure.tsx',
   'src/lib/dropinn/frameAnimation.ts',
@@ -74,6 +84,17 @@ async function open(label) {
     await page.getByRole('button', { name: 'Change story', exact: true }).click();
     await page.getByRole('button', { name: /^Select story: Mosswater:/ }).click();
   }
+  if (label === 'a') {
+    await page.locator('.di-lobby-story-options > summary').click();
+    const rewards = page.getByLabel('Story rewards', { exact: true });
+    for (const [name, art] of [['marked cup', 'cup'], ['knotted reed', 'reed'], ['well token', 'token']]) {
+      const row = rewards.locator('.di-story-hat').filter({ hasText: name });
+      await expectArt(row.locator('.di-keepsake-art img'), `mosswater-keepsake-${art}`);
+    }
+    await rewards.screenshot({ path: 'output/playwright/quest-lobby-keepsake-art.png' });
+    await page.locator('.di-lobby-story-options > summary').click();
+    note('All three Mosswater milestone keepsakes have matching loaded reward illustrations in the selectable story details');
+  }
   await page.locator('.di-lobby-play').click(); await settled(page);
   const s = await state(page); assert.equal(s.backend, 'local'); assert.equal(s.room.adventureId, 'mosswater'); assert.equal(s.room.adventureVersion, 1);
   return page;
@@ -109,6 +130,51 @@ async function travel(pair, node) {
   await page.getByRole('button', { name: /Prepare this route/ }).click();
   assert.equal(commandCount(), before); await release(page); return advance(pair);
 }
+async function expectArt(image, name) {
+  await image.waitFor({ state: 'visible' });
+  await image.scrollIntoViewIfNeeded();
+  await image.page().waitForFunction(node => node.isConnected && node.complete && node.naturalWidth > 0, await image.elementHandle(), { timeout: 10_000 });
+  const info = await image.evaluate(async node => { await node.decode(); return { path: new URL(node.currentSrc || node.src).pathname, width: node.naturalWidth, height: node.naturalHeight }; });
+  assert.equal(info.path, `/art/${name}.webp`); assert.ok(info.width > 0 && info.height > 0);
+}
+async function pieceArt(page, target, name) {
+  await expectArt(page.locator(`[data-quest-target="${target}"] .di-target-art img`), name);
+}
+async function sceneArtwork(page, node) {
+  assert.equal((await state(page)).room.questRun.nodeId, node);
+  await expectArt(page.locator('.qr-backdrop'), sceneArt[node]);
+  await map(page, node);
+  await expectArt(page.locator('.qr-map-place-art img.di-scene-art'), sceneArt[node]);
+  await closePanel(page);
+  if (!checkedScenes.has(node)) {
+    checkedScenes.add(node); await layout(page, `art-${node}`);
+    note(`The ${node} tabletop and map preview use its accurate environment plate`);
+  }
+}
+async function pouchArtwork(page, expected) {
+  await page.getByRole('button', { name: 'Quest pouch', exact: true }).click();
+  for (const id of expected) await expectArt(page.locator(`.qr-pack > article:has(img[src="/art/${itemArt[id]}.webp"]) .qr-item-art img`), itemArt[id]);
+  await layout(page, 'illustrated-pouch', true); await closePanel(page);
+  note('Every acquired shared quest item retains its name, description and matching painted illustration', { items: expected });
+}
+async function endingArtwork(page, vatArt) {
+  if (vatArt) await pieceArt(page, 'dye-vat', vatArt);
+  await page.getByRole('button', { name: /Read our trail/ }).click();
+  await expectArt(page.locator('.qr-ending-memory .di-keepsake-art img'), 'mosswater-keepsake-token');
+  await closePanel(page);
+}
+async function failedArtworkLabels(page) {
+  const missing = '**/art/mosswater-stained-cloth.webp';
+  await page.route(missing, route => route.abort('failed'));
+  await page.getByRole('button', { name: 'Quest pouch', exact: true }).click();
+  const item = page.locator('.qr-pack > article').filter({ has: page.getByRole('heading', { name: 'Dye-stained cloth', exact: true }) });
+  await item.locator('.qr-item-art svg').waitFor();
+  assert.equal(await item.locator('img').count(), 0);
+  assert.match(await item.innerText(), /Dye-stained cloth/); assert.match(await item.innerText(), /bitterroot|watercourse/);
+  await page.screenshot({ path: 'output/playwright/quest-item-art-fallback.png' });
+  await closePanel(page); await page.unroute(missing);
+  note('A failed shared-item image falls back to a native symbol while retaining its readable name and story purpose');
+}
 async function layout(page, name, drawer = false) {
   for (const [width, height] of [[390, 844], [320, 568], [1280, 900]]) {
     await page.setViewportSize({ width, height });
@@ -124,12 +190,19 @@ async function layout(page, name, drawer = false) {
       artBackings: [...document.querySelectorAll('.qr-scene-piece .di-target-art,.qr-enemy-piece .di-target-art')].map(node => getComputedStyle(node).backgroundColor),
       enemyHealth: document.querySelector('.qr-enemy-health')?.getBoundingClientRect().toJSON(),
       heroArt: [...document.querySelectorAll('.qr-hero-art')].map(node => node.getBoundingClientRect().toJSON()),
+      completed: !!document.querySelector('[data-quest-mode="completed"]'),
+      outcomeOverlays: document.querySelectorAll('.qr-finished-seal,.is-completed .qr-found-receipt').length,
+      sceneImages: [...document.querySelectorAll('.qr-scene-piece img')].filter(image => image.getClientRects().length && image.naturalWidth > 0).length,
     }));
     assert.equal(metrics.overflow, false, `${name}/${width}: horizontal overflow`); assert.deepEqual(metrics.broken, [], `${name}/${width}: missing visible art`);
     assert.ok(metrics.artBackings.every(color => color === 'rgba(0, 0, 0, 0)'), `${name}/${width}: inherited target tiles cover the illustrated scene`);
     if (!drawer) {
       assert.ok(metrics.font >= 13, `${name}/${width}: story text below 13px`);
       if (metrics.enemyHealth) assert.ok(metrics.enemyHealth.bottom <= Math.min(...metrics.heroArt.map(rect => rect.top)), `${name}/${width}: enemy health bar overlaps the party artwork (${metrics.enemyHealth.bottom} > ${Math.min(...metrics.heroArt.map(rect => rect.top))})`);
+      if (metrics.completed) {
+        assert.equal(metrics.outcomeOverlays, 0, `${name}/${width}: completion overlays obscure the changed table`);
+        assert.equal(metrics.sceneImages, metrics.targets.length, `${name}/${width}: every changed scene piece remains illustrated at completion`);
+      }
       for (const rect of [...metrics.targets, ...metrics.moves]) assert.ok(rect.width >= 43 && rect.height >= 43, `${name}/${width}: target below44px`);
     }
     await page.screenshot({ path: `output/playwright/quest-${name}-${width}.png`, fullPage: drawer, animations: 'disabled' });
@@ -178,6 +251,7 @@ async function journey() {
   assert.equal((await state(a)).room.code, (await state(b)).room.code); assert.notEqual(aid, bid);
   assert.equal(room.questRun.focus.actorId, aid); assert.ok(room.pendingJoins.includes(bid));
   await layout(a, 'opening');
+  await sceneArtwork(a, 'well-yard');
   assert.match(await a.locator('.qr-quest-title').innerText(), /clean water home/i);
   assert.match(await a.locator('[data-quest-result]').innerText(), /well|water|stain/i);
   note('The opening names the shared water problem; the joining human can inspect but cannot spend the leader’s focus');
@@ -204,6 +278,7 @@ async function journey() {
   note('A waiting player inspects and suggests a real route without moving the party or spending the leader’s focus');
   room = await travel(pair, 'watercourse'); assert.equal(room.questRun.nodeId, 'watercourse'); assert.equal(room.questRun.focus.actorId, bid); assert.equal(room.questRun.focus.remaining, 1);
   await layout(b, 'watercourse');
+  await sceneArtwork(b, 'watercourse');
   room = await act(pair, 'mossback', 'mossback-challenge'); assert.equal(room.questRun.combat.status, 'active');
   assert.equal(room.questRun.combat.order.length, 2); await layout(a, 'combat');
   const hpBefore = room.seats.filter(s => s.kind === 'human').map(s => [s.actorId, s.hp]);
@@ -243,9 +318,14 @@ async function journey() {
   for (const page of pair) {
     const s = await state(page), offer = s.room.questRun.lootOffers.find(o => o.actorId === s.userId); assert.ok(offer);
     await page.locator('.qr-table-tools button').filter({ hasText: /point|Choose loot|Build/ }).click();
+    for (const id of offer.choices) {
+      await expectArt(page.locator(`[data-quest-loot="${id}"] .qr-item-art img`), itemArt[id]); checkedGear.add(id);
+    }
     if (page === a) await layout(page, 'loot', true);
     const choice = offer.choices.includes('sluice-hook') ? 'sluice-hook' : offer.choices[0];
-    const before = (await state(page)).room; await commandClick(page, page.locator(`[data-quest-loot="${choice}"]`)); await closePanel(page);
+    const before = (await state(page)).room; await commandClick(page, page.locator(`[data-quest-loot="${choice}"]`));
+    await expectArt(page.locator(`.qr-equipped-item:has(img[src="/art/${itemArt[choice]}.webp"]) .qr-item-art img`), itemArt[choice]);
+    await closePanel(page);
     const after = (await state(page)).room; assert.ok(after.questRun.heroes[s.userId].equipment.includes(choice)); assert.equal(after.turn, before.turn); assert.deepEqual(after.questRun.focus, before.questRun.focus);
     assert.ok(!after.questRun.lootOffers.some(o => o.id === offer.id));
     if (choice === 'sluice-hook') assert.notEqual(questCombatMoves(before, s.userId)[0].description, questCombatMoves(after, s.userId)[0].description);
@@ -253,15 +333,68 @@ async function journey() {
     if (choice === 'reed-shield') assert.notEqual(questCombatMoves(before, s.userId)[1].description, questCombatMoves(after, s.userId)[1].description);
   }
   room = await allSame(pair); note('Each contributor chooses personal gear with a real action effect; claiming loot spends no exploration beat');
+  note('Every offered and equipped gear item displays its own matching painted cutout', { offered: [...checkedGear].sort() });
   room = await act(pair, 'dye-vat', 'vat-haul-after-fight');
   assert.equal(room.status, 'completed'); assert.equal(room.questRun.ending.id, 'isolate'); assert.equal(room.outcomes.length, 3);
   assert.match(room.questRun.ending.text, /clean water|clean.*again/i); assert.match(room.questRun.ending.text, /displaced|shelter/i);
   await layout(a, 'ending');
+  await endingArtwork(a, 'mosswater-feed-clear');
   const completed = structuredClone(room.questRun); await a.reload({ waitUntil: 'domcontentloaded' }); await settled(a); assert.deepEqual((await state(a)).room.questRun, completed);
   await a.getByRole('button', { name: /Read our trail/ }).click(); assert.match(await a.locator('.qr-trail').innerText(), /stained|dye/i); assert.match(await a.locator('.qr-trail').innerText(), /shelter|displaced/i); await layout(a, 'trail', true);
   note('Winning the encounter does not solve the water; the final chosen action names its cost and persistent changed ending');
 }
 
+async function artworkJourneys() {
+  const page = await open('springart'), pair = [page];
+  let room = await allSame(pair);
+  assert.equal(room.seats.filter(seat => seat.kind === 'human').length, 1);
+  await sceneArtwork(page, 'well-yard');
+  await act(pair, 'well', 'well-inspect'); await act(pair, 'well', 'well-trace-stain');
+  await act(pair, 'tool-cache', 'cache-open'); await act(pair, 'tool-cache', 'cache-read-sketch');
+  await failedArtworkLabels(page);
+  await travel(pair, 'herb-bank'); await sceneArtwork(page, 'herb-bank');
+  await travel(pair, 'hill-spring'); await sceneArtwork(page, 'hill-spring');
+  await pieceArt(page, 'spring-pool', 'mosswater-spring-pool');
+  await act(pair, 'spring-pool', 'spring-test'); await act(pair, 'spring-pool', 'spring-mark-feed');
+  await pouchArtwork(page, ['stained-cloth', 'repair-tools', 'clean-sample']);
+  await travel(pair, 'old-conduit'); await sceneArtwork(page, 'old-conduit');
+  await pieceArt(page, 'old-sluice', 'mosswater-sluice-blocked');
+  await page.screenshot({ path: 'output/playwright/quest-sluice-blocked.png' });
+  await act(pair, 'old-sluice', 'sluice-use-tools'); await pieceArt(page, 'old-sluice', 'story-sluice');
+  assert.match(await page.locator('[data-quest-result] > strong').innerText(), /open water gate/i);
+  assert.doesNotMatch(await page.locator('[data-quest-result] > p').innerText(), /silt holds the gate down/i);
+  await page.screenshot({ path: 'output/playwright/quest-sluice-open.png' });
+  note('Clearing the channel replaces the blocked gate with its accurate open illustration after the accepted action');
+  await travel(pair, 'well-yard'); await travel(pair, 'herb-bank'); await travel(pair, 'derelict-mill');
+  await sceneArtwork(page, 'derelict-mill'); await pieceArt(page, 'mill-cache', 'mosswater-repair-kit');
+  await travel(pair, 'herb-bank'); await travel(pair, 'well-yard'); await travel(pair, 'watercourse');
+  await sceneArtwork(page, 'watercourse'); await pieceArt(page, 'dye-vat', 'mosswater-dye-vat');
+  assert.deepEqual([...checkedScenes].sort(), Object.keys(sceneArt).sort());
+  note('All six reachable places retain distinct accurate tabletop and map artwork through real travel commands');
+  await travel(pair, 'old-conduit'); await act(pair, 'carry-rope', 'relay-rig'); room = await act(pair, 'carry-rope', 'relay-open');
+  assert.equal(room.status, 'completed'); assert.equal(room.questRun.ending.id, 'repair');
+  await map(page, 'well-yard');
+  await expectArt(page.locator('.qr-map-place-art .di-target-art img'), 'mosswater-well-sealed');
+  assert.match(await page.locator('.qr-map-inspector').innerText(), /sealed|closed/i);
+  await layout(page, 'sealed-well-map', true); await closePanel(page); await endingArtwork(page);
+  note('The alternate spring-supply ending shows the village well sealed in the map instead of falsely drawing restored drinking water');
+
+  for (const ending of ['isolate', 'bargain']) {
+    const next = await open(`${ending}art`), solo = [next];
+    await act(solo, 'well', 'well-inspect'); await act(solo, 'well', 'well-trace-stain'); await travel(solo, 'watercourse');
+    if (ending === 'isolate') {
+      await act(solo, 'dye-vat', 'vat-inspect'); room = await act(solo, 'dye-vat', 'vat-isolate');
+    } else {
+      await act(solo, 'mossback', 'mossback-listen'); room = await act(solo, 'mossback', 'mossback-bargain');
+    }
+    assert.equal(room.status, 'completed'); assert.equal(room.questRun.ending.id, ending);
+    await endingArtwork(next, ending === 'isolate' ? 'mosswater-vat-contained' : 'mosswater-feed-clear');
+    await layout(next, `art-ending-${ending}`);
+    note(ending === 'isolate'
+      ? 'Spending supplies to seal the leak displays a contained vat, with its shelter preserved'
+      : 'Bargaining to haul the vat away displays the clear feed instead of a leaking or sealed vat');
+  }
+}
 
 async function motionJourney() {
   const page = await open('motion');
@@ -315,7 +448,7 @@ try {
   const { createDropinnHandler } = await ssr.ssrLoadModule('/server/dropinn.ts');
   ({ questCombatMoves } = await ssr.ssrLoadModule('/src/lib/dropinn/questRun.ts'));
   handler = createDropinnHandler({ local: true, env: {}, now: () => now, fetch: async () => { throw Error('No external inference in Quest Run QA.'); } });
-  browser = await chromium.launch({ headless: true }); await journey(); await motionJourney();
+  browser = await chromium.launch({ headless: true }); await journey(); await artworkJourneys(); await motionJourney();
   assert.equal(await fingerprint(), sourceFingerprint, 'Source or art changed during the run; recapture the final version.'); assert.deepEqual(errors, []);
 } catch (error) {
   errors.push({ message: error.stack ?? String(error) }); process.exitCode = 1;

@@ -1,0 +1,360 @@
+{
+  "date": "2026-10-05",
+  "generator": "Codex built-in image_gen",
+  "styleAuthority": "User's preserved MS Paint art: actual sheep, shadow pack, current Mosswater well and vat; loose coarse mouse contours and sparse broad fills.",
+  "references": [
+    "public/art/sheep.png",
+    "public/art/shadow-pack.png",
+    "public/art/mosswater-well.png",
+    "public/art/mosswater-dye-vat.png",
+    "public/art/story-sluice.png"
+  ],
+  "assets": [
+    {
+      "id": "mosswater-stained-cloth",
+      "purpose": "Dye-stained cloth clue in the shared quest pouch",
+      "file": "public/art/mosswater-stained-cloth.png",
+      "runtimeFile": "public/art/mosswater-stained-cloth.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. Make ONE transparent game inventory prop for DropInn: a small torn scrap of cream cloth with one broad ugly mustard-yellow bitterroot dye stain covering its lower half. Three or four clumsy torn corners, a single loose dark thread from one corner, one short bent fold mark. The yellow stain must read as evidence of polluted water, not a pattern or decoration. No face, symbols, lettering, needle, bottle or other subject. Style matches the inspected game sheep and wolves: loose, chunky imperfect old MS Paint mouse doodle, wobbly blunt black contours, uneven joins, awkward actual shapes, broad restrained flat bucket fills and extremely sparse interior marks. Do not clean into vector geometry or a polished cartoon. Center entire isolated cloth within middle 70% of square canvas, at least 15% clear transparent margin on all sides, recognizable at 48–64px. Real alpha transparent background. No floor, ground shadow, checkerboard, glow, texture, hatching, shading, gradient or UI.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-bf413af4-de99-4cef-b495-ad3635d7fe88.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-bf413af4-de99-4cef-b495-ad3635d7fe88.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        111,
+        53,
+        1192,
+        1166
+      ],
+      "visibleAlphaBounds": [
+        261,
+        293,
+        992,
+        965
+      ],
+      "sha256": "33e2b5bf700ad5b26f66d88b828df0db22ce03519d1836151e9d43617817fb00",
+      "runtimeSha256": "747020a38024faaefd02ede889703cb670df24fd5cf4728a042e63668aa54878",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-clean-sample",
+      "purpose": "Tested clean-water sample in shared quest pouch",
+      "file": "public/art/mosswater-clean-sample.png",
+      "runtimeFile": "public/art/mosswater-clean-sample.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. Make ONE transparent game inventory prop for DropInn: a squat lopsided sample bottle with a stubby tan cork, a thick black outline, and plainly blue clean spring water filling its lower two thirds. One bent green reed test-strip is tied around its neck with a single tan loop. The bottle should have a broad awkward flask silhouette with one side bulging more than the other. One cream gap above the flat blue water line; no shine or glass reflections. It is a practical tested water sample, not a potion. No label, text, sparkle, face, emblem or extra object. Style matches DropInn's inspected sheep and wolves: coarse loose MS Paint mouse drawing, blunt wobbly black contours with natural jaggies and uneven joins, sparse shapes, restrained cream/dusty blue/moss green/brown flat bucket fills. Not polished icon design, vector or intricate pixel art. Complete cutout centered in middle 65% of square canvas with 15% empty transparent margins on all sides, readable at 48–64px. Actual alpha transparent background. No cast shadow, floor, scene, checkerboard, gradient, gloss, hatching or detailed texture.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-e59607a6-fab8-4d1e-987a-4277ac6b30ed.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-e59607a6-fab8-4d1e-987a-4277ac6b30ed.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        59,
+        51,
+        1170,
+        1182
+      ],
+      "visibleAlphaBounds": [
+        277,
+        178,
+        1023,
+        1075
+      ],
+      "sha256": "ae5ab7bfac09515344dfed1357b61b8a366e7f223bea1d678e677814174468d2",
+      "runtimeSha256": "b1fba28907de815e53c478db4da90d7fa805e204e9ad07e50355a00376dc7c8c",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-repair-kit",
+      "purpose": "Shared lever and rope repair kit; also serves repair-cache target",
+      "file": "public/art/mosswater-repair-kit.png",
+      "runtimeFile": "public/art/mosswater-repair-kit.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. Make ONE transparent game inventory prop for DropInn: a crude repair kit consisting of a short crooked wooden lever tucked diagonally through a loose coil of sturdy tan rope. The lever is one broad brown stick, blunt at one end and a flattened darker wedge at the other; three big irregular rope loops with a knotted tail. Rope and lever together make ONE compact readable bundle, not an organized array of tools. No metal wrench, toolbox, face, logo, lettering, ribbons or extra decoration. Match DropInn's inspected sheep and wolf art: coarse loose MS Paint mouse doodle, thick uneven black contours, awkward lopsided shapes, broad flat bucket fills and only a few interior marks. Actual clumsy drawn geometry, not a polished silhouette with noisy edges. Restrained tan, brown, cream only. Full isolated bundle centered in middle 65 percent of square canvas; generous 15 percent clear transparent margins; recognizable at 48–64px. Actual alpha transparency. No scene, floor shadow, checkerboard, gradient, gloss, realistic fibers, woodgrain, hatching, texture, UI or extra object.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-d8200064-c64f-4a16-8b1b-f227e4a73767.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-c2ce320d-bfbe-40c5-8783-bd15fb63bce4.png",
+      "revision": {
+        "prompt": "Use case: precise-object-edit. Simplify the repair kit in image 1 to match the coarse MS Paint drawing method of the DropInn sheep in image 2. Preserve one crooked wooden lever tucked diagonally into three broad tan rope loops, the full transparent canvas, same palette and identity. Remove nearly all rope twist lines: each loop should be one broad flat tan band with at most one short cross-stroke; no spiral barber-pole pattern. Remove all woodgrain and short scratches from the lever; one plain brown broad shape and one dark blunt wedge end only. Strengthen the main outline with coarse uneven black mouse-drawn strokes like the sheep reference and make the loop shapes slightly lopsided. Keep the rope's small knotted tail but simplify to two blobs. Do not draw sheep. No shading, gradient, gloss, detailed texture, added props, scene, ground shadow, text or checkerboard. Actual alpha transparency with generous margins.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-c2ce320d-bfbe-40c5-8783-bd15fb63bce4.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-d8200064-c64f-4a16-8b1b-f227e4a73767.png",
+          "public/art/sheep.png"
+        ],
+        "reason": "Remove busy rope twist and woodgrain marks; strengthen coarse contours against sheep reference."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        59,
+        53,
+        1192,
+        1182
+      ],
+      "visibleAlphaBounds": [
+        260,
+        168,
+        998,
+        1118
+      ],
+      "sha256": "cb156a40cfc11dabe277d8983b1518d01539d41f31b7860a807b2bf47c42c227",
+      "runtimeSha256": "aa2694891fc49d15a140213b29b05f2499fa7176e0d5343b0f4c01427238ff6b",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-reed-shield",
+      "purpose": "Reed shield personal equipment reward and equipped gear",
+      "file": "public/art/mosswater-reed-shield.png",
+      "runtimeFile": "public/art/mosswater-reed-shield.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent equipment reward cutout for DropInn: an awkward handmade reed shield. Broad lopsided rounded pentagon made of just four wide moss-green reed strips, held by two crooked tan horizontal bindings. One reed pokes farther above its neighbours, a single small notch at the bottom. Shield visibly faces viewer, no arm or character. Entirely plain broad filled shapes with only three black interior dividing lines. No woven lattice, grain, knots, decorative crest or tiny marks. Primitive hand-drawn mouse doodle matching inspected DropInn sheep and wolves: blunt irregular black outlines, noticeably asymmetrical actual shape, uneven joins, restrained moss green and tan flat bucket fills. Not a slick icon, polished fantasy equipment or smooth vector. Centered single complete silhouette, 15% transparent clear space around it, square canvas. Readable at 48–64px. Actual alpha transparent background; no shadow, scene, checkerboard, text, UI, face, gloss, gradient, shading, texture or extra objects.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-b03fee3f-ed3f-4699-9354-0858903d832f.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-b03fee3f-ed3f-4699-9354-0858903d832f.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        142,
+        55,
+        1210,
+        1166
+      ],
+      "visibleAlphaBounds": [
+        252,
+        90,
+        1007,
+        1137
+      ],
+      "sha256": "fe78a6d71cc4b57191916eef94003b43ec70e35708b227376f71171c8faed9a7",
+      "runtimeSha256": "c2b65ef260b085211f3edfca63f1ce1f8e7b20e756f81b6f5c9e381e74c36b31",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-sluice-hook",
+      "purpose": "Sluice hook personal equipment reward and equipped gear",
+      "file": "public/art/mosswater-sluice-hook.png",
+      "runtimeFile": "public/art/mosswater-sluice-hook.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent equipment reward cutout for DropInn: a short old sluice hook, a crooked brown wooden handle ending in a broad dull-gray hooked iron tip. Like a humble canal worker's hook made into an adventuring tool. Diagonal full silhouette, handle thicker at the low end, iron end bent into one blunt squared question-mark hook with an open bite. Two plain tan grip bands only. No blade edge, magic, blood, character, extra tools, lettering or decoration. Match the inspected DropInn sheep and wolf drawing method: coarse loose MS Paint mouse doodle, blunt irregular black outlines with slightly clumsy joins, awkward shapes, sparse broad flat brown/tan/gray fills. No smooth vector contours, polished fantasy rendering or intricate pixel-art grid. Complete single subject in middle 65 percent of square canvas with generous transparent margins, legible at 48–64px. Actual alpha transparency. No floor shadow, scene, checkerboard, UI, gleam, gradient, texture, hatching or shading.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-ec03cb78-3ed2-4256-be59-cf05fef85005.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-ec03cb78-3ed2-4256-be59-cf05fef85005.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        97,
+        124,
+        1045,
+        1182
+      ],
+      "visibleAlphaBounds": [
+        320,
+        126,
+        1039,
+        1147
+      ],
+      "sha256": "a17d1b59ce634a6b17425bcfa1b879fc82fa0be4baf574aef1ccfb260a2c1e8f",
+      "runtimeSha256": "b52667a8b77c9aef0baa8de2c7ac7a8adf3d69990b6e69888f913596b6001cf8",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-amber-focus",
+      "purpose": "Amber focus personal equipment reward and equipped gear",
+      "file": "public/art/mosswater-amber-focus.png",
+      "runtimeFile": "public/art/mosswater-amber-focus.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. ONE transparent equipment reward cutout for DropInn: a lumpy mustard-amber stone talisman tied with a plain dark brown cord in one loose uneven loop. The stone is chunky and asymmetric, not faceted: one broad golden-ochre bucket fill and a single simple dark curved mark inside. The cord is an unadorned thick clumsy loop above it, with two tiny tied ends just at the stone. Readable as a humble magical focus, not a coin, jeweled necklace, ornate amulet or realistic gemstone. No rune, text, sparkle, face, metal mount, gems or extra object. Match inspected DropInn sheep and wolves: loose imperfect MS Paint mouse doodle, chunky wobbly black contours with natural raster jaggies and uneven joins, awkward actual shapes, restrained flat fills, extremely few interior lines. No polished vector or elegant geometric design. Entire silhouette centered within middle 65 percent of square canvas, at least 15% clear transparent margins, readable at 48–64px. Real alpha transparency. No scene, floor shadow, background, checkerboard, glow, gradient, glossy light, hatching or texture.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-ca861497-a2c8-4f8f-8606-94a3f243f2b4.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-ca861497-a2c8-4f8f-8606-94a3f243f2b4.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        105,
+        54,
+        1057,
+        1254
+      ],
+      "visibleAlphaBounds": [
+        369,
+        146,
+        892,
+        1107
+      ],
+      "sha256": "aafca929729433de06fa45d97d16d806bf18c834c702c990268dd460bfc6a827",
+      "runtimeSha256": "8742792536cd7f8c50240059cc607d7482dc7f3c9d1b3c688912d5e6b00cad96",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-vat-contained",
+      "purpose": "Developed vat after supplies are spent sealing and cleansing the source",
+      "file": "public/art/mosswater-vat-contained.png",
+      "runtimeFile": "public/art/mosswater-vat-contained.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: precise-object-edit. Edit the supplied DropInn dye-vat cutout into its safely contained state. Preserve this same squat crooked brown wooden vat, its top mustard-olive dye oval, two dark bands, sparse plank divisions, basic size and identity, full transparent canvas and margins. Change its lower-right leaking crack to a single broad plain tan rectangular patch held by two blunt pegs, with NO escaping drip. Add one shallow dark-gray containment tray directly beneath the vat, slightly wider than its base, so it is plainly isolated from any watercourse. Tray is a single broad flat empty shape; no ground and no extra tools. Remove any yellow dye outside the vat. Keep the object simple, awkward and handmade in the game's MS Paint mouse doodle style: blunt uneven black contours, irregular joins, broad restrained bucket fills, few interior marks. No woodgrain, intricate texture, polished rendering, vector geometry, gloss, hatching, gradients, shadow, sparkle, face, lettering, symbols, background or checkerboard. Actual alpha transparency; full intact silhouette with clear margins.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-6b1c17f3-0f26-4cdc-95d8-ffa4a0fad818.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-6b1c17f3-0f26-4cdc-95d8-ffa4a0fad818.png",
+      "sourceReferences": [
+        "public/art/mosswater-dye-vat.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        113,
+        48,
+        1182,
+        1150
+      ],
+      "visibleAlphaBounds": [
+        171,
+        257,
+        1135,
+        987
+      ],
+      "sha256": "570453cb38592db55f1e44ff94436709a6bb20f4d14674605d02b82a6cc88035",
+      "runtimeSha256": "0e6593442908080a9b5297cdacf2ac79f130593965698eecf64a2e4da4ac8081",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-sluice-blocked",
+      "purpose": "Jammed old-channel sluice before channel-open; lowered gate, silt and no flowing water",
+      "file": "public/art/mosswater-sluice-blocked.png",
+      "runtimeFile": "public/art/mosswater-sluice-blocked.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: precise-object-edit. Edit the supplied DropInn wooden sluice illustration into its blocked state. Preserve the same crooked wooden gate, red handle, blunt black coarse outlines, grassy brown banks, simple palette and full transparent canvas. LOWER the wooden gate completely across the channel and pack its base with one broad plain muddy brown silt mound. Replace ALL flowing blue water in the foreground with a dry brown channel bed; the obstruction must plainly stop the route. No blue moving water, no flow lines and no open gap below gate. Keep the red lever but lowered sideways as a stuck lever. No warning sign or text. Keep sparse loose MS Paint mouse-drawn forms matching the original, lopsided actual shapes, flat broad bucket fills, no tiny texture or busy interior marks. Complete single prop with intact clear margins, transparent alpha background. No ground shadow, scenery, checkerboard, gradients, glossy light or added objects.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-6dd55e28-844c-4542-9903-10ae028f06e0.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-6dd55e28-844c-4542-9903-10ae028f06e0.png",
+      "sourceReferences": [
+        "public/art/story-sluice.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        97,
+        51,
+        1210,
+        1214
+      ],
+      "visibleAlphaBounds": [
+        183,
+        371,
+        1090,
+        1075
+      ],
+      "sha256": "14acee009a71e8d21ad43faababecc8856e7561537c5f01b47850b1eece7a868",
+      "runtimeSha256": "da0cff0be0b39ac40e9f2d7de7632afee6c3bbc6938238f82bb50626b8636bec",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    },
+    {
+      "id": "mosswater-feed-clear",
+      "purpose": "Clean water feed after the vat is hauled away; empty dry patch preserves the removed-state consequence",
+      "file": "public/art/mosswater-feed-clear.png",
+      "runtimeFile": "public/art/mosswater-feed-clear.webp",
+      "generator": "Codex built-in image_gen",
+      "kind": "cutout",
+      "prompt": "Use case: stylized-concept. Make ONE transparent developed-state prop for DropInn: a short clean open water feed after a leaking dye vat has been hauled away. A little crooked dusty-blue stream section between two simple grassy brown banks. Beside the stream on the right bank is a broad EMPTY flattened tan dry patch where the removed vat used to stand. Only two short dark wavy marks in the clear blue stream show unobstructed water; the dry patch is utterly empty. No barrel, vat, tools, bridge, gate, stones, label or character anywhere. The important readable shapes are clean blue water, simple green grass over brown banks, and empty tan patch. Coarse, loose MS Paint mouse doodle matching the inspected DropInn sheep, wolves and story-sluice art: thick blunt irregular black outlines with natural raster jaggies, awkward actual shapes, broad flat muted bucket fills, very sparse interior marks. No polished vector, realistic landscape, fancy water effects or intricate pixel art. Entire compact isolated vignette centered in middle 70 percent of square canvas, wide clear transparent margins, legible at 48–64px. Actual alpha transparency. No background sky, floor shadow, checkerboard, text, UI, gradient, gloss, sparkle, hatching or texture.",
+      "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-aafbda5c-fa91-4b11-a772-1cad2ee9a754.png",
+      "selectedSource": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-5fe280fa-e755-4fec-8979-1758654e6f4b.png",
+      "revision": {
+        "prompt": "Use case: style-transfer. Edit image 1 clean feed vignette to match the coarse MS Paint linework and restrained colors of image 2 (DropInn sluice reference). Preserve the unobstructed blue stream, two grassy brown banks and large EMPTY tan dry patch, full transparent canvas and margins. Make the main contours much thicker, blunt and uneven like image 2; let the real shapes wobble instead of smooth careful curves. Change the bright blue to the muted pale dusty blue of image 2, grass to dull yellow-moss green. REMOVE all grass tuft marks and all tiny texture marks: broad flat areas only, with just two chunky flow strokes in the water. No shading, gradients, glows or hatching. Do not add any gate, red lever, vat, creature, ground shadow, scene or text from reference 2. Actual alpha transparency, keep the little clean channel entirely empty and open.",
+        "source": "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-5fe280fa-e755-4fec-8979-1758654e6f4b.png",
+        "references": [
+          "C:\\Users\\Yanni\\.codex\\generated_images\\01a10a34-b76c-70b2-8acd-d91b74ba776f\\exec-aafbda5c-fa91-4b11-a772-1cad2ee9a754.png",
+          "public/art/story-sluice.png"
+        ],
+        "reason": "Remove busy grass marks, strengthen coarse contours and restrain palette against existing sluice."
+      },
+      "width": 1254,
+      "height": 1254,
+      "alpha": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBounds": [
+        73,
+        53,
+        1186,
+        1166
+      ],
+      "visibleAlphaBounds": [
+        108,
+        313,
+        1181,
+        993
+      ],
+      "sha256": "6c89cdf7d46ec7257169ee7c69386409e239830043455a1ea05986b12c49eaf0",
+      "runtimeSha256": "c0d3203e2c8a8703589ec72452686d9bf32b04edc3234503d4e783f144c264c2",
+      "runtimeEncoding": "Pillow lossless WebP, exact=True; every decoded RGBA byte and full dimensions verified equal to untouched generated PNG.",
+      "review": "Inspected all nine source images at full size and in Chromium at actual 128, 64 and 48 CSS pixels on parchment #fff4d6 and dark #20352f. Distinct cloth, sample, repair-kit and equipment silhouettes remain recognizable; black outlines need the usual pale backing on dark UI, especially the thin hook and cord. Patched vat has no leak, blocked sluice has no flowing water, clear feed has an empty dry patch and no vat. No visible opaque backdrop, halo or edge clipping. Alpha extrema 0-255; visible alpha>=10 silhouette has clear margins. Original generated PNG preserved; every decoded RGBA byte and full canvas matches lossless WebP. Root owns live target/inventory integration and gameplay-state QA; not claimed here.",
+      "reviewArtifact": "output/playwright/mosswater-props-review.png"
+    }
+  ],
+  "referenceHashes": {
+    "public/art/sheep.png": "026bb0c61db71c29c664656bf062c1fc563b95d6ce5e6b2fa54ce6e75ded938d",
+    "public/art/shadow-pack.png": "56fefa8ebd53a6390192b0a2aed3491edd9e129bcec0966339234bd99f155326",
+    "public/art/mosswater-well.png": "9b9e704b60b09165199fa4dd3ccb2b860ef1ba0718df12890ca7057041916982",
+    "public/art/mosswater-dye-vat.png": "ba50c861ca75e9bc6e7af98719bf001712a3434514676fa5342842f80be24df4",
+    "public/art/story-sluice.png": "fb39c1cef2cc454508754f44eb7469a6d6de2fcb4fe73c4cf5d4b6f4cb3afee4"
+  }
+}

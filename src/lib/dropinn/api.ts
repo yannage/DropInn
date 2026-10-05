@@ -31,6 +31,7 @@ export interface AdventureRequest {
   recipeId?: string;
   commandId?: string;
   adventureId?: string;
+  adventureVersion?: number;
   visibility?: 'public' | 'private';
   inviteKey?: string;
   operation: AccountOperation | 'list' | 'play' | 'join' | 'read' | 'command' | 'propose' | 'chat' | 'report' | 'history' | 'prepare' | 'narrate';

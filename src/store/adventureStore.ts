@@ -160,8 +160,8 @@ interface AdventureState {
   markRecapSeen: (recap: VisitRecap) => void;
   initialize: () => Promise<void>;
   refreshRooms: () => Promise<void>;
-  playNow: (adventureId?: string) => Promise<void>;
-  startFriendTable: (adventureId?: string) => Promise<void>;
+  playNow: (adventureId?: string, adventureVersion?: number) => Promise<void>;
+  startFriendTable: (adventureId?: string, adventureVersion?: number) => Promise<void>;
   prepareAdventure: () => Promise<void>;
   joinRoom: (code: string, inviteKey?: string) => Promise<void>;
   syncRoom: () => Promise<void>;
@@ -332,11 +332,11 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
     const participant = room.players[get().userId];
     if (participant) await collectReceipts([getVisitRecap(room, get().userId)], false, current?.id === room.id);
   };
-  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string, adventureId?: string) => {
+  const enter = async (operation: 'play' | 'join', code?: string, variationId?: string, visibility?: 'private', inviteKey?: string, adventureId?: string, adventureVersion?: number) => {
     await ensureHostedHero();
     const epoch = ++viewEpoch;
     proposalSequence++;
-    const response = await request({ operation, roomCode: code, variationId, visibility, inviteKey, adventureId });
+    const response = await request({ operation, roomCode: code, variationId, visibility, inviteKey, adventureId, adventureVersion });
     if (!response.room) throw new Error('This adventure could not be opened.');
     unsubscribe?.();
     set({ room: null, messages: [], recap: null, proposal: null, narration: null });
@@ -473,8 +473,8 @@ export const useAdventureStore = create<AdventureState>((set, get) => {
       } catch (error) { fail(error); }
       finally { listInFlight = false; }
     },
-    playNow: (adventureId) => busy(() => enter('play', undefined, undefined, undefined, undefined, adventureId)),
-    startFriendTable: (adventureId) => busy(() => enter('play', undefined, undefined, 'private', undefined, adventureId)),
+    playNow: (adventureId, adventureVersion) => busy(() => enter('play', undefined, undefined, undefined, undefined, adventureId, adventureVersion)),
+    startFriendTable: (adventureId, adventureVersion) => busy(() => enter('play', undefined, undefined, 'private', undefined, adventureId, adventureVersion)),
     prepareAdventure: () => busy(async () => {
       await ensureHostedHero();
       const response = await request({ operation: 'prepare' });

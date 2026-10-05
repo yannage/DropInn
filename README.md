@@ -15,7 +15,7 @@ Open `/?session=host` and `/?session=guest` to simulate separate visitors. The o
 
 ## Mosswater: the new quest crawl
 
-Fresh lobbies select **Mosswater: The Well That Growled**. Remembered selections and existing rooms keep their story; use **Try the new Mosswater quest crawl** in the lobby to switch.
+Fresh lobbies select **Mosswater: The Well That Growled**. Use **Change story** to compare its **Quest crawl** with Gemward’s **Story table** (v3) and **Branching map** (v2). Briar Glen, the other classic tales and Gemward’s original expedition remain selectable. The lobby remembers the exact edition; public play and friend tables start that edition, while invitations keep the invited room’s rules.
 
 - One clear shared quest: bring clean water back to the village.
 - One hero leads for two actions under a 45-second clock. Inspect freely, choose an intention, then confirm it. A discovery can open a follow-up in the same turn.
@@ -24,7 +24,7 @@ Fresh lobbies select **Mosswater: The Well That Growled**. Remembered selections
 - Earn run levels, allocate Might/Wits/Heart, and choose gear that changes combat. While waiting, inspect the route, suggest a destination, manage your earned build, or react to a teammate.
 - Three resolutions preserve different costs: spend supplies on the polluted feed, give the mossback a new home, or reopen a longer clean-water route.
 
-The [Mosswater packet](docs/stories/mosswater-v1.md) describes its implemented rules, art and verification. `npm run test:quest -- http://127.0.0.1:5207` runs the maintained local two-player browser journey. The illustrative 10–15 minute full-run target still needs human playtesting. Old adventures remain available with their own pinned rules.
+The [Mosswater packet](docs/stories/mosswater-v1.md) describes its implemented rules, complete illustration set and verification. `npm run test:quest -- http://127.0.0.1:5208` runs the maintained local two-player browser journey; `npm run test:story-selection -- http://127.0.0.1:5208` checks edition selection, invitations and responsive story/reward art. Point either command at your running local server. The illustrative 10–15 minute full-run target still needs human playtesting. Old adventures remain available with their own pinned rules.
 
 ## Earlier four-token adventures
 

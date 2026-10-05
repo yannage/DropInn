@@ -10,8 +10,9 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | --- | --- |
 | Default entry and legacy switch | `src/App.tsx` |
 | Discovery, hero builder, chat and recaps | `src/components/DropInn/DropInn.tsx` |
+| Remembered story editions and comparison selection | `src/lib/dropinn/storySelection.ts`, `src/components/DropInn/StoryCover.tsx`, `story-selection.css`, `scripts/playtest-story-selection.mjs` |
 | Mosswater sequential focus, map, checks, battle, loot and run builds | `src/lib/dropinn/questRun.ts`, `questRunTypes.ts`, `questRunContent.ts`, `questRunEngine.ts`, [story packet](docs/stories/mosswater-v1.md) |
-| Mosswater paper theatre, release controls, shared pouch and causal map | `src/components/DropInn/QuestAdventure.tsx`, `quest-adventure.css`, [design exploration](docs/design/quest-run-reframe.md) |
+| Mosswater paper theatre, release controls, shared pouch and causal map | `src/components/DropInn/QuestAdventure.tsx`, `QuestArtwork.tsx`, `quest-adventure.css`, `quest-art.css`, [design exploration](docs/design/quest-run-reframe.md) |
 | Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |
 | Shared scene pieces, compact/landscape dock and approach controls | `src/components/DropInn/responsive-table.css`, `encounter-focus.css` |
 | Mobile scene budget, caption selection and dedicated result tray | `src/components/DropInn/mobile-table.css`, `scene-selection.css`, `StageDice.tsx`, [mobile composition](docs/player-clarity.md#mobile-tabletop-composition--october-2) |

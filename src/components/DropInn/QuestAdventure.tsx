@@ -7,6 +7,9 @@ import type { AdventureRoom, StoryEvent } from '../../lib/dropinn/types';
 import { invitationUrl } from '../../lib/dropinn/invites';
 import { HeroAvatar } from './HeroAvatar';
 import { TargetArtwork } from './TargetArtwork';
+import { QUEST_SCENES, QuestItemArtwork, questPiecePresentation } from './QuestArtwork';
+import { SceneArt } from './SceneArt';
+import { KeepsakeArtwork } from './KeepsakeArtwork';
 import { SceneDrawer } from './SceneAdventure';
 import { HeroReaction, TableReactions } from './TableReactions';
 import { useLiveReducedMotion } from './TableContact';
@@ -14,6 +17,7 @@ import { useVisibleTable } from './StageAtmosphere';
 import { FrameAnimation } from './FrameAnimation';
 import { playTableSound, setTableSound, tableSoundEnabled } from './tableSound';
 import './quest-adventure.css';
+import './quest-art.css';
 
 type Drawer = 'map' | 'pack' | 'hero' | 'story' | 'party' | 'chat' | 'settings' | null;
 type Prepared = { action: QuestRunAction; label: string; detail: string };
@@ -45,6 +49,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const combat = view.mode === 'combat' || room.phase === 'reveal' && !!battle;
   const enemy = battle && QUEST_RUN_CONTENT.enemies[battle.enemyId];
   const target = view.node.targets.find(item => item.id === targetId) ?? view.node.targets.find(item => item.id === state.followUp?.targetId) ?? view.node.targets[0];
+  const targetPresentation = target && questPiecePresentation(target, state);
   const availableOptions = target ? questOptions(room, target.id) : [];
   const followUpOptions = state.followUp?.targetId === target?.id ? availableOptions.filter(option => state.followUp!.optionIds.includes(option.id)) : [];
   const options = followUpOptions.length ? followUpOptions : availableOptions;
@@ -128,7 +133,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       {room.status === 'active' && room.phase === 'choosing' && <span className={`qr-clock ${seconds < 10 ? 'is-urgent' : ''}`} aria-label={`${seconds} seconds left in this turn`}><Clock3 size={14} />{seconds}s</span>}
     </div>
     <section className="qr-stage" aria-label={combat ? 'Battle at ' + view.node.label : view.node.label} data-quest-stage>
-      <img className="qr-backdrop" key={state.nodeId} src={artUrl(view.node.art)} alt="" aria-hidden="true" draggable={false} />
+      <img className="qr-backdrop" key={state.nodeId} src={artUrl(QUEST_SCENES[state.nodeId] ?? view.node.art)} alt="" aria-hidden="true" draggable={false} onError={event => { event.currentTarget.style.visibility = 'hidden'; }} />
       <div className="qr-stage-wash" />
       <div className="qr-place-label"><Compass size={13} /><span>{view.node.label}</span></div>
       {combat && battle && enemy ? <>
@@ -140,10 +145,9 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
         {hit && !quiet && <span key={impact!.id} className="qr-damage-number" style={{ animationDelay: `${-elapsed}ms` }}>−{impact!.quest!.enemyDamage}</span>}
       </> : <div className="qr-scene-pieces">{view.node.targets.map((piece, index) => {
         const done = !questOptions(room, piece.id).length && piece.options.some(option => state.usedOptions.includes(option.id));
-        const resolved = piece.id === 'dye-vat' && state.facts.some(fact => fact.id === 'source-isolated');
-        const creatureGone = piece.id === 'mossback' && (state.facts.some(fact => fact.id === 'encounter-cleared:mossback') || state.ending?.id === 'bargain') || piece.id === 'reed-pack' && state.facts.some(fact => fact.id === 'encounter-cleared:reed-pack');
+        const presentation = questPiecePresentation(piece, state);
         return <button type="button" key={`${state.nodeId}:${piece.id}`} data-quest-target={piece.id} className={`qr-scene-piece ${target?.id === piece.id ? 'is-selected' : ''}`} aria-pressed={target?.id === piece.id} onClick={() => { setTargetId(piece.id); setPrepared(undefined); playTableSound('pick'); }} style={{ '--qr-piece-index': index, '--qr-piece-count': view.node.targets.length } as CSSProperties}>
-          <span className="qr-piece-shadow" />{resolved ? <span className="qr-resolved-piece"><Check size={32} /><strong>Leak contained</strong></span> : <TargetArtwork target={{ id: piece.id, artKey: creatureGone ? 'tracks.png' : piece.artKey }} />}<span className="qr-piece-label">{done && <Check size={12} />}{creatureGone ? state.ending?.id === 'bargain' ? 'A new neighbour' : 'A clear way through' : piece.id === 'well' && state.ending?.id === 'repair' ? 'Well sealed' : piece.name}</span>
+          <span className="qr-piece-shadow" /><TargetArtwork target={{ id: piece.id, artKey: presentation.artKey }} /><span className="qr-piece-label">{done && <Check size={12} />}{presentation.name}</span>
         </button>;
       })}</div>}
       <div className="qr-party" aria-label="The party">{room.seats.map(seat => {
@@ -155,8 +159,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       })}</div>
       {discovered && !quiet && <FrameAnimation key={latest!.id} atlas="discovery" durationMs={650} elapsedMs={elapsed} className="qr-discovery" />}
       {liveResult && combat && battle?.round === 1 && !battle.actedActorIds.length && !quiet && <FrameAnimation key={battle.id} atlas="encounter" durationMs={650} elapsedMs={elapsed} className="qr-encounter" />}
-      {discovered && !firstMove && <div className="qr-found-receipt" data-quest-discovery><Check size={18} /><span><small>Added to the shared pouch</small><strong>{discoveryLabels.join(' · ')}</strong></span></div>}
-      {room.status === 'completed' && <div className="qr-finished-seal"><Droplets /><strong>Clean water, a new beginning.</strong></div>}
+      {discovered && !firstMove && room.status !== 'completed' && <div className="qr-found-receipt" data-quest-discovery><Check size={18} /><span><small>Added to the shared pouch</small><strong>{discoveryLabels.join(' · ')}</strong></span></div>}
     </section>
 
     <section className="qr-table" aria-label="Your next decision">
@@ -166,8 +169,8 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
           <strong>{room.status === 'completed' ? 'What your party changed' : acted?.actorName ? `${acted.actorName} made a move` : 'The well growls back.'}</strong>
           <p>{room.status === 'completed' ? state.ending?.text : result.length ? result.map(event => event.text).join(' ') : QUEST_RUN_CONTENT.opening}</p>
         </> : <>
-          <strong>{firstMove ? 'The village is thirsty. The well is growling.' : combat ? 'Read the strike. Choose your answer.' : followUpOptions.length ? 'You found something. What next?' : `What will you try${target ? ` with ${target.name.toLowerCase()}` : ''}?`}</strong>
-          <p>{firstMove ? QUEST_RUN_CONTENT.opening : combat ? enemy?.description : followUpOptions.length && acted ? acted.text : target?.context ?? view.node.description}</p>
+          <strong>{firstMove ? 'The village is thirsty. The well is growling.' : combat ? 'Read the strike. Choose your answer.' : followUpOptions.length ? 'You found something. What next?' : !options.length && targetPresentation ? targetPresentation.name : `What will you try${targetPresentation ? ` with ${targetPresentation.name.toLowerCase()}` : ''}?`}</strong>
+          <p>{firstMove ? QUEST_RUN_CONTENT.opening : combat ? enemy?.description : followUpOptions.length && acted ? acted.text : targetPresentation?.context ?? view.node.description}</p>
         </>}
         {checked?.quest?.check && <div className="qr-check-result"><b>{checked.quest.check.roll}</b> + {checked.quest.check.modifier} · needed {checked.quest.check.dc}<strong>{checked.quest.check.success ? 'Made it!' : 'A costly discovery'}</strong></div>}
       </div>
@@ -201,9 +204,9 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     {drawer && <SceneDrawer key={drawer} title={{ map: 'Your expedition', pack: 'The party’s discoveries', hero: 'Your expedition build', story: 'The trail you made', party: 'Around the table', chat: 'Talk to the party', settings: 'At your table' }[drawer]} presentation={drawer === 'map' ? 'dialog' : 'sheet'} onClose={closeDrawer}>
       {pending && recovery}{error && <p className="qr-error" role="alert">{error}</p>}
       {drawer === 'map' && <QuestMap room={room} canAct={canAct && !combat} onTravel={prepareTravel} onSuggest={text => note(text)} canSuggest={!!self && !self.leaving && !view.isActive} />}
-      {drawer === 'pack' && <div className="qr-pack"><p><strong>{state.supplies} shared supplies</strong> · Spend one to Mend in a battle. Everyone can see and use this pouch.</p>{state.items.length === 0 && <p>Follow the first clue to put something useful here.</p>}{state.items.map(id => <article key={id}><Backpack size={21} /><div><h3>{QUEST_RUN_CONTENT.items[id]?.label ?? id}</h3><p>{QUEST_RUN_CONTENT.items[id]?.description}</p></div></article>)}<h3>What we know</h3>{state.facts.map(fact => <article key={fact.id}><Check size={18} /><div><strong>{QUEST_RUN_CONTENT.facts[fact.id]?.label ?? fact.id}</strong><p>{QUEST_RUN_CONTENT.facts[fact.id]?.description}</p><small>{fact.actorName} found this at {QUEST_RUN_CONTENT.nodes.find(node => node.id === fact.nodeId)?.label ?? fact.nodeId}.</small></div></article>)}</div>}
-      {drawer === 'hero' && <div className="qr-build"><div className="qr-build-heading">{self && <HeroAvatar hero={self.character} decorative />}<div><h3>{self?.character.name ?? 'Your hero'} · level {ownHero?.level ?? 1}</h3><p>{ownHero?.runXp ?? 0} expedition XP · {ownHero?.mana ?? 0}/{ownHero?.maxMana ?? 0} mana</p></div></div><p>Build this hero for this expedition. Your saved identity stays yours; a new run starts a fresh build.</p><div className="qr-attributes">{(['might', 'wits', 'heart'] as const).map(attribute => <article key={attribute}><div><strong>{attribute} <b>{ownHero?.attributes[attribute] ?? 0}</b></strong><p>{{ might: 'Stronger basic attacks and feats of strength.', wits: 'Sharper checks and stronger clever class abilities.', heart: 'More healing from Mend and cleric Kindle.' }[attribute]}</p></div><button type="button" disabled={!buildEnabled || !ownHero?.points} onClick={() => void commitQuestAction({ kind: 'upgrade', attribute })} aria-label={`Spend one point on ${attribute}`}>+1</button></article>)}</div><p>{ownHero?.points ? `${ownHero.points} attribute point${ownHero.points > 1 ? 's' : ''} to spend.` : 'Earn expedition XP from useful actions and battles to level up.'}</p>{view.lootOffers.map(offer => <section className="qr-loot-offer" key={offer.id}><h3>Choose your find</h3><p>One item from this cache. Its effect applies in this run.</p>{offer.choices.map(choiceId => { const item = QUEST_GEAR.find(gear => gear.id === choiceId); return <button type="button" key={choiceId} data-quest-loot={choiceId} disabled={!buildEnabled} onClick={() => void commitQuestAction({ kind: 'loot', offerId: offer.id, choiceId })}><strong>{item?.label ?? choiceId}</strong><span>{item?.description}</span><ArrowRight size={16} /></button>; })}</section>)}<h3>Equipped for this run</h3>{ownHero?.equipment.length ? ownHero.equipment.map(id => <p key={id}><Check size={14} /> <strong>{QUEST_GEAR.find(item => item.id === id)?.label ?? id}</strong> — {QUEST_GEAR.find(item => item.id === id)?.description}</p>) : <p>Win a battle to find equipment.</p>}</div>}
-      {drawer === 'story' && <div className="qr-trail"><p>{QUEST_RUN_CONTENT.opening}</p><ol>{room.events.filter(actualQuestEvent).map(event => <li key={event.id}><small>{QUEST_RUN_CONTENT.nodes.find(node => node.id === event.quest?.nodeId)?.label}{event.actorName && ` · ${event.actorName}`}</small><p>{event.text}</p>{event.quest?.next && <strong>{event.quest.next}</strong>}</li>)}</ol></div>}
+      {drawer === 'pack' && <div className="qr-pack"><p><strong>{state.supplies} shared supplies</strong> · Spend one to Mend in a battle. Everyone can see and use this pouch.</p>{state.items.length === 0 && <p>Follow the first clue to put something useful here.</p>}{state.items.map(id => <article key={id}><QuestItemArtwork id={id} /><div><h3>{QUEST_RUN_CONTENT.items[id]?.label ?? id}</h3><p>{QUEST_RUN_CONTENT.items[id]?.description}</p></div></article>)}<h3>What we know</h3>{state.facts.map(fact => <article key={fact.id}><Check size={18} /><div><strong>{QUEST_RUN_CONTENT.facts[fact.id]?.label ?? fact.id}</strong><p>{QUEST_RUN_CONTENT.facts[fact.id]?.description}</p><small>{fact.actorName} found this at {QUEST_RUN_CONTENT.nodes.find(node => node.id === fact.nodeId)?.label ?? fact.nodeId}.</small></div></article>)}</div>}
+      {drawer === 'hero' && <div className="qr-build"><div className="qr-build-heading">{self && <HeroAvatar hero={self.character} decorative />}<div><h3>{self?.character.name ?? 'Your hero'} · level {ownHero?.level ?? 1}</h3><p>{ownHero?.runXp ?? 0} expedition XP · {ownHero?.mana ?? 0}/{ownHero?.maxMana ?? 0} mana</p></div></div><p>Build this hero for this expedition. Your saved identity stays yours; a new run starts a fresh build.</p><div className="qr-attributes">{(['might', 'wits', 'heart'] as const).map(attribute => <article key={attribute}><div><strong>{attribute} <b>{ownHero?.attributes[attribute] ?? 0}</b></strong><p>{{ might: 'Stronger basic attacks and feats of strength.', wits: 'Sharper checks and stronger clever class abilities.', heart: 'More healing from Mend and cleric Kindle.' }[attribute]}</p></div><button type="button" disabled={!buildEnabled || !ownHero?.points} onClick={() => void commitQuestAction({ kind: 'upgrade', attribute })} aria-label={`Spend one point on ${attribute}`}>+1</button></article>)}</div><p>{ownHero?.points ? `${ownHero.points} attribute point${ownHero.points > 1 ? 's' : ''} to spend.` : 'Earn expedition XP from useful actions and battles to level up.'}</p>{view.lootOffers.map(offer => <section className="qr-loot-offer" key={offer.id}><h3>Choose your find</h3><p>One item from this cache. Its effect applies in this run.</p>{offer.choices.map(choiceId => { const item = QUEST_GEAR.find(gear => gear.id === choiceId); return <button type="button" key={choiceId} data-quest-loot={choiceId} disabled={!buildEnabled} onClick={() => void commitQuestAction({ kind: 'loot', offerId: offer.id, choiceId })}><QuestItemArtwork id={choiceId} /><strong>{item?.label ?? choiceId}</strong><span className="qr-loot-description">{item?.description}</span><ArrowRight size={16} /></button>; })}</section>)}<h3>Equipped for this run</h3>{ownHero?.equipment.length ? ownHero.equipment.map(id => <article className="qr-equipped-item" key={id}><QuestItemArtwork id={id} /><div><strong>{QUEST_GEAR.find(item => item.id === id)?.label ?? id}</strong><p>{QUEST_GEAR.find(item => item.id === id)?.description}</p></div><Check size={14} /></article>) : <p>Win a battle to find equipment.</p>}</div>}
+      {drawer === 'story' && <div className="qr-trail"><p>{QUEST_RUN_CONTENT.opening}</p>{state.ending && <div className="qr-ending-memory"><KeepsakeArtwork name="Mosswater’s well token" /><div><strong>What the village keeps</strong><p>{state.ending.text}</p></div></div>}<ol>{room.events.filter(actualQuestEvent).map(event => <li key={event.id}><small>{QUEST_RUN_CONTENT.nodes.find(node => node.id === event.quest?.nodeId)?.label}{event.actorName && ` · ${event.actorName}`}</small><p>{event.text}</p>{event.quest?.next && <strong>{event.quest.next}</strong>}</li>)}</ol></div>}
       {drawer === 'chat' && chat}
       {drawer === 'party' && <div className="qr-party-sheet"><p>One hero leads a short scene; the lantern passes around the table. Battles give each hero one move before the enemy strikes.</p>{room.seats.map(seat => <article key={seat.actorId}><HeroAvatar hero={seat.character} decorative /><div><strong>{seat.character.name}</strong><p>{seat.kind === 'companion' ? 'Companion · supports the expedition' : seat.actorId === view.activeActorId ? 'Holding the lantern' : 'At the table'} · {seat.hp} health</p></div></article>)}<label htmlFor="qr-invite">Bring a friend</label><input id="qr-invite" readOnly value={invitationUrl(room, window.location.origin)} onFocus={event => event.target.select()} /><button className="qr-confirm" type="button" onClick={async () => { try { await navigator.clipboard.writeText(invitationUrl(room, window.location.origin)); setCopied(true); } catch { document.querySelector<HTMLInputElement>('#qr-invite')?.select(); } }}>{copied ? 'Copied!' : 'Copy invitation'}</button></div>}
       {drawer === 'settings' && <div className="qr-settings"><button onClick={() => setDrawer('party')}><Users size={18} />Party & invitation</button><button onClick={() => setDrawer('story')}><BookOpen size={18} />Read our trail</button><button onClick={() => { const enabled = !sound; setSound(enabled); setTableSound(enabled); }}>{sound ? <Volume2 size={18} /> : <VolumeX size={18} />}{sound ? 'Table sounds on' : 'Table sounds off'}</button><label><input type="checkbox" checked={reduceEffects} onChange={event => { setReduceEffects(event.target.checked); try { localStorage.setItem('dropinn-effects', event.target.checked ? 'off' : 'on'); } catch {} }} />Reduce effects</label><p>Read the scene freely. Choose an intention, then place your move. The shared clock keeps the expedition moving if someone steps away.</p><button onClick={() => void leaveRoom()} disabled={loading}><ArrowLeft size={18} />Leave the table</button></div>}
@@ -237,8 +240,12 @@ function QuestMap({ room, canAct, canSuggest, onTravel, onSuggest }: { room: Adv
   }
   const memories = room.events.filter(event => actualQuestEvent(event) && event.quest?.nodeId === node.id && event.quest.kind !== 'pass');
   const isolated = room.questRun!.facts.some(fact => fact.id === 'source-isolated');
+  const hasFact = (id: string) => room.questRun!.facts.some(fact => fact.id === id);
   const placeDescription = room.questRun!.ending && node.id === 'well-yard' ? room.questRun!.ending.id === 'repair' ? 'The village well is sealed. Neighbours carry clean spring water along the new relay.' : 'The well runs clean again. Mara can fill her kettle.'
-    : isolated && node.id === 'watercourse' ? 'The leaking dye has been kept out of the water feed. Your party’s choice is recorded below.' : node.visited ? node.description : mapTeasers[node.id] ?? node.description;
+    : isolated && node.id === 'watercourse' ? 'The leaking dye has been kept out of the water feed. Your party’s choice is recorded below.'
+    : node.id === 'old-conduit' && hasFact('channel-open') ? hasFact('alternate-supply') ? 'The reopened channel and carrier’s handline now bring clean spring water to the village.' : hasFact('relay-ready') ? 'The channel is open and the carrier’s handline is ready. One final delivery can bring the tested spring water home.' : 'The water gate is clear. Test the spring and rig the carrier’s handline to finish the new supply route.'
+    : node.id === 'hill-spring' && hasFact('ridge-shortcut') ? 'Your secured ridge handline opens a direct path between this spring and the well yard.'
+    : node.visited ? node.description : mapTeasers[node.id] ?? node.description;
   return <div className="qr-map">
     <p>Travel spends one action. The whole party moves together; the hero holding the lantern chooses the route.</p>
     <div className="qr-map-paper"><div className="qr-map-board" aria-label="Connected places in Mosswater">
@@ -249,13 +256,14 @@ function QuestMap({ room, canAct, canSuggest, onTravel, onSuggest }: { room: Adv
       {map.nodes.map(node => { const [x, y] = positions.get(node.id)!; return <button type="button" key={node.id} data-quest-node={node.id} className={`${node.current ? 'is-current' : ''} ${node.visited ? 'is-visited' : ''} ${node.reachable ? 'is-reachable' : ''}`} style={{ left: `${x}%`, top: `${y}%` }} aria-pressed={selected === node.id} onClick={() => setSelected(node.id)}><span>{node.current ? <Flame size={24} /> : node.visited ? <Check size={21} /> : <Compass size={21} />}</span><strong>{node.label}</strong></button>; })}
     </div><p className="qr-map-legend"><span>━ Your trail</span><span>┄ Green: open now</span><span>○ A place to inspect</span></p></div>
     <div className="qr-map-inspector">
+      <div className="qr-map-place-art"><SceneArt scene={QUEST_SCENES[node.id] ?? node.art} />{node.id === 'well-yard' && room.questRun!.ending?.id === 'repair' && <TargetArtwork target={{ id: 'well', artKey: 'mosswater-well-sealed' }} />}</div>
       <small>{node.current ? 'You are here' : node.visited ? 'A place on your trail' : node.reachable ? 'A route is open' : 'Find a way here'}</small><h3>{node.label}</h3>
       <p>{placeDescription}</p>
       {path && <p className="qr-route-cost">{path.description}</p>}
-      {path?.available ? <>
+      {room.status === 'active' && path?.available ? <>
         <button className="qr-confirm" type="button" disabled={!canAct} onClick={() => onTravel(path.id, `Travel to ${node.label}`, path.description)}>Prepare this route <ArrowRight size={17} /></button>
         {canSuggest && <button className="qr-quiet-button" onClick={() => onSuggest(`I suggest ${node.label}: ${path.description}`)}>Suggest this route to the party <MessageCircle size={16} /></button>}
-      </> : !node.current && <p>{path?.reason ? `Route hint: ${path.reason}` : 'Reach a connected place first. The trail will stay on this map.'}</p>}
+      </> : room.status === 'active' && !node.current && <p>{path?.reason ? `Route hint: ${path.reason}` : 'Reach a connected place first. The trail will stay on this map.'}</p>}
       {!!memories.length && <div className="qr-map-memories"><h4>What happened here</h4>{memories.slice(-3).map(event => <article key={event.id}><small>{event.actorName ?? 'The party'}</small><p>{event.text}</p></article>)}</div>}
     </div>
   </div>;

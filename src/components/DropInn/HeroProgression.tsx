@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useSyncExternalStore } from 'react
 import { useAdventureStore } from '../../store/adventureStore';
 import { nextLook, storyRewards } from '../../lib/dropinn/rewardPresentation';
 import { HeroHatPreview } from './HeroAvatar';
+import { chaptersFor } from '../../lib/dropinn/registry';
+import { KeepsakeArtwork } from './KeepsakeArtwork';
 import './hero-progression.css';
 
 export type HeroCustomizerTarget = { tab?: 'character' | 'hats'; hatId?: string; styleId?: string };
@@ -43,9 +45,13 @@ export function StoryRewards({ adventureId, adventureVersion, chapter, collectio
   const goalId = useAdventureStore(state => state.collectionGoal);
   const next = nextLook(collection, goalId);
   const rewards = storyRewards({ adventureId, adventureVersion }, collection, chapter, collectionVersion);
+  const keepsakes = !rewards.hats.length && !rewards.earnsThread
+    ? chaptersFor({ adventureId, adventureVersion }).filter((_, index) => chapter === undefined || chapter === index) : [];
   const mobile = useMobileLayout();
   const [expanded, setExpanded] = useState(false);
   const content = <div className="di-story-rewards" aria-label="Story rewards">
+    {!!keepsakes.length && <p><strong>Keepsakes from your adventure</strong><span>{adventureId === 'mosswater' ? 'Contribute to a milestone to take its memory home. Equipment and attribute points last for this expedition.' : 'Help shape a chapter and take its keepsake home.'}</span></p>}
+    {keepsakes.map(item => <div className="di-story-hat" key={item.id}><KeepsakeArtwork name={item.keepsake} /><span><strong>{item.keepsake}</strong><small>{item.title}</small></span></div>)}
     {rewards.hats.map(({ hat, chapter: title, owned }) => <div className="di-story-hat" key={hat.id}><HeroHatPreview hat={hat} /><span><strong>{hat.label}</strong><small>{owned ? 'Collected' : 'Hat to unlock'} · {title}</small></span></div>)}
     {rewards.earnsThread && <>
       <p><strong>+1 Thread per contributed chapter</strong><span>Every outcome counts. {next ? 'Replay to unlock new colors and a feather for your Shepherd’s hat.' : 'All First tales styles collected. Keep earning Thread.'}</span></p>
@@ -57,11 +63,12 @@ export function StoryRewards({ adventureId, adventureVersion, chapter, collectio
   </div>;
   if (!collapsible || !mobile) return content;
   const nextHat = rewards.hats.find(entry => !entry.owned)?.hat;
-  const preview = nextHat ?? next?.hat;
+  const preview = keepsakes.length ? undefined : nextHat ?? next?.hat;
   return <details className="di-reward-disclosure" open={expanded} onToggle={event => setExpanded(event.currentTarget.open)}>
     <summary aria-label="View story rewards">
+      {!!keepsakes.length && <KeepsakeArtwork name={keepsakes[0].keepsake} />}
       {preview && <HeroHatPreview hat={preview} hatColor={!nextHat && next?.style.kind === 'color' ? next.style.id : undefined} hatTrim={!nextHat && next?.style.kind === 'trim' ? next.style.id : undefined}/>}
-      <span><strong>{nextHat ? nextHat.label : next ? 'Thread for your next look' : 'Collection complete'}</strong><small>{rewards.earnsThread ? '+1 Thread/chapter' : 'Chapter keepsake'}</small></span>
+      <span><strong>{keepsakes.length ? 'Keepsakes from your adventure' : nextHat ? nextHat.label : next ? 'Thread for your next look' : 'Collection complete'}</strong><small>{rewards.earnsThread ? '+1 Thread/chapter' : 'Story keepsakes'}</small></span>
     </summary>
     {content}
   </details>;

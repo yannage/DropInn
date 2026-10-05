@@ -1,0 +1,146 @@
+{
+  "request": "Make Mosswater a fully illustrated selectable story alongside earlier versions.",
+  "generator": "Codex built-in image_gen",
+  "resourcePlan": {
+    "new": [
+      {
+        "id": "mosswater-scene-watercourse",
+        "purpose": "Dye watercourse backdrop with empty foreground; dye vat and Mossback remain separate clickable cutouts.",
+        "canvas": "opaque landscape 3:2, 1536×1024",
+        "destination": "public/art/mosswater-scene-watercourse.png"
+      },
+      {
+        "id": "mosswater-scene-mill",
+        "purpose": "Derelict mill exterior backdrop for optional reed-pack encounter and supply chest.",
+        "canvas": "opaque landscape 3:2, 1536×1024",
+        "destination": "public/art/mosswater-scene-mill.png"
+      },
+      {
+        "id": "mosswater-scene-arch",
+        "purpose": "Old spring arch backdrop for separate water gate and carrier handline.",
+        "canvas": "opaque landscape 3:2, 1536×1024",
+        "destination": "public/art/mosswater-scene-arch.png"
+      },
+      {
+        "id": "mosswater-scene-hill-spring",
+        "purpose": "Sheltered hill spring backdrop for separate testable spring and ridge fence.",
+        "canvas": "opaque landscape 3:2, 1536×1024",
+        "destination": "public/art/mosswater-scene-hill-spring.png"
+      }
+    ],
+    "reuse": [
+      {
+        "node": "well-yard",
+        "file": "public/art/stage-village.webp",
+        "reason": "Village horizon and empty yard match the setting; clickable well and Mara are separate."
+      },
+      {
+        "node": "herb-bank",
+        "file": "public/art/stage-river.webp",
+        "reason": "Open riverbank matches the gathering/ferryman location and remains distinct from all four new landmarks."
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "mosswater-scene-watercourse",
+      "prompt": "Use case: stylized-concept. Asset: one empty 3:2 landscape environment plate for the DropInn Mosswater cooperative game. The three local reference images define style only: stage-village gives sparse scene composition; sheep and shadow-pack define the irregular actual MS Paint mouse-drawn linework. Do not draw their creatures. Match their awkward simple shapes, natural raster jaggies, uneven black strokes and restrained cream, moss green, dusty teal and brown bucket fills. Do not polish this into vector art or painted storybook art. Large broad irregular shapes; minimal interior details. Full-bleed opaque scene. Landmark occupies upper center, between 10 and 40 percent height; lower 55 percent is one broad quiet plain ground fill for separately rendered game characters and props. Keep main landmark recognizable in a centered portrait crop. Flat shallow space, no cinematic perspective. No gradients, texture, hatching, detailed stonework, airbrush, polished lighting, signs, text, UI, watermark, people, animals, loose objects, playable props, barrels, chests, fences or furniture baked in. Location: the abandoned dye watercourse. A very small crooked open-sided brown timber shed at upper center with a sagging dusty coral roof, just three posts and a dark uneven opening; one narrow teal water channel crosses horizontally beneath it around the upper third. Moss-green banks and a single lopsided muted green hill on the horizon. Lower half is plain pale sandy ground, with no stream cutting across the empty game stage. Do not include dye vats, leaks or muddy nest: those are separate clickable cutouts. A few restrained large shapes, awkward hand-drawn black contours. Warm neutral daytime.",
+      "file": "public/art/mosswater-scene-watercourse.png",
+      "runtimeFile": "public/art/mosswater-scene-watercourse.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-5b518117-fe5b-4258-ae14-82b61c28f8fb.png",
+      "reference": [
+        "public/art/stage-village.png",
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "purpose": "Dye watercourse backdrop with empty foreground; dye vat and Mossback remain separate clickable cutouts.",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-scenes-prompts.json",
+      "review": "Inspected full-size generated output against stage-village, sheep and shadow-pack. Reviewed Chromium-rendered full 3:2 composition, centered portrait crop, 390x210 table crop at object-position 50% 25%, and 128/64/48px thumbnails. All four upper-center landmarks remain recognizable with quiet empty foregrounds; no baked-in playable targets. Opaque alpha and exact source/runtime RGBA equality verified. Live game integration is verified separately by the parent task.",
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "opaque": true,
+      "sha256": "1e65e64db325d959fbe1981ee5210ef00eafaa915f868e6b3a56420142603bc4",
+      "runtimeSha256": "d32d060141897394c1e7374531522e45cbc06af5da2e9bf90413d76526c3e116",
+      "runtimeBytes": 800008,
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-scene-mill",
+      "prompt": "Use case: stylized-concept. Asset: one empty 3:2 landscape environment plate for the DropInn Mosswater cooperative game. The three local reference images define style only: stage-village gives sparse scene composition; sheep and shadow-pack define the irregular actual MS Paint mouse-drawn linework. Do not draw their creatures. Match their awkward simple shapes, natural raster jaggies, uneven black strokes and restrained cream, moss green, dusty teal and brown bucket fills. Do not polish this into vector art or painted storybook art. Large broad irregular shapes; minimal interior details. Full-bleed opaque scene. Landmark occupies upper center, between 10 and 40 percent height; lower 55 percent is one broad quiet plain ground fill for separately rendered game characters and props. Keep main landmark recognizable in a centered portrait crop. Flat shallow space, no cinematic perspective. No gradients, texture, hatching, detailed stonework, airbrush, polished lighting, signs, text, UI, watermark, people, animals, loose objects, playable props, barrels, chests, fences or furniture baked in. Location: exterior of the derelict old watermill. One small squat crooked cream building with a sagging muted brown roof and an uneven dark doorway in the upper center. A big lopsided wooden waterwheel is attached to its right side, made from one uneven ring and four thick awkward spokes only; keep the wheel within the center half of the image. A narrow dusty-teal water stripe is BEHIND the building, not across the foreground. One pale moss hill behind. The mill appears neglected from its crooked roof, no detailed destruction. Empty flat pale tan yard covers lower half. No wolves, chests, tools or signboards; these are separate interactive sprites. Keep the wheel and doorway centered enough to survive a tall mobile crop.",
+      "file": "public/art/mosswater-scene-mill.png",
+      "runtimeFile": "public/art/mosswater-scene-mill.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-f561e74b-6b73-43c9-8bd1-0918e5ac5d21.png",
+      "reference": [
+        "public/art/stage-village.png",
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "purpose": "Derelict mill exterior backdrop for optional reed-pack encounter and supply chest.",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-scenes-prompts.json",
+      "review": "Inspected full-size generated output against stage-village, sheep and shadow-pack. Reviewed Chromium-rendered full 3:2 composition, centered portrait crop, 390x210 table crop at object-position 50% 25%, and 128/64/48px thumbnails. All four upper-center landmarks remain recognizable with quiet empty foregrounds; no baked-in playable targets. Opaque alpha and exact source/runtime RGBA equality verified. Live game integration is verified separately by the parent task.",
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "opaque": true,
+      "sha256": "b2da95ff318a1ab753887961b29da11776aae92c82d3f6dd9e531077e203b078",
+      "runtimeSha256": "1308d02e64352778c50383ef675cb89a0f38932f93a37fd53c66d8adb83eba6b",
+      "runtimeBytes": 848798,
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-scene-arch",
+      "prompt": "Use case: stylized-concept. Asset: one empty 3:2 landscape environment plate for the DropInn Mosswater cooperative game. The three local reference images define style only: stage-village gives sparse scene composition; sheep and shadow-pack define the irregular actual MS Paint mouse-drawn linework. Do not draw their creatures. Match their awkward simple shapes, natural raster jaggies, uneven black strokes and restrained cream, moss green, dusty teal and brown bucket fills. Do not polish this into vector art or painted storybook art. Large broad irregular shapes; minimal interior details. Full-bleed opaque scene. Landmark occupies upper center, between 10 and 40 percent height; lower 55 percent is one broad quiet plain ground fill for separately rendered game characters and props. Keep main landmark recognizable in a centered portrait crop. Flat shallow space, no cinematic perspective. No gradients, texture, hatching, detailed stonework, airbrush, polished lighting, signs, text, UI, watermark, people, animals, loose objects, playable props, barrels, chests, fences or furniture baked in. Location: the old spring arch in a low grassy hillside. One short, broad, lopsided gray-brown stone arch centered in the upper third. Simple uneven opening filled dusty dark teal. The arch consists of only five or six clumsy large stone shapes and is half-set into a moss-green sloping bank. One thin dusty-teal channel runs horizontally behind the stage toward the arch. Lower 55 percent is plain pale gray-tan ground, broad quiet shape. No water gate, rope, lever, containers or other playable items: those will be separate clickable cutouts. No luminous magic, ornate ruins or patterned masonry. Just an old practical village water crossing drawn with a mouse.",
+      "file": "public/art/mosswater-scene-arch.png",
+      "runtimeFile": "public/art/mosswater-scene-arch.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-4e4fd2bf-f180-4ce0-98d2-bc5bc5ac45b7.png",
+      "reference": [
+        "public/art/stage-village.png",
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "purpose": "Old spring arch backdrop for separate water gate and carrier handline.",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-scenes-prompts.json",
+      "review": "Inspected full-size generated output against stage-village, sheep and shadow-pack. Reviewed Chromium-rendered full 3:2 composition, centered portrait crop, 390x210 table crop at object-position 50% 25%, and 128/64/48px thumbnails. All four upper-center landmarks remain recognizable with quiet empty foregrounds; no baked-in playable targets. Opaque alpha and exact source/runtime RGBA equality verified. Live game integration is verified separately by the parent task.",
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "opaque": true,
+      "sha256": "0c5c28f21292d0002e6079ad6546dcfc9293a824265521596e86669f793c35e5",
+      "runtimeSha256": "c35b1d018d2bb87ce3cd9d1bcda78d1bdd3c885806159a8f1407e8ed67578df9",
+      "runtimeBytes": 733398,
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against PNG source."
+    },
+    {
+      "id": "mosswater-scene-hill-spring",
+      "prompt": "Use case: stylized-concept. Asset: one empty 3:2 landscape environment plate for the DropInn Mosswater cooperative game. The three local reference images define style only: stage-village gives sparse scene composition; sheep and shadow-pack define the irregular actual MS Paint mouse-drawn linework. Do not draw their creatures. Match their awkward simple shapes, natural raster jaggies, uneven black strokes and restrained cream, moss green, dusty teal and brown bucket fills. Do not polish this into vector art or painted storybook art. Large broad irregular shapes; minimal interior details. Full-bleed opaque scene. Landmark occupies upper center, between 10 and 40 percent height; lower 55 percent is one broad quiet plain ground fill for separately rendered game characters and props. Keep main landmark recognizable in a centered portrait crop. Flat shallow space, no cinematic perspective. No gradients, texture, hatching, detailed stonework, airbrush, polished lighting, signs, text, UI, watermark, people, animals, loose objects, playable props, barrels, chests, fences or furniture baked in. Location: the sheltered hill spring. One low lopsided gray rock outcrop in the upper center, nestled between two plain moss-green hill shapes. A single very small dusty-teal trickle emerges between two rocks and curls behind a low grass bank in the upper third. Keep the trickle and rocks broad and simple, no foaming waterfall, ripples, sparkles or individual pebbles. Do not render a foreground pool: the testable spring pool is a separate clickable cutout. Lower 55 percent is empty pale sage ground for game pieces. No fence, bridge, ropes, characters, flasks or flowers. The sheltered rock formation is centered and distinct from the flat riverbank.",
+      "file": "public/art/mosswater-scene-hill-spring.png",
+      "runtimeFile": "public/art/mosswater-scene-hill-spring.webp",
+      "source": "C:/Users/Yanni/.codex/generated_images/01a10a34-789b-7453-9653-ce82b9596999/exec-84c008d8-9b8f-461f-ad8b-de223c48b359.png",
+      "reference": [
+        "public/art/stage-village.png",
+        "public/art/sheep.png",
+        "public/art/shadow-pack.png"
+      ],
+      "generator": "Codex built-in image_gen",
+      "transparent": false,
+      "purpose": "Sheltered hill spring backdrop for separate testable spring and ridge fence.",
+      "promptFile": ".agents/skills/dropinn-art/references/mosswater-scenes-prompts.json",
+      "review": "Inspected full-size generated output against stage-village, sheep and shadow-pack. Reviewed Chromium-rendered full 3:2 composition, centered portrait crop, 390x210 table crop at object-position 50% 25%, and 128/64/48px thumbnails. All four upper-center landmarks remain recognizable with quiet empty foregrounds; no baked-in playable targets. Opaque alpha and exact source/runtime RGBA equality verified. Live game integration is verified separately by the parent task.",
+      "width": 1536,
+      "height": 1024,
+      "alpha": false,
+      "opaque": true,
+      "sha256": "2a28c322fd0fe77929e4863462c5080e4a28e01468be3a7e0a0414b79215fa7e",
+      "runtimeSha256": "e65704cc1969a7213037acd7e399cc6cb9ce8016cdf0e934a956b601225bcce3",
+      "runtimeBytes": 761280,
+      "runtimeEncoding": "Lossless WebP; full dimensions and exact RGBA pixels verified against PNG source."
+    }
+  ]
+}
