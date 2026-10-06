@@ -1,16 +1,18 @@
 import type { CharacterClassKey } from '../character';
 import type { AdventureRoom, ChapterDefinition } from './types';
-import type { QuestAttribute, QuestHero, QuestMove, QuestOption, QuestRunContent, QuestRunState, QuestRunView } from './questRunTypes';
+import type { QuestAttribute, QuestChallengePreview, QuestHero, QuestMove, QuestOption, QuestRunContent, QuestRunState, QuestRunView } from './questRunTypes';
 import { QUEST_RUN_CONTENT as content } from './questRunContent';
 import { avalonContent, createAvalonEpisode, AVALON_THREADS } from './avalonContent';
+import { avalonDiceContent } from './avalonDiceContent';
 
-export const isAvalon = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'avalon' && room.adventureVersion === 1;
-export const isQuestRun = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => (room.adventureId === 'mosswater' || room.adventureId === 'avalon') && room.adventureVersion === 1;
+export const isAvalon = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'avalon' && (room.adventureVersion === 1 || room.adventureVersion === 2);
+export const isAvalonDice = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'avalon' && room.adventureVersion === 2;
+export const isQuestRun = (room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion'>) => room.adventureId === 'mosswater' && room.adventureVersion === 1 || isAvalon(room);
 /** Saved assignments, rather than a fresh roll, select every episode's content. */
 export function questContent(room: Pick<AdventureRoom, 'adventureId' | 'adventureVersion' | 'questRun'>): QuestRunContent {
   if (!isAvalon(room)) return content;
   if (!room.questRun?.avalon) throw new Error('This Avalon episode is missing its saved world manifest.');
-  return avalonContent(room.questRun.avalon, room.questRun.facts.map(fact => fact.id));
+  return (isAvalonDice(room) ? avalonDiceContent : avalonContent)(room.questRun.avalon, room.questRun.facts.map(fact => fact.id));
 }
 export const QUEST_FOCUS_MS = 45_000;
 export const QUEST_COMBAT_MS = 25_000;
@@ -29,11 +31,13 @@ export function createQuestHero(classKey: CharacterClassKey): QuestHero {
   const maxMana = classKey === 'wizard' || classKey === 'cleric' ? 3 : 2;
   return { level: 1, runXp: 0, points: 0, attributes: { ...attributes[classKey] }, mana: maxMana, maxMana, equipment: [] };
 }
-export function createQuestRun(seed: string, adventureId = 'mosswater'): QuestRunState {
+export function createQuestRun(seed: string, adventureId = 'mosswater', adventureVersion = 1): QuestRunState {
   if (adventureId === 'avalon') {
-    const avalon = createAvalonEpisode(seed), episode = avalonContent(avalon);
+    const avalon = createAvalonEpisode(seed);
+    if (adventureVersion === 2) avalon.manifest.contentVersion = 2;
+    const episode = (adventureVersion === 2 ? avalonDiceContent : avalonContent)(avalon);
     return { schemaVersion: 1, seed, nodeId: episode.startNodeId, visitedNodeIds: [episode.startNodeId], focus: null,
-      heroes: {}, facts: [], items: [], supplies: 3, completedObjectives: [], usedOptions: [], lootOffers: [], avalon };
+      heroes: {}, facts: [], items: [], supplies: 3, completedObjectives: [], usedOptions: [], lootOffers: [], avalon, ...(adventureVersion === 2 ? { challenges: {} } : {}) };
   }
   return { schemaVersion: 1, seed, nodeId: content.startNodeId, visitedNodeIds: [content.startNodeId], focus: null,
     heroes: {}, facts: [{ id: questHash(seed) % 2 ? 'high-water' : 'low-water', sourceEventId: '', actorId: '', actorName: 'The conditions', nodeId: content.startNodeId }], items: [], supplies: 3, completedObjectives: [], usedOptions: [], lootOffers: [] };
@@ -47,9 +51,27 @@ export function questOptions(room: AdventureRoom, targetId: string): QuestOption
   return (target?.options ?? []).filter(option => (option.requires ?? []).every(id => questHas(room, id))
     && !(option.absent ?? []).some(id => questHas(room, id))
     && !state.usedOptions.includes(option.id)
+    && (!option.challenge || !isAvalonDice(room) || !state.challenges?.[option.challenge.id]?.completedEventId)
     && (!option.avalon?.promise || state.avalon?.promise?.status !== 'owed')
     && (!option.avalon?.fulfillPromise || state.avalon?.promise?.id === option.avalon.fulfillPromise && state.avalon.promise.status === 'owed')
     && (!option.avalon?.resolveThread || state.avalon?.threads.some(thread => thread.id === option.avalon!.resolveThread && thread.status === 'active')));
+}
+/** Odds read class/run attributes and confirmed setup only; this never samples a die. */
+export function questChallengePreview(room: AdventureRoom, actorId: string, option: QuestOption): QuestChallengePreview | undefined {
+  if (!isAvalonDice(room) || !option.challenge) return undefined;
+  const hero = room.questRun?.heroes[actorId];
+  if (!hero) return undefined;
+  const challenge = option.challenge, effort = room.questRun!.challenges?.[challenge.id];
+  const helper = effort?.contributors.find(person => person.actorId !== actorId);
+  const ownSetup = effort?.contributors.find(person => person.actorId === actorId);
+  const solo = room.seats.filter(seat => seat.kind === 'human' && !seat.leaving).length === 1;
+  const helpKind = helper ? 'party' : ownSetup && solo ? 'learned' : 'none';
+  const source = helper ?? (helpKind === 'learned' ? ownSetup : undefined);
+  const baseModifier = hero.attributes[challenge.attribute], helpModifier = helpKind === 'party' ? 2 : helpKind === 'learned' ? 1 : 0;
+  const modifier = baseModifier + helpModifier, successes = Array.from({ length: 6 }, (_, index) => index + 1).filter(roll => roll + modifier >= challenge.dc).length;
+  return { id: challenge.id, attribute: challenge.attribute, dc: challenge.dc, sides: 6, baseModifier, helpModifier, modifier,
+    successes, total: 6, chance: successes / 6, helpKind, ...(source ? { helperActorId: source.actorId, helperName: source.actorName, helpSourceEventId: source.sourceEventId } : {}),
+    attempts: effort?.attempts ?? 0, complete: !!effort?.completedEventId };
 }
 export function questMap(room: AdventureRoom) {
   const content = questContent(room);
@@ -115,9 +137,13 @@ export const AVALON_DEFINITION = {
     targets: [], endings: { success: 'Your choices leave a changed place in Avalon.', mixed: 'Some troubles are settled; other leads remain.', setback: 'The hills remember what the party discovered.' },
   })),
 };
+export const AVALON_DICE_DEFINITION = {
+  ...AVALON_DEFINITION, version: 2,
+  pitch: 'Roll your strengths, build on a friend’s attempt, and make your own way through the Larch Hills.',
+};
 export function questRunScene(room: AdventureRoom): ChapterDefinition {
   const content = questContent(room);
-  const base = (isAvalon(room) ? AVALON_DEFINITION : QUEST_RUN_DEFINITION).chapters[Math.min(2, room.chapter)]; const state = room.questRun;
+  const base = (isAvalonDice(room) ? AVALON_DICE_DEFINITION : isAvalon(room) ? AVALON_DEFINITION : QUEST_RUN_DEFINITION).chapters[Math.min(2, room.chapter)]; const state = room.questRun;
   if (!state) return base;
   const view = questRunView(room, ''); const enemy = state.combat && content.enemies[state.combat.enemyId];
   return { ...base, location: view.node.label, art: view.node.art, intro: state.ending?.text ?? view.node.description, situation: state.ending?.text ?? view.node.description,

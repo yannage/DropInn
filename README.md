@@ -19,13 +19,15 @@ Fresh lobbies select **Avalon: A Visit to the Larch Hills**. Six fixed places, t
 
 The leads board shows what the party knows, where each lead came from, its next step, and the costs of unresolved trouble. Only rounds with meaningful exploration advance active pressures; waiting or leaving the room cannot invent story progress. Repairs, bargains and fights leave distinct changes on the table. Closing a visit preserves unfinished business instead of silently solving it.
 
-Avalon uses the same two-action turns, shared pouch, class combat, run builds and explicit release controls as Mosswater. Its [story packet](docs/stories/avalon-v1.md) documents the saved-world contract and authored possibilities. This is a bounded procedural adventure; human playtests are still needed to judge pacing and replay appeal.
+Fresh visits use the **Dice & teamwork** edition (v2). Optional bold approaches roll D6 plus Might, Wits or Heart; the target and exact odds are visible before committing. A miss leaves an attributed setup: another hero can try with +2, while a solo retry learns +1. Supplies are spent on success. Safe clues and alternative solutions remain available. Drag and release in the felt tray, use the Roll die button, or opt into phone motion to shake before pressing Roll die. Ivory, moss and ember dice are cosmetic.
 
-Run `npm run test:avalon -- http://127.0.0.1:5209` against your local Vite server for the maintained two-player journey. It covers shared leads, promises, supply limits, exact retries, absence/rejoin, return, all six places and the thirteen new illustrations at phone and desktop sizes. The runner uses an isolated local handler and does not establish hosted persistence or Realtime behavior.
+Avalon uses the same two-action turns, shared pouch, class combat, run builds and explicit release controls as Mosswater. The [v1 story packet](docs/stories/avalon-v1.md) documents the saved world; the [v2 packet](docs/stories/avalon-v2.md) describes the six authored obstacles and competing approaches. This is a bounded procedural adventure; human playtests are still needed to judge pacing and replay appeal.
+
+Run `npm run test:avalon-dice -- http://127.0.0.1:5210` against a local Vite server for dice input, two-player setup, authoritative rolls and recovery. Run `npm run test:avalon -- http://127.0.0.1:5209` for the pinned v1 two-player journey. It covers shared leads, promises, supply limits, exact retries, absence/rejoin, return, all six places and the thirteen new illustrations at phone and desktop sizes. The runner uses an isolated local handler and does not establish hosted persistence or Realtime behavior.
 
 ## Mosswater: the quest crawl
 
-Use **Change story** to compare Avalon’s **Living world**, **Mosswater: The Well That Growled** (**Quest crawl**), and Gemward’s **Story table** (v3) and **Branching map** (v2). Briar Glen, the other classic tales and Gemward’s original expedition remain selectable. The lobby remembers the exact edition; public play and friend tables start that edition, while invitations keep the invited room’s rules.
+Use **Change story** to compare Avalon’s **Dice & teamwork** (v2) and **Living world** (v1), **Mosswater: The Well That Growled** (**Quest crawl**), and Gemward’s **Story table** (v3) and **Branching map** (v2). Briar Glen, the other classic tales and Gemward’s original expedition remain selectable. The lobby remembers the exact edition; public play and friend tables start that edition, while invitations keep the invited room’s rules.
 
 - One clear shared quest: bring clean water back to the village.
 - One hero leads for two actions under a 45-second clock. Inspect freely, choose an intention, then confirm it. A discovery can open a follow-up in the same turn.

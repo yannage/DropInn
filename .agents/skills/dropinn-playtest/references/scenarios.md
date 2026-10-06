@@ -81,6 +81,16 @@ Verify private tables are absent from discovery/matching, code-only joins fail f
 
 ## Selectable stories and irreversible routes
 
+### Avalon v2 dice and teamwork
+
+Run `npm run test:avalon-dice -- http://127.0.0.1:5210` against a local Vite server. The maintained runner uses isolated actual command handlers and independent identities. Selecting generated rooms for a required test outcome is allowed; injecting a gameplay snapshot is not. Pair it with the pinned v1 Avalon runner and story-selection runner.
+
+Choose an uncertain approach and compare D6, current attribute, target and named help with the server preview. Preparation, cosmetic color and phone shaking send no move. Drag/release inside the tray or explicitly press Roll die; outside release, cancellation, blur, hidden page and deadline must not commit. Phone motion needs an explicit opt-in and falls back to the ordinary controls. A simulated sensor test is not physical-device evidence.
+
+On a failed attempt, verify no success facts, items, supplies or resolution are granted; the safe alternative stays visible. Pass to another actual hero and verify the unfinished target, source name and +2 setup are visible, then resolve it once. A solo retry uses +1 from their own attempt. Confirm that successful clue follow-ups include new risky alternatives alongside guaranteed methods. Repeated failure cannot farm XP; success closes all approaches sharing the obstacle.
+
+Lose an accepted response, reload and retry the exact stored payload: there must be one recorded face, attempt, resource change and reward. Separately reject a roll before acceptance, and reject a retry after an uncertain before-accept failure: both definite rejections must allow the same intention to be prepared again. Capture the settled result across polling, reload, reduced motion and hidden-page recovery without replay. Check 320/390px and desktop controls, loaded scene art, exact displayed pips, and no pending numeric result. Establish hosted persistence and physical-phone behavior separately if authorized.
+
 ### Avalon v1 saved world
 
 Run `npm run test:avalon -- http://127.0.0.1:5209` against a local Vite server. The maintained runner controls only time and routes requests through an isolated real handler; it never injects gameplay snapshots. Pair it with `test:story-selection` and `test:quest` for edition pins and the shared Mosswater lifecycle.

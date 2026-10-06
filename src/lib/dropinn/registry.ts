@@ -5,7 +5,7 @@ import { CHAPTER_CHOICES } from './chapterChoiceContent';
 import type { ChapterDefinition } from './types';
 import { GEMWARD_DEFINITION } from './expedition';
 import { JOURNEY_DEFINITION, STORY_TABLE_DEFINITION } from './journey';
-import { QUEST_RUN_DEFINITION, AVALON_DEFINITION } from './questRun';
+import { QUEST_RUN_DEFINITION, AVALON_DEFINITION, AVALON_DICE_DEFINITION } from './questRun';
 
 export interface AdventureDefinition {
   id: string;
@@ -38,6 +38,7 @@ export const ADVENTURE_VERSIONS: AdventureDefinition[] = [
   STORY_TABLE_DEFINITION,
   QUEST_RUN_DEFINITION,
   AVALON_DEFINITION,
+  AVALON_DICE_DEFINITION,
 ];
 // Add new rules without mutating any definition used by an already-pinned room.
 const briarThree = ADVENTURE_VERSIONS.find(item => item.id === DEFAULT_ADVENTURE && item.version === 3)!;

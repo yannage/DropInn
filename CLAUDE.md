@@ -1,6 +1,6 @@
 # DropInn — drop-in tabletop adventures
 
-DropInn’s default experience is V2: discover a live table, join with a ready hero, contribute to a short fantasy adventure, and leave whenever needed. A fresh lobby selects Avalon: A Visit to the Larch Hills v1; a remembered story selection or invitation keeps its choice. Avalon adds a saved seeded episode over six fixed places, two concurrent quest threads and explicit promises. Mosswater remains a sequential cooperative quest crawl: two exploration actions per focus, six connected places, shared discoveries, separate turn combat, run builds and three different resolutions. Gemward v3 and the earlier adventures remain available with their own pinned rules. The older battle/story prototype remains at `/?legacy=1`; it is not the main product flow.
+DropInn’s default experience is V2: discover a live table, join with a ready hero, contribute to a short fantasy adventure, and leave whenever needed. A fresh lobby selects Avalon: A Visit to the Larch Hills v2 (Dice & teamwork); a remembered story selection or invitation keeps its choice, including Avalon v1. Avalon adds a saved seeded episode over six fixed places, two concurrent quest threads and explicit promises. Its v2 edition adds selective D6 attribute checks and shared failed-attempt setups. Mosswater remains a sequential cooperative quest crawl: two exploration actions per focus, six connected places, shared discoveries, separate turn combat, run builds and three different resolutions. Gemward v3 and the earlier adventures remain available with their own pinned rules. The older battle/story prototype remains at `/?legacy=1`; it is not the main product flow.
 
 ## Code map
 
@@ -13,6 +13,7 @@ All adventure authoring follows [the storytelling and pacing baseline](docs/stor
 | Remembered story editions and comparison selection | `src/lib/dropinn/storySelection.ts`, `src/components/DropInn/StoryCover.tsx`, `story-selection.css`, `scripts/playtest-story-selection.mjs` |
 | Avalon saved world, cast, clues and authored consequences | `src/lib/dropinn/avalonTypes.ts`, `avalonContent.ts`, [story packet](docs/stories/avalon-v1.md) |
 | Avalon leads, pressures, promises and waterways | `src/components/DropInn/AvalonThreads.tsx`, `avalon-adventure.css` |
+| Avalon v2 approaches, shared attempts and tactile dice | `src/lib/dropinn/avalonDiceContent.ts`, `questDiceGesture.ts`, `src/components/DropInn/QuestDice.tsx`, `quest-dice.css`, [v2 story packet](docs/stories/avalon-v2.md) |
 | Mosswater sequential focus, map, checks, battle, loot and run builds | `src/lib/dropinn/questRun.ts`, `questRunTypes.ts`, `questRunContent.ts`, `questRunEngine.ts`, [story packet](docs/stories/mosswater-v1.md) |
 | Mosswater paper theatre, release controls, shared pouch and causal map | `src/components/DropInn/QuestAdventure.tsx`, `QuestArtwork.tsx`, `quest-adventure.css`, `quest-art.css`, [design exploration](docs/design/quest-run-reframe.md) |
 | Active adventure stage, drawers and action dock | `src/components/DropInn/SceneAdventure.tsx`, `scene-adventure.css` |

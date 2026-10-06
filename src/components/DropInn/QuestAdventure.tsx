@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Backpack, BookOpen, Check, Clock3, Compass, Droplets, Flame, Heart, Map, MessageCircle, Shield, Sparkles, Swords, Users, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Backpack, BookOpen, Check, Clock3, Compass, Dice5, Droplets, Flame, Handshake, Heart, Map, MessageCircle, Shield, Sparkles, Swords, Users, Volume2, VolumeX } from 'lucide-react';
 import { useAdventureStore } from '../../store/adventureStore';
-import { QUEST_GEAR, questContent, questCombatMoves, questMap, questOptions, questRunView } from '../../lib/dropinn/questRun';
+import { QUEST_GEAR, questContent, questCombatMoves, questMap, questOptions, questRunView, questChallengePreview } from '../../lib/dropinn/questRun';
 import type { QuestRunAction, QuestOption } from '../../lib/dropinn/questRunTypes';
 import type { AdventureRoom, StoryEvent } from '../../lib/dropinn/types';
 import { invitationUrl } from '../../lib/dropinn/invites';
@@ -16,6 +16,7 @@ import { useLiveReducedMotion } from './TableContact';
 import { useVisibleTable } from './StageAtmosphere';
 import { FrameAnimation } from './FrameAnimation';
 import { AvalonThreads, AvalonWaterways } from './AvalonThreads';
+import { QuestDice, QuestDiceResult } from './QuestDice';
 import { AVALON_WORLD } from '../../lib/dropinn/avalonContent';
 import { playTableSound, setTableSound, tableSoundEnabled } from './tableSound';
 import './quest-adventure.css';
@@ -33,6 +34,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const state = room.questRun!;
   const content = questContent(room);
   const avalon = room.adventureId === 'avalon';
+  const diceEdition = avalon && room.adventureVersion === 2;
   const view = questRunView(room, userId);
   const self = room.seats.find(seat => seat.actorId === userId && seat.kind === 'human');
   const [now, setNow] = useState(Date.now);
@@ -43,6 +45,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const [reduceEffects, setReduceEffects] = useState(() => { try { return localStorage.getItem('dropinn-effects') === 'off'; } catch { return false; } });
   const [copied, setCopied] = useState(false);
   const focusHome = useRef<HTMLDivElement>(null);
+  const diceArea = useRef<HTMLDivElement>(null);
   const reducedMotion = useLiveReducedMotion();
   const visible = useVisibleTable();
   const quiet = reducedMotion || reduceEffects || !visible;
@@ -55,7 +58,8 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const target = view.node.targets.find(item => item.id === targetId) ?? view.node.targets.find(item => item.id === state.followUp?.targetId) ?? view.node.targets[0];
   const targetPresentation = target && (avalon ? target : questPiecePresentation(target, state));
   const availableOptions = target ? questOptions(room, target.id) : [];
-  const followUpOptions = state.followUp?.targetId === target?.id ? availableOptions.filter(option => state.followUp!.optionIds.includes(option.id)) : [];
+  const unfinishedAttempt = diceEdition && room.events.some(event => event.id === state.followUp?.sourceEventId && event.quest?.check?.success === false);
+  const followUpOptions = !unfinishedAttempt && state.followUp?.targetId === target?.id ? availableOptions.filter(option => state.followUp!.optionIds.includes(option.id)) : [];
   const options = followUpOptions.length ? followUpOptions : availableOptions;
   const moves = questCombatMoves(room, userId);
   const latest = room.events.filter(actualQuestEvent).at(-1);
@@ -63,7 +67,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     // The initial water condition shares turn one, but is not a reward for the first action.
     && (event.actorId || event.quest?.kind !== 'discovery' || event.id === latest?.id));
   const result = currentEvents;
-  const acted = currentEvents.find(event => event.contribution);
+  const acted = currentEvents.find(event => event.contribution) ?? currentEvents.find(event => event.actorId && event.quest?.check);
   const impact = currentEvents.find(event => (event.quest?.enemyDamage ?? 0) > 0);
   const discovery = [...currentEvents].reverse().find(event => event.quest?.factIds?.length || event.quest?.itemIds?.length);
   const checked = currentEvents.find(event => event.quest?.check);
@@ -81,11 +85,18 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   const discoveryLabels = [...(discovery?.quest?.itemIds ?? []).map(id => content.items[id]?.label ?? id), ...(discovery?.quest?.factIds ?? []).map(id => content.facts[id]?.label ?? id)].slice(0, 2);
   const missingLeads = Array.from(new Set((target?.options ?? []).filter(option => !state.usedOptions.includes(option.id) && !(option.absent ?? []).some(id => state.facts.some(fact => fact.id === id))).flatMap(option => option.requires ?? []).filter(id => !state.facts.some(fact => fact.id === id))));
   const unfollowedSolution = avalon && target?.options.some(option => option.avalon?.resolveThread && state.avalon!.threads.some(thread => thread.id === option.avalon!.resolveThread && thread.status === 'discovered'));
+  const preparedOptionId = prepared?.action.kind === 'interact' ? prepared.action.optionId : undefined;
+  const preparedOption = availableOptions.find(option => option.id === preparedOptionId);
+  const preparedCheck = preparedOption && questChallengePreview(room, userId, preparedOption);
+  const openEfforts = diceEdition ? Object.values(state.challenges ?? {}).filter(effort => effort.targetId === target?.id && !effort.completedEventId && availableOptions.some(option => option.challenge?.id === effort.challengeId)) : [];
+  const diceResult = diceEdition && checked?.quest?.check ? { ...checked.quest.check, id: checked.id, at: checked.at, actorName: checked.actorName,
+    label: content.nodes.flatMap(node => node.targets).flatMap(piece => piece.options).find(option => option.id === checked.quest?.optionId)?.challenge?.label } : undefined;
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 100); return () => window.clearInterval(timer); }, []);
   useEffect(() => {
     setPrepared(undefined);
-    setTargetId(state.followUp?.targetId);
+    const unfinished = diceEdition && Object.values(state.challenges ?? {}).find(effort => effort.nodeId === state.nodeId && !effort.completedEventId && questOptions(room, effort.targetId).some(option => option.challenge?.id === effort.challengeId));
+    setTargetId(state.followUp?.targetId ?? (unfinished ? unfinished.targetId : undefined));
     setCopied(false);
   }, [room.turn, state.nodeId]);
   useEffect(() => {
@@ -95,6 +106,9 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   useEffect(() => {
     if (room.phase === 'choosing' && view.activeActorId === userId && !drawer) focusHome.current?.focus({ preventScroll: true });
   }, [room.turn, room.phase, view.activeActorId]);
+  useEffect(() => {
+    if (preparedCheck) diceArea.current?.querySelector<HTMLButtonElement>('.qd-roll')?.focus();
+  }, [preparedOptionId]);
   const sounded = useRef<string>();
   useEffect(() => {
     if (!latest || sounded.current === latest.id || elapsed > 600 || !visible) return;
@@ -114,16 +128,24 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
     const offered = option.supplyDelta ?? 0;
     const fits = Math.min(offered, Math.max(0, 6 - state.supplies));
     if (!avalon || offered <= 0) return option.preview;
-    const gain = fits ? `Gain ${fits} shared ${fits === 1 ? 'supply' : 'supplies'}.` : 'The shared supply pack is full.';
+    const gain = fits ? `${option.challenge ? 'On success, gain' : 'Gain'} ${fits} shared ${fits === 1 ? 'supply' : 'supplies'}.` : 'The shared supply pack is full.';
     return `${gain}${fits < offered ? ` ${offered - fits} left behind (pack limit: 6).` : ''} ${option.preview}`;
   }
   function chooseMove(move: ReturnType<typeof questCombatMoves>[number]) {
     const recipient = wounded.find(seat => seat.actorId === userId) ?? wounded[0];
     prepare({ kind: 'combat', move: move.id, ...(move.id === 'mend' && recipient ? { targetActorId: recipient.actorId } : {}) }, move.label, move.description);
   }
+  async function submitPrepared(action: QuestRunAction) {
+    const choice = prepared;
+    await commitQuestAction(action);
+    const outcome = useAdventureStore.getState();
+    // A definite rejection consumed no move. Let the player prepare afresh; uncertain
+    // responses retain both the exact pending command and the die's submission latch.
+    if (outcome.error && !outcome.pendingQuest) setPrepared(current => current === choice ? undefined : current);
+  }
   async function release() {
     if (!canAct || !prepared) return;
-    await commitQuestAction(prepared.action);
+    await submitPrepared(prepared.action);
   }
   function prepareTravel(edgeId: string, label: string, detail: string) {
     prepare({ kind: 'travel', edgeId }, label, detail);
@@ -131,11 +153,11 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
   }
   const closeDrawer = () => setDrawer(null);
   const note = (text: string) => void sendChat(text);
-  const recovery = <div className="qr-recovery" role="status"><strong>Your choice is saved.</strong><p>Checking confirmation. Retrying keeps exactly the same move.</p><button className="qr-confirm" type="button" disabled={loading} onClick={() => pending && void commitQuestAction(pending.action)}>Retry the same move <ArrowRight size={17} /></button></div>;
+  const recovery = <div className="qr-recovery" role="status"><strong>Your choice is saved.</strong><p>Checking confirmation. Retrying keeps exactly the same move.</p><button className="qr-confirm" type="button" disabled={loading} onClick={() => pending && void submitPrepared(pending.action)}>Retry the same move <ArrowRight size={17} /></button></div>;
 
   return <main className={`qr-adventure ${avalon ? 'is-avalon' : ''} ${quiet ? 'is-quiet' : ''} is-${phase}`} data-quest-mode={phase} data-quest-story={room.adventureId}>
     <header className="qr-header">
-      <div className="qr-quest-title"><span>{avalon ? 'The Larch Hills of Avalon' : 'A Mosswater expedition'}</span><strong>{avalon ? 'Make this place your story' : 'Bring clean water home'}</strong></div>
+      <div className="qr-quest-title"><span>{avalon ? 'The Larch Hills of Avalon' : 'A Mosswater expedition'}</span><strong>{diceEdition ? 'A little courage. A helping hand.' : avalon ? 'Make this place your story' : 'Bring clean water home'}</strong></div>
       <button type="button" className="qr-header-map" onClick={() => setDrawer('map')} aria-label="Open expedition map"><Map size={20} /><span>Map</span></button>
       <button type="button" className="qr-icon" onClick={() => setDrawer('settings')} aria-label="Open expedition settings"><BookOpen size={21} /></button>
     </header>
@@ -157,9 +179,10 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
         {hit && !quiet && <span key={impact!.id} className="qr-damage-number" style={{ animationDelay: `${-elapsed}ms` }}>−{impact!.quest!.enemyDamage}</span>}
       </> : <div className="qr-scene-pieces">{view.node.targets.map((piece, index) => {
         const done = !questOptions(room, piece.id).length && piece.options.some(option => state.usedOptions.includes(option.id));
+        const unfinished = diceEdition && questOptions(room, piece.id).some(option => option.challenge && state.challenges?.[option.challenge.id]?.attempts && !state.challenges[option.challenge.id].completedEventId);
         const presentation = avalon ? piece : questPiecePresentation(piece, state);
         return <button type="button" key={`${state.nodeId}:${piece.id}`} data-quest-target={piece.id} className={`qr-scene-piece ${target?.id === piece.id ? 'is-selected' : ''}`} aria-pressed={target?.id === piece.id} onClick={() => { setTargetId(piece.id); setPrepared(undefined); playTableSound('pick'); }} style={{ '--qr-piece-index': index, '--qr-piece-count': view.node.targets.length } as CSSProperties}>
-          <span className="qr-piece-shadow" /><TargetArtwork target={{ id: piece.id, artKey: presentation.artKey }} /><span className="qr-piece-label">{done && <Check size={12} />}{presentation.name}</span>
+          <span className="qr-piece-shadow" /><TargetArtwork target={{ id: piece.id, artKey: presentation.artKey }} /><span className="qr-piece-label">{done && <Check size={12} />}{presentation.name}{unfinished && <small className="av-piece-effort"><Handshake size={10} />Shared setup</small>}</span>
         </button>;
       })}</div>}
       <div className="qr-party" aria-label="The party">{room.seats.map(seat => {
@@ -185,26 +208,42 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
           <strong>{firstMove ? avalon ? 'You arrive in the middle of something.' : 'The village is thirsty. The well is growling.' : combat ? 'Read the strike. Choose your answer.' : followUpOptions.length ? 'You found something. What next?' : !options.length && targetPresentation ? targetPresentation.name : `What will you try${targetPresentation ? ` with ${targetPresentation.name.toLowerCase()}` : ''}?`}</strong>
           <p>{firstMove ? content.opening : combat ? enemy?.description : followUpOptions.length && acted ? acted.text : targetPresentation?.context ?? view.node.description}</p>
         </>}
-        {checked?.quest?.check && <div className="qr-check-result"><b>{checked.quest.check.roll}</b> + {checked.quest.check.modifier} · needed {checked.quest.check.dc}<strong>{checked.quest.check.success ? 'Made it!' : 'A costly discovery'}</strong></div>}
+        {!diceEdition && checked?.quest?.check && <div className="qr-check-result"><b>{checked.quest.check.roll}</b> + {checked.quest.check.modifier} · needed {checked.quest.check.dc}<strong>{checked.quest.check.success ? 'Made it!' : 'A costly discovery'}</strong></div>}
       </div>
+      {diceEdition && <QuestDiceResult result={diceResult} quiet={quiet} />}
+      {!combat && openEfforts.map(effort => {
+        const option = availableOptions.find(option => option.challenge?.id === effort.challengeId)!;
+        const preview = questChallengePreview(room, userId, option);
+        const names = effort.contributors.map(person => person.actorName).join(' & ');
+        const source = room.events.find(event => event.id === effort.contributors[0]?.sourceEventId);
+        const setup = target.options.find(entry => entry.id === source?.quest?.optionId)?.challenge?.setupLabel;
+        return <div className="av-teamwork-note" data-quest-effort={effort.challengeId} key={effort.challengeId}><Handshake size={21} /><div><strong>{names} started something.</strong><p>{setup ? `${setup}.` : 'Their first attempt left a useful setup.'} {preview?.helpKind === 'party' ? `You can build on ${preview.helperName}’s attempt for +2. Choose an approach below when you hold the lantern.` : preview?.helpKind === 'learned' ? 'You learned from your attempt: +1 when you try again on your own.' : 'Another hero can build on this work for +2. Pass the lantern or use your other action elsewhere.'}</p></div></div>;
+      })}
 
       {pending ? recovery
         : room.status === 'completed' ? <div className="qr-end-actions"><button className="qr-confirm" type="button" onClick={() => setDrawer('story')}><BookOpen size={17} />Read our trail</button><button className="qr-quiet-button" type="button" disabled={loading} onClick={() => void leaveRoom()}>Keep the memory & leave <ArrowRight size={17} /></button></div>
         : room.phase === 'reveal' ? <div className="qr-resolving"><span className="qr-settling-mark"><Check size={15} /></span><span>{discovered ? 'A new possibility is on the table.' : 'The table is changing.'}</span></div>
         : view.isActive ? <>
           {!combat && unfollowedSolution && <button type="button" className="av-solution-hint" onClick={() => setDrawer('leads')}><Compass size={18} /><span><strong>You have found a way to help.</strong>Follow this lead to choose its solution. Review the party’s leads <ArrowRight size={13} /></span></button>}
-          <div className={`qr-options ${combat ? 'is-combat' : ''}`} role="group" aria-label={combat ? 'Choose a combat move' : 'Choose an intention'}>
+          {preparedCheck ? <button type="button" className="qr-quiet-button av-change-approach" onClick={() => setPrepared(undefined)}><ArrowLeft size={16} />Change approach</button> : <div className={`qr-options ${combat ? 'is-combat' : ''}`} role="group" aria-label={combat ? 'Choose a combat move' : 'Choose an intention'}>
             {combat ? moves.map(move => { const Icon = moveIcons[move.id]; return <button key={move.id} type="button" data-quest-move={move.id} className={prepared?.action.kind === 'combat' && prepared.action.move === move.id ? 'is-prepared' : ''} aria-pressed={prepared?.action.kind === 'combat' && prepared.action.move === move.id} disabled={!move.available || !canAct} onClick={() => chooseMove(move)}><Icon size={20} /><span><strong>{move.id === 'spell' ? `Spell · ${move.label}` : move.label}</strong><small>{move.reason ?? move.description}</small></span></button>; })
-              : options.map(option => { const affordable = state.supplies + (option.supplyDelta ?? 0) >= 0; const modifier = option.check ? ownHero?.attributes[option.check.attribute] ?? 0 : 0; const odds = option.check ? Math.round(Math.min(6, Math.max(0, 7 + modifier - option.check.dc)) / 6 * 100) : 0; return <button key={option.id} type="button" data-quest-option={option.id} className={prepared?.action.kind === 'interact' && prepared.action.optionId === option.id ? 'is-prepared' : ''} aria-pressed={prepared?.action.kind === 'interact' && prepared.action.optionId === option.id} disabled={!canAct || !affordable} onClick={() => chooseOption(option)}><span><strong>{option.label}</strong><small>{affordable ? optionPreview(option) : `Needs ${-(option.supplyDelta ?? 0)} shared supplies. Find more on the map.`}</small>{option.check && <small><b>{option.check.attribute} +{modifier} · {odds}% chance</b></small>}</span><ArrowRight size={17} /></button>; })}
+              : options.map(option => {
+                const affordable = state.supplies + (option.supplyDelta ?? 0) >= 0;
+                const check = questChallengePreview(room, userId, option);
+                const modifier = option.check ? ownHero?.attributes[option.check.attribute] ?? 0 : 0;
+                const odds = option.check ? Math.round(Math.min(6, Math.max(0, 7 + modifier - option.check.dc)) / 6 * 100) : 0;
+                return <button key={option.id} type="button" data-quest-option={option.id} data-quest-challenge={check?.id} className={prepared?.action.kind === 'interact' && prepared.action.optionId === option.id ? 'is-prepared' : ''} aria-pressed={prepared?.action.kind === 'interact' && prepared.action.optionId === option.id} disabled={!canAct || !affordable} onClick={() => chooseOption(option)}><span><strong>{check?.helpKind === 'party' ? `Help ${check.helperName}: ` : ''}{option.label}</strong><small>{affordable ? optionPreview(option) : `Needs ${-(option.supplyDelta ?? 0)} shared supplies. Find more on the map.`}</small>{check ? <small className="av-check-preview"><Dice5 size={14} /><b>D6 + {check.baseModifier} {check.attribute}{check.helpModifier ? ` + ${check.helpModifier} ${check.helpKind === 'learned' ? 'practice' : 'teamwork'}` : ''} · need {check.dc}</b><span>{check.successes}/6 rolls succeed</span></small> : option.check && <small><b>{option.check.attribute} +{modifier} · {odds}% chance</b></small>}</span><ArrowRight size={17} /></button>;
+              })}
             {!combat && !options.length && <p className="qr-no-options">{missingLeads.length ? `This needs another lead: ${missingLeads.map(id => content.facts[id]?.label ?? id).join(', ')}.` : 'This piece has no more moves.'} Look at another piece or follow a route on the map.</p>}
-          </div>
+          </div>}
           {prepared?.action.kind === 'combat' && prepared.action.move === 'mend' && <div className="qr-mend-targets" role="group" aria-label="Choose who to Mend"><span>Who needs the help?</span>{wounded.map(seat => <button type="button" key={seat.actorId} aria-pressed={prepared.action.kind === 'combat' && prepared.action.targetActorId === seat.actorId} onClick={() => setPrepared({ ...prepared, action: { kind: 'combat', move: 'mend', targetActorId: seat.actorId }, label: `Mend ${seat.actorId === userId ? 'yourself' : seat.character.name}` })}>{seat.actorId === userId ? 'You' : seat.character.name} · {seat.hp}/{seat.character.maxHp} HP</button>)}</div>}
-          <div className="qr-release-row">{prepared ? <button type="button" className="qr-confirm" data-quest-release disabled={!canAct} onClick={() => void release()}>{loading ? 'Placing your move…' : prepared.label}<ArrowRight size={18} /></button> : combat ? <span className="qr-prepared-reason">Choose a move, then confirm it here.</span> : <button type="button" className="qr-route-button" onClick={() => setDrawer('map')}><Map size={18} />Choose a route</button>}{!combat && <button type="button" className="qr-pass" disabled={!canAct} onClick={() => prepare({ kind: 'pass' }, 'Pass the lantern', 'End your scene and let the next hero take the lead.')} aria-label="Prepare to pass the lantern">Pass <ArrowRight size={14} /></button>}</div>
-          {prepared && <p className="qr-prepared-reason" data-quest-preview>{prepared.detail}</p>}
+          <div className="qr-release-row">{preparedCheck ? <span className="qr-prepared-reason">Your plan is ready. Roll below to try it.</span> : prepared ? <button type="button" className="qr-confirm" data-quest-release disabled={!canAct} onClick={() => void release()}>{loading ? 'Placing your move…' : prepared.label}<ArrowRight size={18} /></button> : combat ? <span className="qr-prepared-reason">Choose a move, then confirm it here.</span> : <button type="button" className="qr-route-button" onClick={() => setDrawer('map')}><Map size={18} />Choose a route</button>}{!combat && <button type="button" className="qr-pass" disabled={!canAct} onClick={() => prepare({ kind: 'pass' }, 'Pass the lantern', 'End your scene and let the next hero take the lead.')} aria-label="Prepare to pass the lantern">Pass <ArrowRight size={14} /></button>}</div>
+          {prepared && !preparedCheck && <p className="qr-prepared-reason" data-quest-preview>{prepared.detail}</p>}
         </> : <div className="qr-waiting">
           <div className="qr-waiting-copy"><strong>{room.pendingJoins.includes(userId) ? 'A seat is being made for you.' : self?.leaving ? 'Your hero is leaving safely.' : `${view.activeActorName} is choosing.`}</strong><span>{room.pendingJoins.includes(userId) ? 'You join when this scene finishes.' : 'Inspect the map, plan your build, or cheer them on.'}</span></div>
           {!self && !room.pendingJoins.includes(userId) ? <button className="qr-confirm" disabled={loading} onClick={() => void joinRoom(room.code)}>Rejoin the expedition</button> : <TableReactions room={room} tabletop />}
         </div>}
+      {preparedCheck && prepared && !combat && (room.phase === 'choosing' || !!pending) && <div ref={diceArea}><QuestDice enabled={canAct && !drawer && room.phase === 'choosing'} pending={!!pending} onRoll={() => void release()} gestureKey={`${room.id}:${room.turn}:${preparedOption!.id}`} label={prepared.label} detail={prepared.detail} attribute={preparedCheck.attribute} baseModifier={preparedCheck.baseModifier} helpModifier={preparedCheck.helpModifier} helpKind={preparedCheck.helpKind} helperName={preparedCheck.helpKind === 'party' ? preparedCheck.helperName : undefined} deadline={room.deadline} dc={preparedCheck.dc} quiet={quiet} /></div>}
       {error && <p className="qr-error" role="alert">{error}</p>}
       <nav className="qr-table-tools" aria-label="Expedition tools">
         <button type="button" onClick={() => setDrawer('map')}><Map size={16} /><span>Route</span></button>
@@ -220,7 +259,7 @@ export function QuestAdventure({ room, chat }: { room: AdventureRoom; chat: Reac
       {drawer === 'map' && <QuestMap room={room} canAct={canAct && !combat} onTravel={prepareTravel} onSuggest={text => note(text)} canSuggest={!!self && !self.leaving && !view.isActive} />}
       {drawer === 'leads' && avalon && <AvalonThreads room={room} canAct={canAct && !combat} onPrepare={(action, label, detail) => { prepare(action, label, detail); closeDrawer(); }} />}
       {drawer === 'pack' && <div className="qr-pack"><p><strong>{state.supplies}{avalon ? '/6' : ''} shared supplies</strong> · Spend one to Mend in a battle. Everyone can see and use this pouch.</p>{state.items.length === 0 && <p>Follow the first clue to put something useful here.</p>}{state.items.map(id => <article key={id}><QuestItemArtwork id={id} /><div><h3>{content.items[id]?.label ?? id}</h3><p>{content.items[id]?.description}</p></div></article>)}<h3>What we know</h3>{state.facts.map(fact => <article key={fact.id}><Check size={18} /><div><strong>{content.facts[fact.id]?.label ?? fact.id}</strong><p>{content.facts[fact.id]?.description}</p><small>{fact.actorName} found this at {content.nodes.find(node => node.id === fact.nodeId)?.label ?? fact.nodeId}.</small></div></article>)}</div>}
-      {drawer === 'hero' && <div className="qr-build"><div className="qr-build-heading">{self && <HeroAvatar hero={self.character} decorative />}<div><h3>{self?.character.name ?? 'Your hero'} · level {ownHero?.level ?? 1}</h3><p>{ownHero?.runXp ?? 0} expedition XP · {ownHero?.mana ?? 0}/{ownHero?.maxMana ?? 0} mana</p></div></div><p>Build this hero for this expedition. Your saved identity stays yours; a new run starts a fresh build.</p><div className="qr-attributes">{(['might', 'wits', 'heart'] as const).map(attribute => <article key={attribute}><div><strong>{attribute} <b>{ownHero?.attributes[attribute] ?? 0}</b></strong><p>{{ might: 'Stronger basic attacks and feats of strength.', wits: 'Sharper checks and stronger clever class abilities.', heart: 'More healing from Mend and cleric Kindle.' }[attribute]}</p></div><button type="button" disabled={!buildEnabled || !ownHero?.points} onClick={() => void commitQuestAction({ kind: 'upgrade', attribute })} aria-label={`Spend one point on ${attribute}`}>+1</button></article>)}</div><p>{ownHero?.points ? `${ownHero.points} attribute point${ownHero.points > 1 ? 's' : ''} to spend.` : 'Earn expedition XP from useful actions and battles to level up.'}</p>{view.lootOffers.map(offer => <section className="qr-loot-offer" key={offer.id}><h3>Choose your find</h3><p>One item from this cache. Its effect applies in this run.</p>{offer.choices.map(choiceId => { const item = QUEST_GEAR.find(gear => gear.id === choiceId); return <button type="button" key={choiceId} data-quest-loot={choiceId} disabled={!buildEnabled} onClick={() => void commitQuestAction({ kind: 'loot', offerId: offer.id, choiceId })}><QuestItemArtwork id={choiceId} /><strong>{item?.label ?? choiceId}</strong><span className="qr-loot-description">{item?.description}</span><ArrowRight size={16} /></button>; })}</section>)}<h3>Equipped for this run</h3>{ownHero?.equipment.length ? ownHero.equipment.map(id => <article className="qr-equipped-item" key={id}><QuestItemArtwork id={id} /><div><strong>{QUEST_GEAR.find(item => item.id === id)?.label ?? id}</strong><p>{QUEST_GEAR.find(item => item.id === id)?.description}</p></div><Check size={14} /></article>) : <p>Win a battle to find equipment.</p>}</div>}
+      {drawer === 'hero' && <div className="qr-build"><div className="qr-build-heading">{self && <HeroAvatar hero={self.character} decorative />}<div><h3>{self?.character.name ?? 'Your hero'} · level {ownHero?.level ?? 1}</h3><p>{ownHero?.runXp ?? 0} expedition XP · {ownHero?.mana ?? 0}/{ownHero?.maxMana ?? 0} mana</p></div></div><p>Build this hero for this expedition. Your saved identity stays yours; a new run starts a fresh build.</p><div className="qr-attributes">{(['might', 'wits', 'heart'] as const).map(attribute => <article key={attribute}><div><strong>{attribute} <b>{ownHero?.attributes[attribute] ?? 0}</b></strong><p>{{ might: 'Stronger basic attacks and feats of strength.', wits: 'Sharper checks and stronger clever class abilities.', heart: diceEdition ? 'Better social attempts and stronger healing from Mend or Kindle.' : 'More healing from Mend and cleric Kindle.' }[attribute]}</p></div><button type="button" disabled={!buildEnabled || !ownHero?.points} onClick={() => void commitQuestAction({ kind: 'upgrade', attribute })} aria-label={`Spend one point on ${attribute}`}>+1</button></article>)}</div><p>{ownHero?.points ? `${ownHero.points} attribute point${ownHero.points > 1 ? 's' : ''} to spend.` : 'Earn expedition XP from useful actions and battles to level up.'}</p>{view.lootOffers.map(offer => <section className="qr-loot-offer" key={offer.id}><h3>Choose your find</h3><p>One item from this cache. Its effect applies in this run.</p>{offer.choices.map(choiceId => { const item = QUEST_GEAR.find(gear => gear.id === choiceId); return <button type="button" key={choiceId} data-quest-loot={choiceId} disabled={!buildEnabled} onClick={() => void commitQuestAction({ kind: 'loot', offerId: offer.id, choiceId })}><QuestItemArtwork id={choiceId} /><strong>{item?.label ?? choiceId}</strong><span className="qr-loot-description">{item?.description}</span><ArrowRight size={16} /></button>; })}</section>)}<h3>Equipped for this run</h3>{ownHero?.equipment.length ? ownHero.equipment.map(id => <article className="qr-equipped-item" key={id}><QuestItemArtwork id={id} /><div><strong>{QUEST_GEAR.find(item => item.id === id)?.label ?? id}</strong><p>{QUEST_GEAR.find(item => item.id === id)?.description}</p></div><Check size={14} /></article>) : <p>Win a battle to find equipment.</p>}</div>}
       {drawer === 'story' && <div className="qr-trail"><p>{content.opening}</p>{state.ending && <div className="qr-ending-memory"><KeepsakeArtwork name={content.chapters[2].keepsake} /><div><strong>{avalon ? 'What Avalon remembers' : 'What the village keeps'}</strong><p>{state.ending.text}</p></div></div>}<ol>{room.events.filter(actualQuestEvent).map(event => <li key={event.id}><small>{content.nodes.find(node => node.id === event.quest?.nodeId)?.label}{event.actorName && ` · ${event.actorName}`}</small><p>{event.text}</p>{event.quest?.next && <strong>{event.quest.next}</strong>}</li>)}</ol></div>}
       {drawer === 'chat' && chat}
       {drawer === 'party' && <div className="qr-party-sheet"><p>One hero leads a short scene; the lantern passes around the table. Battles give each hero one move before the enemy strikes.</p>{room.seats.map(seat => <article key={seat.actorId}><HeroAvatar hero={seat.character} decorative /><div><strong>{seat.character.name}</strong><p>{seat.kind === 'companion' ? 'Companion · supports the expedition' : seat.actorId === view.activeActorId ? 'Holding the lantern' : 'At the table'} · {seat.hp} health</p></div></article>)}<label htmlFor="qr-invite">Bring a friend</label><input id="qr-invite" readOnly value={invitationUrl(room, window.location.origin)} onFocus={event => event.target.select()} /><button className="qr-confirm" type="button" onClick={async () => { try { await navigator.clipboard.writeText(invitationUrl(room, window.location.origin)); setCopied(true); } catch { document.querySelector<HTMLInputElement>('#qr-invite')?.select(); } }}>{copied ? 'Copied!' : 'Copy invitation'}</button></div>}

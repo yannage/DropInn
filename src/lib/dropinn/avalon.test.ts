@@ -11,7 +11,7 @@ let sequence = 0;
 const hero = (name: string) => ({ ...createCharacterProfile(name, 'fighter'), id: name });
 function initial(seed = 'avalon-rules-0') {
   const random = vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue(seed as ReturnType<typeof crypto.randomUUID>);
-  try { return createAdventure(hero('Alice'), 'alice', 1000, 'AVALON', 'avalon'); } finally { random.mockRestore(); }
+  try { return createAdventure(hero('Alice'), 'alice', 1000, 'AVALON', 'avalon', 1); } finally { random.mockRestore(); }
 }
 const command = (room: AdventureRoom, type: AdventureCommand['type'], userId = 'alice', fields: Partial<AdventureCommand> = {}, now = room.updatedAt + 1) => reduceAdventure(room, { id: `avalon-${++sequence}`, type, userId, ...fields }, now);
 const action = (room: AdventureRoom, questAction: QuestAction, userId = room.questRun!.focus!.actorId) => command(room, 'quest-act', userId, { expectedTurn: room.turn, questAction });

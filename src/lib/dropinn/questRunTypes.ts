@@ -14,12 +14,28 @@ export type QuestAction =
   | { kind: 'loot'; offerId: string; choiceId: string }
   | { kind: 'upgrade'; attribute: QuestAttribute };
 export type QuestRunAction = QuestAction;
+export interface QuestChallenge {
+  id: string; label?: string; attribute: QuestAttribute; dc: number;
+  success: string; failure: string; setupLabel?: string;
+}
+export interface QuestChallengeEffort {
+  challengeId: string; nodeId: string; targetId: string; attempts: number;
+  contributors: { actorId: string; actorName: string; sourceEventId: string }[];
+  completedEventId?: string;
+}
+export interface QuestChallengePreview {
+  id: string; attribute: QuestAttribute; dc: number; sides: 6;
+  baseModifier: number; helpModifier: number; modifier: number; successes: number; total: 6; chance: number;
+  helpKind: 'none' | 'learned' | 'party'; helperActorId?: string; helperName?: string; helpSourceEventId?: string;
+  attempts: number; complete: boolean;
+}
 export interface QuestOption {
   id: string; label: string; preview: string; result: string;
   requires?: string[]; absent?: string[]; discover?: string[]; items?: string[]; supplyDelta?: number;
   followUp?: string[]; encounter?: string; completeObjective?: 'investigate' | 'source'; ending?: QuestEnding;
   check?: { attribute: QuestAttribute; dc: number; success: string; failure: string; bonusSupplies?: number; damageOnFailure?: number; successDiscover?: string[] };
   avalon?: AvalonOptionEffect;
+  challenge?: QuestChallenge;
 }
 export interface QuestTarget { id: string; name: string; context: string; artKey: string; options: QuestOption[] }
 export interface QuestNode { id: string; label: string; description: string; art: string; targets: QuestTarget[] }
@@ -56,6 +72,7 @@ export interface QuestRunState {
   combat?: QuestCombat; ending?: { id: QuestEnding; text: string; sourceEventId: string };
   pendingMilestone?: { result: 'success' | 'mixed' | 'setback'; text: string };
   avalon?: AvalonEpisode;
+  challenges?: Record<string, QuestChallengeEffort>;
 }
 export interface QuestEvent {
   kind: 'discovery' | 'follow-up' | 'travel' | 'combat' | 'loot' | 'upgrade' | 'pass' | 'ending' | 'director';
@@ -66,7 +83,11 @@ export interface QuestEvent {
   sourceEventId?: string; next?: string;
   encounterId?: string;
   threadId?: AvalonConflictId;
-  check?: { roll: number; modifier: number; dc: number; success: boolean };
+  check?: { roll: number; modifier: number; dc: number; success: boolean;
+    sides?: 6; attribute?: QuestAttribute; baseModifier?: number; helpModifier?: number;
+    helperActorId?: string; helperName?: string; helpSourceEventId?: string; helpKind?: QuestChallengePreview['helpKind'];
+    challengeId?: string; attempt?: number;
+  };
 }
 export interface QuestRunView {
   activeActorId: string | null; activeActorName: string; isActive: boolean; actionsRemaining: number;

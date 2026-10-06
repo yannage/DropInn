@@ -74,7 +74,7 @@ describe('authored inspection coverage', () => {
   for (const adventure of ADVENTURES) it(`${adventure.id}: all original and developed targets explain valid moves`, () => {
     adventure.chapters.forEach((chapter, index) => {
       const source = room([], {adventureId:adventure.id,adventureVersion:adventure.version,chapter:index});
-      if (isQuestRun(source)) source.questRun = createQuestRun('inspection-coverage', adventure.id);
+      if (isQuestRun(source)) source.questRun = createQuestRun('inspection-coverage', adventure.id, adventure.version);
       for (const flags of [[], [...chapter.targets.map(item=>`developed:${item.id}`),'mara-helped','tracks-read','gate-cleared','herd-calmed','boat-freed','reed-path','ferryman-spoke','ward-repaired','bell-rung','captives-guided']]) {
         const scene = getScene({...source,flags});
         expect(scene.situation).toBeTruthy();

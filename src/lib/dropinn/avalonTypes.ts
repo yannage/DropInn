@@ -3,7 +3,7 @@ export type AvalonConflictId = 'bitter-water' | 'missing-carter' | 'stranded-her
 export type AvalonPlaceId = 'larch-inn' | 'old-ford' | 'mill-yard' | 'reed-bank' | 'hill-spring' | 'green-quarry';
 export interface AvalonCastMember { npcId: string; nodeId: AvalonPlaceId; role: string }
 export interface AvalonManifest {
-  worldId: 'avalon-larch-hills'; worldVersion: 1; generatorVersion: 1; contentVersion: 1;
+  worldId: 'avalon-larch-hills'; worldVersion: 1; generatorVersion: 1; contentVersion: 1 | 2;
   seed: string; startNodeId: AvalonPlaceId; conflictIds: AvalonConflictId[];
   weather: 'mist' | 'clear' | 'rain'; linked: boolean;
   cast: Record<string, AvalonCastMember>;

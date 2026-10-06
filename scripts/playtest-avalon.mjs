@@ -15,7 +15,7 @@ const usedAvalonArt = new Set(), capturedNodes = new Set();
 let questContent, AVALON_WORLD;
 let now = Date.now(), handler, ssr, browser, sourceFingerprint;
 const note = (name, detail = {}) => { checks.push({ name, ...detail }); console.log(name); };
-const sourceFiles = ['src/components/DropInn/AvalonThreads.tsx', 'src/components/DropInn/avalon-adventure.css', 'src/lib/dropinn/avalonTypes.ts', 'src/lib/dropinn/avalonContent.ts', 'src/App.tsx', 'src/components/DropInn/DropInn.tsx', 'src/components/DropInn/QuestAdventure.tsx',
+const sourceFiles = ['src/components/DropInn/QuestDice.tsx', 'src/components/DropInn/quest-dice.css', 'src/lib/dropinn/questDiceGesture.ts', 'src/lib/dropinn/avalonDiceContent.ts', 'src/components/DropInn/AvalonThreads.tsx', 'src/components/DropInn/avalon-adventure.css', 'src/lib/dropinn/avalonTypes.ts', 'src/lib/dropinn/avalonContent.ts', 'src/App.tsx', 'src/components/DropInn/DropInn.tsx', 'src/components/DropInn/QuestAdventure.tsx',
   'src/components/DropInn/quest-adventure.css', 'src/components/DropInn/quest-art.css', 'src/components/DropInn/TargetArtwork.tsx',
   'src/components/DropInn/QuestArtwork.tsx', 'src/components/DropInn/SceneArt.tsx',
   'src/components/DropInn/KeepsakeArtwork.tsx', 'src/components/DropInn/HeroProgression.tsx', 'src/components/DropInn/StoryCover.tsx',
@@ -75,9 +75,9 @@ async function open(label) {
   });
   page.qaLabel = label;
   await page.goto(`${base}/?session=avalonqa${label}`); await page.locator('.di-lobby-play').waitFor();
-  if (!/Avalon/.test(await page.locator('.di-lobby-play').innerText())) {
+  if (await page.evaluate(() => localStorage.getItem('dropinn:lobby-story:v1')) !== 'avalon@1') {
     await page.getByRole('button', { name: 'Change story', exact: true }).click();
-    await page.getByRole('button', { name: /^Select story: Avalon:/ }).click();
+    await page.getByRole('button', { name: /^Select story: Avalon:.* · Living world$/ }).click();
   }
   if (label === 'a') {
     await page.locator('.di-lobby-story-options > summary').click();

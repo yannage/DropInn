@@ -1,6 +1,6 @@
 import type { AdventureCommand, AdventureRoom, StoryEvent } from './types';
 import type { QuestAction, QuestAttribute, QuestEvent, QuestLifecycle } from './questRunTypes';
-import { createQuestHero, isAvalon, questContent, questCombatMoves, questCombatNumbers, questHash, questMap, questOptions, QUEST_COMBAT_MS, QUEST_FOCUS_MS, QUEST_GEAR, QUEST_REVEAL_MS } from './questRun';
+import { createQuestHero, isAvalon, isAvalonDice, questChallengePreview, questContent, questCombatMoves, questCombatNumbers, questHash, questMap, questOptions, QUEST_COMBAT_MS, QUEST_FOCUS_MS, QUEST_GEAR, QUEST_REVEAL_MS } from './questRun';
 import { AVALON_THREADS, AVALON_PROMISES, avalonReturnText, createAvalonEpisode } from './avalonContent';
 import type { AvalonConflictId, AvalonOptionEffect } from './avalonTypes';
 
@@ -91,11 +91,34 @@ export function validateQuestRunState(room: AdventureRoom) {
   if (isAvalon(room)) {
     const episode = state.avalon;
     const canonical = (value: unknown): string => JSON.stringify(value, (_key, item) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
-    if (!episode || episode.schemaVersion !== 1 || !episode.manifest || canonical(episode.manifest) !== canonical(createAvalonEpisode(state.seed).manifest)
+    const expectedManifest = createAvalonEpisode(state.seed).manifest;
+    if (isAvalonDice(room)) expectedManifest.contentVersion = 2;
+    if (!episode || episode.schemaVersion !== 1 || !episode.manifest || canonical(episode.manifest) !== canonical(expectedManifest)
       || !Array.isArray(episode.threads) || episode.threads.length !== 2 || new Set(episode.threads.map(thread => thread.id)).size !== episode.threads.length
       || episode.threads.some(thread => !episode.manifest.conflictIds.includes(thread.id) || !['hidden', 'discovered', 'active', 'resolved'].includes(thread.status) || !Number.isInteger(thread.pressure) || thread.pressure < 0 || thread.pressure > 3)) throw new Error('This Avalon world version or saved episode is unavailable.');
   }
-  if (!questContent(room).nodes.some(node => node.id === state.nodeId)) throw new Error('This quest is missing its saved run state.');
+  const content = questContent(room);
+  if (!content.nodes.some(node => node.id === state.nodeId)) throw new Error('This quest is missing its saved run state.');
+  if (isAvalonDice(room)) {
+    const invalid = () => { throw new Error('This quest is missing valid saved challenge attempts.'); };
+    if (!state.challenges || typeof state.challenges !== 'object' || Array.isArray(state.challenges)) invalid();
+    if (room.events.some(entry => entry.quest?.check?.challengeId && !state.challenges![entry.quest.check.challengeId])) invalid();
+    const authored = content.nodes.flatMap(node => node.targets.flatMap(target => target.options.filter(option => option.challenge).map(option => ({ id: option.challenge!.id, nodeId: node.id, targetId: target.id }))));
+    for (const [id, effort] of Object.entries(state.challenges!)) {
+      if (!effort || effort.challengeId !== id || !authored.some(entry => entry.id === id && entry.nodeId === effort.nodeId && entry.targetId === effort.targetId)
+        || !Number.isSafeInteger(effort.attempts) || effort.attempts < 1 || !Array.isArray(effort.contributors) || !effort.contributors.length
+        || effort.contributors.some(person => !person || typeof person.actorId !== 'string' || typeof person.actorName !== 'string' || typeof person.sourceEventId !== 'string')
+        || new Set(effort.contributors.map(person => person.actorId)).size !== effort.contributors.length) invalid();
+      const attempts = room.events.filter(entry => entry.quest?.check?.challengeId === id);
+      if (attempts.length !== effort.attempts || attempts.some((entry, index) => entry.quest!.check!.attempt !== index + 1
+        || entry.quest!.check!.sides !== 6 || !Number.isInteger(entry.quest!.check!.roll) || entry.quest!.check!.roll < 1 || entry.quest!.check!.roll > 6)) invalid();
+      for (const person of effort.contributors) {
+        if (!person || !room.players[person.actorId] || !person.actorName || !attempts.some(entry => entry.id === person.sourceEventId && entry.actorId === person.actorId)) invalid();
+      }
+      const completed = attempts.find(entry => entry.quest!.check!.success);
+      if (completed?.id !== effort.completedEventId || completed && attempts.at(-1)?.id !== completed.id) invalid();
+    }
+  }
 }
 function ensureHeroes(room: AdventureRoom) {
   for (const seat of humans(room)) room.questRun!.heroes[seat.actorId] ??= createQuestHero(seat.character.classKey);
@@ -331,9 +354,37 @@ function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks:
   if (!option) throw new Error('Choose a currently displayed intention.');
   if ((option.supplyDelta ?? 0) < -state.supplies) throw new Error('The party needs more supplies for this action.');
   if (option.encounter && !content.enemies[option.encounter]) throw new Error('This encounter is unavailable.');
+  const challenge = isAvalonDice(room) ? option.challenge : undefined;
+  const preview = challenge ? questChallengePreview(room, command.userId, option) : undefined;
+  let challengeCheck: QuestEvent['check'];
+  if (challenge && preview) {
+    const roll = 1 + questHash(`${state.seed}:${room.turn}:${command.userId}:challenge:${challenge.id}`) % 6;
+    challengeCheck = { roll, modifier: preview.modifier, dc: challenge.dc, success: roll + preview.modifier >= challenge.dc,
+      sides: 6, attribute: challenge.attribute, baseModifier: preview.baseModifier, helpModifier: preview.helpModifier, helpKind: preview.helpKind,
+      challengeId: challenge.id, attempt: preview.attempts + 1,
+      ...(preview.helperActorId ? { helperActorId: preview.helperActorId, helperName: preview.helperName, helpSourceEventId: preview.helpSourceEventId } : {}) };
+    if (!challengeCheck.success) {
+      state.challenges ??= {};
+      const effort = state.challenges[challenge.id] ??= { challengeId: challenge.id, nodeId: state.nodeId, targetId: interaction.targetId, attempts: 0, contributors: [] };
+      const firstFailure = effort.attempts === 0; effort.attempts++; actor.remaining--;
+      const nextAttempt = humans(room).length > 1 ? `Another hero can build on ${seat.character.name}’s attempt for +2.` : `${seat.character.name} can retry with +1.`;
+      const text = `${challenge.failure}${challenge.setupLabel ? ` Shared setup: ${challenge.setupLabel}.` : ''} ${nextAttempt} No supplies spent; safe choices remain.`;
+      const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: firstFailure,
+        text: `${seat.character.name}: ${text}`, quest: { kind: 'follow-up', nodeId: state.nodeId, optionId: option.id, check: challengeCheck, factIds: [], itemIds: [], supplyDelta: 0,
+          ...(option.avalon?.threadId ? { threadId: option.avalon.threadId } : {}) }, result: { changed: true },
+        change: { title: `${challenge.label ?? option.label}: unfinished`, text, next: 'Choose an approach here to build on the attempt, or pursue another lead.' } });
+      if (!effort.contributors.some(person => person.actorId === command.userId)) effort.contributors.push({ actorId: command.userId, actorName: seat.character.name, sourceEventId: source.id });
+      const siblings = content.nodes.find(node => node.id === state.nodeId)!.targets.find(target => target.id === interaction.targetId)!.options.filter(item => item.challenge?.id === challenge.id).map(item => item.id);
+      state.followUp = { id: `${source.id}:follow-up`, targetId: interaction.targetId, optionIds: siblings, sourceEventId: source.id };
+      rewardAction(room, command.userId, source, firstFailure);
+      // A real failed attempt can affect pacing and interest even after its one setup reward.
+      noteAvalonAction(room, command.userId, true, option.avalon?.threadId);
+      reveal(room, now); return;
+    }
+  }
   state.usedOptions.push(option.id); actor.remaining--;
   const roll = option.check ? 1 + questHash(`${state.seed}:${room.turn}:${command.userId}:${option.id}`) % 6 : 0;
-  const check = option.check ? { roll, modifier: state.heroes[command.userId].attributes[option.check.attribute], dc: option.check.dc, success: roll + state.heroes[command.userId].attributes[option.check.attribute] >= option.check.dc } : undefined;
+  const check = challengeCheck ?? (option.check ? { roll, modifier: state.heroes[command.userId].attributes[option.check.attribute], dc: option.check.dc, success: roll + state.heroes[command.userId].attributes[option.check.attribute] >= option.check.dc } : undefined);
   const facts = [...new Set([...(option.discover ?? []), ...(check?.success ? option.check?.successDiscover ?? [] : [])])].filter(id => !state.facts.some(fact => fact.id === id));
   const items = (option.items ?? []).filter(id => !state.items.includes(id)); state.items.push(...items);
   const offeredSupplies = (option.supplyDelta ?? 0) + (check?.success ? option.check?.bonusSupplies ?? 0 : 0);
@@ -344,10 +395,16 @@ function act(room: AdventureRoom, command: AdventureCommand, now: number, hooks:
     ? supplies > 0 ? `The party gains ${supplies} shared ${supplies === 1 ? 'supply' : 'supplies'}.${excess ? ` ${excess} extra ${excess === 1 ? 'supply is' : 'supplies are'} left behind.` : ''} `
       : `The shared pack is full; ${excess} ${excess === 1 ? 'supply is' : 'supplies are'} left behind. `
     : '';
-  const resultText = `${supplyReceipt}${option.result}${check ? ` ${check.success ? option.check!.success : option.check!.failure}` : ''}`;
+  const resultText = `${supplyReceipt}${challenge ? challenge.success : option.result}${!challenge && check ? ` ${check.success ? option.check!.success : option.check!.failure}` : ''}`;
   const source = event(room, now, { kind: 'action', actorId: command.userId, actorName: seat.character.name, contribution: meaningful, text: `${seat.character.name}: ${resultText}`,
     quest: { kind: option.ending ? 'ending' : state.followUp?.optionIds.includes(option.id) ? 'follow-up' : 'discovery', nodeId: state.nodeId, optionId: option.id, factIds: facts, itemIds: items, supplyDelta: supplies, ...(option.avalon?.threadId ? { threadId: option.avalon.threadId } : {}), ...(check ? { check } : {}) }, result: { changed: meaningful },
     change: { title: option.label, text: resultText, next: option.followUp?.length ? 'The discovery opens a follow-up choice.' : 'The party can use this result on its next decision.' } });
+  if (challenge) {
+    state.challenges ??= {};
+    const effort = state.challenges[challenge.id] ??= { challengeId: challenge.id, nodeId: state.nodeId, targetId: interaction.targetId, attempts: 0, contributors: [] };
+    effort.attempts++; effort.completedEventId = source.id;
+    if (!effort.contributors.some(person => person.actorId === command.userId)) effort.contributors.push({ actorId: command.userId, actorName: seat.character.name, sourceEventId: source.id });
+  }
   for (const id of facts) fact(room, id, source);
   state.followUp = option.followUp?.length ? { id: `${source.id}:follow-up`, targetId: interaction.targetId, optionIds: option.followUp, sourceEventId: source.id } : undefined;
   rewardAction(room, command.userId, source, meaningful);

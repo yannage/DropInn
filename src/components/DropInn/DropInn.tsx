@@ -476,7 +476,7 @@ function initialLobbyStory(): string {
   try {
     return storyChoiceKey(selectedStory(localStorage.getItem(lobbyStoryKey)));
   } catch { /* A browser preference must never prevent entering an adventure. */ }
-  return 'avalon@1';
+  return 'avalon@2';
 }
 
 function Lobby() {
@@ -506,6 +506,7 @@ function Lobby() {
   useEffect(() => { const open = () => setPassOpen(true); window.addEventListener('dropinn-open-story-pass', open); return () => window.removeEventListener('dropinn-open-story-pass', open); }, []);
   const adventure = selectedStory(storyKey);
   const questStyle = ['avalon', 'mosswater'].includes(adventure.id);
+  const diceStyle = adventure.id === 'avalon' && adventure.version === 2;
   useEffect(() => {
     try { localStorage.setItem(lobbyStoryKey, storyChoiceKey(adventure)); }
     catch { /* Story selection still works when browser storage is unavailable. */ }
@@ -524,7 +525,7 @@ function Lobby() {
           <div className="di-lobby-intro-copy">
             <p className="di-lobby-welcome"><span aria-hidden="true" /> The door is always open</p>
             <h1>Pull up a chair.<br />Make a little<br className="di-lobby-title-break" /> <em>legend.</em></h1>
-            <p className="di-lobby-explanation">{adventure.id === 'avalon' ? 'A little woodland adventure for 1–4 players. Arrive somewhere new, follow a rumor, and decide what your party will change.' : adventure.id === 'mosswater' ? 'A tiny cooperative quest for 1–4 players. Take the lantern, explore a place, and leave it changed. Fight, bargain, or find another way.' : 'A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.'}</p>
+            <p className="di-lobby-explanation">{diceStyle ? 'A little woodland adventure for 1–4 players. Try a clever plan, roll the die, or help a friend finish what they started. Your strengths belong at this table.' : adventure.id === 'avalon' ? 'A little woodland adventure for 1–4 players. Arrive somewhere new, follow a rumor, and decide what your party will change.' : adventure.id === 'mosswater' ? 'A tiny cooperative quest for 1–4 players. Take the lantern, explore a place, and leave it changed. Fight, bargain, or find another way.' : 'A drop-in tabletop adventure for 1–4 players. Pick a move, roll together, and see where the story takes you.'}</p>
             <div className="di-lobby-start">
               <div className="di-lobby-start-actions">
                 <button type="button" className="di-button di-primary di-lobby-play" disabled={loading} onClick={() => void playNow(adventure.id, adventure.version)}>
@@ -551,6 +552,7 @@ function Lobby() {
                 <p className="di-lobby-story-hook">{adventure.pitch}</p>
                 <p className="di-lobby-edition-note">{storyPlayStyle(adventure)}</p>
                 <button type="button" className="di-lobby-change" aria-haspopup="dialog" disabled={loading} onClick={() => setStoryChooser(true)}>Change story <ArrowRight size={15} /></button>
+                {adventure.id === 'avalon' && adventure.version === 1 && <button type="button" className="di-lobby-change" disabled={loading} onClick={() => setStoryKey('avalon@2')}>Try Dice &amp; teamwork <ArrowRight size={15} /></button>}
               </div>
             </article>
             <div className="di-lobby-company-note"><Users size={20} aria-hidden="true" /><p>Come solo. Bring friends.<br /><span>Companions keep a seat warm.</span></p></div>
@@ -564,7 +566,7 @@ function Lobby() {
           <ol className="di-lobby-loop" aria-label="Each round">
             <li><span className="di-lobby-step-art"><Compass size={25} aria-hidden="true" /></span><span><b>01</b> {questStyle ? 'Look around' : 'Pick a target'}</span></li>
             <li><span className="di-lobby-step-art"><Swords size={25} aria-hidden="true" /></span><span><b>02</b> Choose a move</span></li>
-            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> {questStyle ? 'Follow your lead' : 'Hold & release'}</span></li>
+            <li><span className="di-lobby-step-art"><Hand size={25} aria-hidden="true" /></span><span><b>03</b> {diceStyle ? 'Roll or lend a hand' : questStyle ? 'Follow your lead' : 'Hold & release'}</span></li>
             <li><span className="di-lobby-step-art"><Sparkles size={25} aria-hidden="true" /></span><span><b>04</b> See what changed</span></li>
           </ol>
           <p className="di-lobby-round-note"><Clock3 size={13} aria-hidden="true" />{questStyle ? 'Two actions in your 45-second turn · Battles give every hero a move' : 'Everyone chooses together · 60 seconds per round · Ready parties move sooner'}</p>
@@ -626,12 +628,12 @@ function Lobby() {
       {storyChooser && <Modal title="Choose a story" onClose={() => setStoryChooser(false)}>
         <div className="di-lobby-story-picker">
           <p className="di-eyebrow">Different ways to make a little legend</p><h2>Choose a story</h2>
-          <p>Visit Avalon’s living woodland, try Mosswater’s quest crawl, or return to an earlier adventure. Your selected edition is remembered for next time.</p>
+          <p>Try Avalon with dice and teamwork, compare the earlier living world, or return to another adventure. Your selected edition is remembered for next time.</p>
           <div className="di-lobby-story-choices" role="group" aria-label="Story choices">
             {STORY_CHOICES.map(item => <article key={storyChoiceKey(item)} data-story-choice={storyChoiceKey(item)} className={storyChoiceKey(item) === storyChoiceKey(adventure) ? 'is-selected' : ''}>
               <StoryCover adventureId={item.id} scene={item.chapters[0].art} />
               <div className="di-lobby-story-choice-copy"><span className="di-story-edition">{storyEdition(item)}</span><h3>{item.title}</h3><p>{storyPlayStyle(item)}</p></div>
-              <button type="button" className="di-button di-secondary" aria-label={`Select story: ${item.title}${item.id === 'gemward' ? ` · ${storyEdition(item)}` : ''}`} aria-pressed={storyChoiceKey(item) === storyChoiceKey(adventure)} disabled={loading} onClick={() => { setStoryKey(storyChoiceKey(item)); setStoryChooser(false); }}>
+              <button type="button" className="di-button di-secondary" aria-label={`Select story: ${item.title}${['gemward', 'avalon'].includes(item.id) ? ` · ${storyEdition(item)}` : ''}`} aria-pressed={storyChoiceKey(item) === storyChoiceKey(adventure)} disabled={loading} onClick={() => { setStoryKey(storyChoiceKey(item)); setStoryChooser(false); }}>
                 {storyChoiceKey(item) === storyChoiceKey(adventure) ? <><Check size={16} /> Selected story</> : <>Choose this story <ArrowRight size={16} /></>}
               </button>
               <details className="di-lobby-choice-rewards"><summary>View rewards</summary><StoryRewards adventureId={item.id} adventureVersion={item.version} collectionVersion={1} /></details>

@@ -1,5 +1,6 @@
 import { ArrowRight, Check, Compass, Flag, Footprints, Handshake, Leaf } from 'lucide-react';
 import { AVALON_THREADS, AVALON_PROMISES } from '../../lib/dropinn/avalonContent';
+import { avalonDiceResolutionCost } from '../../lib/dropinn/avalonDiceContent';
 import { questContent } from '../../lib/dropinn/questRun';
 import type { AdventureRoom } from '../../lib/dropinn/types';
 import type { QuestRunAction } from '../../lib/dropinn/questRunTypes';
@@ -28,7 +29,7 @@ export function AvalonThreads({ room, canAct, onPrepare }: Props) {
       return <article key={thread.id} className={`av-thread is-${thread.status}`} data-avalon-thread={thread.id}>
         <div className="av-thread-heading"><span className="av-thread-pin">{thread.status === 'resolved' ? <Check size={20} /> : thread.status === 'active' ? <Flag size={20} /> : <Footprints size={20} />}</span><div><small>{thread.status === 'resolved' ? 'A change you made' : thread.status === 'active' ? 'The party is following this' : offered ? 'A lead from your discoveries' : 'A lead you can return to'}</small><h3>{definition.title}</h3></div></div>
         <p>{ending ? ending.change : definition.question}</p>
-        {ending && <p className="av-cost"><strong>What it cost:</strong> {ending.cost}</p>}
+        {ending && <p className="av-cost"><strong>What it cost:</strong> {room.adventureVersion === 2 ? avalonDiceResolutionCost(thread.id, thread.resolutionId!, room.questRun!.facts.map(fact => fact.id)) : ending.cost}</p>}
         {thread.status === 'active' && <div className="av-pressure" data-avalon-pressure={thread.pressure}><span aria-hidden="true">{[1, 2, 3].map(step => <i key={step} className={step <= thread.pressure ? 'is-filled' : ''} />)}</span><p><strong>{thread.pressure >= 3 ? 'The setback has happened' : 'If this stays unresolved'}</strong>{thread.pressure === 3 && thread.pressureSupplySpent === false ? 'No shared supply was available. This request for help remains open.' : definition.pressureWarnings[Math.max(0, thread.pressure - 1)]}<small>Only rounds with real exploration advance this trouble. At the third step it costs one shared supply, once. Every solution stays available.</small></p></div>}
         {!!events.length && <details className="av-thread-evidence"><summary>How we got here</summary>{events.map(event => <p key={event.id}><strong>{event.actorName}</strong> · {content.nodes.find(node => node.id === event.quest?.nodeId)?.label}<span>{event.text}</span></p>)}</details>}
         {thread.status === 'discovered' && room.status === 'active' && <button type="button" className="qr-confirm" disabled={!canAct} data-avalon-follow={thread.id} onClick={() => onPrepare({ kind: 'follow-thread', threadId: thread.id }, `Follow: ${definition.title}`, 'Spend one action to make this a party priority. Its announced trouble advances with meaningful exploration rounds; the third step costs one shared supply once.')}><Flag size={16} />Follow this lead <ArrowRight size={16} /></button>}

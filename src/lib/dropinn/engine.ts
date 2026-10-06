@@ -102,7 +102,7 @@ export function createAdventure(character: CharacterProfile, userId: string, now
     createdAt: now, updatedAt: now, progress: 0, danger: 0, flags: [], seats: [], players: {}, pendingJoins: [], commits: {}, events: [], outcomes: [], appliedCommands: [] };
   if (isExpedition(room)) room.expedition = createExpedition(room.id);
   if (isJourney(room)) room.expedition = createJourney(room.id, room.adventureVersion);
-  if (isQuestRun(room)) room.questRun = createQuestRun(room.id, room.adventureId);
+  if (isQuestRun(room)) room.questRun = createQuestRun(room.id, room.adventureId, room.adventureVersion);
   room.players[userId] = { userId, character: hero, seatId: null, joinedAt: now, leftAt: null, actions: 0, xp: 0, keepsakes: [], spotlightChapters: [], highlights: [] };
   seatPlayer(room, room.players[userId], now);
   fillCompanions(room);

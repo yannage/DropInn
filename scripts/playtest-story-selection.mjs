@@ -15,6 +15,7 @@ const preferenceKey = 'dropinn:lobby-story:v1', now = Date.now();
 let ssr, browser, handler, sourceFingerprint, choices;
 const note = (name, details = {}) => { checks.push({ name, ...details }); console.log(name); };
 const editions = [
+  { id: 'avalon', version: 2, title: 'Avalon: A Visit to the Larch Hills', edition: 'Dice & teamwork' },
   { id: 'avalon', version: 1, title: 'Avalon: A Visit to the Larch Hills', edition: 'Living world' },
   { id: 'mosswater', version: 1, title: 'Mosswater: The Well That Growled' },
   { id: 'gemward', version: 3, title: 'Gemward: The Missing Light', edition: 'Story table' },
@@ -88,7 +89,7 @@ async function requestClick(page, operation, locator, status = 200) {
   assert.equal(response.status(), status, await response.text()); return response.json();
 }
 function choiceLabel(choice) {
-  if (choice.id === 'gemward') return new RegExp(`^Select story: Gemward:.* · ${choice.edition}$`);
+  if (['gemward', 'avalon'].includes(choice.id)) return `Select story: ${choice.title} · ${choice.edition}`;
   return `Select story: ${choice.title}`;
 }
 async function select(page, choice) {
@@ -170,13 +171,13 @@ try {
   browser = await chromium.launch({ headless: true });
   const a = await open('a'), b = await open('b');
   for (const page of [a, b]) {
-    assert.equal(await page.evaluate(key => localStorage.getItem(key), preferenceKey), 'avalon@1');
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), preferenceKey), 'avalon@2');
     assert.equal(await page.locator('#lobby-story-title').textContent(), editions[0].title);
   }
   note('Fresh visitors preview Avalon while existing preferences remain independent');
   await a.getByRole('button', { name: 'Change story', exact: true }).click();
   choices = await a.getByRole('button', { name: /^Select story:/ }).evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label')));
-  assert.equal(choices.length, 9, 'All nine current stories and comparison editions remain selectable.');
+  assert.equal(choices.length, 10, 'All ten current stories and comparison editions remain selectable.');
   for (const choice of editions) assert.equal(await a.getByRole('button', { name: choiceLabel(choice), exact: true }).count(), 1);
   await layout(a, 'picker', '.di-lobby-story-picker'); await a.keyboard.press('Escape');
   for (const choice of editions) {
@@ -217,7 +218,7 @@ try {
     note(`${key}: private creation uses selected release; full invitation preserves pin despite another selected story`);
     await leave(b); await leave(a);
   }
-  const savedChoices = [['gemward', 'gemward@3'], ['briar-glen', 'briar-glen@4'], ['mosswater@1', 'mosswater@1'], ['unavailable-story@91', 'avalon@1']];
+  const savedChoices = [['avalon', 'avalon@2'], ['avalon@1', 'avalon@1'], ['gemward', 'gemward@3'], ['briar-glen', 'briar-glen@4'], ['mosswater@1', 'mosswater@1'], ['unavailable-story@91', 'avalon@2']];
   for (const [index, [legacy, current]] of savedChoices.entries()) {
     const page = await open(`saved${index}`, legacy);
     await page.waitForFunction(({ key, value }) => localStorage.getItem(key) === value, { key: preferenceKey, value: current });
